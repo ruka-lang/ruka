@@ -7,24 +7,28 @@ set( CMAKE_BUILD_TYPE Debug )
 project( rex-c LANGUAGES C )
 
 # Files and Libs
-set( SRC src )
-set( TST test )
+set( SOURCE src )
+set( TEST test )
 
-set( HEAD ${SRC}/compiler/compiler.h )
+set( HEAD ${SOURCE}/compiler/compiler.h
+          ${SOURCE}/helpers/vector.h
+          ${SOURCE}/helpers/buffer.h )
 
-set( SRCS ${SRC}/compiler/compiler.c 
-          ${SRC}/compiler/cprocess.c )
+set( SOURCES ${SOURCE}/compiler/compiler.c 
+             ${SOURCE}/compiler/cprocess.c 
+             ${SOURCE}/helpers/vector.c
+             ${SOURCE}/helpers/buffer.h )
 
-set( TSTS ${TST}/scanner/scanner.h ${TST}/scanner/scanner.c )
+set( TESTS ${TEST}/scanner/scanner.h ${TEST}/scanner/scanner.c )
 
-set( LIBS )
+set( LIBRARIES )
 
 # Executables
-add_executable( rex-c ${SRC}/main.c ${HEAD} ${SRCS} )
-target_link_libraries( rex-c PRIVATE ${LIBS} )
+add_executable( rex-c ${SOURCE}/main.c ${HEAD} ${SOURCES} )
+target_link_libraries( rex-c PRIVATE ${LIBRARIES} )
 
-add_executable( rex-c-test ${TST}/test.c ${TSTS} ${HEAD} ${SRCS} )
-target_link_libraries( rex-c-test PRIVATE ${LIBS} )
+add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${HEAD} ${SOURCES} )
+target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
 
 # Tests
 enable_testing()
