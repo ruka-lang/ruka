@@ -5,9 +5,9 @@ set( CMAKE_BUILD_TYPE Debug )
 
 project( rex-c LANGUAGES C )
 
-set( INC inc )
 set( SRC src )
-set( TST tst )
+set( INC ${SRC}/headers )
+set( TST test )
 set( INCS )
 set( LIBS )
 set( SRCS )
