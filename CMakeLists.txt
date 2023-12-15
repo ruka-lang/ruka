@@ -6,21 +6,20 @@ set( CMAKE_BUILD_TYPE Debug )
 project( rex-c LANGUAGES C )
 
 set( SRC src )
-set( INC ${SRC}/headers )
 set( TST test )
-set( INCS )
+set( HEAD )
 set( LIBS )
 set( SRCS )
 set( TSTS )
 
 add_executable( rex-c ${SRC}/main.c
-                      ${INCS} 
+                      ${HEAD} 
                       ${SRCS} )
 target_link_libraries( rex-c PRIVATE ${LIBS} )
 
 add_executable( rex-c-test ${TST}/test.c
                            ${TSTS} 
-                           ${INCS} 
+                           ${HEAD} 
                            ${SRCS} )
 target_link_libraries( rex-c-test PRIVATE ${LIBS} )
 
