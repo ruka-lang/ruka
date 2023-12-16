@@ -7,6 +7,8 @@
 
 #include <stdbool.h>
 #include "../helpers/position.h"
+#include "../helpers/vector.h"
+#include "../helpers/buffer.h"
 
 struct compile_process;
 

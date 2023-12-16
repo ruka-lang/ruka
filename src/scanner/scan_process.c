@@ -2,10 +2,7 @@
  *  @author: dwclake
  */
 
-#include "scanner.h"
-
 #include <stdlib.h>
-#include "../helpers/vector.h"
 #include "../compiler/compiler.h"
 
 /* Create a new scan process */
