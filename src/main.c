@@ -1,12 +1,12 @@
 /*
- *
+ *  @author: dwclake
  */
 
 #include <stdio.h>
 #include "compiler/compiler.h"
 
 int main(int argc, const char* argv[]) {
-    int result = compile_file("examples/test.c", "examples/test", 0);
+    int result = compile_file("examples/test.rx", "examples/test", 0);
     switch (result) {
         case COMPILER_FILE_COMPILED_OK:
             printf("Compiled successfully\n");

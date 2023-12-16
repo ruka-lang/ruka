@@ -1,5 +1,5 @@
 /*
- *
+ *  @author: dwclake
  */
 
 #ifndef BUFFER_H

@@ -1,0 +1,12 @@
+const std = @import("std");
+
+#|
+ | Test comment!
+ |#
+
+$type[fn (isize, [&]str) -> isize] 
+let main = (argc, argv) => {
+    std/printf("{}\n", "Hello, world!");
+
+    return 0;
+};

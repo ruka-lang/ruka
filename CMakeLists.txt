@@ -11,13 +11,20 @@ set( SOURCE src )
 set( TEST test )
 
 set( HEAD ${SOURCE}/compiler/compiler.h
+          ${SOURCE}/helpers/position.h
           ${SOURCE}/helpers/vector.h
-          ${SOURCE}/helpers/buffer.h )
+          ${SOURCE}/helpers/buffer.h
+          ${SOURCE}/scanner/scanner.h
+          ${SOURCE}/parser/parser.h )
 
 set( SOURCES ${SOURCE}/compiler/compiler.c 
              ${SOURCE}/compiler/cprocess.c 
              ${SOURCE}/helpers/vector.c
-             ${SOURCE}/helpers/buffer.h )
+             ${SOURCE}/helpers/buffer.c
+             ${SOURCE}/scanner/scanner.c
+             ${SOURCE}/scanner/sprocess.c
+             ${SOURCE}/parser/parser.c
+             ${SOURCE}/parser/pprocess.c )
 
 set( TESTS ${TEST}/scanner/scanner.h ${TEST}/scanner/scanner.c )
 

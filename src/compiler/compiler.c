@@ -1,8 +1,14 @@
 /*
- *
+ *  @author: dwclake
  */
 
 #include "./compiler.h"
+
+struct scan_process_functions compiler_scan_functions = {
+    .next_char = scan_process_next_char,
+    .peek_char = scan_process_peek_char,
+    .push_char = scan_process_push_char
+};
 
 /* Compiles file at filename to out_filename with flags */
 int compile_file(const char* filename, const char* out_filename, int flags) {
@@ -10,11 +16,16 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     
     if (!process) return COMPILER_FAILED_WITH_ERRORS;
 
-    // Scan
-    
-    // Parse
+    /* Scan */
+    struct scan_process* scan_process = scan_process_create(process, &compiler_scan_functions, NULL);
+    if (!scan_process) return COMPILER_FAILED_WITH_ERRORS;
 
-    // Code generation
+    int scan_result = scan(scan_process);
+    if (scan_result != SCAN_ALL_OK) return COMPILER_FAILED_WITH_ERRORS;
+    
+    /* Parse */
+
+    /* Code generation */
     
     return COMPILER_FILE_COMPILED_OK;
 }

@@ -1,15 +1,18 @@
 /*
- *
+ *  @author: dwclake
  */
 
 #ifndef COMPILER_H
 #define COMPILER_H
 
 #include <stdio.h>
+#include "../helpers/buffer.h"
+#include "../helpers/vector.h"
+#include "../scanner/scanner.h"
 
 /* Compiler messages */
 enum {
-    COMPILER_FILE_COMPILED_OK,
+    COMPILER_FILE_COMPILED_OK, 
     COMPILER_FAILED_WITH_ERRORS
 };
 
@@ -17,10 +20,11 @@ enum {
 struct compile_process {
     /* The flags in regards to how this file should be compiled */
     int flags;
+    struct pos pos;
 
     /* File to be compiled */
     struct compile_process_input_file {
-        FILE* fp;
+        FILE* fp; 
         const char* abs_path;
     } cfile;
 
