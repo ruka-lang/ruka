@@ -4,6 +4,7 @@
 
 #include "./compiler.h"
 
+/* Functions for the scanner to use */
 struct scan_process_functions compiler_scan_functions = {
     .next_char = scan_process_next_char,
     .peek_char = scan_process_peek_char,
@@ -26,6 +27,8 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     /* Parse */
 
     /* Code generation */
+
+    compile_process_free(process);
     
     return COMPILER_FILE_COMPILED_OK;
 }

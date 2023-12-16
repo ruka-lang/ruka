@@ -9,6 +9,7 @@
 
 struct compile_process;
 
+/* State for a parsing process */
 struct parse_process {};
 
 #endif

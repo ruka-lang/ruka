@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "compiler.h"
 
+/* Creates a new compile process */
 struct compile_process* compile_process_create(const char* filename, const char* filename_out, int flags) {
     FILE* file = fopen(filename, "r");
 
@@ -24,4 +25,11 @@ struct compile_process* compile_process_create(const char* filename, const char*
     process->ofile = out_file;
 
     return process;
+}
+
+/* Frees a compile process */
+void compile_process_free(struct compile_process* process) {
+    fclose((*process).ofile);
+    fclose((*process).cfile.fp);
+    free(process);
 }

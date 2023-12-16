@@ -10,27 +10,32 @@
 
 struct compile_process;
 
+/* Scan flags */
 enum {
     SCAN_ALL_OK,
     SCAN_INPUT_ERROR
 };
 
+/* Token types */
 enum {
-    TT_IDENTIFIER,
-    TT_KEYWORD,
-    TT_OPERATOR,
-    TT_SYMBOL,
-    TT_NUMBER,
-    TT_STRING,
-    TT_COMMENT,
-    TT_NEWLINE
+    IDENTIFIER,
+    KEYWORD,
+    OPERATOR,
+    SYMBOL,
+    INTEGER,
+    FLOAT,
+    STRING,
+    REGEX,
+    COMMENT,
+    NEWLINE
 };
 
+/* Token struct */
 struct token {
     int type;
     int flags;
 
-    /* Types for various tokens */
+    /* Data for various tokens */
     union {
         char cval;
         const char* sval;
@@ -46,6 +51,7 @@ struct token {
     struct pos file_pos;
 };
 
+/* State for the scanning process */
 struct scan_process {
     struct pos pos;
     struct vector* tokens;
@@ -58,9 +64,13 @@ struct scan_process {
     void* private_data;
 };
 
+/* Scans the file in the scan process */
 int scan(struct scan_process* process);
 
-struct scan_process* scan_process_create(struct compile_process* compiler, struct scan_process_functions* functions, void* private_data);
+/* Scan process constructors/destructors/getters */
+struct scan_process* scan_process_create(struct compile_process* compiler, 
+                                         struct scan_process_functions* functions, 
+                                         void* private_data);
 void scan_process_free(struct scan_process* process);
 void* scan_process_private(struct scan_process* process);
 struct vector* scan_process_tokens(struct scan_process* process);
@@ -70,12 +80,14 @@ typedef char (*SCAN_PROCESS_NEXT_CHAR)(struct scan_process* process);
 typedef char (*SCAN_PROCESS_PEEK_CHAR)(struct scan_process* process);
 typedef void (*SCAN_PROCESS_PUSH_CHAR)(struct scan_process* process, char c);
 
+/* Struct representing the scanning functions used by the scan process */
 struct scan_process_functions {
     SCAN_PROCESS_NEXT_CHAR next_char;
     SCAN_PROCESS_PEEK_CHAR peek_char;
     SCAN_PROCESS_PUSH_CHAR push_char;
 };
 
+/* Default scan process functions */
 char scan_process_next_char(struct scan_process* scan_process);
 char scan_process_peek_char(struct scan_process* scan_process);
 void scan_process_push_char(struct scan_process* scan_process, char c);
