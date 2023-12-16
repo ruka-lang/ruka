@@ -10,21 +10,21 @@ project( rex-c LANGUAGES C )
 set( SOURCE src )
 set( TEST test )
 
-set( HEAD ${SOURCE}/compiler/compiler.h
-          ${SOURCE}/helpers/position.h
+set( HEAD ${SOURCE}/helpers/position.h
           ${SOURCE}/helpers/vector.h
           ${SOURCE}/helpers/buffer.h
+          ${SOURCE}/compiler/compiler.h
           ${SOURCE}/scanner/scanner.h
           ${SOURCE}/parser/parser.h )
 
-set( SOURCES ${SOURCE}/compiler/compiler.c 
-             ${SOURCE}/compiler/cprocess.c 
-             ${SOURCE}/helpers/vector.c
+set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/helpers/buffer.c
+             ${SOURCE}/compiler/compiler.c 
+             ${SOURCE}/compiler/compile_process.c 
              ${SOURCE}/scanner/scanner.c
-             ${SOURCE}/scanner/sprocess.c
+             ${SOURCE}/scanner/scan_process.c
              ${SOURCE}/parser/parser.c
-             ${SOURCE}/parser/pprocess.c )
+             ${SOURCE}/parser/parse_process.c )
 
 set( TESTS ${TEST}/scanner/scanner.h ${TEST}/scanner/scanner.c )
 
