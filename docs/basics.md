@@ -42,7 +42,7 @@ Assignment in `Rex` can also be done as an expression using ":=", which returns 
 let boolean = false;
 # Assignment expression
 while (boolean := someFunc()) { # Will loop until someFunc returns false 
-    std/fmt.printf("{}", boolean);
+    std/io.printf("{}", boolean);
 }
 ```
 
@@ -226,19 +226,19 @@ values must be returned explicitly
 
 A multi line body.
 ```
-const add = (x, y) => {
+const add = (x, y) {
     return x + y
 };
 ```
 Parameters can be positional, or named. Named parameters must be declared with ~ preceding the tag. They are inferred to be optional types, but their types can be set to standard types. If used as optional types, must be after all positional parameters.
 ```
-const add = (x, y) => {
+const add = (x, y) {
     return x + y
 };
 
 add(1, 2); # x = 1, y = 2
 
-const add = (x, ~y) => {
+const add = (x, ~y) {
     return x + y
 };
 
@@ -256,14 +256,14 @@ is the same type as the expression the "method" is being called on
 ## Error Handling
 ```
 # Returns a result, which is a union (string or error)
-const func1 = (): !string {
+const func1 = () -> !string {
     if (...) {
         return error.someError;
     }
 };
 
 # Returns a result, which is a union (void or error)
-const func1 = (): !void {
+const func1 = () -> !void {
     if (...) {
         return error.someError;
     }
@@ -275,7 +275,7 @@ let s: string = func1() as string;
 let s: string = func1().!;
 
 # Returns a optional, which is a union (int or null)
-const func2 = (): ?int {
+const func2 = () -> ?int {
 
 };
 
@@ -312,7 +312,7 @@ let source = "int main() {}";
 # capturing the remaining portion of the string as a slice
 match (source) {
     | "int", ... => |rest| {
-        std/fmt.print("{}\n", rest); #" main() {}"
+        std/io.printf("{}\n", rest); #" main() {}"
     }
 }
 
@@ -413,7 +413,7 @@ const foo: fn () -> ();
 const bar: fn void -> void;
 
 # Types can be specified for multiple parameters at a time.
-const add = (x, y: int): int => {
+const add = (x, y: int) -> int {
     return x + y
 };
 
@@ -437,16 +437,16 @@ may be able to be relaxed, so all values behind borrows can be modified
 ```
 let x, y = 12, 11;
 
-const use = (mov& x: int) => {};
+const use = (mov& x: int) {};
 
-const add = (&x, y: int) => {
+const add = (&x, y: int) {
     use(&x);
     return x + y; # Error x used after move
 };
 
 let name = "foo";
 
-const rename = (mut& name: string) => {
+const rename = (mut& name: string) {
     name = "bar";
 };
 
@@ -504,7 +504,7 @@ std/testing.expect(z == 12);
 # Variant can also be used for branching based on if the pattern matches or not
 # The variant type can be inferred
 if (.ok =~ x) |z| {
-    std/fmt.printf("{}", z);
+    std/io.printf("{}", z);
 }
 ```
 
@@ -567,13 +567,13 @@ Reactivity
 let (name, update_name) = $signal(string);
 ```
 
-## Strings
+## Threads
 Green threads
 ```
-let sid = $spawn(() => {
+let tid = $spawn(() => {
     # Some code
 });
-defer sid.join();
+defer tid.join();
 ```
 
 ## Channels
@@ -604,7 +604,7 @@ for (chan.queue) |msg| {
 #   but they must be assigned to multiple bindings when called.
 # Return values can be given tagifiers to declare bindings to use for returning, 
 # allowing for naked returns
-const div = (x, y: int): (quo, rem: int) => {
+const div = (x, y: int): (quo, rem: int) {
     quo = x / y;
     rem = x % y;
     return;
@@ -613,7 +613,7 @@ const div = (x, y: int): (quo, rem: int) => {
 let quo, rem = div(12, 5);
 
 # Returning a tuple or record allows the return to be stored in a single binding
-const div = (x, y: int): {int, int} => {
+const div = (x, y: int): {int, int} {
     let quo = x / y;
     let rem = x % y;
     return {quo, rem};
@@ -637,7 +637,7 @@ std/testing.expect(result.quo == 2);
 # If multiple args, they are treated as a tuple
 # Must be the final argument
 # ...tag can be used as shorthand for $any tuples
-const variadic = (...args) => {
+const variadic = (...args) {
     let size = $len(args);
 
     for (0..size) |i| {
@@ -645,7 +645,7 @@ const variadic = (...args) => {
     }
 };
 
-const struct = (@tup: any) => {
+const struct = (@tup: any) {
     inline for ($typeOf(tup).members) |member| {
 
     }
@@ -657,7 +657,7 @@ const struct = (@tup: any) => {
 struct(.{...});
 
 # Functions can be taken as parameters and returned from functions
-const sort = (slice: []i32, pred: fn (i32, i32) -> bool) => {
+const sort = (slice: []i32, pred: fn (i32, i32) -> bool) {
     # code
     if pred(slice[i], slice[j]) {
     # code
@@ -732,7 +732,7 @@ Metaprogramming in `Rex` is done using ctime expressions, which is just `Rex` co
 The return of compile time expressions is a reference to a static variable
 ```
 # `@` or `ctime@` preceeding a tagifier states that this parameter must be known at compile time
-const Vector = (ctime@t: typeid): typeid => {
+const Vector = (ctime@t: typeid) -> typeid {
     return record{
         x: t,
         y: t
@@ -756,7 +756,7 @@ const screen_size = @{
 Modules are first class in `Rex`, so they can be passed into and out of functions
 ```
 # To create a generic ds with methods, you must return a record with static bindings
-const List = (ctime@type: typeid): moduleid => {
+const List = (ctime@type: typeid) -> moduleid {
     return module {
         const Node = record {
             next: $this(),
@@ -840,7 +840,7 @@ intList.insert(12);
 
 ## Example: Linked List
 ```
-const List = (ctime@type: typeid): moduleid => {
+const List = (ctime@type: typeid) -> moduleid {
     return module {
         let max_size = 100;
 
@@ -854,7 +854,7 @@ const List = (ctime@type: typeid): moduleid => {
             size: uint
         };
 
-        const insert(mut& t) = (value: type) => |max_size| {
+        const insert(mut& t) = (value: type) |max_size| {
             if (self.size == 0) {
                 self.head = node {
                     next: null,
@@ -872,7 +872,7 @@ const List = (ctime@type: typeid): moduleid => {
             }
         };
 
-        const set_max = (size: usize) => |max_size| {
+        const set_max = (size: usize) |max_size| {
             max_size.* = size;
         };
     };

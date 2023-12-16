@@ -1,12 +1,11 @@
-const std = @import("std");
+const std = $import("std");
 
-#|
- | Test comment!
- |#
+#*
+ *  Program to print Hello, world!
+ *#
 
-$type[fn (isize, [&]str) -> isize] 
-let main = (argc, argv) => {
-    std/printf("{}\n", "Hello, world!");
+let main = (argc: isize, argv: [&]str) -> isize {
+    std/io.printf("{}\n", "Hello, world!");
 
     return 0;
 };

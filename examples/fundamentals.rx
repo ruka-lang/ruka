@@ -1,14 +1,12 @@
-const std = @import("std");
+const std = $import("std");
 
-let greeting: string = "Hello, {}! From {}";
 let name = "Foo";
 let year = 2023;
 
 # Formats greeting with name and year
-$type[fn (string, string, isize) -> string]
-const greet = (greeting, name, year) => {
-    return std/fmt.string(greeting, name, year);
+const greet = (greeting, name, year) {
+    return std/fmt.string("Hello, {s}! From {d}", name, year);
 };
 
 greet(greeting, name, year) 
-    |> std/fmt.println();
+    |> std/io.println();
