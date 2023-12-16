@@ -8,11 +8,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <assert.h>
 
 #define VECTOR_REALLOC_AMOUNT 20
 struct vector {
     void* data;
-    size_t size;
+    const size_t size;
     int elements;
     int capacity;
 };

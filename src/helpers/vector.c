@@ -8,10 +8,14 @@
 struct vector* vector_create(size_t type_size) {
     struct vector* vector = calloc(1, sizeof(struct vector));
 
-    (*vector).data = calloc(20, type_size);
-    (*vector).size = type_size;
-    (*vector).capacity = 20;
-    (*vector).elements = 0;
+    struct vector tmp = {
+        .data = calloc(20, type_size),
+        .size = type_size,
+        .elements = 0,
+        .capacity = 20
+    };
+
+    memcpy(vector, &tmp, sizeof(struct vector));
 
     return vector;
 }
@@ -27,6 +31,7 @@ void vector_push(struct vector* vector, void* data) {
     if ((*vector).elements >= (*vector).capacity) {
         (*vector).data = realloc((*vector).data, (*vector).capacity + VECTOR_REALLOC_AMOUNT);
         (*vector).capacity += VECTOR_REALLOC_AMOUNT;
+        assert((*vector).data);
     }
 
     void* ptr = vector_at(vector, (*vector).elements);
