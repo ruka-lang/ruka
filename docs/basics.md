@@ -418,7 +418,7 @@ const add = (x, y: int) -> int {
 };
 
 # Function types can be specified separately
-$ fn (int, int, int) -> int
+$tupe(fn (int, int, int) -> int)
 const add_three = (x, y, z) => return x + y + z;
 ```
 
