@@ -2,11 +2,15 @@ const std = @import("std");
 
 let name = "Foo";
 let year = 2023;
+let multi = "| Hello,
+             | {s}!
+             | From {d}
+             |"
 
 # Formats greeting with name and year
-$type(fn (string, int) -> string)
-const greet = (greeting, name, year) {
-    return std/fmt.string("Hello, {s}! From {d}", name, year);
+$type(cl (string, int) -> string)
+const greet = (greeting, name, year) |multi| {
+    return std/fmt.string(multi, name, year);
 };
 
 greet(greeting, name, year) 

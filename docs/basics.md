@@ -5,6 +5,14 @@
 ## Comments
 ```
 # A single-line comment
+
+#|
+ | multi-line comment
+ |#
+
+#*
+ *
+ *#
 ```
 
 ## Bindings
@@ -103,9 +111,14 @@ Here is a list of `Rex`'s primitive types:
   - 'a' or 0xfd
 - `string`
   - "Hello, world!"
-  - \\ Multi
-    \\ line
-    \\ string
+  - "| Multi
+     | line
+     | string
+     |"
+  - "* Multi
+     * line
+     * string
+     *"
 - `regex`
   - \`foo|bar\`
 - `bool` 
@@ -835,6 +848,7 @@ intList.insert(12);
   - ..(type)        : Exclusive Range, type must be integer types or byte
   - ...(type)       : Inclusive Range, type must be integer types or byte
   - fn () -> ()     : Function
+  - cl () -> ()     : Closure
   - fn ()() -> ()   : Trait Method
 ```
 
