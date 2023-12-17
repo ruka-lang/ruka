@@ -11,17 +11,43 @@
 #include <assert.h>
 
 #define VECTOR_REALLOC_AMOUNT 20
-struct vector {
+struct Vector {
     void* data;
     const size_t size;
     int elements;
     int capacity;
 };
 
-struct vector* vector_create(size_t type_size);
-void vector_free(struct vector* vector);
-void vector_push(struct vector* vector, void* data);
-void* vector_pop(struct vector* vector);
-void* vector_at(struct vector* vector, int idx);
+/* Creates a new vector
+ * @param type_size
+ * @return A new Vector pointer or NULL
+ */
+struct Vector* create_vector(size_t type_size);
+
+/* Frees a vector from memory
+ * @param vector
+ * @return void
+ */
+void free_vector(struct Vector* vector);
+
+/* Pushes a new value onto the vector
+ * @param vector
+ * @param data
+ * @return void
+ */
+void vector_push(struct Vector* vector, void* data);
+
+/* Pops a value off the end of the vector
+ * @param vector
+ * @return The void* to the element at the end of the vector
+ */
+void* vector_pop(struct Vector* vector);
+
+/* Indexes into the vector to get the i'th element
+ * @param vector
+ * @param i
+ * @return The void* to the element at i
+ */
+void* vector_at(struct Vector* vector, int i);
 
 #endif

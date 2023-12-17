@@ -6,7 +6,7 @@
 #define POSITION_H
 
 /* File position structure */
-struct pos {
+struct Pos {
     int line;
     int col;
     const char* filename;

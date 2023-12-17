@@ -10,9 +10,9 @@
 #include "../helpers/vector.h"
 #include "../helpers/buffer.h"
 
-struct compile_process;
+struct Compiler;
 
-/* Scan flags */
+/* Scanner messages */
 enum {
     SCANNER_FILE_SCANNED_OK,
     SCANER_FAILED_WITH_ERRORS
@@ -32,8 +32,8 @@ enum {
     NEWLINE
 };
 
-/* Token struct */
-struct token {
+/* Token structure */
+struct Token {
     int type;
     int flags;
 
@@ -50,48 +50,85 @@ struct token {
     bool whitespace;
     const char* between_brackets;
 
-    struct pos file_pos;
+    struct Pos file_pos;
 };
 
 /* State for the scanning process */
-struct scan_process {
-    struct pos pos;
-    struct vector* tokens;
-    struct compile_process* compiler;
+struct Scanner {
+    struct Pos pos;
+    struct Vector* tokens;
+    struct Compiler* compiler;
 
     int current_expression_count;
     struct buffer* parenthesis;
-    struct scan_process_functions* function;
+    struct ScannerFunctions* function;
 
     void* private_data;
 };
 
-/* Scans the file in the scan process */
-int scan(struct scan_process* process);
-
-/* Scan process constructors/destructors/getters */
-struct scan_process* scan_process_create(struct compile_process* compiler, 
-                                         struct scan_process_functions* functions, 
-                                         void* private_data);
-void scan_process_free(struct scan_process* process);
-void* scan_process_private(struct scan_process* process);
-struct vector* scan_process_tokens(struct scan_process* process);
-
-/* Function pointers to abstract scanning utilities */
-typedef char (*SCAN_PROCESS_NEXT_CHAR)(struct scan_process* process);
-typedef char (*SCAN_PROCESS_PEEK_CHAR)(struct scan_process* process);
-typedef void (*SCAN_PROCESS_PUSH_CHAR)(struct scan_process* process, char c);
+/* Fuction types to abstract some scanning functionality */
+typedef char (*SCANNER_NEXT_CHAR)(struct Scanner* process);
+typedef char (*SCANNER_PEEK_CHAR)(struct Scanner* process);
+typedef void (*SCANNER_PUSH_CHAR)(struct Scanner* process, char c);
 
 /* Struct representing the scanning functions used by the scan process */
-struct scan_process_functions {
-    SCAN_PROCESS_NEXT_CHAR next_char;
-    SCAN_PROCESS_PEEK_CHAR peek_char;
-    SCAN_PROCESS_PUSH_CHAR push_char;
+struct ScannerFunctions {
+    SCANNER_NEXT_CHAR next_char;
+    SCANNER_PEEK_CHAR peek_char;
+    SCANNER_PUSH_CHAR push_char;
 };
 
-/* Default scan process functions */
-char scan_process_next_char(struct scan_process* scan_process);
-char scan_process_peek_char(struct scan_process* scan_process);
-void scan_process_push_char(struct scan_process* scan_process, char c);
+/* Creates a new scanner process
+ * @param process
+ * @return A integer signaling the result of the scan
+ */
+int scan(struct Scanner* process);
+
+/* Frees a scanner process from memory
+ * @param compiler
+ * @param functions
+ * @param private_data
+ * @return A pointer to a new Scanner or NULL
+ */
+struct Scanner* create_scanner(struct Compiler* compiler, 
+                               struct ScannerFunctions* functions, 
+                               void* private_data);
+
+/* Scanner destructor
+ * @param process
+ * @return void
+ */
+void free_scanner(struct Scanner* process);
+
+/* Retrieves scanner's private data
+ * @param process
+ * @return void
+ */
+void* scanner_private(struct Scanner* process);
+
+/* Retrieves scanner's tokens vector
+ * @param process
+ * @return Pointer to the Token Vector
+ */
+struct Vector* scanner_tokens(struct Scanner* process);
+
+/* Retrieves the next char from the scanner
+ * @param process
+ * @return The next char in the file buffer
+ */
+char scanner_next_char(struct Scanner* process);
+
+/* Retrieves the next char from the scanner preserving the file stream
+ * @param process
+ * @return The next char in the file buffer
+ */
+char scanner_peek_char(struct Scanner* process);
+
+/* Pushes c onto the file buffer
+ * @param oricess
+ * @param c
+ * @return void
+ */
+void scanner_push_char(struct Scanner* process, char c);
 
 #endif

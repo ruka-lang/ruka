@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include "compiler.h"
 
-/* Creates a new compile process */
-struct compile_process* compile_process_create(
+/* Creates a new compiler process */
+struct Compiler* create_compiler(
         const char* in_filename, 
         const char* out_filename, 
         int flags
@@ -22,7 +22,7 @@ struct compile_process* compile_process_create(
         if (!out_file) return NULL;
     }
 
-    struct compile_process* process = calloc(1, sizeof(struct compile_process));
+    struct Compiler* process = calloc(1, sizeof(struct Compiler));
 
     (*process).flags = flags;
     (*process).in_file.fp = file;
@@ -33,8 +33,9 @@ struct compile_process* compile_process_create(
     return process;
 }
 
-/* Frees a compile process */
-void compile_process_free(struct compile_process* process) {
+
+/* Free's the compiler from memory */
+void free_compiler(struct Compiler* process) {
     fclose( (*process).in_file.fp );
     if ( (*process).out_file.fp ) {
         fclose( (*process).out_file.fp );

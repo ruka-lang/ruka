@@ -5,13 +5,13 @@
 #include <stdlib.h>
 #include "../compiler/compiler.h"
 
-/* Create a new scan process */
-struct scan_process* scan_process_create(
-        struct compile_process* compiler, 
-        struct scan_process_functions* functions, 
+/* Creates a new scanner process */
+struct Scanner* create_scanner(
+        struct Compiler* compiler, 
+        struct ScannerFunctions* functions, 
         void* private_data
 ) {
-    struct scan_process* process = calloc(1, sizeof(struct scan_process)); 
+    struct Scanner* process = calloc(1, sizeof(struct Scanner)); 
 
     (*process).pos.col = 1;
     (*process).pos.line = 1;
@@ -20,30 +20,30 @@ struct scan_process* scan_process_create(
     (*process).function = functions;
     (*process).private_data = private_data;
     (*process).current_expression_count = 0;
-    (*process).tokens = vector_create(sizeof(struct token));
+    (*process).tokens = create_vector(sizeof(struct Token));
 
     return process;
 }
 
-/* Frees a scan process */
-void scan_process_free(struct scan_process* process) {
-    vector_free( (*process).tokens );
+/* Frees a scanner process from memory */
+void free_scanner(struct Scanner* process) {
+    free_vector( (*process).tokens );
     free(process);
 }
 
-/* Gets a pointer to the private data of the scan process */
-void* scan_process_private(struct scan_process* process) {
+/* Retrieves scanner's private data */
+void* scanner_private(struct Scanner* process) {
     return (*process).private_data;
 }
 
-/* Gets a pointer to the tokens vector of the scan process */
-struct vector* scan_process_tokens(struct scan_process* process) {
+/* Retrieves scanner's tokens vector */
+struct Vector* scan_process_tokens(struct Scanner* process) {
     return (*process).tokens;
 }
 
-/* Gets the next char from the scan process, pops it from the file being compiled */
-char scan_process_next_char(struct scan_process* scan_process) {
-    struct compile_process* compiler = (*scan_process).compiler;
+/* Retrieves the next char from the scanner */
+char scanner_next_char(struct Scanner* process) {
+    struct Compiler* compiler = (*process).compiler;
     (*compiler).pos.col += 1;
 
     char c = getc( (*compiler).out_file.fp );
@@ -56,9 +56,9 @@ char scan_process_next_char(struct scan_process* scan_process) {
     return c;
 }
 
-/* Gets the next char from the scan process without popping it */
-char scan_process_peek_char(struct scan_process* scan_process) {
-    struct compile_process* compiler = (*scan_process).compiler;
+/* Retrieves the next char from the scanner preserving the file stream */
+char scanner_peek_char(struct Scanner* process) {
+    struct Compiler* compiler = (*process).compiler;
 
     char c = getc( (*compiler).out_file.fp );
     ungetc(c, (*compiler).out_file.fp);
@@ -66,9 +66,9 @@ char scan_process_peek_char(struct scan_process* scan_process) {
     return c;
 }
 
-/* Pushes char c onto the file being compiled */
-void scan_process_push_char(struct scan_process* scan_process, char c) {
-    struct compile_process* compiler = (*scan_process).compiler;
+/* Pushes c onto the file buffer */
+void scanner_push_char(struct Scanner* process, char c) {
+    struct Compiler* compiler = (*process).compiler;
 
     ungetc(c, (*compiler).out_file.fp);
 }
