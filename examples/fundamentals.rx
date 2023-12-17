@@ -8,8 +8,7 @@ let multi = "| Hello,
              |"
 
 # Formats greeting with name and year
-$type(cl (string, int) -> string)
-const greet = (greeting, name, year) |multi| {
+const greet = (name: string, year: int) -> string |&multi| {
     return std/fmt.string(multi, name, year);
 };
 
