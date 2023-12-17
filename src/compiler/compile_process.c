@@ -7,7 +7,11 @@
 #include "compiler.h"
 
 /* Creates a new compile process */
-struct compile_process* compile_process_create(const char* in_filename, const char* out_filename, int flags) {
+struct compile_process* compile_process_create(
+        const char* in_filename, 
+        const char* out_filename, 
+        int flags
+) {
     FILE* file = fopen(in_filename, "r");
 
     if (!file) return NULL;

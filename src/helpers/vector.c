@@ -28,10 +28,10 @@ void vector_free(struct vector* vector) {
 
 /* Pushes a new value onto the dynamic vector, reallocs when full */
 void vector_push(struct vector* vector, void* data) {
-    if ((*vector).elements >= (*vector).capacity) {
-        (*vector).data = realloc((*vector).data, (*vector).capacity + VECTOR_REALLOC_AMOUNT);
+    if ( (*vector).elements >= (*vector).capacity ) {
+        (*vector).data = realloc( (*vector).data, (*vector).capacity + VECTOR_REALLOC_AMOUNT );
         (*vector).capacity += VECTOR_REALLOC_AMOUNT;
-        assert((*vector).data);
+        assert( (*vector).data );
     }
 
     void* ptr = vector_at(vector, (*vector).elements);
@@ -42,7 +42,7 @@ void vector_push(struct vector* vector, void* data) {
 
 /* Pops the element from the end of the vector */
 void* vector_pop(struct vector* vector) {
-    if ((*vector).elements <= 0) return NULL;
+    if ( (*vector).elements <= 0 ) return NULL;
 
     void* value = vector_at(vector, (*vector).elements - 1);
     (*vector).elements--;

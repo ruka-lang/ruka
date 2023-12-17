@@ -34,7 +34,9 @@ struct compile_process {
 };
 
 int compile_file(const char* filename, const char* out_filename, int flags);
-struct compile_process* compile_process_create(const char* filename, const char* filename_out, int flags);
+struct compile_process* compile_process_create(const char* filename, 
+                                               const char* filename_out, 
+                                               int flags);
 void compile_process_free(struct compile_process* process);
 
 #endif
