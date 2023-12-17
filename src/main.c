@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "compiler/compiler.h"
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char** argv) {
     int result = compile("examples/test.rx", NULL, 0);
     switch (result) {
         case COMPILER_FILE_COMPILED_OK:
