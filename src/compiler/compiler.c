@@ -5,7 +5,7 @@
 #include "./compiler.h"
 
 /* Functions for the scanner to use */
-struct ScannerFunctions compiler_scan_functions = {
+struct ScannerFunctions scan_functions = {
     .next_char = scanner_next_char,
     .peek_char = scanner_peek_char,
     .push_char = scanner_push_char
@@ -17,21 +17,13 @@ struct ScannerFunctions compiler_scan_functions = {
  * @param flags Flags involving in file compilation
  * @return A integer signaling the compilation result
  */
-int compile(const char* filename, const char* out_filename, int flags) {
-    struct Compiler* process = create_compiler(
-            filename, 
-            out_filename, 
-            flags
-    ); 
+int compile(const char* in_filename, const char* out_filename, int flags) {
+    struct Compiler* process = create_compiler(in_filename, out_filename, flags); 
     
     if (!process) return COMPILER_FAILED_WITH_ERRORS;
 
     /* Scan */
-    struct Scanner* scanner = create_scanner(
-            process, 
-            &compiler_scan_functions, 
-            NULL
-    );
+    struct Scanner* scanner = create_scanner(process, &scan_functions, NULL);
     if (!scanner) return COMPILER_FAILED_WITH_ERRORS;
 
     int scan_result = scan(scanner);
