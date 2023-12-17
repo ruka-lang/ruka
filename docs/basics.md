@@ -87,21 +87,21 @@ defer std/mem/allocator.free(names); # Manual memory must be freed
 
 ## Basic Primitive Types
 Here is a list of `Rex`'s primitive types:
-- `isize`    
+- `int`    
   - 12, architecture dependent size
 - `i#`     
   - \# bit signed integer i.e. i16
-- `usize` 
+- `uint` 
   - 12, architecture dependent size
 - `u#`     
   - \# bit unsigned integer i.e. u8
-- `fsize`  
+- `float`  
   - 12.2, architecture dependent size
 - `f#`     
   - \# bit float i.e. f32
 - `byte`   
   - 'a' or 0xfd
-- `str`
+- `string`
   - "Hello, world!"
   - \\ Multi
     \\ line
