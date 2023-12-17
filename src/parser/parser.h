@@ -7,9 +7,9 @@
 
 #include "../helpers/position.h"
 
-struct compile_process;
+struct Compiler;
 
 /* State for a parsing process */
-struct parse_process {};
+struct Parser {};
 
 #endif
