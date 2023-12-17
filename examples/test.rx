@@ -4,7 +4,7 @@ const std = $import("std");
  *  Program to print Hello, world!
  *#
 
-let main = (argc: isize, argv: [&]str) -> isize {
+let main = (argc: int, argv: []string) -> int {
     std/io.printf("{}\n", "Hello, world!");
 
     return 0;
