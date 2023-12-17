@@ -78,55 +78,55 @@ struct ScannerFunctions {
     SCANNER_PUSH_CHAR push_char;
 };
 
-/* Creates a new scanner process
- * @param process
+/* Scans the file in the scan process
+ * @param process The scanner process to be used in scanning
  * @return A integer signaling the result of the scan
  */
 int scan(struct Scanner* process);
 
-/* Frees a scanner process from memory
- * @param compiler
- * @param functions
- * @param private_data
+/* Creates a new scanner process
+ * @param compiler The compiler process the scanner will belong to
+ * @param functions The functions the scanner will use
+ * @param private_data The private data only the caller understands
  * @return A pointer to a new Scanner or NULL
  */
 struct Scanner* create_scanner(struct Compiler* compiler, 
                                struct ScannerFunctions* functions, 
                                void* private_data);
 
-/* Scanner destructor
- * @param process
+/* Frees a scanner process from memory
+ * @param process The scanner process to be freed
  * @return void
  */
 void free_scanner(struct Scanner* process);
 
 /* Retrieves scanner's private data
- * @param process
+ * @param process The scanner whose private data is being retrieved
  * @return void
  */
 void* scanner_private(struct Scanner* process);
 
 /* Retrieves scanner's tokens vector
- * @param process
+ * @param process The scanner whose tokens vector is being retrieved
  * @return Pointer to the Token Vector
  */
 struct Vector* scanner_tokens(struct Scanner* process);
 
 /* Retrieves the next char from the scanner
- * @param process
+ * @param process The process to retrieve the next char from
  * @return The next char in the file buffer
  */
 char scanner_next_char(struct Scanner* process);
 
 /* Retrieves the next char from the scanner preserving the file stream
- * @param process
+ * @param process The process to peek the next char from
  * @return The next char in the file buffer
  */
 char scanner_peek_char(struct Scanner* process);
 
 /* Pushes c onto the file buffer
- * @param oricess
- * @param c
+ * @param process The scanner containing the file buffer to push the char onto
+ * @param c The char to push onto the file buffer
  * @return void
  */
 void scanner_push_char(struct Scanner* process, char c);

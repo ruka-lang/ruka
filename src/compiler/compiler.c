@@ -11,7 +11,12 @@ struct ScannerFunctions compiler_scan_functions = {
     .push_char = scanner_push_char
 };
 
-/* Com;iles the file specified into the specified output using flags */
+/* Compiles the file specified into the specified output using flags
+ * @param in_filename The file to compile
+ * @param out_filename The name for the output file
+ * @param flags Flags involving in file compilation
+ * @return A integer signaling the compilation result
+ */
 int compile(const char* filename, const char* out_filename, int flags) {
     struct Compiler* process = create_compiler(
             filename, 

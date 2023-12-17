@@ -6,7 +6,12 @@
 #include <stdlib.h>
 #include "compiler.h"
 
-/* Creates a new compiler process */
+/* Creates a new compiler process
+ * @param in_filename The file to compile
+ * @param out_filename The name for the output file
+ * @param flags Flags involving in file compilation
+ * @return A new Compiler pointer or NULL
+ */
 struct Compiler* create_compiler(
         const char* in_filename, 
         const char* out_filename, 
@@ -34,7 +39,10 @@ struct Compiler* create_compiler(
 }
 
 
-/* Free's the compiler from memory */
+/* Free's the compiler from memory
+ * @param process The compiler process to be freed
+ * @return void
+ */
 void free_compiler(struct Compiler* process) {
     fclose(process->in_file.fp);
     if (process->out_file.fp) {
