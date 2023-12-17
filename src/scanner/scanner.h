@@ -14,8 +14,8 @@ struct compile_process;
 
 /* Scan flags */
 enum {
-    SCAN_ALL_OK,
-    SCAN_INPUT_ERROR
+    SCANNER_FILE_SCANNED_OK,
+    SCANER_FAILED_WITH_ERRORS
 };
 
 /* Token types */

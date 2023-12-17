@@ -22,7 +22,7 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     if (!scan_process) return COMPILER_FAILED_WITH_ERRORS;
 
     int scan_result = scan(scan_process);
-    if (scan_result != SCAN_ALL_OK) return COMPILER_FAILED_WITH_ERRORS;
+    if (scan_result != SCANNER_FILE_SCANNED_OK) return COMPILER_FAILED_WITH_ERRORS;
     
     scan_process_free(scan_process);
     /* Parse */
