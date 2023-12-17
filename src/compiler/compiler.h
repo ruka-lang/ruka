@@ -23,11 +23,14 @@ struct compile_process {
     /* File to be compiled */
     struct compile_process_input_file {
         FILE* fp; 
-        const char* abs_path;
-    } cfile;
-
-    /* File to generate */
-    FILE* ofile;
+        const char* path;
+    } in_file;
+    
+    /* File to be compiled */
+    struct compile_process_output_file {
+        FILE* fp; 
+        const char* path;
+    } out_file;
 };
 
 int compile_file(const char* filename, const char* out_filename, int flags);

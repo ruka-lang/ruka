@@ -46,7 +46,7 @@ char scan_process_next_char(struct scan_process* scan_process) {
     struct compile_process* compiler = (*scan_process).compiler;
     (*compiler).pos.col += 1;
 
-    char c = getc( (*compiler).cfile.fp );
+    char c = getc( (*compiler).out_file.fp );
 
     if (c == '\n') {
         (*compiler).pos.line += 1;
@@ -60,8 +60,8 @@ char scan_process_next_char(struct scan_process* scan_process) {
 char scan_process_peek_char(struct scan_process* scan_process) {
     struct compile_process* compiler = (*scan_process).compiler;
 
-    char c = getc( (*compiler).cfile.fp );
-    ungetc(c, (*compiler).cfile.fp);
+    char c = getc( (*compiler).out_file.fp );
+    ungetc(c, (*compiler).out_file.fp);
 
     return c;
 }
@@ -70,5 +70,5 @@ char scan_process_peek_char(struct scan_process* scan_process) {
 void scan_process_push_char(struct scan_process* scan_process, char c) {
     struct compile_process* compiler = (*scan_process).compiler;
 
-    ungetc(c, (*compiler).cfile.fp);
+    ungetc(c, (*compiler).out_file.fp);
 }

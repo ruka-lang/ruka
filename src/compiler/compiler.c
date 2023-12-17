@@ -24,6 +24,7 @@ int compile_file(const char* filename, const char* out_filename, int flags) {
     int scan_result = scan(scan_process);
     if (scan_result != SCAN_ALL_OK) return COMPILER_FAILED_WITH_ERRORS;
     
+    scan_process_free(scan_process);
     /* Parse */
 
     /* Code generation */
