@@ -41,15 +41,6 @@ let y = 31;
 x, y = y, x; # swaps bindings with no need for temporary bindings
 ```
 
-Assignment in `Rex` can also be done as an expression using ":=", which returns the rhs value.
-```rust
-let boolean = false;
-// Assignment expression
-while (boolean := someFunc()) { // Will loop until someFunc returns false 
-    std.io.printf("{}", boolean);
-}
-```
-
 Bindings of the same type can be grouped together.
 ```rust
 // let bindings still don't need to be initialized right away
@@ -97,13 +88,13 @@ const Free = trait {
     free: fn (mut& typeid) -> void
 };
 
-const Vector = (@type: typeid, alloc: std.mem.Allocator) moduleid {
+const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
     return module {
         const t = record {
             data: [*]type,
             size: int,
             capacity: int,
-            allocator = alloc // Properites can have default values which will infer the type
+            allocator = allocator // Properites can have default values which will infer the type
         };
 
         // Will be called when a Vector(type) goes out of scope
@@ -183,14 +174,9 @@ let pos = {10, 15};
 std.testing.expect(rex.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
-let x, y = pos; # The lhs braces are not required
+let x, y = pos; // The lhs braces are not required
 
 std.testing.expect(x == 10 and y == 15);
-```
-- `Named Tuple`
-each {k, v} pair can be indexed, this is just syntactic sugar for creating tuples of two element tuples
-```rust
-let tagged_tuple = {name: "foo", age: 25, likes_ramen: true};
 ```
 
 - `Map`
@@ -280,14 +266,14 @@ add(1); //# x = 1, y = null
 ## Error Handling
 ```rust
 // Returns a result, which is a union (string or error)
-const func1 = () !string => {
+const func1 = () string! => {
     if (...) {
         return error.someError;
     }
 };
 
 // Returns a result, which is a union (void or error)
-const func1 = () !void => {
+const func1 = () void! => {
     if (...) {
         return error.someError;
     }
@@ -299,7 +285,7 @@ let s: string = func1() as string;
 let s: string = func1().!;
 
 // Returns a optional, which is a union (int or null)
-const func2 = () ?int => {
+const func2 = () int? => {
 
 };
 
@@ -310,6 +296,26 @@ let i: int = func2().?;
 // Null and false is treated as false, everything else is treated as true
 // Can give a default value if return is null with or
 let i: int = func2() or 12; 
+```
+
+## Context
+Every scope contains an implicitly defined context binding, which is passed to scopes and functions called in the scope either implicitly or explicity
+```rust
+context.x = 12;
+context.y = 15;
+
+const add = () int => {
+   return context.x + context.y;
+};
+
+add(); // Context passed implicitly
+
+let newContext = rex.Context{}; // Create a new context
+newContext.x = 10.0;
+newContext.y = 8.1;
+
+rex.context(newContext)
+add(); // Error, mismatched types
 ```
 
 ## Pattern Matching
@@ -324,10 +330,11 @@ let x = Result.ok(12);
 
 match (x) {
     | Result.ok => |val| std.fmt.println("{}", val),
-    | .err => |err| std.fmt.println(err),
+    | .err => |err| std.fmt.println(err), // The enum type can be inferred to be the type of x
     // Cases can be guarded using when followed by a condition
     // If the condition returns true, that case will execute
-    | when is?(x) => |val| {}
+    | x when x.ok?() => {},
+    | _ => {},
 }
 
 let source = "int main() {}";
@@ -336,7 +343,7 @@ let source = "int main() {}";
 // capturing the remaining portion of the string as a slice
 match (source) {
     | "int", ... => |rest| {
-        std.io.printf("{}\n", rest); #" main() {}"
+        std.io.printf("{}\n", rest); // " main() {}"
     }
 }
 
@@ -442,7 +449,7 @@ const add = (x, y: int) int => {
 };
 
 // Function types can be specified separately
-rex.type!(fn (int, int, int) -> int)
+rex.type(fn (int, int, int) -> int)
 const add_three = (x, y, z) => return x + y + z;
 ```
 
@@ -497,7 +504,7 @@ const Other = record {
 };
 
 let pos = .{x = 12, y = 13}; // .{} is the syntax to create anonymous record instances, type will be inferred
-let pos = Pos{x = 12, y = 13}; // Can also specify name of record
+let pos = Pos.{x = 12, y = 13}; // Can also specify name of record
 // Functional updates, creates a copy of pos, with y changed to 11
 let pos2 = .{...pos, y = 11};
 
@@ -570,7 +577,7 @@ const set_pos = (mut& self: Player, pos: {f32, f32}) => self.pos = pos;
 
 const set_health = (&self: Player, health: int) => self.health = health;
 
-let player = Player{};
+let player = Player.{};
 player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
 ```
 
@@ -647,8 +654,8 @@ rex.type(fn (int, int) -> record{quo, rem: int})
 const div = (x, y) => {
     let quo = x / y;
     let rem = x % y;
-    return .{quo = quo, rem = rem}; // if names match field tags, can ommit field name 
-                                    //   ie .{quo, rem}
+    // return .{quo = quo, rem = rem};
+    return .{quo, rem}; // if names match field tags, can ommit field name 
 }
 
 let result = div(12, 5);
@@ -659,7 +666,7 @@ std.testing.expect(result.quo == 2);
 // Must be the final argument
 // ...tag can be used as shorthand for $any tuples
 const variadic = (...args) => {
-    let size = $len(args);
+    let size = rex.len(args);
 
     for (0..size) |i| {
         std.fmt.println("{} ", args[i]);
@@ -746,7 +753,7 @@ const Player = record {
 const update_pos = (mut& self: Player, pos: {f32, f32}) => // code;
 const update_health = (mut& self: Player, health: int) => // code;
 
-let player = Player{}; // If field values are not provided they will be set to the 
+let player = Player.{}; // If field values are not provided they will be set to the 
                        //   default values of that type, typically 0 or equivalent.
 system(&player);
 ```
@@ -758,7 +765,7 @@ The return of compile time expressions is a reference to a static variable
 ```rust
 // `@` or `ctime@` preceeding a identifier states that this parameter must be known at compile time
 const Vector = (ctime@t: typeid) typeid => {
-    return record{
+    return record {
         x: t,
         y: t
     };
@@ -805,7 +812,7 @@ const List = (ctime@type: typeid) moduleid => {
     };
 };
 
-let intList = List(int).t{};
+let intList = List(int).t.{};
 intList.insert(12);
 ```
 
@@ -874,17 +881,17 @@ intList.insert(12);
 
 ## Example: Linked List
 ```rust
-const List = (ctime@type: typeid): moduleid => {
+const List = (ctime@type: typeid) moduleid => {
     return module {
         let max_size = 100;
 
         const node = record {
-            next: ?rex.this(),
+            next: rex.this()?,
             data: type
         };
 
         pub const t = record {
-            head: ?node,
+            head: node?,
             size: uint
         };
 
@@ -912,7 +919,7 @@ const List = (ctime@type: typeid): moduleid => {
     };
 };
 
-let names = List(string).t{};
+let names = List(string).t.{};
 
 names.insert("foo");
 names.insert("bar");
@@ -941,7 +948,7 @@ const AndGate = circuit {
     );
 };
 
-let and = @AndGate{}; // This creates an instance of AndGate, 
+let and = @AndGate.{}; // This creates an instance of AndGate, 
                       // which must be done at compile time
 
 and.put(x: 1, y: 1);
