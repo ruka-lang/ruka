@@ -12,7 +12,7 @@
 ```
 
 ## Bindings
-Bindings in `Iodo` follow the form of:  
+Bindings in `Iodine` follow the form of:  
 <pre>
   kind tag [: type] [= expression];
 </pre>
@@ -34,14 +34,14 @@ let year = 2023;
 year = 2024;
 ```
 
-`Iodo` supports multiple assignment
+`Iodine` supports multiple assignment
 ```rust
 let x = 12;
 let y = 31;
 x, y = y, x; # swaps bindings with no need for temporary bindings
 ```
 
-Assignment in `Iodo` can also be done as an expression using ":=", which returns the rhs value.
+Assignment in `Iodine` can also be done as an expression using ":=", which returns the rhs value.
 ```rust
 let boolean = false;
 // Assignment expression
@@ -79,7 +79,7 @@ let name: string;
 ```
 
 ## Memory Management
-In `Iodo` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
+In `Iodine` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
   - Allocators use the built-in memory functions under the hood like iodo.new() iodo.free() (for many pointers), iodo.create(), iodo.delete() (for individual variables)
@@ -91,7 +91,7 @@ let allocator = std.mem.testingAllocator{};
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
 ```
-In `Iodo`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+In `Iodine`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
     free: fn (mut& typeid) -> void
@@ -116,7 +116,7 @@ const Vector = (@type: typeid, alloc: std.mem.Allocator) moduleid {
 ```
 
 ## Basic Primitive Types
-Here is a list of `Iodo`'s primitive types:
+Here is a list of `Iodine`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -145,7 +145,7 @@ Here is a list of `Iodo`'s primitive types:
   - also ().
 - `null`
 - `typeid` 
-  - i32, int, char, MyRecord. Types are values in `Iodo`
+  - i32, int, char, MyRecord. Types are values in `Iodine`
 - `moduleid`
 - `error`
 - `range` 
@@ -158,7 +158,7 @@ Here is a list of `Iodo`'s primitive types:
 - `any`
 
 ## Primitive Data Collections
-`Iodo` has a few primitive data collections for you to use:
+`Iodine` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -236,7 +236,7 @@ Multi-line blocks are enclosed using braces: {}
 ```
 
 ## Function Basics
-All functions in `Iodo` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Iodine` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -360,7 +360,7 @@ match (nums[..]) {
 
 ```
 
-`Iodo` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Iodine` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -407,7 +407,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Iodo` has two looping constructs, range-based for loops, and while loops.
+`Iodine` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) |i, i2| {
 
@@ -533,7 +533,7 @@ if (.ok =~ x) |z| {
 ```
 
 ## Modules
-In `Iodo`, modules are collections of bindings. Bindings can be let or const.
+In `Iodine`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -557,7 +557,7 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-There are no methods in Iodo, instead Iodo uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Iodine, instead Iodine uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -719,7 +719,7 @@ let greeting = "!dlrow ,olleh"
 ```
 
 ## Traits
-`Iodo` doesn't have inheritance, instead `Iodo` uses interfaces called `traits`.
+`Iodine` doesn't have inheritance, instead `Iodine` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -752,7 +752,7 @@ system(&player);
 ```
 
 ## `ctime` Expressions
-Metaprogramming in `Iodo` is done using ctime expressions, which is just `Iodo` code executed at compile time
+Metaprogramming in `Iodine` is done using ctime expressions, which is just `Iodine` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -786,7 +786,7 @@ const screen_size = @{
 };
 ```
 ## First Class Modules
-Modules are first class in `Iodo`, so they can be passed into and out of functions
+Modules are first class in `Iodine`, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (ctime@type: typeid) moduleid => {
@@ -810,7 +810,7 @@ intList.insert(12);
 ```
 
 ## Operators
-`Iodo` has many operators and symbols, some have different meaning depending on context:
+`Iodine` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -920,7 +920,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Iodo` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Iodine` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust

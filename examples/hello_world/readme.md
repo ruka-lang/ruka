@@ -1,6 +1,6 @@
-# Hello, world! in Iodo
+# Hello, world! in Iodine
 To compile and run, execute these commands:
 ```bash
-$ iodo-c main.io hello_world
+$ iodine-c main.io hello_world
 $ ./hello_world
 ```
