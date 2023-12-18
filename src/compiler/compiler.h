@@ -6,6 +6,7 @@
 #define COMPILER_H
 
 #include <stdio.h>
+#include <sys/errno.h>
 #include "../scanner/scanner.h"
 
 /* Compiler messages */

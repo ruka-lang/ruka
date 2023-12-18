@@ -19,7 +19,7 @@ struct ScannerFunctions scan_functions = {
  */
 int compile(const char* in_filename, const char* out_filename, int flags) {
     struct Compiler* process = create_compiler(in_filename, out_filename, flags); 
-    if (!process) return COMPILER_FAILED_WITH_ERRORS;
+    if (!process) return ENOENT;
 
     /* Scan */
     struct Scanner* scanner = create_scanner(process, &scan_functions, NULL);
