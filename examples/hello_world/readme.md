@@ -1,6 +1,6 @@
-# Hello, world! in Rex
+# Hello, world! in Iodo
 To compile and run, execute these commands:
 ```bash
-$ rex-c main.rx hello_world
+$ iodo-c main.io hello_world
 $ ./hello_world
 ```

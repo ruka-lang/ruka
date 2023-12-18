@@ -1,4 +1,4 @@
-const std = rex.import("std");
+const std = iodo.import("std");
 
 const name = "Foo";
 const year = 2023;
