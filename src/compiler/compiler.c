@@ -11,6 +11,48 @@ struct ScannerFunctions scan_functions = {
     .push_char = scanner_push_char
 };
 
+/*
+ *
+ *
+ *
+ */
+void compiler_error(struct Compiler* compiler, const char* msg, ...) {
+    va_list args;
+
+    va_start(args, msg);
+    fprintf(stderr, "Error: ");
+    vfprintf(stderr, msg, args);
+    va_end(args);
+
+    fprintf(stderr, " on line: %i, col: %i, in file: %s\n", 
+            compiler->pos.line, 
+            compiler->pos.col, 
+            compiler->pos.filename
+            );
+
+    exit(-1);
+}
+
+/*
+ *
+ *
+ *
+ */
+void compiler_warning(struct Compiler* compiler, const char* msg, ...) {
+    va_list args;
+
+    va_start(args, msg);
+    fprintf(stderr, "Warning: ");
+    vfprintf(stderr, msg, args);
+    va_end(args);
+
+    fprintf(stderr, " on line: %i, col: %i, in file: %s\n", 
+            compiler->pos.line, 
+            compiler->pos.col, 
+            compiler->pos.filename
+            );
+}
+
 /* Compiles the file specified into the specified output using flags
  * @param in_filename The file to compile
  * @param out_filename The name for the output file

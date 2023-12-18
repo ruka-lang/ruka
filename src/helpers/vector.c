@@ -9,16 +9,12 @@
  * @return A new Vector pointer or NULL
  */
 struct Vector* create_vector(size_t type_size) {
-    struct Vector* vector = calloc(1, sizeof(struct Vector));
+    struct Vector* vector = malloc(sizeof(struct Vector));
 
-    struct Vector tmp = {
-        .data = calloc(20, type_size),
-        .size = type_size,
-        .elements = 0,
-        .capacity = 20
-    };
-
-    memcpy(vector, &tmp, sizeof(struct Vector));
+    vector->data = malloc(VECTOR_REALLOC_AMOUNT * type_size);
+    vector->size = type_size;
+    vector->elements = 0;
+    vector->capacity = 20;
 
     return vector;
 }
@@ -40,8 +36,8 @@ void free_vector(struct Vector* vector) {
 void vector_push(struct Vector* vector, void* data) {
     if (vector->elements >= vector->capacity) {
         vector->data = realloc( 
-                vector->data, 
-                vector->capacity + VECTOR_REALLOC_AMOUNT 
+            vector->data, 
+            vector->capacity + VECTOR_REALLOC_AMOUNT 
         );
 
         vector->capacity += VECTOR_REALLOC_AMOUNT;
@@ -52,6 +48,18 @@ void vector_push(struct Vector* vector, void* data) {
     memcpy(ptr, data, vector->size);
 
     vector->elements++;
+}
+
+/* Peeks the last value from the vector
+ * @param vector The vector to peek from
+ * @return The void* to the element at the end of the vector
+ */
+void* vector_peek(struct Vector* vector) {
+    if (vector->elements <= 0) return NULL;
+
+    void* value = vector_at(vector, vector->elements - 1);
+
+    return value;
 }
 
 /* Pops a value off the end of the vector
@@ -73,7 +81,7 @@ void* vector_pop(struct Vector* vector) {
  * @return The void* to the element at i
  */
 void* vector_at(struct Vector* vector, int i) {
-    if (i >= vector->elements) return NULL;
+    if (i > vector->elements) return NULL;
 
     return vector->data + (i * vector->size);
 }

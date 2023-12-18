@@ -6,6 +6,8 @@
 #define COMPILER_H
 
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <sys/errno.h>
 #include "../scanner/scanner.h"
 
@@ -41,6 +43,20 @@ struct Compiler {
  * @return A integer signaling the compilation result
  */
 int compile(const char* in_filename, const char* out_filename, int flags);
+
+/*
+ *
+ *
+ *
+ */
+void compiler_error(struct Compiler* compiler, const char* msg, ...);
+
+/*
+ *
+ *
+ *
+ */
+void compiler_warning(struct Compiler* compiler, const char* msg, ...);
 
 /* Creates a new compiler process
  * @param in_filename The file to compile

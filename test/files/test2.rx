@@ -1,16 +1,11 @@
+/*
+ *  Program to print Hello, world!
+ */
+
 const std = rex.import("std");
 
-const name = "Foo";
-const year = 2023;
-const multi = "| Hello,
-             | {s}!
-             | From {d}
-             |";
+let main = (argc: int, argv: []string) int => {
+    std.io.printf("{}\n", "Hello, world!");
 
-// Formats greeting with name and year
-const greet = (name: string, year: int) string => |&multi| {
-    return std.fmt.string(multi, name, year);
+    return 0;
 };
-
-greet(name, year) 
-    |> std.io.println();

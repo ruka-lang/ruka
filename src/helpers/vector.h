@@ -13,7 +13,7 @@
 #define VECTOR_REALLOC_AMOUNT 20
 struct Vector {
     void* data;
-    const size_t size;
+    size_t size;
     int elements;
     int capacity;
 };
@@ -36,6 +36,12 @@ void free_vector(struct Vector* vector);
  * @return void
  */
 void vector_push(struct Vector* vector, void* data);
+
+/* Peeks the last value from the vector
+ * @param vector The vector to peek from
+ * @return The void* to the element at the end of the vector
+ */
+void* vector_peek(struct Vector* vector);
 
 /* Pops a value off the end of the vector
  * @param vector The vector to pop an element off of

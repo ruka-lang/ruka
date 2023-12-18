@@ -16,7 +16,7 @@ struct Scanner* create_scanner(
         struct ScannerFunctions* functions, 
         void* private_data
 ) {
-    struct Scanner* process = calloc(1, sizeof(struct Scanner)); 
+    struct Scanner* process = malloc(sizeof(struct Scanner)); 
 
     process->pos.col = 1;
     process->pos.line = 1;
@@ -63,7 +63,7 @@ char scanner_next_char(struct Scanner* process) {
     struct Compiler* compiler = process->compiler;
     compiler->pos.col += 1;
 
-    char c = getc(compiler->out_file.fp);
+    char c = getc(compiler->in_file.fp);
 
     if (c == '\n') {
         compiler->pos.line += 1;
@@ -80,8 +80,8 @@ char scanner_next_char(struct Scanner* process) {
 char scanner_peek_char(struct Scanner* process) {
     struct Compiler* compiler = process->compiler;
 
-    char c = getc(compiler->out_file.fp);
-    ungetc(c, compiler->out_file.fp);
+    char c = getc(compiler->in_file.fp);
+    ungetc(c, compiler->in_file.fp);
 
     return c;
 }
@@ -94,5 +94,5 @@ char scanner_peek_char(struct Scanner* process) {
 void scanner_push_char(struct Scanner* process, char c) {
     struct Compiler* compiler = process->compiler;
 
-    ungetc(c, compiler->out_file.fp);
+    ungetc(c, compiler->in_file.fp);
 }

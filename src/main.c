@@ -37,7 +37,7 @@ int main(int argc, const char** argv) {
                 break;
         }
     } else {
-        printf("%s", prompt);;
+        printf("%s", prompt);
     }
     
     return 0;

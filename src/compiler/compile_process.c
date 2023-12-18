@@ -27,7 +27,7 @@ struct Compiler* create_compiler(
         if (!out_file) return NULL;
     }
 
-    struct Compiler* process = calloc(1, sizeof(struct Compiler));
+    struct Compiler* process = malloc(sizeof(struct Compiler));
 
     process->flags = flags;
     process->in_file.fp = file;

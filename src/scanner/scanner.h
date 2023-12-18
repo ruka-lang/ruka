@@ -6,11 +6,24 @@
 #define SCANNER_H
 
 #include <stdbool.h>
+#include <string.h>
 #include "../helpers/position.h"
 #include "../helpers/vector.h"
 #include "../helpers/buffer.h"
 
 struct Compiler;
+
+#define NUMERIC_CASE \
+    case '0':        \
+    case '1':        \
+    case '2':        \
+    case '3':        \
+    case '4':        \
+    case '5':        \
+    case '6':        \
+    case '7':        \
+    case '8':        \
+    case '9'
 
 /* Scanner messages */
 enum {
@@ -50,7 +63,7 @@ struct Token {
     bool whitespace;
     const char* between_brackets;
 
-    struct Pos file_pos;
+    struct Pos pos;
 };
 
 /* State for the scanning process */
@@ -92,7 +105,8 @@ int scan(struct Scanner* process);
  */
 struct Scanner* create_scanner(struct Compiler* compiler, 
                                struct ScannerFunctions* functions, 
-                               void* private_data);
+                               void* private_data
+                               );
 
 /* Frees a scanner process from memory
  * @param process The scanner process to be freed
