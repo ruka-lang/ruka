@@ -6,10 +6,10 @@
 #include <sys/errno.h>
 #include "compiler/compiler.h"
 
-const char* prompt = "Iodo compiler\n"
+const char* prompt = "Rex compiler\n"
                      "version: 0.1.0\n"
                      "\n"
-                     "Usage: iodo-c <input> [outfile] [flags]\n";
+                     "Usage: rex-c <input> [outfile] [flags]\n";
 
 int main(int argc, const char** argv) {
     /* Check if first argument was provided (required) */

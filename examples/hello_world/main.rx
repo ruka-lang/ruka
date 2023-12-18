@@ -1,4 +1,4 @@
-const std = iodo.import("std");
+const std = rex.import("std");
 
 // Program to print Hello, world! to the terminal
 const main = () => {

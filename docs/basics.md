@@ -12,7 +12,7 @@
 ```
 
 ## Bindings
-Bindings in `Iodine` follow the form of:  
+Bindings in `Rex` follow the form of:  
 <pre>
   kind tag [: type] [= expression];
 </pre>
@@ -34,14 +34,14 @@ let year = 2023;
 year = 2024;
 ```
 
-`Iodine` supports multiple assignment
+`Rex` supports multiple assignment
 ```rust
 let x = 12;
 let y = 31;
 x, y = y, x; # swaps bindings with no need for temporary bindings
 ```
 
-Assignment in `Iodine` can also be done as an expression using ":=", which returns the rhs value.
+Assignment in `Rex` can also be done as an expression using ":=", which returns the rhs value.
 ```rust
 let boolean = false;
 // Assignment expression
@@ -79,10 +79,10 @@ let name: string;
 ```
 
 ## Memory Management
-In `Iodine` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
+In `Rex` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
-  - Allocators use the built-in memory functions under the hood like iodo.new() iodo.free() (for many pointers), iodo.create(), iodo.delete() (for individual variables)
+  - Allocators use the built-in memory functions under the hood like rex.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
 ```rust
 let name: int = 12; // Stack allocated
 
@@ -91,7 +91,7 @@ let allocator = std.mem.testingAllocator{};
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
 ```
-In `Iodine`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+In `Rex`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
     free: fn (mut& typeid) -> void
@@ -116,7 +116,7 @@ const Vector = (@type: typeid, alloc: std.mem.Allocator) moduleid {
 ```
 
 ## Basic Primitive Types
-Here is a list of `Iodine`'s primitive types:
+Here is a list of `Rex`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -145,7 +145,7 @@ Here is a list of `Iodine`'s primitive types:
   - also ().
 - `null`
 - `typeid` 
-  - i32, int, char, MyRecord. Types are values in `Iodine`
+  - i32, int, char, MyRecord. Types are values in `Rex`
 - `moduleid`
 - `error`
 - `range` 
@@ -158,7 +158,7 @@ Here is a list of `Iodine`'s primitive types:
 - `any`
 
 ## Primitive Data Collections
-`Iodine` has a few primitive data collections for you to use:
+`Rex` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -176,11 +176,11 @@ std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
-Tuples can be indexed, or destructured using pattern matching. The iodo.len() function can be used to assess the length of a tuple
+Tuples can be indexed, or destructured using pattern matching. The rex.len() function can be used to assess the length of a tuple
 ```rust
 let pos = {10, 15};
 
-std.testing.expect(iodo.len(pos) == 2);
+std.testing.expect(rex.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; # The lhs braces are not required
@@ -236,7 +236,7 @@ Multi-line blocks are enclosed using braces: {}
 ```
 
 ## Function Basics
-All functions in `Iodine` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Rex` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -360,7 +360,7 @@ match (nums[..]) {
 
 ```
 
-`Iodine` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Rex` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -407,7 +407,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Iodine` has two looping constructs, range-based for loops, and while loops.
+`Rex` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) |i, i2| {
 
@@ -442,7 +442,7 @@ const add = (x, y: int) int => {
 };
 
 // Function types can be specified separately
-iodo.type!(fn (int, int, int) -> int)
+rex.type!(fn (int, int, int) -> int)
 const add_three = (x, y, z) => return x + y + z;
 ```
 
@@ -533,7 +533,7 @@ if (.ok =~ x) |z| {
 ```
 
 ## Modules
-In `Iodine`, modules are collections of bindings. Bindings can be let or const.
+In `Rex`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -557,7 +557,7 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-There are no methods in Iodine, instead Iodine uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Rex, instead Rex uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -576,22 +576,22 @@ player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
 
 ## File imports
 When files are imported, they are stored as modules.
-Builtin functions are under the implicitly imported iodo module
+Builtin functions are under the implicitly imported rex module
 ```rust
-const std = iodo.import("std");
+const std = rex.import("std");
 ```
 
 ## Signals
 Reactivity
 ```rust
 // name: &string, update_name: signal
-let (name, update_name) = iodo.signal(string);
+let (name, update_name) = rex.signal(string);
 ```
 
 ## Threads
 Green threads
 ```rust
-let tid = iodo.spawn(() => {
+let tid = rex.spawn(() => {
     // Some code
 });
 defer tid.join();
@@ -600,10 +600,10 @@ defer tid.join();
 ## Channels
 ```rust
 // name: &string, update_name: signal
-let chan = iodo.channel(string);
+let chan = rex.channel(string);
 
 for (0..10) |i| {
-    iodo.spawn(() => |chan| {
+    rex.spawn(() => |chan| {
         chan.send(i);
     });
 }
@@ -643,7 +643,7 @@ const div = (x, y: int) {int, int} => {
 let result = div(12, 5);
 std.testing.expect(result[0] == 2);
 
-iodo.type(fn (int, int) -> record{quo, rem: int})
+rex.type(fn (int, int) -> record{quo, rem: int})
 const div = (x, y) => {
     let quo = x / y;
     let rem = x % y;
@@ -667,7 +667,7 @@ const variadic = (...args) => {
 };
 
 const members = (@tup: any) => {
-    inline for (iodo.typeOf(tup).members) |member| {
+    inline for (rex.typeOf(tup).members) |member| {
 
     }
 };
@@ -719,7 +719,7 @@ let greeting = "!dlrow ,olleh"
 ```
 
 ## Traits
-`Iodine` doesn't have inheritance, instead `Iodine` uses interfaces called `traits`.
+`Rex` doesn't have inheritance, instead `Rex` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -752,7 +752,7 @@ system(&player);
 ```
 
 ## `ctime` Expressions
-Metaprogramming in `Iodine` is done using ctime expressions, which is just `Iodine` code executed at compile time
+Metaprogramming in `Rex` is done using ctime expressions, which is just `Rex` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -786,13 +786,13 @@ const screen_size = @{
 };
 ```
 ## First Class Modules
-Modules are first class in `Iodine`, so they can be passed into and out of functions
+Modules are first class in `Rex`, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (ctime@type: typeid) moduleid => {
     return module {
         const Node = record {
-            next: iodo.this(),
+            next: rex.this(),
             data: type
         };   
     
@@ -810,7 +810,7 @@ intList.insert(12);
 ```
 
 ## Operators
-`Iodine` has many operators and symbols, some have different meaning depending on context:
+`Rex` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -879,7 +879,7 @@ const List = (ctime@type: typeid): moduleid => {
         let max_size = 100;
 
         const node = record {
-            next: ?iodo.this(),
+            next: ?rex.this(),
             data: type
         };
 
@@ -920,7 +920,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Iodine` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Rex` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust

@@ -1,6 +1,6 @@
-# Hello, world! in Iodine
+# Hello, world! in Rex
 To compile and run, execute these commands:
 ```bash
-$ iodine-c main.io hello_world
+$ rex-c main.rx hello_world
 $ ./hello_world
 ```
