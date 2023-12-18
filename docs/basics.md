@@ -45,7 +45,7 @@ Assignment in `Rex` can also be done as an expression using ":=", which returns 
 ```rust
 let boolean = false;
 // Assignment expression
-while (boolean := someFunc()) { # Will loop until someFunc returns false 
+while (boolean := someFunc()) { // Will loop until someFunc returns false 
     std.io.printf("{}", boolean);
 }
 ```
@@ -82,13 +82,37 @@ let name: string;
 In `Rex` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
+  - Allocators use the built-in memory functions under the hood like rex.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
 ```rust
-let name: int = 12; // GC/stack allocated
+let name: int = 12; // Stack allocated
 
 let allocator = std.mem.testingAllocator{};
 
-let names: *[5]string = allocator.new([5]string); // Allocates an array and returns a pointer to it
-defer allocator.free(names); // Manual memory must be freed
+let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
+defer allocator.delete(names); // Manual memory must be freed
+```
+In `Rex`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+```rust
+const Free = trait {
+    free: fn (mut& typeid) -> void
+};
+
+const Vector = (@type: typeid, alloc: std.mem.Allocator) moduleid {
+    return module {
+        const t = record {
+            data: [*]type,
+            size: int,
+            capacity: int,
+            allocator = alloc // Properites can have default values which will infer the type
+        };
+
+        // Will be called when a Vector(type) goes out of scope
+        const drop = (mut& self: t) {
+            self.allocator.free(self.data);
+        };
+    }
+};
+
 ```
 
 ## Basic Primitive Types
@@ -152,11 +176,11 @@ std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
-Tuples can be indexed, or destructured using pattern matching. The $len() function can be used to assess the length of a tuple
+Tuples can be indexed, or destructured using pattern matching. The rex.len() function can be used to assess the length of a tuple
 ```rust
 let pos = {10, 15};
 
-std.testing.expect($len(pos) == 2);
+std.testing.expect(rex.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; # The lhs braces are not required
@@ -251,13 +275,6 @@ const add = (x, ~y) => {
 
 add(y: 1, 2); //# y = 1, x = 2
 add(1); //# x = 1, y = null
-```
-
-## Universal Function Call Syntax
-Functions can be called as methods, as long as the first parameter of the function
-is the same type as the expression the "method" is being called on
-```
-
 ```
 
 ## Error Handling
@@ -626,7 +643,7 @@ const div = (x, y: int) {int, int} => {
 let result = div(12, 5);
 std.testing.expect(result[0] == 2);
 
-$type(fn (int, int) -> record{quo, rem: int})
+rex.type(fn (int, int) -> record{quo, rem: int})
 const div = (x, y) => {
     let quo = x / y;
     let rem = x % y;
@@ -635,7 +652,7 @@ const div = (x, y) => {
 }
 
 let result = div(12, 5);
-std/testing.expect(result.quo == 2);
+std.testing.expect(result.quo == 2);
 
 // Any infers the function type at compile time where called, think templates
 // If multiple args, they are treated as a tuple
@@ -649,7 +666,7 @@ const variadic = (...args) => {
     }
 };
 
-const struct = (@tup: any) => {
+const members = (@tup: any) => {
     inline for (rex.typeOf(tup).members) |member| {
 
     }
@@ -657,11 +674,12 @@ const struct = (@tup: any) => {
 
 // Can be run at compile time, so result is known at compile time
 ctime.{
-    struct(.{...});
+    members(.{...});
 }
-@struct(.{...}); // Shorthand for compile time execution
+
+@members(.{...}); // Shorthand for compile time execution
 // Can be run at runtime, but result is not known at compile time
-struct(.{...});
+members(.{...});
 
 // Functions can be taken as parameters and returned from functions
 const sort = (slice: []i32, pred: fn (i32, i32) -> bool) => {
@@ -709,8 +727,8 @@ Traits cannot specify data members, only methods
 const Entity = trait {
     // Method types have restrictions on the receiver type, which goes after fn
     // Both of these methods require receivers to be &'e' (a exclusive mode borrow)
-    update_pos: fn (mut& self: typeid, {f32, f32}) -> (),
-    update_health: fn (mut& self: typeid, int) -> ()
+    update_pos: fn (mut& typeid, {f32, f32}) -> (),
+    update_health: fn (mut& typeid, int) -> ()
 };
 
 const system = (mut& entity: Entity) => // code;
