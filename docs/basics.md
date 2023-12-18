@@ -22,36 +22,36 @@ with the parts surrounded by [] being optional.
 There are two kinds of bindings:
 
 - `const`  
-```
+```rust
 // Constants must be assign a value when declared, and cannot be reassigned
 const msg = "Hello, world!";
 ```
 
 - `let`  
-```
+```rust
 // A variable
 let year = 2023;
 year = 2024;
 ```
 
 `Rex` supports multiple assignment
-```
+```rust
 let x = 12;
 let y = 31;
 x, y = y, x; # swaps bindings with no need for temporary bindings
 ```
 
 Assignment in `Rex` can also be done as an expression using ":=", which returns the rhs value.
-```
+```rust
 let boolean = false;
 // Assignment expression
 while (boolean := someFunc()) { # Will loop until someFunc returns false 
-    std/io.printf("{}", boolean);
+    std.io.printf("{}", boolean);
 }
 ```
 
 Bindings of the same type can be grouped together.
-``` 
+```rust
 // let bindings still don't need to be initialized right away
 let (
     x = 72;
@@ -72,7 +72,7 @@ but types can be specified if desired.
 
 If the binding is not initialized,
 then a type specification must be added.
-```
+```rust
 let x = 83;
 
 let name: string;
@@ -82,11 +82,13 @@ let name: string;
 In `Rex` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
-```
+```rust
 let name: int = 12; // GC/stack allocated
 
-let names: *[5]string = std/mem/allocator.new([5]string); // Allocates an array and returns a pointer to it
-defer std/mem/allocator.free(names); // Manual memory must be freed
+let allocator = std.mem.testingAllocator{};
+
+let names: *[5]string = allocator.new([5]string); // Allocates an array and returns a pointer to it
+defer allocator.free(names); // Manual memory must be freed
 ```
 
 ## Basic Primitive Types
@@ -111,10 +113,6 @@ Here is a list of `Rex`'s primitive types:
      | line
      | string
      |"
-  - "* Multi
-     * line
-     * string
-     *"
 - `regex`
   - \`foo|bar\`
 - `bool` 
@@ -138,41 +136,41 @@ Here is a list of `Rex`'s primitive types:
 ## Primitive Data Collections
 `Rex` has a few primitive data collections for you to use:
 - `Array`
-```
+```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
 let arr = [5]{1, 2, 3, 4, 5};
 let num = arr[2];
-std/testing.expect(num == 3);
+std.testing.expect(num == 3);
 ```
 
 - `Dynamic Array`
-```
+```rust
 // Can change size
 let arr = [..]{1, 2, 3};
 let num = arr[1];
-std/testing.expect(num == 2);
+std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
 Tuples can be indexed, or destructured using pattern matching. The $len() function can be used to assess the length of a tuple
-```
+```rust
 let pos = {10, 15};
 
-std/testing.expect($len(pos) == 2);
+std.testing.expect($len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; # The lhs braces are not required
 
-std/testing.expect(x == 10 and y == 15);
+std.testing.expect(x == 10 and y == 15);
 ```
 - `Named Tuple`
 each {k, v} pair can be indexed, this is just syntactic sugar for creating tuples of two element tuples
-```
+```rust
 let tagged_tuple = {name: "foo", age: 25, likes_ramen: true};
 ```
 
 - `Map`
-```
+```rust
 // Can change size
 let atomic_mass: %{tag, f32} = %{
     beryllium: 9.1022,
@@ -185,11 +183,11 @@ let atomic_mass = %{
 };
 
 let carbon_mass = atomic_mass[:carbon];
-std/testing.expect(carbon_mass == 15.999); # For floats == only compares the whole number
+std.testing.expect(carbon_mass == 15.999); // For floats == only compares the whole number
 ```
 
 ## String interpolation
-```
+```rust
 let fname = "foo";
 let lname = "bar";
 
@@ -197,7 +195,7 @@ let name = "#{foo} #{bar}";
 ```
 
 ## String concatenation
-```
+```rust
 let fname = "foo";
 let lname = "bar";
 
@@ -207,7 +205,7 @@ let name = foo ++ " " ++ bar;
 ## Blocks
 
 Multi-line blocks are enclosed using braces: {}
-```
+```rust
 {
     let x = 83;
 }
@@ -228,19 +226,19 @@ Function definition follows the form of:
 </pre>
 
 A single-line body function
-```
+```rust
 const hello = () => return "Hello, world!";
 ```
 values must be returned explicitly
 
 A multi line body.
-```
+```rust
 const add = (x, y) => {
     return x + y
 };
 ```
 Parameters can be positional, or named. Named parameters must be declared with ~ preceding the tag. They are inferred to be optional types, but their types can be set to standard types. If used as optional types, must be after all positional parameters.
-```
+```rust
 const add = (x, y) => {
     return x + y
 };
@@ -263,7 +261,7 @@ is the same type as the expression the "method" is being called on
 ```
 
 ## Error Handling
-```
+```rust
 // Returns a result, which is a union (string or error)
 const func1 = () !string => {
     if (...) {
@@ -298,7 +296,7 @@ let i: int = func2() or 12;
 ```
 
 ## Pattern Matching
-```
+```rust
 const Result = enum {
     ok(int),
     err(string),
@@ -308,8 +306,8 @@ const Result = enum {
 let x = Result.ok(12);
 
 match (x) {
-    | Result.ok => |val| std/fmt.println("{}", val),
-    | .err => |err| std/fmt.println(err),
+    | Result.ok => |val| std.fmt.println("{}", val),
+    | .err => |err| std.fmt.println(err),
     // Cases can be guarded using when followed by a condition
     // If the condition returns true, that case will execute
     | when is?(x) => |val| {}
@@ -321,7 +319,7 @@ let source = "int main() {}";
 // capturing the remaining portion of the string as a slice
 match (source) {
     | "int", ... => |rest| {
-        std/io.printf("{}\n", rest); #" main() {}"
+        std.io.printf("{}\n", rest); #" main() {}"
     }
 }
 
@@ -330,23 +328,23 @@ let nums = [5]{1, 4, 2, 6, 8};
 // Slices can be matched
 match (nums[..]) {
     | [] => {
-        # Matches an empty slice
+        // Matches an empty slice
     },
     | [] => |elem| {
-        # Matches a slice with one element
+        // Matches a slice with one element
     },
     | [..] => |elem, rest| {
-        # Matches a slice with atleast two elements
+        // Matches a slice with atleast two elements
     },
     | [..] => |_, rest| {
-        # Captures can be ignored with "_"
+        // Captures can be ignored with "_"
     }
 }
 
 ```
 
 `Rex` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
-```
+```rust
 let input = "foo";
 let reg = `foo|bar`;
 
@@ -369,7 +367,7 @@ if (nums[..] ~= []{1, 2, ...}) |rest| {
 
 
 ## Conditionals
-```
+```rust
 if (condition) {
 
 } else if (another_condition) {
@@ -393,7 +391,7 @@ unless (condition) {
 
 ## Loops
 `Rex` has two looping constructs, range-based for loops, and while loops.
-```
+```rust
 for (iterable, iterable2) |i, i2| {
 
 }
@@ -414,7 +412,7 @@ while (result()) |value| {
 ```
 
 ## Function type specification
-```
+```rust
 // Functions that take no parameters have empty "()" before the arrow.
 // Void returns can be specified in two ways.
 // The return type must always be specified in type specifications.
@@ -427,7 +425,7 @@ const add = (x, y: int) int => {
 };
 
 // Function types can be specified separately
-$tupe(fn (int, int, int) -> int)
+rex.type!(fn (int, int, int) -> int)
 const add_three = (x, y, z) => return x + y + z;
 ```
 
@@ -443,14 +441,14 @@ may be able to be relaxed, so all values behind borrows can be modified
       - `mut` exclusive mode, only one active borrow to value so safe to mutate
 - All types
   - `@` or `ctime@` compile time mode
-```
+```rust
 let x, y = 12, 11;
 
 const use = (mov& x: int) => {};
 
 const add = (&x, y: int) => {
     use(&x);
-    return x + y; # Error x used after move
+    return x + y; // Error x used after move
 };
 
 let name = "foo";
@@ -468,9 +466,9 @@ name; # "bar"
 - `Record`  
 
 All records are anonymous. Members can be accessed with the `.` operator. Members can also be accessed by indexing with a tag, provided the tag is known at compile time.
-```
+```rust
 // Record definitions only contain data members, methods are added separately
-const Pos = record { # record{} is the syntax to create anonymous record type
+const Pos = record { // record{} is the syntax to create anonymous record type
     x: int, 
     y: int
 };
@@ -494,7 +492,7 @@ let pos_z = pos[:x];
 - `Variant`  
 
 Tagged unions, anonymous. If a tag is not given a type, it is given void. Can specify tag integer type
-```
+```rust
 const Result = enum {
     ok(int),
     err(string),
@@ -508,19 +506,19 @@ let o = Result.other;
 // Variant can be pattern matched, to access inner values, errors if rhs is not the matching tag
 let Result.ok(z) = x;
 
-std/testing.expect(z == 12);
+std.testing.expect(z == 12);
 
 // Variant can also be used for branching based on if the pattern matches or not
 // The variant type can be inferred
 if (.ok =~ x) |z| {
-    std/io.printf("{}", z);
+    std.io.printf("{}", z);
 }
 ```
 
 ## Modules
 In `Rex`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
-```
+``` rust
 const Constants = module {
     const PI = 3.14
 };
@@ -528,7 +526,7 @@ const Constants = module {
 let area = Constants.PI * (radius ** 2);
 ```
 Modules can be extended using functional updates
-```
+```rust
 const Constants = module {
     const PI = 3.14;
 };
@@ -542,8 +540,8 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-Types can be given methods using receivers
-```
+There are no methods in Rex, instead Rex uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+```rust
 const Player = record {
     pos: {f32, f32},
     health: int
@@ -551,47 +549,44 @@ const Player = record {
 
 // Methods for types are declared by specifying a reciever after the indentifier
 // This can be used to add functionality to primitive types
-const set_pos(mut& p: Player) = (pos: {f32, f32}) => self.pos = pos;
+const set_pos = (mut& self: Player, pos: {f32, f32}) => self.pos = pos;
 
-// Receiver tag can be inferred to be self
-const set_health(&Player) = (health: int) => self.health = health;
-
-// Can also be written using UFCS
 const set_health = (&self: Player, health: int) => self.health = health;
 
-// And reciever can be inferred to be self
-const set_health = (&Player, health: int) => self.health = health;
+let player = Player{};
+player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
 ```
 
 ## File imports
 When files are imported, they are stored as modules.
-```
-const std = $import("std");
+Builtin functions are under the implicitly imported rex module
+```rust
+const std = rex.import("std");
 ```
 
 ## Signals
 Reactivity
-```
+```rust
 // name: &string, update_name: signal
-let (name, update_name) = $signal(string);
+let (name, update_name) = rex.signal(string);
 ```
 
 ## Threads
 Green threads
-```
-let tid = $spawn(() => {
+```rust
+let tid = rex.spawn(() => {
     // Some code
 });
 defer tid.join();
 ```
 
 ## Channels
-```
+```rust
 // name: &string, update_name: signal
-let chan = $channel(string);
+let chan = rex.channel(string);
 
 for (0..10) |i| {
-    $spawn(() => |chan| {
+    rex.spawn(() => |chan| {
         chan.send(i);
     });
 }
@@ -607,7 +602,7 @@ for (chan.queue) |msg| {
 ```
 
 ## More on functions
-```
+```rust
 // Functions can return multiple data types.
 // Functions can return multiple pieces of data, 
 // but they must be assigned to multiple bindings when called.
@@ -629,7 +624,7 @@ const div = (x, y: int) {int, int} => {
 };
 
 let result = div(12, 5);
-std/testing.expect(result[0] == 2);
+std.testing.expect(result[0] == 2);
 
 $type(fn (int, int) -> record{quo, rem: int})
 const div = (x, y) => {
@@ -650,18 +645,21 @@ const variadic = (...args) => {
     let size = $len(args);
 
     for (0..size) |i| {
-        std/fmt.println("{} ", args[i]);
+        std.fmt.println("{} ", args[i]);
     }
 };
 
 const struct = (@tup: any) => {
-    inline for ($typeOf(tup).members) |member| {
+    inline for (rex.typeOf(tup).members) |member| {
 
     }
 };
 
 // Can be run at compile time, so result is known at compile time
-@struct(.{...});
+ctime.{
+    struct(.{...});
+}
+@struct(.{...}); // Shorthand for compile time execution
 // Can be run at runtime, but result is not known at compile time
 struct(.{...});
 
@@ -681,7 +679,7 @@ sort(arr[..], (lhs, rhs) => lhs > rhs);
 ## Pipeline Operator
 The `Pipeline` operator "|>" takes the result of the expression before it,
 and inputs it into the first argument of the function after it
-```
+```rust
 const scan = (source: string) []tokens => // code;
 const parse = (source: []tokens) Ast => // code;
 
@@ -706,13 +704,13 @@ let greeting = "!dlrow ,olleh"
 `Rex` doesn't have inheritance, instead `Rex` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
-```
+```rust
 // Trait definition
 const Entity = trait {
     // Method types have restrictions on the receiver type, which goes after fn
     // Both of these methods require receivers to be &'e' (a exclusive mode borrow)
-    update_pos: fn (mut&)({f32, f32}) -> (),
-    update_health: fn (mut&)(int) -> ()
+    update_pos: fn (mut& self: typeid, {f32, f32}) -> (),
+    update_health: fn (mut& self: typeid, int) -> ()
 };
 
 const system = (mut& entity: Entity) => // code;
@@ -727,8 +725,8 @@ const Player = record {
 
 // To implement the Entity Behaviour, it must have all methods defined with matching
 //   tagifiers, parameter types, and return types
-const update_pos = (mut& Player, pos: {f32, f32}) => // code;
-const update_health = (mut& Player, health: int) => // code;
+const update_pos = (mut& self: Player, pos: {f32, f32}) => // code;
+const update_health = (mut& self: Player, health: int) => // code;
 
 let player = Player{}; // If field values are not provided they will be set to the 
                        //   default values of that type, typically 0 or equivalent.
@@ -739,14 +737,22 @@ system(&player);
 Metaprogramming in `Rex` is done using ctime expressions, which is just `Rex` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
-```
-// `@` or `ctime@` preceeding a tagifier states that this parameter must be known at compile time
+```rust
+// `@` or `ctime@` preceeding a identifier states that this parameter must be known at compile time
 const Vector = (ctime@t: typeid) typeid => {
     return record{
         x: t,
         y: t
     };
 };
+
+// Code can be run at compile time using ctime.{} for a block of code, @ for a single expression 
+ctime.{
+    let _ = Vector(string);
+    ...
+}
+
+const Pos = @Vector(string);
 
 const t = int;
 // The function :Vector could be called at runtime:
@@ -763,12 +769,12 @@ const screen_size = @{
 ```
 ## First Class Modules
 Modules are first class in `Rex`, so they can be passed into and out of functions
-```
+```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (ctime@type: typeid) moduleid => {
     return module {
         const Node = record {
-            next: $this(),
+            next: rex.this(),
             data: type
         };   
     
@@ -777,7 +783,7 @@ const List = (ctime@type: typeid) moduleid => {
             size: uint
         };
 
-        const insert = (mut& t, value: type) => {...};
+        const insert = (mut& self: t, value: type) => {...};
     };
 };
 
@@ -849,13 +855,13 @@ intList.insert(12);
 ```
 
 ## Example: Linked List
-```
+```rust
 const List = (ctime@type: typeid): moduleid => {
     return module {
         let max_size = 100;
 
         const node = record {
-            next: ?$this(),
+            next: ?rex.this(),
             data: type
         };
 
@@ -864,14 +870,14 @@ const List = (ctime@type: typeid): moduleid => {
             size: uint
         };
 
-        const insert(mut& t) = (value: type) => |max_size| {
+        const insert = (mut& self: t, value: type) => |*max_size| {
             if (self.size == 0) {
                 self.head = node {
                     next: null,
                     data: value
                 };
                 self.size++ ;
-            } else if (self.size <= max_size) {
+            } else if (self.size <= max_size.*) {
                 let tmp = self.head;
 
                 self.head = node {
@@ -882,7 +888,7 @@ const List = (ctime@type: typeid): moduleid => {
             }
         };
 
-        const set_max = (size: usize) => |max_size| {
+        const set_max = (size: usize) => |*max_size| {
             max_size.* = size;
         };
     };
@@ -899,7 +905,7 @@ names.insert("foobar");
 `Rex` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
-```
+```rust
 // Hardware circuit instantiation must be done at compile time
 // Ports will connect to mmio
 // The returned structure contains functions to interact w/ hardware through the mmio

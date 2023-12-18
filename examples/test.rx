@@ -2,10 +2,10 @@
  *  Program to print Hello, world!
  */
 
-const std = $import("std");
+const std = rex.import("std");
 
 let main = (argc: int, argv: []string) int => {
-    std/io.printf("{}\n", "Hello, world!");
+    std.io.printf("{}\n", "Hello, world!");
 
     return 0;
 };

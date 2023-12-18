@@ -1,4 +1,4 @@
-const std = @import("std");
+const std = rex.import("std");
 
 let name = "Foo";
 let year = 2023;
@@ -9,8 +9,8 @@ let multi = "| Hello,
 
 // Formats greeting with name and year
 const greet = (name: string, year: int) string => |&multi| {
-    return std/fmt.string(multi, name, year);
+    return std.fmt.string(multi, name, year);
 };
 
 greet(name, year) 
-    |> std/io.println();
+    |> std.io.println();
