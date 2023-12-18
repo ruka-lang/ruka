@@ -1,8 +1,8 @@
 const std = rex.import("std");
 
-let name = "Foo";
-let year = 2023;
-let multi = "| Hello,
+const name = "Foo";
+const year = 2023;
+const multi = "| Hello,
              | {s}!
              | From {d}
              |";
