@@ -5,4 +5,4 @@
 
 [Repositories](https://www.github.com/iodo-lang/iodo)
 
-[Read the docs](https://www.iodo-lang.io)
+[Read the docs](https://www.iodo-lang.org)
