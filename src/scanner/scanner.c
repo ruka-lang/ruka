@@ -92,15 +92,12 @@ struct Token* token_create(struct Scanner* process, struct Token* _token) {
  *
  *
  */
-const char* read_number_string(struct Scanner* process) {
-    const char* num = NULL;
-    struct buffer* buffer = buffer_create();
-
+const char* read_number_string(struct Scanner* process, struct Buffer* buffer) {
     char c = peekc(process);
 
     SCAN_GETC_IF(process, buffer, c, IS_DIGIT(c));
 
-    buffer_write(buffer, 0x00);
+    buffer_write(buffer, '\0');
     return buffer_ptr(buffer);
 }
 
@@ -108,8 +105,8 @@ const char* read_number_string(struct Scanner* process) {
  *
  *
  */
-unsigned long read_number(struct Scanner* process) {
-    const char* s = read_number_string(process);
+unsigned long read_number(struct Scanner* process, struct Buffer* buffer) {
+    const char* s = read_number_string(process, buffer);
     return atoll(s);
 }
 
@@ -130,7 +127,11 @@ struct Token* token_make_number_for_value(struct Scanner* process, unsigned long
  *
  */
 struct Token* token_make_number(struct Scanner* process) {
-    return token_make_number_for_value(process, read_number(process));
+    struct Buffer* buffer = create_buffer();
+    struct Token* token = token_make_number_for_value(process, read_number(process, buffer));
+
+    free_buffer(buffer);
+    return token;
 }
 
 /*

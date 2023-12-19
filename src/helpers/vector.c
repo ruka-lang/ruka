@@ -15,7 +15,7 @@ struct Vector* create_vector(size_t type_size) {
         .data = malloc(VECTOR_REALLOC_AMOUNT * type_size),
         .size = type_size,
         .elements = 0,
-        .capacity = 20
+        .capacity = VECTOR_REALLOC_AMOUNT
     };
 
     memcpy(vector, &tmp, sizeof(struct Vector));
@@ -37,7 +37,7 @@ void free_vector(struct Vector* vector) {
  * @param data The data to be pushed onto the vector
  * @return void
  */
-void vector_push(struct Vector* vector, void* data) {
+void vector_push(struct Vector* vector, const void* data) {
     if (vector->elements >= vector->capacity) {
         vector->data = realloc( 
             vector->data, 
@@ -88,4 +88,12 @@ void* vector_at(struct Vector* vector, int i) {
     if (i > vector->elements) return NULL;
 
     return vector->data + (i * vector->size);
+}
+
+/* Returns the pointer to the vector data
+ * @param vector The vector to get the data pointer from
+ * @return The void* to the vector data
+ */
+void* vector_ptr(struct Vector* vector) {
+    return vector->data;
 }

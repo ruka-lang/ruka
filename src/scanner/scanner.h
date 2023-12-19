@@ -152,7 +152,7 @@ struct Scanner {
     struct Compiler* compiler;
 
     int current_expression_count;
-    struct buffer* parenthesis;
+    struct Buffer* parenthesis;
     struct ScannerFunctions* function;
 
     void* private_data;

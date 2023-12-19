@@ -35,7 +35,7 @@ void free_vector(struct Vector* vector);
  * @param data The data to be pushed onto the vector
  * @return void
  */
-void vector_push(struct Vector* vector, void* data);
+void vector_push(struct Vector* vector, const void* data);
 
 /* Peeks the last value from the vector
  * @param vector The vector to peek from
@@ -55,5 +55,11 @@ void* vector_pop(struct Vector* vector);
  * @return The void* to the element at i
  */
 void* vector_at(struct Vector* vector, int i);
+
+/* Returns the pointer to the vector data
+ * @param vector The vector to get the data pointer from
+ * @return The void* to the vector data
+ */
+void* vector_ptr(struct Vector* vector);
 
 #endif
