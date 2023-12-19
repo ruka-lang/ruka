@@ -77,7 +77,7 @@ In `Rex` memory is GC/stack allocated by default. Memory can be allocated manual
 ```rust
 let name: int = 12; // Stack allocated
 
-let allocator = std.mem.testingAllocator{};
+let allocator = std.mem.testingAllocator.{};
 
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
@@ -98,7 +98,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
         };
 
         // Will be called when a Vector(type) goes out of scope
-        const drop = (mut self: &t) {
+        const free = (mut self: &t) {
             self.allocator.free(self.data);
         };
     }
