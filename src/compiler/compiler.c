@@ -11,10 +11,11 @@ struct ScannerFunctions scan_functions = {
     .push_char = scanner_push_char
 };
 
-/*
- *
- *
- *
+/* Prints a compiler error to the terminal and exits
+ * @param compiler The compiler process the error occured in
+ * @param msg The format string containing the error message
+ * @param ... The format arguments for the msg
+ * @return void
  */
 void compiler_error(struct Compiler* compiler, const char* msg, ...) {
     va_list args;
@@ -33,10 +34,11 @@ void compiler_error(struct Compiler* compiler, const char* msg, ...) {
     exit(-1);
 }
 
-/*
- *
- *
- *
+/* Prints a compiler warning to the terminal
+ * @param compiler The compiler process the warning occured in
+ * @param msg The format string containing the warning message
+ * @param ... The format arguments for the msg
+ * @return void
  */
 void compiler_warning(struct Compiler* compiler, const char* msg, ...) {
     va_list args;

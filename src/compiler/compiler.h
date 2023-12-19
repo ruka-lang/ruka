@@ -44,17 +44,19 @@ struct Compiler {
  */
 int compile(const char* in_filename, const char* out_filename, int flags);
 
-/*
- *
- *
- *
+/* Prints a compiler error to the terminal and exits
+ * @param compiler The compiler process the error occured in
+ * @param msg The format string containing the error message
+ * @param ... The format arguments for the msg
+ * @return void
  */
 void compiler_error(struct Compiler* compiler, const char* msg, ...);
 
-/*
- *
- *
- *
+/* Prints a compiler warning to the terminal
+ * @param compiler The compiler process the warning occured in
+ * @param msg The format string containing the warning message
+ * @param ... The format arguments for the msg
+ * @return void
  */
 void compiler_warning(struct Compiler* compiler, const char* msg, ...);
 
