@@ -77,8 +77,9 @@ struct Token* skip_whitespace(struct Scanner* process) {
 }
 
 /* Creates a token struct by copying the passed in _token and modifying the copy
- * @param
- * @return
+ * @param process The scanner process the token belongs to
+ * @param _token The token struct to copy
+ * @return The token
  */
 struct Token* token_create(struct Scanner* process, struct Token* _token) {
     struct Token* token = malloc(sizeof(struct Token));
