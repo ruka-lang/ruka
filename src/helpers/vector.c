@@ -11,10 +11,14 @@
 struct Vector* create_vector(size_t type_size) {
     struct Vector* vector = malloc(sizeof(struct Vector));
 
-    vector->data = malloc(VECTOR_REALLOC_AMOUNT * type_size);
-    vector->size = type_size;
-    vector->elements = 0;
-    vector->capacity = 20;
+    struct Vector tmp = {
+        .data = malloc(VECTOR_REALLOC_AMOUNT * type_size),
+        .size = type_size,
+        .elements = 0,
+        .capacity = 20
+    };
+
+    memcpy(vector, &tmp, sizeof(struct Vector));
 
     return vector;
 }

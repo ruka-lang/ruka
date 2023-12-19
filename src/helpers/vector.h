@@ -13,7 +13,7 @@
 #define VECTOR_REALLOC_AMOUNT 20
 struct Vector {
     void* data;
-    size_t size;
+    const size_t size;
     int elements;
     int capacity;
 };

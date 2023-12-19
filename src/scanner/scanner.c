@@ -6,8 +6,6 @@
 
 #include "../compiler/compiler.h"
 
-#define IS_NUMERIC(c) c >= '0' && c <= '9'
-
 /*
  *
  *
@@ -53,6 +51,10 @@ void pushc(struct Scanner* process, char c) {
     process->function->push_char(process, c);
 }
 
+/*
+ *
+ *
+ */
 struct Token* scanner_last_token(struct Scanner* process) {
     return vector_peek(process->tokens);
 }
@@ -96,7 +98,7 @@ const char* read_number_string(struct Scanner* process) {
 
     char c = peekc(process);
 
-    SCAN_GETC_IF(process, buffer, c, IS_NUMERIC(c));
+    SCAN_GETC_IF(process, buffer, c, IS_DIGIT(c));
 
     buffer_write(buffer, 0x00);
     return buffer_ptr(buffer);
@@ -140,7 +142,7 @@ struct Token* read_next_token(struct Scanner* process) {
 
     char c = peekc(process);
     switch (c) {
-        NUMERIC_CASE:
+        DIGIT_CASE:
             token = token_make_number(process);
             break;
         case ' ': 
