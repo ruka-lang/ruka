@@ -85,7 +85,7 @@ defer allocator.delete(names); // Manual memory must be freed
 In `Rex`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
-    free: fn (mut& typeid) -> void
+    free: fn (mut&)() -> void
 };
 
 const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
@@ -98,7 +98,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
         };
 
         // Will be called when a Vector(type) goes out of scope
-        const drop = (mut& self: t) {
+        const drop = (mut self: &t) {
             self.allocator.free(self.data);
         };
     }
@@ -310,12 +310,14 @@ const add = () int => {
 
 add(); // Context passed implicitly
 
-let newContext = rex.Context{}; // Create a new context
+let newContext = rex.Context.{}; // Create a new context
 newContext.x = 10.0;
 newContext.y = 8.1;
 
+// Unsure on syntax for passing context explicitly
 rex.context(newContext)
 add(); // Error, mismatched types
+add(context: newContext); // Error, mismatched types
 ```
 
 ## Pattern Matching
@@ -453,8 +455,8 @@ rex.type(fn (int, int, int) -> int)
 const add_three = (x, y, z) => return x + y + z;
 ```
 
-## Modes
-Parameters can have constraints on them, called modes. Borrow types can only be mutated
+## Reference Modes
+Reference parameters can have constraints on them, called modes. Borrow types can only be mutated
 in the scope they are defined in. Values passed to functions by borrow
 cannot be mutated, unless they are passed in the unique or exclusive modes. This
 may be able to be relaxed, so all values behind borrows can be modified
@@ -468,16 +470,16 @@ may be able to be relaxed, so all values behind borrows can be modified
 ```rust
 let x, y = 12, 11;
 
-const use = (mov& x: int) => {};
+const use = (mov x: &int) => {};
 
-const add = (&x, y: int) => {
+const add = (x, y: &int) => {
     use(&x);
     return x + y; // Error x used after move
 };
 
 let name = "foo";
 
-const rename = (mut& name: string) => {
+const rename = (name: mut& string) => {
     name = "bar";
 };
 
@@ -573,9 +575,9 @@ const Player = record {
 
 // Methods for types are declared by specifying a reciever after the indentifier
 // This can be used to add functionality to primitive types
-const set_pos = (mut& self: Player, pos: {f32, f32}) => self.pos = pos;
+const set_pos = (mut self: &Player, pos: {f32, f32}) => self.pos = pos;
 
-const set_health = (&self: Player, health: int) => self.health = health;
+const set_health = (self: &Player, health: int) => self.health = health;
 
 let player = Player.{};
 player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
@@ -606,12 +608,11 @@ defer tid.join();
 
 ## Channels
 ```rust
-// name: &string, update_name: signal
 let chan = rex.channel(string);
 
 for (0..10) |i| {
-    rex.spawn(() => |chan| {
-        chan.send(i);
+    rex.spawn(() => |*chan| {
+        chan.*.send(i);
     });
 }
 
@@ -732,13 +733,14 @@ Traits cannot specify data members, only methods
 ```rust
 // Trait definition
 const Entity = trait {
-    // Method types have restrictions on the receiver type, which goes after fn
-    // Both of these methods require receivers to be &'e' (a exclusive mode borrow)
-    update_pos: fn (mut& typeid, {f32, f32}) -> (),
-    update_health: fn (mut& typeid, int) -> ()
+    // Trait method types have restrictions on the receiver type, which goes after fn
+    // Both of these methods require receivers to be mut& (a exclusive mode borrow)
+    // Reviever is the first parenthesis, the second is the parameter types
+    update_pos: fn (mut&)({f32, f32}) -> (),
+    update_health: fn (mut&)(int) -> ()
 };
 
-const system = (mut& entity: Entity) => // code;
+const system = (mut entity: &Entity) => // code;
 
 // Traits are implemented implicitly
 const Player = record {
@@ -750,8 +752,8 @@ const Player = record {
 
 // To implement the Entity Behaviour, it must have all methods defined with matching
 //   tagifiers, parameter types, and return types
-const update_pos = (mut& self: Player, pos: {f32, f32}) => // code;
-const update_health = (mut& self: Player, health: int) => // code;
+const update_pos = (mut self: &Player, pos: {f32, f32}) => // code;
+const update_health = (mut self: &Player, health: int) => // code;
 
 let player = Player.{}; // If field values are not provided they will be set to the 
                        //   default values of that type, typically 0 or equivalent.
@@ -808,7 +810,7 @@ const List = (ctime@type: typeid) moduleid => {
             size: uint
         };
 
-        const insert = (mut& self: t, value: type) => {...};
+        const insert = (mut self: &t, value: type) => {...};
     };
 };
 
@@ -875,7 +877,7 @@ intList.insert(12);
   - ..(type)        : Exclusive Range, type must be integer types or byte
   - ...(type)       : Inclusive Range, type must be integer types or byte
   - fn () -> ()     : Function
-  - cl () -> ()     : Closure
+  - fn () -> ()     : Closure
   - fn ()() -> ()   : Trait Method
 ```
 
@@ -895,7 +897,7 @@ const List = (ctime@type: typeid) moduleid => {
             size: uint
         };
 
-        const insert = (mut& self: t, value: type) => |*max_size| {
+        const insert = (mut self: &t, value: type) => |*max_size| {
             if (self.size == 0) {
                 self.head = node {
                     next: null,

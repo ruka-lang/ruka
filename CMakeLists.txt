@@ -3,6 +3,8 @@ cmake_minimum_required( VERSION 3.22.1 )
 
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 set( CMAKE_BUILD_TYPE Debug )
+set( CMAKE_C_STANDARD 17 )
+set( CMAKE_C_STANDARD_REQUIRED 1 )
 
 project( rex-c LANGUAGES C )
 
