@@ -20,6 +20,7 @@ struct Scanner* create_scanner(
 
     process->pos.col = 1;
     process->pos.line = 1;
+    process->pos.filename = compiler->in_file.path;
     process->parenthesis = NULL;
     process->compiler = compiler;
     process->function = functions;

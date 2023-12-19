@@ -17,9 +17,9 @@ struct Compiler* create_compiler(
         const char* out_filename, 
         int flags
 ) {
-    FILE* file = fopen(in_filename, "r");
+    FILE* in_file = fopen(in_filename, "r");
 
-    if (!file) return NULL;
+    if (!in_file) return NULL;
 
     FILE* out_file = NULL;
     if (out_filename) {
@@ -30,7 +30,10 @@ struct Compiler* create_compiler(
     struct Compiler* process = malloc(sizeof(struct Compiler));
 
     process->flags = flags;
-    process->in_file.fp = file;
+    process->pos.line = 1;
+    process->pos.col = 1;
+    process->pos.filename = in_filename;
+    process->in_file.fp = in_file;
     process->in_file.path = in_filename;
     process->out_file.fp = out_file;
     process->out_file.path = out_filename;
