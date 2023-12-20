@@ -147,6 +147,7 @@ Here is a list of `Rex`'s primitive types:
   - Also used for identifiers, when used for identifiers the ":" can be omitted.
   - When used for map keys, the ":" is moved to the rhs
 - `any`
+- `rawptr`
 
 ## Primitive Data Collections
 `Rex` has a few primitive data collections for you to use:
