@@ -68,7 +68,8 @@ void compiler_warning(struct Compiler* compiler, const char* msg, ...);
  */
 struct Compiler* create_compiler(const char* in_filename, 
                                  const char* out_filename, 
-                                 int flags);
+                                 int flags
+                                 );
 
 /* Free's the compiler from memory
  * @param process The compiler process to be freed

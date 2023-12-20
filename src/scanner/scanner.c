@@ -81,7 +81,7 @@ struct Token* skip_whitespace(struct Scanner* process) {
  * @param _token The token struct to copy
  * @return The token
  */
-struct Token* token_create(struct Scanner* process, struct Token* _token) {
+struct Token* token_create(struct Scanner* process, struct Token* restrict _token) {
     struct Token* token = malloc(sizeof(struct Token));
     memcpy(token, _token, sizeof(struct Token));
 
