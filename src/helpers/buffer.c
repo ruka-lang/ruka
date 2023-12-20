@@ -12,7 +12,7 @@ struct Buffer* create_buffer() {
     struct Buffer* buffer = malloc(sizeof(struct Buffer));
     
     struct Buffer tmp = {
-        .data = malloc(BUFFER_REALLOC_AMOUNT * sizeof(char)),
+        .data = calloc(BUFFER_REALLOC_AMOUNT, sizeof(char)),
         .size = sizeof(char),
         .elements = 0,
         .capacity = BUFFER_REALLOC_AMOUNT

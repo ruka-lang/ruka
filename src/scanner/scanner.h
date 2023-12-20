@@ -18,7 +18,8 @@ struct Compiler;
 #define IS_NUMERIC(c) IS_DIGIT(c) || c == '.'
 #define IS_ALPHABETICAL(c) c >= 'a' && c <= 'z' || \
                            c >= 'A' && c <= 'Z'
-#define IS_ALPHANUMERIC(c) IS_DIGIT(c) || IS_ALPHABETICAL(c)
+#define IS_ALPHANUMERIC(c) IS_DIGIT(c) || IS_ALPHABETICAL(c) || \
+                           c == '_' || c == '?' || c == '!'
 
 /* Switch case macros */
 #define DIGIT_CASE \

@@ -138,6 +138,46 @@ struct Token* token_make_number(struct Scanner* process) {
     return token;
 }
 
+/* Reads a number from the in_file into a string
+ * @param process The scanner process to read from
+ * @param buffer The buffer to write to
+ * @return The string representing the number literal
+ */
+struct Buffer* read_identifier(struct Scanner* process, struct Buffer* buffer) {
+    char c = peekc(process);
+
+    SCAN_GETC_IF(process, buffer, c, IS_ALPHANUMERIC(c));
+
+    buffer_write(buffer, '\0');
+    return buffer;
+}
+
+/* Creates a identifier token from a string
+ * @param process The scanner process the token belongs to
+ * @param number The string the token represents
+ * @return The identifier token
+ */
+struct Token* token_make_identifier_for_string(struct Scanner* process, struct Buffer* buffer) {
+    char* string = calloc(buffer->elements, buffer->size);
+    strcpy(string, buffer_ptr(buffer));
+    return token_create(process, &(struct Token){
+        .type=IDENTIFIER,
+        .sval=string
+    }); 
+}
+
+/* Creates a identifier token
+ * @param process The scanner process the token belongs to
+ * @return The identifier token
+ */
+struct Token* token_make_identifier(struct Scanner* process) {
+    struct Buffer* buffer = create_buffer();
+    struct Token* token = token_make_identifier_for_string(process, read_identifier(process, buffer));
+
+    free_buffer(buffer);
+    return token;
+}
+
 /* Reads the next token from the scanner process
  * @param process The scanner process to read from
  * @return The next token in the input file
@@ -147,11 +187,15 @@ struct Token* read_next_token(struct Scanner* process) {
 
     char c = peekc(process);
     switch (c) {
+        ALPHABETICAL_CASE:
+            token = token_make_identifier(process);
+            break;
         DIGIT_CASE:
             token = token_make_number(process);
             break;
         case ' ': 
         case '\t':
+        case '\n':
             token = skip_whitespace(process);
             break;
         case EOF:

@@ -12,7 +12,7 @@ struct Vector* create_vector(size_t type_size) {
     struct Vector* vector = malloc(sizeof(struct Vector));
 
     struct Vector tmp = {
-        .data = malloc(VECTOR_REALLOC_AMOUNT * type_size),
+        .data = calloc(VECTOR_REALLOC_AMOUNT, type_size),
         .size = type_size,
         .elements = 0,
         .capacity = VECTOR_REALLOC_AMOUNT
