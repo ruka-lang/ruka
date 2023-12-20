@@ -18,7 +18,6 @@ struct Compiler* create_compiler(
         int flags
 ) {
     FILE* in_file = fopen(in_filename, "r");
-
     if (!in_file) return NULL;
 
     FILE* out_file = NULL;
