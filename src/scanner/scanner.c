@@ -6,6 +6,169 @@
 
 #include "../compiler/compiler.h"
 
+/* Predicate macros */
+#define IS_DIGIT(c) c >= '0' && c <= '9'
+#define IS_NUMERIC(c) IS_DIGIT(c) || c == '.'
+#define IS_ALPHABETICAL(c) c >= 'a' && c <= 'z' || \
+                           c >= 'A' && c <= 'Z'
+#define IS_ALPHANUMERIC(c) IS_DIGIT(c) || IS_ALPHABETICAL(c) || \
+                           c == '_' || c == '?' || c == '!'
+
+/* Switch case macros */
+#define DIGIT_CASE \
+    case '0':        \
+    case '1':        \
+    case '2':        \
+    case '3':        \
+    case '4':        \
+    case '5':        \
+    case '6':        \
+    case '7':        \
+    case '8':        \
+    case '9'
+
+#define NUMERIC_CASE \
+    case '0':        \
+    case '1':        \
+    case '2':        \
+    case '3':        \
+    case '4':        \
+    case '5':        \
+    case '6':        \
+    case '7':        \
+    case '8':        \
+    case '9':        \
+    case '.'
+
+#define ALPHABETICAL_CASE \
+    case 'a':             \
+    case 'b':             \
+    case 'c':             \
+    case 'd':             \
+    case 'e':             \
+    case 'f':             \
+    case 'g':             \
+    case 'h':             \
+    case 'i':             \
+    case 'j':             \
+    case 'k':             \
+    case 'l':             \
+    case 'm':             \
+    case 'n':             \
+    case 'o':             \
+    case 'p':             \
+    case 'q':             \
+    case 'r':             \
+    case 's':             \
+    case 't':             \
+    case 'u':             \
+    case 'v':             \
+    case 'w':             \
+    case 'x':             \
+    case 'y':             \
+    case 'z':             \
+    case 'A':             \
+    case 'B':             \
+    case 'C':             \
+    case 'D':             \
+    case 'E':             \
+    case 'F':             \
+    case 'G':             \
+    case 'H':             \
+    case 'I':             \
+    case 'J':             \
+    case 'K':             \
+    case 'L':             \
+    case 'M':             \
+    case 'N':             \
+    case 'O':             \
+    case 'P':             \
+    case 'Q':             \
+    case 'R':             \
+    case 'S':             \
+    case 'T':             \
+    case 'U':             \
+    case 'V':             \
+    case 'W':             \
+    case 'X':             \
+    case 'Y':             \
+    case 'Z'
+
+#define SYMBOL_CASE \
+    case '!':       \
+    case '@':       \
+    case '#':       \
+    case '$':       \
+    case '%':       \
+    case '^':       \
+    case '&':       \
+    case '*':       \
+    case '(':       \
+    case ')':       \
+    case '-':       \
+    case '\\':      \
+    case '|':       \
+    case '=':       \
+    case '+':       \
+    case '[':       \
+    case ']':       \
+    case '{':       \
+    case '}':       \
+    case '<':       \
+    case '>':       \
+    case ',':       \
+    case '.':       \
+    case '/':       \
+    case '?':       \
+    case '`':       \
+    case '~':       \
+    case ':':       \
+    case ';':       \
+    case '"':       \
+    case '\''
+
+#define WHITESPACE_CASE \
+    case ' ':           \
+    case '\4':          \
+    case '\t':          \
+    case '\r':          \
+    case '\n'
+
+#define ALPHANUMERICAL_CASE \
+    DIGIT_CASE:             \
+    ALPHABETICAL_CASE
+
+const char* KEYWORDS[] = {
+    "const",
+    "let",
+    "return",
+    "fn",
+    "record",
+    "enum",
+    "trait",
+    "module",
+    "defer",
+    "when",
+    "inline",
+    "true",
+    "false",
+    "for",
+    "while",
+    "break",
+    "continue",
+    "match",
+    "if",
+    "else",
+    "as",
+    "and",
+    "or",
+    "any",
+    "mut",
+    "mov",
+    "loc",
+    "ctime"
+};
+
 /* Macro that writes characters from in_file to buffer while exp returns true
  * @param process The scanner process to get characters from
  * @param buffer The buffer to write the characters to
@@ -26,11 +189,7 @@
 char nextc(struct Scanner* process) {
     char c = process->function->next_char(process);
 
-    process->pos.col += 1;
-    if (c == '\n') {
-        process->pos.line += 1;
-        process->pos.col = 1;
-    }
+    process->pos = process->compiler->pos;
 
     return c;
 }
@@ -72,6 +231,37 @@ struct Token* skip_whitespace(struct Scanner* process) {
     }
 
     nextc(process);
+
+    return read_next_token(process);
+}
+
+/* Skips comments from the file stream
+ * @param process The scanner process to skip comments in
+ * @return The token after the comment
+ */
+struct Token* skip_comment(struct Scanner* process) {
+    char c = nextc(process);
+    char next;
+
+    switch (c) {
+        case '/':
+            for (c; c != '\n' && c != EOF; c = peekc(process)) {
+                nextc(process);
+            }
+            nextc(process);
+            break;
+        case '*':
+            for (c; c != EOF && c != '/'; c = nextc(process)) {
+                if (c == '*') {
+                    next = peekc(process);
+                    if (next == '/') {
+                        continue;
+                    }
+                }
+            }
+            nextc(process);
+            break;
+    }
 
     return read_next_token(process);
 }
@@ -152,30 +342,68 @@ struct Buffer* read_identifier(struct Scanner* process, struct Buffer* buffer) {
     return buffer;
 }
 
-/* Creates a identifier token from a string
- * @param process The scanner process the token belongs to
- * @param number The string the token represents
- * @return The identifier token
+/* Checks if string matches a keyword
+ * @param string The string to check against the keywords
+ * @return True if string matches a keyword
  */
-struct Token* token_make_identifier_for_string(struct Scanner* process, struct Buffer* buffer) {
-    char* string = calloc(buffer->elements, buffer->size);
-    strcpy(string, buffer_ptr(buffer));
-    return token_create(process, &(struct Token){
-        .type=IDENTIFIER,
-        .sval=string
-    }); 
+bool check_keyword(char* string) {
+    for (int i = 0; i < 28; i++) {
+        const char* keyword = KEYWORDS[i];
+        size_t keyword_len = strlen(keyword);
+
+        if (strncmp(keyword, string, keyword_len) == 0) {
+            return true;
+        }
+    } 
+    return false;
 }
 
-/* Creates a identifier token
+/* Creates a identifier token from a string
  * @param process The scanner process the token belongs to
+ * @param buffer The the buffer containing the string the token represents
  * @return The identifier token
  */
-struct Token* token_make_identifier(struct Scanner* process) {
-    struct Buffer* buffer = create_buffer();
-    struct Token* token = token_make_identifier_for_string(process, read_identifier(process, buffer));
+struct Token* token_make_identifier_or_keyword_for_string(struct Scanner* process, struct Buffer* buffer) {
+    char* string = calloc(buffer->elements, buffer->size);
+    strcpy(string, buffer_ptr(buffer));
 
+    bool is_keyword = check_keyword(string);
+    if (is_keyword) {
+        return token_create(process, &(struct Token){
+            .type=KEYWORD,
+            .sval=string
+        }); 
+    } else {
+        return token_create(process, &(struct Token){
+            .type=IDENTIFIER,
+            .sval=string
+        }); 
+    }
+}
+
+/* Creates a identifier or keyword token
+ * @param process The scanner process the token belongs to
+ * @return The identifier or keyword token
+ */
+struct Token* token_make_identifier_or_keyword(struct Scanner* process) {
+    struct Buffer* buffer = create_buffer();
+    struct Token* token = token_make_identifier_or_keyword_for_string(process, 
+                                                                      read_identifier(process, buffer)
+                                                                      );
     free_buffer(buffer);
     return token;
+}
+
+/* Creates a symbol token
+ * @param process The scanner process the token belongs to
+ * @param c The char representing the symbol
+ * @return The symbol token
+ */
+struct Token* token_make_symbol(struct Scanner* process, char c) {
+    return token_create(process, &(struct Token){
+        .type=SYMBOL,
+        .cval=c
+    }); 
 }
 
 /* Reads the next token from the scanner process
@@ -188,14 +416,24 @@ struct Token* read_next_token(struct Scanner* process) {
     char c = peekc(process);
     switch (c) {
         ALPHABETICAL_CASE:
-            token = token_make_identifier(process);
+            token = token_make_identifier_or_keyword(process);
             break;
         DIGIT_CASE:
             token = token_make_number(process);
             break;
-        case ' ': 
-        case '\t':
-        case '\n':
+        SYMBOL_CASE:
+            // Check for comment
+            c = nextc(process);
+            char peek = peekc(process);
+
+            if (peek == '/' || peek == '*') {
+                token = skip_comment(process);
+            } else {
+                token = token_make_symbol(process, c);
+            }
+
+            break;
+        WHITESPACE_CASE:
             token = skip_whitespace(process);
             break;
         case EOF:
@@ -203,7 +441,7 @@ struct Token* read_next_token(struct Scanner* process) {
             break;
         default: 
             /* Unsupported character */
-            compiler_error(process->compiler, "Unexpected token");
+            compiler_error(process->compiler, "Unexpected token %d", c);
             break;
     }
 

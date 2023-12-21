@@ -1,6 +1,6 @@
 /*
- *  Program to print Hello, world!
- */
+ * Program to print Hello, world!
+ */ 
 
 const std = rex.import("std");
 
