@@ -18,6 +18,7 @@ struct Scanner* create_scanner(
 ) {
     struct Scanner* process = malloc(sizeof(struct Scanner)); 
 
+    process->read_pos = 0;
     process->pos.col = 1;
     process->pos.line = 1;
     process->pos.filename = compiler->in_file.path;
@@ -64,11 +65,16 @@ char scanner_next_char(struct Scanner* process) {
     struct Compiler* compiler = process->compiler;
     compiler->pos.col += 1;
 
-    char c = getc(compiler->in_file.fp);
-
-    if (c == '\n') {
-        compiler->pos.line += 1;
-        compiler->pos.col = 1;
+    char c;
+    if (process->read_pos >= compiler->in_file.len) {
+        return EOF;
+    } else {
+        c = compiler->in_file.contents[process->read_pos]; 
+        process->read_pos++;
+        if (c == '\n') {
+            compiler->pos.line += 1;
+            compiler->pos.col = 1;
+        }
     }
 
     return c;
@@ -81,8 +87,12 @@ char scanner_next_char(struct Scanner* process) {
 char scanner_peek_char(struct Scanner* process) {
     struct Compiler* compiler = process->compiler;
 
-    char c = getc(compiler->in_file.fp);
-    ungetc(c, compiler->in_file.fp);
+    char c;
+    if (process->read_pos >= compiler->in_file.len) {
+        return EOF;
+    } else {
+        c = compiler->in_file.contents[process->read_pos]; 
+    }
 
     return c;
 }
@@ -95,5 +105,5 @@ char scanner_peek_char(struct Scanner* process) {
 void scanner_push_char(struct Scanner* process, char c) {
     struct Compiler* compiler = process->compiler;
 
-    ungetc(c, compiler->in_file.fp);
+    //ungetc(c, compiler->in_file.fp);
 }

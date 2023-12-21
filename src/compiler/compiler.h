@@ -25,7 +25,8 @@ struct Compiler {
 
     /* File to be compiled */
     struct CompilerInputFile {
-        FILE* fp; 
+        char* contents; 
+        size_t len;
         const char* path;
     } in_file;
     

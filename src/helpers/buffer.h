@@ -12,7 +12,7 @@
 
 #define BUFFER_REALLOC_AMOUNT 2000
 struct Buffer {
-    const size_t size;
+    size_t size;
     char* data;
     int elements;
     int capacity;

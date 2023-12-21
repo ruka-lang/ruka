@@ -57,10 +57,11 @@ struct Scanner {
     struct Pos pos;
     struct Vector* tokens;
     struct Compiler* compiler;
-
-    int current_expression_count;
     struct Buffer* parenthesis;
     struct ScannerFunctions* function;
+
+    size_t read_pos;
+    int current_expression_count;
 
     void* private_data;
 };

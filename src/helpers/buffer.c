@@ -11,14 +11,10 @@
 struct Buffer* create_buffer() {
     struct Buffer* buffer = malloc(sizeof(struct Buffer));
     
-    struct Buffer tmp = {
-        .data = calloc(BUFFER_REALLOC_AMOUNT, sizeof(char)),
-        .size = sizeof(char),
-        .elements = 0,
-        .capacity = BUFFER_REALLOC_AMOUNT
-    };
-
-    memcpy(buffer, &tmp, sizeof(struct Buffer));
+    buffer->data = calloc(BUFFER_REALLOC_AMOUNT, sizeof(char));
+    buffer->size = sizeof(char);
+    buffer->elements = 0;
+    buffer->capacity = BUFFER_REALLOC_AMOUNT;
 
     return buffer;
 }
@@ -28,7 +24,10 @@ struct Buffer* create_buffer() {
  * @return void
  */
 void free_buffer(struct Buffer* buffer) {
-    free(buffer->data);
+    if (buffer->data) {
+        free(buffer->data);
+    }
+
     free(buffer);
 }
 
@@ -41,7 +40,7 @@ void buffer_write(struct Buffer* buffer, char data) {
     if (buffer->elements >= buffer->capacity) {
         buffer->data = realloc( 
             buffer->data, 
-            buffer->capacity + BUFFER_REALLOC_AMOUNT 
+            buffer->size * (buffer->capacity + BUFFER_REALLOC_AMOUNT) 
         );
 
         buffer->capacity += BUFFER_REALLOC_AMOUNT;
