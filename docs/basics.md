@@ -23,7 +23,7 @@ There are two kinds of bindings:
 
 - `const`  
 ```rust
-// Constants must be assign a value when declared, and cannot be reassigned
+// Constants must be assign a value when declared, and cannot be reassigned, they must be known at compile time, either a literal or a ctime expression result
 const msg = "Hello, world!";
 ```
 
@@ -88,7 +88,7 @@ const Free = trait {
     free: fn (mut&)() -> void
 };
 
-const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid => {
+const Vector = (@type: typeid, allocator: std.mem.Allocator) => moduleid {
     return module {
         const t = record {
             data: [*]type,
@@ -244,7 +244,7 @@ Function definition follows the form of:
 
 A single-line body function
 ```rust
-const hello = () => return "Hello, world!";
+const hello = () do return "Hello, world!";
 ```
 values must be returned explicitly
 
@@ -273,14 +273,14 @@ add(1); //# x = 1, y = null
 ## Error Handling
 ```rust
 // Returns a result, which is a union (string or error)
-const func1 = () string! => {
+const func1 = () => string! {
     if (...) {
         return error.someError;
     }
 };
 
 // Returns a result, which is a union (void or error)
-const func1 = () void! => {
+const func1 = () => void! {
     if (...) {
         return error.someError;
     }
@@ -292,7 +292,7 @@ let s: string = func1() as string;
 let s: string = func1().!;
 
 // Returns a optional, which is a union (int or null)
-const func2 = () int? => {
+const func2 = () => int? {
 
 };
 
@@ -311,7 +311,7 @@ Every scope contains an implicitly defined context binding, which is passed to s
 context.x = 12;
 context.y = 15;
 
-const add = () int => {
+const add = () => int {
    return context.x + context.y;
 };
 
@@ -329,7 +329,7 @@ add(context: newContext); // Error, mismatched types
 
 ## Pattern Matching
 ```rust
-const Result = enum {
+const Result = union {
     ok(int),
     err(string),
     other
@@ -338,8 +338,8 @@ const Result = enum {
 let x = Result.ok(12);
 
 match (x) {
-    | Result.ok => |val| std.fmt.println("{}", val),
-    | .err => |err| std.fmt.println(err), // The enum type can be inferred to be the type of x
+    | Result.ok do |val| std.fmt.println("{}", val),
+    | .err do |err| std.fmt.println(err), // The enum type can be inferred to be the type of x
     // Cases can be guarded using when followed by a condition
     // If the condition returns true, that case will execute
     | x when x.ok?() => {},
@@ -453,13 +453,13 @@ const foo: fn () -> ();
 const bar: fn void -> void;
 
 // Types can be specified for multiple parameters at a time.
-const add = (x, y: int) int => {
+const add = (x, y: int) => int {
     return x + y
 };
 
 // Function types can be specified separately
 rex.type(fn (int, int, int) -> int)
-const add_three = (x, y, z) => return x + y + z;
+const add_three = (x, y, z) do return x + y + z;
 ```
 
 ## Reference Modes
@@ -522,11 +522,11 @@ let pos_y = pos.y;
 let pos_z = pos[:x];
 ```
 
-- `Variant`  
+- `Union`  
 
 Tagged unions, anonymous. If a tag is not given a type, it is given void. Can specify tag integer type
 ```rust
-const Result = enum {
+const Result = union(u8) {
     ok(int),
     err(string),
     other
@@ -582,9 +582,9 @@ const Player = record {
 
 // Methods for types are declared by specifying a reciever after the indentifier
 // This can be used to add functionality to primitive types
-const set_pos = (mut self: &Player, pos: {f32, f32}) => self.pos = pos;
+const set_pos = (mut self: &Player, pos: {f32, f32}) do self.pos = pos;
 
-const set_health = (self: &Player, health: int) => self.health = health;
+const set_health = (self: &Player, health: int) do self.health = health;
 
 let player = Player.{};
 player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
@@ -636,7 +636,7 @@ for (chan.queue) { |msg|
 ## More on functions
 ```rust
 // Returning a tuple or record allows the return to be stored in a single binding or destructured
-const div = (x, y: int) {int, int} => {
+const div = (x, y: int) => {int, int} {
     let quo = x / y;
     let rem = x % y;
     return {quo, rem};
@@ -645,7 +645,7 @@ const div = (x, y: int) {int, int} => {
 let result: {int, int} = div(12, 5);
 let {quo, rem} = div(12, 5);
 
-const div = (x, y: int) record{quo, rem: int} => {
+const div = (x, y: int) => record{quo, rem: int} {
     let quo = x / y;
     let rem = x % y;
     // return .{quo = quo, rem = rem};
@@ -668,7 +668,7 @@ const variadic = (...args) => {
 };
 
 const members = (@tup: any) => {
-    inline for (rex.typeOf(tup).members) |member| {
+    inline for (rex.typeOf(tup).members) { |member|
 
     }
 };
@@ -691,7 +691,7 @@ const sort = (slice: []i32, pred: fn (i32, i32) -> bool) => {
 
 const arr = [41, 22, 31, 84, 75];
 // The types of the anonymous function passed will be inferred
-sort(arr[..], (lhs, rhs) => lhs > rhs);
+sort(arr[..], (lhs, rhs) do lhs > rhs);
 
 ```
 
@@ -711,11 +711,25 @@ let ast = source
     |> scan()
     |> parse();
 
-// This is similar to method chaining, an example of which is below, but using functions
-//   which are separate from the data
-let greeting = "!dlrow ,olleh"
-    .reverse()
-    .capitalize(); // reverse and capitalize are methods of strings
+// Can also be written with UFCS, but the functions cannot be under a namespace
+let ast = source
+    .scan()
+    .parse();
+
+// If scan and parse were part of a module called "compiler"
+// you could not use UFCS, as you would be trying to property of the variable not the module
+let ast = source
+    .compiler.scan()
+    .compiler.parse();
+
+// Instead you must use the pipeline, or use the `use` keyword to temporarily open the compiler module to expose it's properties directly
+// Varibles cannot be declared inside of a opened module
+let ast;
+use compiler.{
+    ast = source
+        .scan()
+        .parse();
+}
 
 ```
 
@@ -759,7 +773,7 @@ Metaprogramming in `Rex` is done using ctime expressions, which is just `Rex` co
 The return of compile time expressions is a reference to a static variable
 ```rust
 // `@` or `ctime@` preceeding a identifier states that this parameter must be known at compile time
-const Vector = (ctime@t: typeid) typeid => {
+const Vector = (ctime@t: typeid) => typeid {
     return record {
         x: t,
         y: t
@@ -791,7 +805,7 @@ const screen_size = @{
 Modules are first class in `Rex`, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
-const List = (ctime@type: typeid) moduleid => {
+const List = (ctime@type: typeid) => moduleid {
     return module {
         const Node = record {
             next: rex.this(),
@@ -876,7 +890,7 @@ intList.insert(12);
 
 ## Example: Linked List
 ```rust
-const List = (ctime@type: typeid) moduleid => {
+const List = (ctime@type: typeid) => moduleid {
     return module {
         let max_size = 100;
 

@@ -138,14 +138,15 @@
     DIGIT_CASE:             \
     ALPHABETICAL_CASE
 
-#define NUM_KEYWORDS 28
+/* Keywords */
+#define NUM_KEYWORDS 29
 const char* KEYWORDS[NUM_KEYWORDS] = {
     "const",
     "let",
     "return",
     "fn",
     "record",
-    "enum",
+    "union",
     "trait",
     "module",
     "defer",
@@ -164,6 +165,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "and",
     "or",
     "any",
+    "use",
     "mut",
     "mov",
     "loc",
@@ -250,7 +252,7 @@ struct Token* skip_comment(struct Scanner* process) {
             nextc(process);
             break;
         case '*':
-            for (; c != EOF && c != '/'; c = nextc(process)) {
+            for (; c != '/' && c != EOF; c = nextc(process)) {
                 if (c == '*') {
                     next = peekc(process);
                     if (next == '/') {
@@ -414,6 +416,7 @@ struct Token* read_next_token(struct Scanner* process) {
     struct Token* token = NULL;
 
     char c = peekc(process);
+    char peek;
     switch (c) {
         ALPHABETICAL_CASE:
             token = token_make_identifier_or_keyword(process);
@@ -422,14 +425,29 @@ struct Token* read_next_token(struct Scanner* process) {
             token = token_make_number(process);
             break;
         SYMBOL_CASE:
-            // Check for comment
             c = nextc(process);
-            char peek = peekc(process);
 
-            if (peek == '/' || peek == '*') {
-                token = skip_comment(process);
-            } else {
-                token = token_make_symbol(process, c);
+            switch (c) {
+                /* String literal */
+                case '"':
+                    //break;
+                /* Char literal */
+                case '\'':
+                    //break;
+                /* Regex literal */
+                case '\\':
+                    //break;
+                default:
+                    peek = peekc(process);
+
+                    /* Check for comments */
+                    if (peek == '/' || peek == '*') {
+                        token = skip_comment(process);
+                    } else {
+                        token = token_make_symbol(process, c);
+                    }
+                
+                    break;
             }
 
             break;
