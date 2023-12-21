@@ -448,13 +448,44 @@ struct Token* read_next_token(struct Scanner* process) {
     return token;
 }
 
+/*
+ *
+ *
+ */
+void scanner_debug(struct Scanner* process) {
+    for (int i = 0; i < process->tokens->elements; i++) {
+        const char* msg = "token: %d\n"
+                          "    type: %d\n"
+                          "    pos: line %d, col %d\n"
+                          "    %s\n\n";
+
+        struct Token* t = vector_at(process->tokens, i);
+
+        char buffer[50];
+        switch (t->type) {
+            case INTEGER:
+                sprintf(buffer, "val: %lld", t->llnum);
+                break;
+            case SYMBOL:
+                sprintf(buffer, "val: %c", t->cval);
+                break;
+            case IDENTIFIER:
+                sprintf(buffer, "val: %s", t->sval);
+                break;
+            case KEYWORD:
+                sprintf(buffer, "val: %s", t->sval);
+                break;
+        }
+
+        printf(msg, i, t->type, t->pos.line, t->pos.col, buffer);
+    }
+}
+
 /* Scans the file in the scan process
  * @param process The scan process to be used in scanning
  * @return A integer signaling the result of the scan
  */
 int scan(struct Scanner* process) {
-    process->current_expression_count = 0;
-    process->parenthesis = NULL;
     process->pos.filename = process->compiler->in_file.path; 
 
     struct Token* token = read_next_token(process);
@@ -462,6 +493,8 @@ int scan(struct Scanner* process) {
         vector_push(process->tokens, token);
         token = read_next_token(process);
     }
+
+    scanner_debug(process);
 
     return SCANNER_FILE_SCANNED_OK;
 }
