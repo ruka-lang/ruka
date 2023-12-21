@@ -44,7 +44,7 @@ struct Token {
         unsigned long lnum;
         unsigned long long llnum;
         void* any;
-    };
+    } data;
 
     bool whitespace;
     const char* between_brackets;

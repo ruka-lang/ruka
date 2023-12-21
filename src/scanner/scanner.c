@@ -311,7 +311,7 @@ unsigned long read_number(struct Scanner* process, struct Buffer* buffer) {
 struct Token* token_make_number_for_value(struct Scanner* process, unsigned long number) {
     return token_create(process, &(struct Token){
         .type=INTEGER,
-        .llnum=number
+        .data.llnum=number
     }); 
 }
 
@@ -371,12 +371,12 @@ struct Token* token_make_identifier_or_keyword_for_string(struct Scanner* proces
     if (is_keyword) {
         return token_create(process, &(struct Token){
             .type=KEYWORD,
-            .sval=string
+            .data.sval=string
         }); 
     } else {
         return token_create(process, &(struct Token){
             .type=IDENTIFIER,
-            .sval=string
+            .data.sval=string
         }); 
     }
 }
@@ -402,7 +402,7 @@ struct Token* token_make_identifier_or_keyword(struct Scanner* process) {
 struct Token* token_make_symbol(struct Scanner* process, char c) {
     return token_create(process, &(struct Token){
         .type=SYMBOL,
-        .cval=c
+        .data.cval=c
     }); 
 }
 
@@ -448,32 +448,33 @@ struct Token* read_next_token(struct Scanner* process) {
     return token;
 }
 
-/*
- *
- *
+/* Prints out each token in the scanner
+ * @param process The process whose tokens will be printed
+ * @return void
  */
 void scanner_debug(struct Scanner* process) {
-    for (int i = 0; i < process->tokens->elements; i++) {
-        const char* msg = "token: %d\n"
-                          "    type: %d\n"
-                          "    pos: line %d, col %d\n"
-                          "    %s\n\n";
+    const char* msg = "token: %d {\n"
+                      "    type: %d,\n"
+                      "    pos: line %d, col %d,\n"
+                      "    %s\n"
+                      "}\n\n";
 
+    for (int i = 0; i < process->tokens->elements; i++) {
         struct Token* t = vector_at(process->tokens, i);
 
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                sprintf(buffer, "val: %lld", t->llnum);
+                sprintf(buffer, "val: %lld", t->data.llnum);
                 break;
             case SYMBOL:
-                sprintf(buffer, "val: %c", t->cval);
+                sprintf(buffer, "val: '%c'", t->data.cval);
                 break;
             case IDENTIFIER:
-                sprintf(buffer, "val: %s", t->sval);
+                sprintf(buffer, "val: \"%s\"", t->data.sval);
                 break;
             case KEYWORD:
-                sprintf(buffer, "val: %s", t->sval);
+                sprintf(buffer, "val: \"%s\"", t->data.sval);
                 break;
         }
 
