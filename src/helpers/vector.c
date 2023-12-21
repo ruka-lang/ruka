@@ -9,12 +9,16 @@
  * @return A new Vector pointer or NULL
  */
 struct Vector* create_vector(size_t type_size) {
-    struct Vector* vector = malloc(sizeof(struct Vector));
+    struct Vector* vector = (struct Vector*) malloc(sizeof(struct Vector));
 
-    vector->data = calloc(VECTOR_REALLOC_AMOUNT, type_size);
-    vector->size = type_size;
-    vector->elements = 0;
-    vector->capacity = VECTOR_REALLOC_AMOUNT;
+    struct Vector tmp = {
+        .data = calloc(VECTOR_REALLOC_AMOUNT, type_size),
+        .size = type_size,
+        .elements = 0,
+        .capacity = VECTOR_REALLOC_AMOUNT
+    };
+
+    memcpy(vector, &tmp, sizeof(struct Vector));
 
     return vector;
 }

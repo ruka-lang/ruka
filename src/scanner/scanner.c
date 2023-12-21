@@ -190,8 +190,6 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
 char nextc(struct Scanner* process) {
     char c = process->function->next_char(process);
 
-    process->pos = process->compiler->pos;
-
     return c;
 }
 
@@ -273,7 +271,7 @@ struct Token* skip_comment(struct Scanner* process) {
  * @return The token
  */
 struct Token* token_create(struct Scanner* process, struct Token* restrict _token) {
-    struct Token* token = malloc(sizeof(struct Token));
+    struct Token* token = (struct Token*) malloc(sizeof(struct Token));
     memcpy(token, _token, sizeof(struct Token));
 
     token->pos = process->pos;
@@ -366,7 +364,7 @@ bool check_keyword(char* string) {
  * @return The identifier token
  */
 struct Token* token_make_identifier_or_keyword_for_string(struct Scanner* process, struct Buffer* buffer) {
-    char* string = calloc(buffer->elements, buffer->size);
+    char* string = (char*) calloc(buffer->elements, buffer->size);
     strcpy(string, buffer_ptr(buffer));
 
     bool is_keyword = check_keyword(string);

@@ -15,7 +15,7 @@ char* read_to_string(struct Compiler* process, FILE* file) {
     int len = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char* contents = calloc(len + 1, sizeof(char));
+    char* contents = (char*) calloc(len + 1, sizeof(char));
 
     char c;
     int i = 0;
@@ -51,7 +51,7 @@ struct Compiler* create_compiler(
     }
 
     // Create compiler
-    struct Compiler* process = malloc(sizeof(struct Compiler));
+    struct Compiler* process = (struct Compiler*) malloc(sizeof(struct Compiler));
 
     process->flags = flags;
     process->pos.line = 1;

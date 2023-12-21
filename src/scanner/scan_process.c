@@ -16,7 +16,7 @@ struct Scanner* create_scanner(
         struct ScannerFunctions* functions, 
         void* private_data
 ) {
-    struct Scanner* process = malloc(sizeof(struct Scanner)); 
+    struct Scanner* process = (struct Scanner*) malloc(sizeof(struct Scanner)); 
 
     process->read_pos = 0;
     process->pos.col = 1;
@@ -76,6 +76,8 @@ char scanner_next_char(struct Scanner* process) {
             compiler->pos.col = 1;
         }
     }
+
+    process->pos = compiler->pos;
 
     return c;
 }

@@ -9,12 +9,16 @@
  * @return A new Buffer pointer or NULL
  */
 struct Buffer* create_buffer() {
-    struct Buffer* buffer = malloc(sizeof(struct Buffer));
+    struct Buffer* buffer = (struct Buffer*) malloc(sizeof(struct Buffer));
     
-    buffer->data = calloc(BUFFER_REALLOC_AMOUNT, sizeof(char));
-    buffer->size = sizeof(char);
-    buffer->elements = 0;
-    buffer->capacity = BUFFER_REALLOC_AMOUNT;
+    struct Buffer tmp = {
+        .data = (char*) calloc(BUFFER_REALLOC_AMOUNT, sizeof(char)),
+        .size = sizeof(char),
+        .elements = 0,
+        .capacity = BUFFER_REALLOC_AMOUNT
+    };
+
+    memcpy(buffer, &tmp, sizeof(struct Buffer));
 
     return buffer;
 }
