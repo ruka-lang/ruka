@@ -88,7 +88,7 @@ const Free = trait {
     free: fn (mut&)() -> void
 };
 
-const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
+const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid => {
     return module {
         const t = record {
             data: [*]type,
@@ -98,7 +98,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) moduleid {
         };
 
         // Will be called when a Vector(type) goes out of scope
-        const free = (mut self: &t) {
+        const free = (mut self: &t) => {
             self.allocator.free(self.data);
         };
     }
@@ -221,15 +221,21 @@ Multi-line blocks are enclosed using braces: {}
     let x = 83;
 }
 ```
+Blocks can also have capture groups
+```rust
+{ |&| // captures reference to all variables in above scope
+
+}
+```
 
 ## Function Basics
 All functions in `Rex` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
-  ([mode] parameter [: type]) [: return type] => [|captures|] body;
+  ([mode] parameter [: type]) [: return type] body;
 </pre>
-the body is a block
+the body is a block or single-line do:
 
 Function definition follows the form of:
 <pre>
@@ -345,7 +351,7 @@ let source = "int main() {}";
 // The beginning of strings can be pattern matched,
 // capturing the remaining portion of the string as a slice
 match (source) {
-    | "int", ... => |rest| {
+    | "int", ... => { |rest|
         std.io.printf("{}\n", rest); // " main() {}"
     }
 }
@@ -357,13 +363,13 @@ match (nums[..]) {
     | [] => {
         // Matches an empty slice
     },
-    | [] => |elem| {
+    | [] => { |elem|
         // Matches a slice with one element
     },
-    | [..] => |elem, rest| {
+    | [..] => { |elem, rest|
         // Matches a slice with atleast two elements
     },
-    | [..] => |_, rest| {
+    | [..] => { |_, rest|
         // Captures can be ignored with "_"
     }
 }
@@ -381,13 +387,13 @@ if (foo =~ reg) {
 
 let tup = {52, 74, 412, 33, 87, 36};
 
-if (pos ~= {_, 74, ...}) |rest| {
+if (pos ~= {_, 74, ...}) { |rest|
 
 }
 
 let nums = [5]{1, 2, 5, 3, 2};
 
-if (nums[..] ~= []{1, 2, ...}) |rest| {
+if (nums[..] ~= []{1, 2, ...}) { |rest|
 
 }
 ```
@@ -399,13 +405,13 @@ if (condition) {
 
 } else if (another_condition) {
 
-} else if (variant =~ value) |inner| {
+} else if (variant =~ value) { |inner|
 
-} else if (optional()) |not_null| {
+} else if (optional()) { |not_null|
 
-} else if (result()) |not_error| {
+} else if (result()) { |not_error|
 
-} catch |error| {
+} catch { |error|
 
 } else {
 
@@ -419,7 +425,7 @@ unless (condition) {
 ## Loops
 `Rex` has two looping constructs, range-based for loops, and while loops.
 ```rust
-for (iterable, iterable2) |i, i2| {
+for (iterable, iterable2) { |i, i2|
 
 }
 
@@ -427,13 +433,13 @@ while (condition) {
 
 }
 
-while (optional()) |value| {
+while (optional()) { |value|
 
 }
 
-while (result()) |value| {
+while (result()) { |value|
 
-} catch |error| {
+} catch { |error|
 
 }
 ```
@@ -537,7 +543,7 @@ std.testing.expect(z == 12);
 
 // Variant can also be used for branching based on if the pattern matches or not
 // The variant type can be inferred
-if (.ok =~ x) |z| {
+if (.ok =~ x) { |z|
     std.io.printf("{}", z);
 }
 ```
@@ -595,7 +601,7 @@ const std = rex.import("std");
 Reactivity
 ```rust
 // name: &string, update_name: signal
-let (name, update_name) = rex.signal(string);
+let {name, update_name} = rex.signal(string);
 ```
 
 ## Threads
@@ -611,8 +617,8 @@ defer tid.join();
 ```rust
 let chan = rex.channel(string);
 
-for (0..10) |i| {
-    rex.spawn(() => |*chan| {
+for (0..10) { |i|
+    rex.spawn(() { |*chan|
         chan.*.send(i);
     });
 }
@@ -622,38 +628,24 @@ for (0..10) {
     sum += chan.receive();
 }
 
-for (chan.queue) |msg| {
+for (chan.queue) { |msg|
     sum += msg;
 }
 ```
 
 ## More on functions
 ```rust
-// Functions can return multiple data types.
-// Functions can return multiple pieces of data, 
-// but they must be assigned to multiple bindings when called.
-// Return values can be given tagifiers to declare bindings to use for returning, 
-// allowing for naked returns
-const div = (x, y: int) (quo, rem: int) => {
-    quo = x / y;
-    rem = x % y;
-    return;
-};
-
-let quo, rem = div(12, 5);
-
-// Returning a tuple or record allows the return to be stored in a single binding
+// Returning a tuple or record allows the return to be stored in a single binding or destructured
 const div = (x, y: int) {int, int} => {
     let quo = x / y;
     let rem = x % y;
     return {quo, rem};
 };
 
-let result = div(12, 5);
-std.testing.expect(result[0] == 2);
+let result: {int, int} = div(12, 5);
+let {quo, rem} = div(12, 5);
 
-rex.type(fn (int, int) -> record{quo, rem: int})
-const div = (x, y) => {
+const div = (x, y: int) record{quo, rem: int} => {
     let quo = x / y;
     let rem = x % y;
     // return .{quo = quo, rem = rem};
@@ -670,8 +662,8 @@ std.testing.expect(result.quo == 2);
 const variadic = (...args) => {
     let size = rex.len(args);
 
-    for (0..size) |i| {
-        std.fmt.println("{} ", args[i]);
+    for (0..size) { |i|
+        std.fmt.printf("{} ", args[i]);
     }
 };
 
@@ -898,7 +890,7 @@ const List = (ctime@type: typeid) moduleid => {
             size: uint
         };
 
-        const insert = (mut self: &t, value: type) => |*max_size| {
+        const insert = (mut self: &t, value: type) => { |*max_size|
             if (self.size == 0) {
                 self.head = node {
                     next: null,
@@ -916,7 +908,7 @@ const List = (ctime@type: typeid) moduleid => {
             }
         };
 
-        const set_max = (size: usize) => |*max_size| {
+        const set_max = (size: usize) => { |*max_size|
             max_size.* = size;
         };
     };

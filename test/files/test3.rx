@@ -8,7 +8,7 @@ const multi = "| Hello,
              |";
 
 // Formats greeting with name and year
-const greet = (name: string, year: int) string => |&multi| {
+const greet = (name: string, year: int) string => { |&multi|
     return std.fmt.string(multi, name, year);
 };
 
