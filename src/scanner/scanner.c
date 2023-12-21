@@ -138,7 +138,8 @@
     DIGIT_CASE:             \
     ALPHABETICAL_CASE
 
-const char* KEYWORDS[] = {
+#define NUM_KEYWORDS 28
+const char* KEYWORDS[NUM_KEYWORDS] = {
     "const",
     "let",
     "return",
@@ -245,13 +246,13 @@ struct Token* skip_comment(struct Scanner* process) {
 
     switch (c) {
         case '/':
-            for (c; c != '\n' && c != EOF; c = peekc(process)) {
+            for (;c != '\n' && c != EOF; c = peekc(process)) {
                 nextc(process);
             }
             nextc(process);
             break;
         case '*':
-            for (c; c != EOF && c != '/'; c = nextc(process)) {
+            for (; c != EOF && c != '/'; c = nextc(process)) {
                 if (c == '*') {
                     next = peekc(process);
                     if (next == '/') {
@@ -347,7 +348,7 @@ struct Buffer* read_identifier(struct Scanner* process, struct Buffer* buffer) {
  * @return True if string matches a keyword
  */
 bool check_keyword(char* string) {
-    for (int i = 0; i < 28; i++) {
+    for (int i = 0; i < NUM_KEYWORDS; i++) {
         const char* keyword = KEYWORDS[i];
         size_t keyword_len = strlen(keyword);
 
