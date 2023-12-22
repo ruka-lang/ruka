@@ -42,6 +42,6 @@ target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
 # Tests
 enable_testing()
 
-add_test(
-    NAME scanner-test COMMAND $<TARGET_FILE:rex-c-test> --scanner
-)
+add_test( NAME scanner_next_token COMMAND $<TARGET_FILE:rex-c-test> scanner next_token )
+add_test( NAME scanner_identifier COMMAND $<TARGET_FILE:rex-c-test> scanner identifiers )
+add_test( NAME scanner_numbers    COMMAND $<TARGET_FILE:rex-c-test> scanner numbers )
