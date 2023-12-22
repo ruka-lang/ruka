@@ -75,6 +75,7 @@ char scanner_next_char(struct Scanner* process) {
             process->curr_pos.line += 1;
             process->curr_pos.col = 1;
         }
+        compiler->pos = process->curr_pos;
     }
 
     return c;
