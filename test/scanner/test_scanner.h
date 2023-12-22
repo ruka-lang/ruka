@@ -6,6 +6,8 @@
 #define SCANNER_T
 
 #include <string.h>
+#include "../../src/compiler/compiler.h"
+#include "../../src/scanner/scanner.h"
 
 /*
  *

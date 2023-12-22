@@ -3,7 +3,7 @@
  */
 
 #include <string.h>
-#include "scanner/scanner.h"
+#include "scanner/test_scanner.h"
 
 int main(int argv, char** argc) {
     if (argv <= 2) return -1;

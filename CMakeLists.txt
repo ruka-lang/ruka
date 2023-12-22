@@ -28,7 +28,7 @@ set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/parser/parser.c
              ${SOURCE}/parser/parse_process.c )
 
-set( TESTS ${TEST}/scanner/scanner.h ${TEST}/scanner/scanner.c )
+set( TESTS ${TEST}/scanner/test_scanner.h ${TEST}/scanner/test_scanner.c )
 
 set( LIBRARIES )
 

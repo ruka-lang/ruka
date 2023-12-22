@@ -19,9 +19,8 @@ struct Scanner* create_scanner(
     struct Scanner* process = (struct Scanner*) malloc(sizeof(struct Scanner)); 
 
     process->read_pos = 0;
-    process->pos.col = 1;
-    process->pos.line = 1;
-    process->pos.filename = compiler->in_file.path;
+    process->curr_pos = compiler->pos;
+    process->token_pos = compiler->pos;
     process->parenthesis = NULL;
     process->compiler = compiler;
     process->function = functions;
@@ -63,7 +62,6 @@ struct Vector* scan_process_tokens(struct Scanner* process) {
  */
 char scanner_next_char(struct Scanner* process) {
     struct Compiler* compiler = process->compiler;
-    compiler->pos.col += 1;
 
     char c;
     if (process->read_pos >= compiler->in_file.len) {
@@ -71,13 +69,13 @@ char scanner_next_char(struct Scanner* process) {
     } else {
         c = compiler->in_file.contents[process->read_pos]; 
         process->read_pos++;
+
+        process->curr_pos.col += 1;
         if (c == '\n') {
-            compiler->pos.line += 1;
-            compiler->pos.col = 1;
+            process->curr_pos.line += 1;
+            process->curr_pos.col = 1;
         }
     }
-
-    process->pos = compiler->pos;
 
     return c;
 }

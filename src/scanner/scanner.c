@@ -233,6 +233,7 @@ struct Token* skip_whitespace(struct Scanner* process) {
 
     nextc(process);
 
+    process->token_pos = process->curr_pos;
     return read_next_token(process);
 }
 
@@ -249,6 +250,7 @@ struct Token* skip_comment(struct Scanner* process) {
             for (;c != '\n' && c != EOF; c = peekc(process)) {
                 nextc(process);
             }
+
             nextc(process);
             break;
         case '*':
@@ -260,10 +262,12 @@ struct Token* skip_comment(struct Scanner* process) {
                     }
                 }
             }
+
             nextc(process);
             break;
     }
 
+    process->token_pos = process->curr_pos;
     return read_next_token(process);
 }
 
@@ -276,7 +280,10 @@ struct Token* token_create(struct Scanner* process, struct Token* restrict _toke
     struct Token* token = (struct Token*) malloc(sizeof(struct Token));
     memcpy(token, _token, sizeof(struct Token));
 
-    token->pos = process->pos;
+    token->pos = process->token_pos;
+    token->whitespace = false;
+    token->between_brackets = NULL;
+    token->flags = 0;
 
     return token;
 }
@@ -416,7 +423,9 @@ struct Token* read_next_token(struct Scanner* process) {
     struct Token* token = NULL;
 
     char c = peekc(process);
+    process->token_pos = process->curr_pos;
     char peek;
+
     switch (c) {
         ALPHABETICAL_CASE:
             token = token_make_identifier_or_keyword(process);
@@ -474,6 +483,7 @@ void scanner_debug(struct Scanner* process) {
     const char* msg = "token: %d {\n"
                       "    type: %d,\n"
                       "    pos: line %d, col %d,\n"
+                      "    filename: %s,\n"
                       "    %s\n"
                       "}\n\n";
 
@@ -496,7 +506,12 @@ void scanner_debug(struct Scanner* process) {
                 break;
         }
 
-        printf(msg, i, t->type, t->pos.line, t->pos.col, buffer);
+        printf(msg, i, t->type, 
+                       t->pos.line, 
+                       t->pos.col, 
+                       t->pos.filename, 
+                       buffer
+                       );
     }
 }
 
@@ -505,8 +520,6 @@ void scanner_debug(struct Scanner* process) {
  * @return A integer signaling the result of the scan
  */
 int scan(struct Scanner* process) {
-    process->pos.filename = process->compiler->in_file.path; 
-
     struct Token* token = read_next_token(process);
     while(token) {
         vector_push(process->tokens, token);

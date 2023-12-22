@@ -35,7 +35,10 @@ enum {
 struct Token {
     int type;
     int flags;
+    bool whitespace;
+    const char* between_brackets;
 
+    struct Pos pos;
     /* Data for various tokens */
     union {
         char cval;
@@ -45,16 +48,12 @@ struct Token {
         unsigned long long llnum;
         void* any;
     } data;
-
-    bool whitespace;
-    const char* between_brackets;
-
-    struct Pos pos;
 };
 
 /* State for the scanning process */
 struct Scanner {
-    struct Pos pos;
+    struct Pos curr_pos;
+    struct Pos token_pos;
     struct Vector* tokens;
     struct Compiler* compiler;
     struct Buffer* parenthesis;
@@ -83,6 +82,12 @@ struct ScannerFunctions {
  * @return A integer signaling the result of the scan
  */
 int scan(struct Scanner* process);
+
+/* Reads the next token from the scanner process
+ * @param process The scanner process to read from
+ * @return The next token in the input file
+ */
+struct Token* read_next_token(struct Scanner* process);
 
 /* Creates a new scanner process
  * @param compiler The compiler process the scanner will belong to
