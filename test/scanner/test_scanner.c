@@ -114,9 +114,9 @@ int test_identifiers() {
  *
  */
 int test_scanner(const char* test) {
-    if (strcmp(test, "next_token") == 0) {
+    if (strncmp(test, "next_token", 11) == 0) {
         return test_next_token();
-    } else if (strcmp(test, "identifiers") == 0) {
+    } else if (strncmp(test, "identifiers", 12) == 0) {
         return test_identifiers();
     }
 

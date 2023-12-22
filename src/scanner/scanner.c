@@ -373,7 +373,7 @@ bool check_keyword(char* string) {
  */
 token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_t* buffer) {
     char* string = (char*) calloc(buffer->elements, buffer->size);
-    strcpy(string, buffer_ptr(buffer));
+    strncpy(string, buffer_ptr(buffer), buffer->elements);
 
     bool is_keyword = check_keyword(string);
     if (is_keyword) {
