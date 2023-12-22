@@ -5,7 +5,7 @@
 #include "test_scanner.h"
 
 /* Functions for the scanner to use */
-struct ScannerFunctions test_scan_functions = {
+struct scanner_functions_t test_scan_functions = {
     .next_char = scanner_next_char,
     .peek_char = scanner_peek_char,
     .push_char = scanner_push_char
@@ -15,8 +15,8 @@ struct ScannerFunctions test_scan_functions = {
  *
  *
  */
-struct Compiler* test_compiler(char* source, char* filename) {
-    struct Compiler* compiler = malloc(sizeof(struct Compiler));
+compiler_t* test_compiler(char* source, char* filename) {
+    compiler_t* compiler = malloc(sizeof(compiler_t));
 
     compiler->in_file.contents = source;
     compiler->in_file.len = strlen(source);
@@ -37,7 +37,7 @@ struct Compiler* test_compiler(char* source, char* filename) {
  *
  *
  */
-int token_compare(struct Token* lhs, struct Token rhs) {
+int token_compare(token_t* lhs, token_t rhs) {
     switch (lhs->type) {
         case INTEGER:
             if (
@@ -71,17 +71,17 @@ int test_next_token() {
     char* filename = "test";
     char* source = "123 let x = 12;";
 
-    struct Compiler* compiler = test_compiler(source, filename);
+    compiler_t* compiler = test_compiler(source, filename);
     if (!compiler) return -1;
 
-    struct Scanner* scanner = create_scanner(compiler, &test_scan_functions, NULL);
+    scanner_t* scanner = create_scanner(compiler, &test_scan_functions, NULL);
     if (!scanner) {
         result = -1;
         goto test_exit;
     }
 
-    struct Token* token = read_next_token(scanner);
-    result = token_compare(token, (struct Token){
+    token_t* token = read_next_token(scanner);
+    result = token_compare(token, (token_t){
         .type = INTEGER,
         .pos.col = 1,
         .pos.line = 1,

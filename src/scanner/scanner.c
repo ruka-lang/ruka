@@ -188,7 +188,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
  * @param process The scanner process to get a character from
  * @return The next character in the scanner process
  */
-char nextc(struct Scanner* process) {
+char nextc(scanner_t* process) {
     char c = process->function->next_char(process);
 
     return c;
@@ -198,7 +198,7 @@ char nextc(struct Scanner* process) {
  * @param process The scanner process to peek a character from
  * @return The next character in the scanner process
  */
-char peekc(struct Scanner* process) {
+char peekc(scanner_t* process) {
     return process->function->peek_char(process);
 }
 
@@ -207,7 +207,7 @@ char peekc(struct Scanner* process) {
  * @param c The character to push onto the file
  * @return void
  */
-void pushc(struct Scanner* process, char c) {
+void pushc(scanner_t* process, char c) {
     process->function->push_char(process, c);
 }
 
@@ -215,17 +215,17 @@ void pushc(struct Scanner* process, char c) {
  * @param process The scanner process to get the last token from
  * @return The last token stored in the scanner's token vector
  */
-struct Token* scanner_last_token(struct Scanner* process) {
+token_t* scanner_last_token(scanner_t* process) {
     return vector_peek(process->tokens);
 }
 
-struct Token* read_next_token(struct Scanner* process);
+token_t* read_next_token(scanner_t* process);
 /* Skips whitespace characters from the file
  * @param process The scanner process to skip whitespace characters in
  * @return The token after the whitespace character
  */
-struct Token* skip_whitespace(struct Scanner* process) {
-    struct Token* last_token = scanner_last_token(process);
+token_t* skip_whitespace(scanner_t* process) {
+    token_t* last_token = scanner_last_token(process);
     if (last_token) {
         last_token->whitespace = true;
     }
@@ -240,7 +240,7 @@ struct Token* skip_whitespace(struct Scanner* process) {
  * @param process The scanner process to skip comments in
  * @return The token after the comment
  */
-struct Token* skip_comment(struct Scanner* process) {
+token_t* skip_comment(scanner_t* process) {
     char c = nextc(process);
     char next;
 
@@ -275,9 +275,9 @@ struct Token* skip_comment(struct Scanner* process) {
  * @param _token The token struct to copy
  * @return The token
  */
-struct Token* token_create(struct Scanner* process, struct Token* restrict _token) {
-    struct Token* token = (struct Token*) malloc(sizeof(struct Token));
-    memcpy(token, _token, sizeof(struct Token));
+token_t* token_create(scanner_t* process, token_t* restrict _token) {
+    token_t* token = (token_t*) malloc(sizeof(token_t));
+    memcpy(token, _token, sizeof(token_t));
 
     token->pos = process->token_pos;
     token->whitespace = false;
@@ -292,7 +292,7 @@ struct Token* token_create(struct Scanner* process, struct Token* restrict _toke
  * @param buffer The buffer to write to
  * @return The string representing the number literal
  */
-const char* read_number_string(struct Scanner* process, struct Buffer* buffer) {
+const char* read_number_string(scanner_t* process, buffer_t* buffer) {
     char c = peekc(process);
 
     SCAN_GETC_IF(process, buffer, c, IS_DIGIT(c));
@@ -306,7 +306,7 @@ const char* read_number_string(struct Scanner* process, struct Buffer* buffer) {
  * @param buffer The buffer storing the numbers string representation
  * @return The usigned long value of the buffer
  */
-unsigned long read_number(struct Scanner* process, struct Buffer* buffer) {
+unsigned long read_number(scanner_t* process, buffer_t* buffer) {
     const char* s = read_number_string(process, buffer);
     return atoll(s);
 }
@@ -316,8 +316,8 @@ unsigned long read_number(struct Scanner* process, struct Buffer* buffer) {
  * @param number The number value the token represents
  * @return The number token
  */
-struct Token* token_make_number_for_value(struct Scanner* process, unsigned long number) {
-    return token_create(process, &(struct Token){
+token_t* token_make_number_for_value(scanner_t* process, unsigned long number) {
+    return token_create(process, &(token_t){
         .type=INTEGER,
         .data.llnum=number
     }); 
@@ -327,9 +327,9 @@ struct Token* token_make_number_for_value(struct Scanner* process, unsigned long
  * @param process The scanner process the token belongs to
  * @return The number token
  */
-struct Token* token_make_number(struct Scanner* process) {
-    struct Buffer* buffer = create_buffer();
-    struct Token* token = token_make_number_for_value(process, read_number(process, buffer));
+token_t* token_make_number(scanner_t* process) {
+    buffer_t* buffer = create_buffer();
+    token_t* token = token_make_number_for_value(process, read_number(process, buffer));
 
     free_buffer(buffer);
     return token;
@@ -340,7 +340,7 @@ struct Token* token_make_number(struct Scanner* process) {
  * @param buffer The buffer to write to
  * @return The string representing the number literal
  */
-struct Buffer* read_identifier(struct Scanner* process, struct Buffer* buffer) {
+buffer_t* read_identifier(scanner_t* process, buffer_t* buffer) {
     char c = peekc(process);
 
     SCAN_GETC_IF(process, buffer, c, IS_ALPHANUMERIC(c));
@@ -371,18 +371,18 @@ bool check_keyword(char* string) {
  * @param buffer The the buffer containing the string the token represents
  * @return The identifier token
  */
-struct Token* token_make_identifier_or_keyword_for_string(struct Scanner* process, struct Buffer* buffer) {
+token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_t* buffer) {
     char* string = (char*) calloc(buffer->elements, buffer->size);
     strcpy(string, buffer_ptr(buffer));
 
     bool is_keyword = check_keyword(string);
     if (is_keyword) {
-        return token_create(process, &(struct Token){
+        return token_create(process, &(token_t){
             .type=KEYWORD,
             .data.sval=string
         }); 
     } else {
-        return token_create(process, &(struct Token){
+        return token_create(process, &(token_t){
             .type=IDENTIFIER,
             .data.sval=string
         }); 
@@ -393,9 +393,9 @@ struct Token* token_make_identifier_or_keyword_for_string(struct Scanner* proces
  * @param process The scanner process the token belongs to
  * @return The identifier or keyword token
  */
-struct Token* token_make_identifier_or_keyword(struct Scanner* process) {
-    struct Buffer* buffer = create_buffer();
-    struct Token* token = token_make_identifier_or_keyword_for_string(process, 
+token_t* token_make_identifier_or_keyword(scanner_t* process) {
+    buffer_t* buffer = create_buffer();
+    token_t* token = token_make_identifier_or_keyword_for_string(process, 
                                                                       read_identifier(process, buffer)
                                                                       );
     free_buffer(buffer);
@@ -407,8 +407,8 @@ struct Token* token_make_identifier_or_keyword(struct Scanner* process) {
  * @param c The char representing the symbol
  * @return The symbol token
  */
-struct Token* token_make_symbol(struct Scanner* process, char c) {
-    return token_create(process, &(struct Token){
+token_t* token_make_symbol(scanner_t* process, char c) {
+    return token_create(process, &(token_t){
         .type=SYMBOL,
         .data.cval=c
     }); 
@@ -418,8 +418,8 @@ struct Token* token_make_symbol(struct Scanner* process, char c) {
  * @param process The scanner process to read from
  * @return The next token in the input file
  */
-struct Token* read_next_token(struct Scanner* process) {
-    struct Token* token = NULL;
+token_t* read_next_token(scanner_t* process) {
+    token_t* token = NULL;
 
     char c = peekc(process);
     process->token_pos = process->curr_pos;
@@ -478,7 +478,7 @@ struct Token* read_next_token(struct Scanner* process) {
  * @param process The process whose tokens will be printed
  * @return void
  */
-void scanner_debug(struct Scanner* process) {
+void scanner_debug(scanner_t* process) {
     const char* msg = "token: %d {\n"
                       "    type: %d,\n"
                       "    pos: line %d, col %d,\n"
@@ -487,7 +487,7 @@ void scanner_debug(struct Scanner* process) {
                       "}\n\n";
 
     for (int i = 0; i < process->tokens->elements; i++) {
-        struct Token* t = vector_at(process->tokens, i);
+        token_t* t = vector_at(process->tokens, i);
 
         char buffer[50];
         switch (t->type) {
@@ -520,8 +520,8 @@ void scanner_debug(struct Scanner* process) {
  * @param process The scan process to be used in scanning
  * @return A integer signaling the result of the scan
  */
-int scan(struct Scanner* process) {
-    struct Token* token = read_next_token(process);
+int scan(scanner_t* process) {
+    token_t* token = read_next_token(process);
     while(token) {
         vector_push(process->tokens, token);
         // remove and call free_token(token) for each token in vector as part of exit code

@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sys/errno.h>
-#include "scanner.h"
+#include "helpers/position.h"
 
 /* Compiler messages */
 enum {
@@ -18,24 +18,24 @@ enum {
 };
 
 /* State for compilation process */
-struct Compiler {
+typedef struct {
     /* The flags in regards to how this file should be compiled */
     int flags;
-    struct Pos pos;
+    pos_t pos;
 
     /* File to be compiled */
-    struct CompilerInputFile {
+    struct InputFile {
         char* contents; 
         size_t len;
         const char* path;
     } in_file;
     
     /* File to be compiled */
-    struct CompilerOutputFile {
+    struct OutputFile {
         FILE* fp; 
         const char* path;
     } out_file;
-};
+} compiler_t;
 
 /* Compiles the file specified into the specified output using flags
  * @param in_filename The file to compile
@@ -51,7 +51,7 @@ int compile(const char* in_filename, const char* out_filename, int flags);
  * @param ... The format arguments for the msg
  * @return void
  */
-void compiler_error(struct Compiler* compiler, const char* msg, ...);
+void compiler_error(compiler_t* compiler, const char* msg, ...);
 
 /* Prints a compiler warning to the terminal
  * @param compiler The compiler process the warning occured in
@@ -59,7 +59,7 @@ void compiler_error(struct Compiler* compiler, const char* msg, ...);
  * @param ... The format arguments for the msg
  * @return void
  */
-void compiler_warning(struct Compiler* compiler, const char* msg, ...);
+void compiler_warning(compiler_t* compiler, const char* msg, ...);
 
 /* Creates a new compiler process
  * @param in_filename The file to compile
@@ -67,15 +67,15 @@ void compiler_warning(struct Compiler* compiler, const char* msg, ...);
  * @param flags Flags involving in file compilation
  * @return A new Compiler pointer or NULL
  */
-struct Compiler* create_compiler(const char* in_filename, 
-                                 const char* out_filename, 
-                                 int flags
-                                 );
+compiler_t* create_compiler(const char* in_filename, 
+                            const char* out_filename, 
+                            int flags
+                            );
 
 /* Free's the compiler from memory
  * @param process The compiler process to be freed
  * @return void
  */
-void free_compiler(struct Compiler* process);
+void free_compiler(compiler_t* process);
 
 #endif

@@ -6,10 +6,10 @@
 #define POSITION_H
 
 /* File position structure */
-struct Pos {
+typedef struct {
     int line;
     int col;
     const char* filename;
-};
+} pos_t;
 
 #endif

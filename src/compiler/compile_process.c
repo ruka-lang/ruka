@@ -10,7 +10,7 @@
  * @param file The file to read to string
  * @return Char* containing the file contents
  */
-char* read_to_string(struct Compiler* process, FILE* file) {
+char* read_to_string(compiler_t* process, FILE* file) {
     fseek(file, 0, SEEK_END);
     int len = ftell(file);
     fseek(file, 0, SEEK_SET);
@@ -36,7 +36,7 @@ char* read_to_string(struct Compiler* process, FILE* file) {
  * @param flags Flags involving in file compilation
  * @return A new Compiler pointer or NULL
  */
-struct Compiler* create_compiler(
+compiler_t* create_compiler(
         const char* in_filename, 
         const char* out_filename, 
         int flags
@@ -51,7 +51,7 @@ struct Compiler* create_compiler(
     }
 
     // Create compiler
-    struct Compiler* process = (struct Compiler*) malloc(sizeof(struct Compiler));
+    compiler_t* process = (compiler_t*) malloc(sizeof(compiler_t));
 
     process->flags = flags;
     process->pos.line = 1;
@@ -72,7 +72,7 @@ struct Compiler* create_compiler(
  * @param process The compiler process to be freed
  * @return void
  */
-void free_compiler(struct Compiler* process) {
+void free_compiler(compiler_t* process) {
     if (process->out_file.fp) {
         fclose(process->out_file.fp);
     }

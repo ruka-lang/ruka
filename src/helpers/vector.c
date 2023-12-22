@@ -8,17 +8,17 @@
  * @param type_size The size of the type being stored in the vector
  * @return A new Vector pointer or NULL
  */
-struct Vector* create_vector(size_t type_size) {
-    struct Vector* vector = (struct Vector*) malloc(sizeof(struct Vector));
+vector_t* create_vector(size_t type_size) {
+    vector_t* vector = (vector_t*) malloc(sizeof(vector_t));
 
-    struct Vector tmp = {
+    vector_t tmp = {
         .data = calloc(VECTOR_REALLOC_AMOUNT, type_size),
         .size = type_size,
         .elements = 0,
         .capacity = VECTOR_REALLOC_AMOUNT
     };
 
-    memcpy(vector, &tmp, sizeof(struct Vector));
+    memcpy(vector, &tmp, sizeof(vector_t));
 
     return vector;
 }
@@ -27,7 +27,7 @@ struct Vector* create_vector(size_t type_size) {
  * @param vector The vector to be freed
  * @return void
  */
-void free_vector(struct Vector* vector) {
+void free_vector(vector_t* vector) {
     free(vector->data);
     free(vector);
 }
@@ -37,7 +37,7 @@ void free_vector(struct Vector* vector) {
  * @param data The data to be pushed onto the vector
  * @return void
  */
-void vector_push(struct Vector* vector, const void* data) {
+void vector_push(vector_t* vector, const void* data) {
     if (vector->elements >= vector->capacity) {
         vector->data = realloc( 
             vector->data, 
@@ -58,7 +58,7 @@ void vector_push(struct Vector* vector, const void* data) {
  * @param vector The vector to peek from
  * @return The void* to the element at the end of the vector
  */
-void* vector_peek(struct Vector* vector) {
+void* vector_peek(vector_t* vector) {
     if (vector->elements <= 0) return NULL;
 
     void* value = vector_at(vector, vector->elements - 1);
@@ -70,7 +70,7 @@ void* vector_peek(struct Vector* vector) {
  * @param vector The vector to pop an element off of
  * @return The void* to the element at the end of the vector
  */
-void* vector_pop(struct Vector* vector) {
+void* vector_pop(vector_t* vector) {
     if (vector->elements <= 0) return NULL;
 
     void* value = vector_at(vector, vector->elements - 1);
@@ -84,7 +84,7 @@ void* vector_pop(struct Vector* vector) {
  * @param i The index of the element to access
  * @return The void* to the element at i
  */
-void* vector_at(struct Vector* vector, int i) {
+void* vector_at(vector_t* vector, int i) {
     if (i > vector->elements) return NULL;
 
     return vector->data + (i * vector->size);
@@ -94,6 +94,6 @@ void* vector_at(struct Vector* vector, int i) {
  * @param vector The vector to get the data pointer from
  * @return The void* to the vector data
  */
-void* vector_ptr(struct Vector* vector) {
+void* vector_ptr(vector_t* vector) {
     return vector->data;
 }

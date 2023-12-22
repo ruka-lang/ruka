@@ -3,9 +3,10 @@
  */
 
 #include "../../includes/compiler.h"
+#include "../../includes/scanner.h"
 
 /* Functions for the scanner to use */
-struct ScannerFunctions scan_functions = {
+struct scanner_functions_t scan_functions = {
     .next_char = scanner_next_char,
     .peek_char = scanner_peek_char,
     .push_char = scanner_push_char
@@ -17,7 +18,7 @@ struct ScannerFunctions scan_functions = {
  * @param ... The format arguments for the msg
  * @return void
  */
-void compiler_error(struct Compiler* compiler, const char* msg, ...) {
+void compiler_error(compiler_t* compiler, const char* msg, ...) {
     va_list args;
 
     va_start(args, msg);
@@ -40,7 +41,7 @@ void compiler_error(struct Compiler* compiler, const char* msg, ...) {
  * @param ... The format arguments for the msg
  * @return void
  */
-void compiler_warning(struct Compiler* compiler, const char* msg, ...) {
+void compiler_warning(compiler_t* compiler, const char* msg, ...) {
     va_list args;
 
     va_start(args, msg);
@@ -62,11 +63,11 @@ void compiler_warning(struct Compiler* compiler, const char* msg, ...) {
  * @return A integer signaling the compilation result
  */
 int compile(const char* in_filename, const char* out_filename, int flags) {
-    struct Compiler* process = create_compiler(in_filename, out_filename, flags); 
+    compiler_t* process = create_compiler(in_filename, out_filename, flags); 
     if (!process) return ENOENT;
 
     /* Scan */
-    struct Scanner* scanner = create_scanner(process, &scan_functions, NULL);
+    scanner_t* scanner = create_scanner(process, &scan_functions, NULL);
     if (!scanner) return COMPILER_FAILED_WITH_ERRORS;
 
     int scan_result = scan(scanner);

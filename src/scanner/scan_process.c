@@ -3,6 +3,7 @@
  */
 
 #include <stdlib.h>
+#include "../../includes/scanner.h"
 #include "../../includes/compiler.h"
 
 /* Creates a new scanner process
@@ -11,12 +12,12 @@
  * @param private_data The private data only the caller understands
  * @return A pointer to a new Scanner or NULL
  */
-struct Scanner* create_scanner(
-        struct Compiler* compiler, 
-        struct ScannerFunctions* functions, 
+scanner_t* create_scanner(
+        compiler_t* compiler, 
+        struct scanner_functions_t* functions, 
         void* private_data
 ) {
-    struct Scanner* process = (struct Scanner*) malloc(sizeof(struct Scanner)); 
+    scanner_t* process = (scanner_t*) malloc(sizeof(scanner_t)); 
 
     process->read_pos = 0;
     process->curr_pos = compiler->pos;
@@ -26,7 +27,7 @@ struct Scanner* create_scanner(
     process->function = functions;
     process->private_data = private_data;
     process->current_expression_count = 0;
-    process->tokens = create_vector(sizeof(struct Token));
+    process->tokens = create_vector(sizeof(token_t));
 
     return process;
 }
@@ -35,7 +36,7 @@ struct Scanner* create_scanner(
  * @param process The scanner process to be freed
  * @return void
  */
-void free_scanner(struct Scanner* process) {
+void free_scanner(scanner_t* process) {
     free_vector(process->tokens);
     free(process);
 }
@@ -44,7 +45,7 @@ void free_scanner(struct Scanner* process) {
  * @param process The scanner whose private data is being retrieved
  * @return void
  */
-void* scanner_private(struct Scanner* process) {
+void* scanner_private(scanner_t* process) {
     return process->private_data;
 }
 
@@ -52,7 +53,7 @@ void* scanner_private(struct Scanner* process) {
  * @param process The scanner whose tokens vector is being retrieved
  * @return Pointer to the Token Vector
  */
-struct Vector* scan_process_tokens(struct Scanner* process) {
+vector_t* scan_process_tokens(scanner_t* process) {
     return process->tokens;
 }
 
@@ -60,8 +61,8 @@ struct Vector* scan_process_tokens(struct Scanner* process) {
  * @param process The process to retrieve the next char from
  * @return The next char in the file
  */
-char scanner_next_char(struct Scanner* process) {
-    struct Compiler* compiler = process->compiler;
+char scanner_next_char(scanner_t* process) {
+    compiler_t* compiler = process->compiler;
 
     char c;
     if (process->read_pos >= compiler->in_file.len) {
@@ -85,8 +86,8 @@ char scanner_next_char(struct Scanner* process) {
  * @param process The process to peek the next char from
  * @return The next char in the file
  */
-char scanner_peek_char(struct Scanner* process) {
-    struct Compiler* compiler = process->compiler;
+char scanner_peek_char(scanner_t* process) {
+    compiler_t* compiler = process->compiler;
 
     char c;
     if (process->read_pos >= compiler->in_file.len) {
@@ -103,8 +104,8 @@ char scanner_peek_char(struct Scanner* process) {
  * @param c The char to push onto the file
  * @return void
  */
-void scanner_push_char(struct Scanner* process, char c) {
-    struct Compiler* compiler = process->compiler;
+void scanner_push_char(scanner_t* process, char c) {
+    compiler_t* compiler = process->compiler;
 
     //ungetc(c, compiler->in_file.fp);
 }

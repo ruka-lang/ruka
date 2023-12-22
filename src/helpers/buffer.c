@@ -8,17 +8,17 @@
  * @param type_size The size of the type being stored in the buffer
  * @return A new Buffer pointer or NULL
  */
-struct Buffer* create_buffer() {
-    struct Buffer* buffer = (struct Buffer*) malloc(sizeof(struct Buffer));
+buffer_t* create_buffer() {
+    buffer_t* buffer = (buffer_t*) malloc(sizeof(buffer_t));
     
-    struct Buffer tmp = {
+    buffer_t tmp = {
         .data = (char*) calloc(BUFFER_REALLOC_AMOUNT, sizeof(char)),
         .size = sizeof(char),
         .elements = 0,
         .capacity = BUFFER_REALLOC_AMOUNT
     };
 
-    memcpy(buffer, &tmp, sizeof(struct Buffer));
+    memcpy(buffer, &tmp, sizeof(buffer_t));
 
     return buffer;
 }
@@ -27,7 +27,7 @@ struct Buffer* create_buffer() {
  * @param buffer The buffer to be freed
  * @return void
  */
-void free_buffer(struct Buffer* buffer) {
+void free_buffer(buffer_t* buffer) {
     if (buffer->data) {
         free(buffer->data);
     }
@@ -40,7 +40,7 @@ void free_buffer(struct Buffer* buffer) {
  * @param data The data to be pushed onto the buffer
  * @return void
  */
-void buffer_write(struct Buffer* buffer, char data) {
+void buffer_write(buffer_t* buffer, char data) {
     if (buffer->elements >= buffer->capacity) {
         buffer->data = realloc( 
             buffer->data, 
@@ -61,7 +61,7 @@ void buffer_write(struct Buffer* buffer, char data) {
  * @param buffer The buffer to peek from
  * @return The void* to the element at the end of the buffer
  */
-char* buffer_peek(struct Buffer* buffer) {
+char* buffer_peek(buffer_t* buffer) {
     if (buffer->elements <= 0) return NULL;
 
     char* value = buffer_read(buffer, buffer->elements - 1);
@@ -73,7 +73,7 @@ char* buffer_peek(struct Buffer* buffer) {
  * @param buffer The buffer to pop an element off of
  * @return The void* to the element at the end of the buffer
  */
-char* buffer_pop(struct Buffer* buffer) {
+char* buffer_pop(buffer_t* buffer) {
     if (buffer->elements <= 0) return NULL;
 
     char* value = buffer_read(buffer, buffer->elements - 1);
@@ -87,7 +87,7 @@ char* buffer_pop(struct Buffer* buffer) {
  * @param i The index of the element to access
  * @return The void* to the element at i
  */
-char* buffer_read(struct Buffer* buffer, int i) {
+char* buffer_read(buffer_t* buffer, int i) {
     if (i > buffer->elements) return NULL;
 
     return buffer->data + (i * buffer->size);
@@ -97,6 +97,6 @@ char* buffer_read(struct Buffer* buffer, int i) {
  * @param buffer The buffer to get the data pointer from
  * @return The char* to the buffer data
  */
-char* buffer_ptr(struct Buffer* buffer) {
+char* buffer_ptr(buffer_t* buffer) {
     return buffer->data;
 }
