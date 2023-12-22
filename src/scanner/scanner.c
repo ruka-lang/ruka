@@ -492,25 +492,27 @@ void scanner_debug(struct Scanner* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                sprintf(buffer, "val: %lld", t->data.llnum);
+                snprintf(buffer, 50, "val: %lld", t->data.llnum);
                 break;
             case SYMBOL:
-                sprintf(buffer, "val: '%c'", t->data.cval);
+                snprintf(buffer, 50, "val: '%c'", t->data.cval);
                 break;
             case IDENTIFIER:
-                sprintf(buffer, "val: \"%s\"", t->data.sval);
+                snprintf(buffer, 50, "val: \"%s\"", t->data.sval);
                 break;
             case KEYWORD:
-                sprintf(buffer, "val: \"%s\"", t->data.sval);
+                snprintf(buffer, 50, "val: \"%s\"", t->data.sval);
                 break;
         }
 
-        printf(msg, i, t->type, 
-                       t->pos.line, 
-                       t->pos.col, 
-                       t->pos.filename, 
-                       buffer
-                       );
+        printf(msg, 
+               i, 
+               t->type, 
+               t->pos.line, 
+               t->pos.col, 
+               t->pos.filename, 
+               buffer
+               );
     }
 }
 
@@ -522,7 +524,7 @@ int scan(struct Scanner* process) {
     struct Token* token = read_next_token(process);
     while(token) {
         vector_push(process->tokens, token);
-        // replace with free_token(token);
+        // remove and call free_token(token) for each token in vector as part of exit code
         free(token);
         token = read_next_token(process);
     }
