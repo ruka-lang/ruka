@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sys/errno.h>
-#include "../scanner/scanner.h"
+#include "scanner.h"
 
 /* Compiler messages */
 enum {

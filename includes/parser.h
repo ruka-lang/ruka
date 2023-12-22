@@ -5,7 +5,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../helpers/position.h"
+#include "helpers/position.h"
 
 struct Compiler;
 

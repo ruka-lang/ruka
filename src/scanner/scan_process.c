@@ -3,7 +3,7 @@
  */
 
 #include <stdlib.h>
-#include "../compiler/compiler.h"
+#include "../../includes/compiler.h"
 
 /* Creates a new scanner process
  * @param compiler The compiler process the scanner will belong to

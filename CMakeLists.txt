@@ -10,14 +10,15 @@ project( rex-c LANGUAGES C )
 
 # Files and Libs
 set( SOURCE src )
+set( INCLUDE includes )
 set( TEST test )
 
-set( HEAD ${SOURCE}/helpers/position.h
-          ${SOURCE}/helpers/vector.h
-          ${SOURCE}/helpers/buffer.h
-          ${SOURCE}/compiler/compiler.h
-          ${SOURCE}/scanner/scanner.h
-          ${SOURCE}/parser/parser.h )
+set( INCLUDES ${INCLUDE}/helpers/position.h
+              ${INCLUDE}/helpers/vector.h
+              ${INCLUDE}/helpers/buffer.h
+              ${INCLUDE}/compiler.h
+              ${INCLUDE}/scanner.h
+              ${INCLUDE}/parser.h )
 
 set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/helpers/buffer.c
@@ -28,15 +29,16 @@ set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/parser/parser.c
              ${SOURCE}/parser/parse_process.c )
 
-set( TESTS ${TEST}/scanner/test_scanner.h ${TEST}/scanner/test_scanner.c )
+set( TESTS ${TEST}/scanner/test_scanner.h 
+           ${TEST}/scanner/test_scanner.c )
 
 set( LIBRARIES )
 
 # Executables
-add_executable( rex-c ${SOURCE}/main.c ${HEAD} ${SOURCES} )
+add_executable( rex-c ${SOURCE}/main.c ${INCLUDES} ${SOURCES} )
 target_link_libraries( rex-c PRIVATE ${LIBRARIES} )
 
-add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${HEAD} ${SOURCES} )
+add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
 target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
 
 # Tests

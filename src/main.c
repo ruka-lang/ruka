@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <sys/errno.h>
-#include "compiler/compiler.h"
+#include "../includes/compiler.h"
 
 const char* prompt = "Rex compiler\n"
                      "version: 0.1.0\n"

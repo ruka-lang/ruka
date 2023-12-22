@@ -2,7 +2,7 @@
  *  @author: dwclake
  */
 
-#include "./compiler.h"
+#include "../../includes/compiler.h"
 
 /* Functions for the scanner to use */
 struct ScannerFunctions scan_functions = {

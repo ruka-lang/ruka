@@ -2,9 +2,8 @@
  *  @author: dwclake
  */
 
-#include "scanner.h"
-
-#include "../compiler/compiler.h"
+#include "../../includes/scanner.h"
+#include "../../includes/compiler.h"
 
 /* Predicate macros */
 #define IS_DIGIT(c) c >= '0' && c <= '9'

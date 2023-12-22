@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "compiler.h"
+#include "../../includes/compiler.h"
 
 /* Read a file stream into a char*
  * @param file The file to read to string

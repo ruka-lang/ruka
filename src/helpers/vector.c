@@ -2,7 +2,7 @@
  * @author: dwclake
  */
 
-#include "vector.h"
+#include "../../includes/helpers/vector.h"
 
 /* Creates a new vector
  * @param type_size The size of the type being stored in the vector

@@ -2,7 +2,7 @@
  * @author: dwclake
  */
 
-#include "buffer.h"
+#include "../../includes/helpers/buffer.h"
 
 /* Creates a new buffer
  * @param type_size The size of the type being stored in the buffer
