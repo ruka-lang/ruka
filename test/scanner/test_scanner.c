@@ -15,12 +15,12 @@ struct ScannerFunctions test_scan_functions = {
  *
  *
  */
-struct Compiler* test_compiler(char* source) {
+struct Compiler* test_compiler(char* source, char* filename) {
     struct Compiler* compiler = malloc(sizeof(struct Compiler));
 
     compiler->in_file.contents = source;
     compiler->in_file.len = strlen(source);
-    compiler->in_file.path = "";
+    compiler->in_file.path = filename;
 
     compiler->out_file.path = NULL;
     compiler->out_file.path = NULL;
@@ -28,7 +28,7 @@ struct Compiler* test_compiler(char* source) {
     compiler->flags = 0;
     compiler->pos.col = 1;
     compiler->pos.line = 1;
-    compiler->pos.filename = "";
+    compiler->pos.filename = filename;
 
     return compiler;
 }
@@ -38,7 +38,7 @@ struct Compiler* test_compiler(char* source) {
  *
  */
 int token_compare(struct Token* lhs, struct Token rhs) {
-    switch (lhs->type) {
+    /* switch (lhs->type) {
         case INTEGER:
             if (
                 lhs->type != rhs.type ||
@@ -60,7 +60,8 @@ int token_compare(struct Token* lhs, struct Token rhs) {
             break;
     }
 
-    return 0;
+    return 0; */
+    return memcmp(lhs, &rhs, sizeof(struct Token));
 }
 
 /*
@@ -71,7 +72,7 @@ int test_next_token() {
     int result = 0;
     char* source = "123 let x = 12;";
 
-    struct Compiler* compiler = test_compiler(source);
+    struct Compiler* compiler = test_compiler(source, "test");
     if (!compiler) return -1;
 
     struct Scanner* scanner = create_scanner(compiler, &test_scan_functions, NULL);
