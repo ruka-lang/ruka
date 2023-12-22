@@ -18,7 +18,7 @@ enum {
 };
 
 /* State for compilation process */
-typedef struct {
+typedef struct compiler_t {
     /* The flags in regards to how this file should be compiled */
     int flags;
     pos_t pos;

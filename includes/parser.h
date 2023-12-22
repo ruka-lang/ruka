@@ -7,9 +7,7 @@
 
 #include "helpers/position.h"
 
-struct Compiler;
-
 /* State for a parsing process */
-struct Parser {};
+typedef struct parser_t {} parser_t;
 
 #endif

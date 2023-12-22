@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #define BUFFER_REALLOC_AMOUNT 2000
-typedef struct {
+typedef struct buffer_t {
     char* data;
     const size_t size;
     int elements;

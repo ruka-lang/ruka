@@ -31,7 +31,7 @@ enum {
 };
 
 /* Token structure */
-typedef struct {
+typedef struct token_t {
     int type;
     int flags;
     bool whitespace;
@@ -49,14 +49,16 @@ typedef struct {
     } data;
 } token_t;
 
+typedef struct scanner_functions_t scanner_functions_t;
+
 /* State for the scanning process */
-typedef struct {
+typedef struct scanner_t {
     pos_t curr_pos;
     pos_t token_pos;
     vector_t* tokens;
     compiler_t* compiler;
     buffer_t* parenthesis;
-    struct scanner_functions_t* function;
+    scanner_functions_t* function;
 
     size_t read_pos;
     int current_expression_count;
@@ -95,7 +97,7 @@ token_t* read_next_token(scanner_t* process);
  * @return A pointer to a new Scanner or NULL
  */
 scanner_t* create_scanner(compiler_t* compiler, 
-                          struct scanner_functions_t* functions, 
+                          scanner_functions_t* functions, 
                           void* private_data
                           );
 

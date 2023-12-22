@@ -5,7 +5,7 @@
 #include "test_scanner.h"
 
 /* Functions for the scanner to use */
-struct scanner_functions_t test_scan_functions = {
+scanner_functions_t test_scan_functions = {
     .next_char = scanner_next_char,
     .peek_char = scanner_peek_char,
     .push_char = scanner_push_char

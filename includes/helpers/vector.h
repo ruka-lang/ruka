@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #define VECTOR_REALLOC_AMOUNT 20
-typedef struct {
+typedef struct vector_t {
     void* data;
     const size_t size;
     int elements;
