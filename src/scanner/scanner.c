@@ -523,6 +523,8 @@ int scan(struct Scanner* process) {
     struct Token* token = read_next_token(process);
     while(token) {
         vector_push(process->tokens, token);
+        // replace with free_token(token);
+        free(token);
         token = read_next_token(process);
     }
 
