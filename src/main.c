@@ -32,6 +32,7 @@ int main(int argc, const char** argv) {
             case ENOENT:
                 printf("Compilation failed. File not found: %s\n", argv[1]);
                 return ENOENT;
+                break;
             default: 
                 printf("File compiled with unknown response\n");
                 break;
