@@ -185,7 +185,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
         nextc(process);                                     \
     }                                                       \
 
-/* Gets the next character from the scanner process, advancing the stream
+/* Gets the next character from the scanner process, advancing the read position
  * @param process The scanner process to get a character from
  * @return The next character in the scanner process
  */
@@ -195,7 +195,7 @@ char nextc(struct Scanner* process) {
     return c;
 }
 
-/* Gets the next character from the scanner process, without modifying the stream
+/* Gets the next character from the scanner process, without advancing the read position
  * @param process The scanner process to peek a character from
  * @return The next character in the scanner process
  */
@@ -203,9 +203,9 @@ char peekc(struct Scanner* process) {
     return process->function->peek_char(process);
 }
 
-/* Pushes a character onto the file stream in the scanner process
+/* Pushes a character onto the file in the scanner process
  * @param process The scanner process to push the character to
- * @param c The character to push onto the file stream
+ * @param c The character to push onto the file
  * @return void
  */
 void pushc(struct Scanner* process, char c) {
@@ -221,7 +221,7 @@ struct Token* scanner_last_token(struct Scanner* process) {
 }
 
 struct Token* read_next_token(struct Scanner* process);
-/* Skips whitespace characters from the file stream
+/* Skips whitespace characters from the file
  * @param process The scanner process to skip whitespace characters in
  * @return The token after the whitespace character
  */
@@ -237,7 +237,7 @@ struct Token* skip_whitespace(struct Scanner* process) {
     return read_next_token(process);
 }
 
-/* Skips comments from the file stream
+/* Skips comments from the file
  * @param process The scanner process to skip comments in
  * @return The token after the comment
  */

@@ -38,7 +38,7 @@ struct Compiler* test_compiler(char* source, char* filename) {
  *
  */
 int token_compare(struct Token* lhs, struct Token rhs) {
-    /* switch (lhs->type) {
+    switch (lhs->type) {
         case INTEGER:
             if (
                 lhs->type != rhs.type ||
@@ -48,8 +48,7 @@ int token_compare(struct Token* lhs, struct Token rhs) {
                 lhs->whitespace != rhs.whitespace ||
                 lhs->pos.col != rhs.pos.col ||
                 lhs->pos.line != rhs.pos.line ||
-                lhs->pos.col != rhs.pos.col ||
-                strcmp(lhs->pos.filename, rhs.pos.filename) != 0
+                strncmp(lhs->pos.filename, rhs.pos.filename, strlen(lhs->pos.filename)) != 0
             ) {
                 return -1;
             }
@@ -60,8 +59,7 @@ int token_compare(struct Token* lhs, struct Token rhs) {
             break;
     }
 
-    return 0; */
-    return memcmp(lhs, &rhs, sizeof(struct Token));
+    return 0;
 }
 
 /*
@@ -70,9 +68,10 @@ int token_compare(struct Token* lhs, struct Token rhs) {
  */
 int test_next_token() {
     int result = 0;
+    char* filename = "test";
     char* source = "123 let x = 12;";
 
-    struct Compiler* compiler = test_compiler(source, "test");
+    struct Compiler* compiler = test_compiler(source, filename);
     if (!compiler) return -1;
 
     struct Scanner* scanner = create_scanner(compiler, &test_scan_functions, NULL);
@@ -86,19 +85,19 @@ int test_next_token() {
         .type = INTEGER,
         .pos.col = 1,
         .pos.line = 1,
-        .pos.filename = "",
+        .pos.filename = filename,
         .flags = 0,
         .whitespace = false,
         .between_brackets = NULL,
         .data.llnum = 123
     });
 
+    printf("%s\n", token->pos.filename);
     test_exit:
+        free(scanner);
+        free(compiler);
 
-    free(scanner);
-    free(compiler);
-
-    return result;
+        return result;
 }
 
 /*

@@ -118,21 +118,21 @@ void* scanner_private(struct Scanner* process);
  */
 struct Vector* scanner_tokens(struct Scanner* process);
 
-/* Retrieves the next char from the scanner
+/* Retrieves the next char from the scanner, advancing the read position
  * @param process The process to retrieve the next char from
- * @return The next char in the file buffer
+ * @return The next char in the file
  */
 char scanner_next_char(struct Scanner* process);
 
-/* Retrieves the next char from the scanner preserving the file stream
+/* Retrieves the next char from the scanner without moving the read position
  * @param process The process to peek the next char from
- * @return The next char in the file buffer
+ * @return The next char in the file
  */
 char scanner_peek_char(struct Scanner* process);
 
-/* Pushes c onto the file buffer
- * @param process The scanner containing the file buffer to push the char onto
- * @param c The char to push onto the file buffer
+/* Pushes c onto the file
+ * @param process The scanner containing the file to push the char onto
+ * @param c The char to push onto the file
  * @return void
  */
 void scanner_push_char(struct Scanner* process, char c);
