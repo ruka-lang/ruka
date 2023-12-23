@@ -176,8 +176,10 @@ int test_next_token() {
     };
 
     result = scan(scanner);
-    if (result != SCANNER_FILE_SCANNED_OK) goto test_exit;
-    if (scanner->tokens->elements != expected_count) {
+    if (
+        result != SCANNER_FILE_SCANNED_OK || 
+        scanner->tokens->elements != expected_count
+    ) {
         result = 1;
         goto test_exit;
     }

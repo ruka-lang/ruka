@@ -138,4 +138,34 @@ char scanner_peek_char(scanner_t* process);
  */
 void scanner_push_char(scanner_t* process, char c);
 
+/* Creates a new token
+ * @param scanner The scanner process the token will belong to
+ * @param type The type of the token
+ * @param pos The position of the token
+ * @return A pointer to a new token_t or NULL
+ */
+token_t* create_token(scanner_t* scanner, int type, pos_t pos);
+
+/* Creates a new token
+ * @param scanner The scanner process the token will belong to
+ * @param type The type of the token
+ * @param data The data of the token
+ * @param pos The position of the token
+ * @param whitespace True if there is whitespace after this token
+ * @return A pointer to a new token_t or NULL
+ */
+token_t* create_token_with_all(scanner_t* scanner, 
+                               int type, 
+                               pos_t pos, 
+                               bool whitespace,
+                               int flags,
+                               char* between_brackets
+                               );
+
+/* Frees a token from memory
+ * @param token The token to be freed
+ * @return void
+ */
+void free_token(token_t* token);
+
 #endif

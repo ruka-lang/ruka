@@ -37,6 +37,8 @@ scanner_t* create_scanner(
  * @return void
  */
 void free_scanner(scanner_t* process) {
+    if (!process) return;
+
     free_vector(process->tokens);
     free(process);
 }

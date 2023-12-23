@@ -73,6 +73,8 @@ compiler_t* create_compiler(
  * @return void
  */
 void free_compiler(compiler_t* process) {
+    if (!process) return;
+
     if (process->out_file.fp) {
         fclose(process->out_file.fp);
     }

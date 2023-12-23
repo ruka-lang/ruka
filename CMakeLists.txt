@@ -26,6 +26,7 @@ set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/compiler/compile_process.c 
              ${SOURCE}/scanner/scanner.c
              ${SOURCE}/scanner/scan_process.c
+             ${SOURCE}/scanner/token.c
              ${SOURCE}/parser/parser.c
              ${SOURCE}/parser/parse_process.c )
 
