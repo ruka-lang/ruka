@@ -29,8 +29,6 @@ set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/parser/parser.c
              ${SOURCE}/parser/parse_process.c )
 
-set( TESTS ${TEST}/scanner/test_scanner.h 
-           ${TEST}/scanner/test_scanner.c )
 
 set( LIBRARIES )
 
@@ -38,12 +36,16 @@ set( LIBRARIES )
 add_executable( rex-c ${SOURCE}/main.c ${INCLUDES} ${SOURCES} )
 target_link_libraries( rex-c PRIVATE ${LIBRARIES} )
 
-add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
-target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
-
 # Tests
 enable_testing()
 
-add_test( NAME scanner_next_token COMMAND $<TARGET_FILE:rex-c-test> scanner next_token )
-add_test( NAME scanner_identifier COMMAND $<TARGET_FILE:rex-c-test> scanner identifiers )
-#add_test( NAME scanner_numbers    COMMAND $<TARGET_FILE:rex-c-test> scanner numbers )
+set( TEST_CMD COMMAND $<TARGET_FILE:rex-c-test> )
+set( TESTS ${TEST}/scanner/test_scanner.h 
+           ${TEST}/scanner/test_scanner.c )
+
+add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
+target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
+
+add_test( NAME scanner_next_token ${TEST_CMD} scanner next_token )
+add_test( NAME scanner_identifier ${TEST_CMD} scanner identifiers )
+#add_test( NAME scanner_numbers    ${TEST_CMD} scanner numbers )
