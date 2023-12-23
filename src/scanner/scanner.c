@@ -395,9 +395,11 @@ token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_
  */
 token_t* token_make_identifier_or_keyword(scanner_t* process) {
     buffer_t* buffer = create_buffer();
-    token_t* token = token_make_identifier_or_keyword_for_string(process, 
-                                                                      read_identifier(process, buffer)
-                                                                      );
+    token_t* token = token_make_identifier_or_keyword_for_string(
+        process, 
+        read_identifier(process, buffer)
+        );
+
     free_buffer(buffer);
     return token;
 }
