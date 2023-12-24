@@ -38,49 +38,34 @@ compiler_t* test_compiler(char* source, char* filename) {
  *
  */
 int token_compare(token_t* lhs, token_t* rhs) {
+    if (
+        lhs->type != rhs->type ||
+        lhs->flags != rhs->flags ||
+        lhs->between_brackets != rhs->between_brackets ||
+        lhs->whitespace != rhs->whitespace ||
+        lhs->pos.col != rhs->pos.col ||
+        lhs->pos.line != rhs->pos.line ||
+        strncmp(lhs->pos.filename, rhs->pos.filename, strlen(lhs->pos.filename)) != 0
+    ) {
+        return -1;
+    }
+
     switch (lhs->type) {
         case INTEGER:
-            if (
-                lhs->type != rhs->type ||
-                lhs->flags != rhs->flags ||
-                lhs->data.llnum != rhs->data.llnum ||
-                lhs->between_brackets != rhs->between_brackets ||
-                lhs->whitespace != rhs->whitespace ||
-                lhs->pos.col != rhs->pos.col ||
-                lhs->pos.line != rhs->pos.line ||
-                strncmp(lhs->pos.filename, rhs->pos.filename, strlen(lhs->pos.filename)) != 0
-            ) {
+            if (lhs->data.llnum != rhs->data.llnum) {
                 return -1;
             }
 
             break;
         case IDENTIFIER:
         case KEYWORD:
-            if (
-                lhs->type != rhs->type ||
-                lhs->flags != rhs->flags ||
-                strncmp(lhs->data.sval, rhs->data.sval, strlen(lhs->data.sval)) != 0 ||
-                lhs->between_brackets != rhs->between_brackets ||
-                lhs->whitespace != rhs->whitespace ||
-                lhs->pos.col != rhs->pos.col ||
-                lhs->pos.line != rhs->pos.line ||
-                strncmp(lhs->pos.filename, rhs->pos.filename, strlen(lhs->pos.filename)) != 0
-            ) {
+            if (strncmp(lhs->data.sval, rhs->data.sval, strlen(lhs->data.sval)) != 0) {
                 return -1;
             }
 
             break;
         case SYMBOL:
-            if (
-                lhs->type != rhs->type ||
-                lhs->flags != rhs->flags ||
-                lhs->data.cval != rhs->data.cval ||
-                lhs->between_brackets != rhs->between_brackets ||
-                lhs->whitespace != rhs->whitespace ||
-                lhs->pos.col != rhs->pos.col ||
-                lhs->pos.line != rhs->pos.line ||
-                strncmp(lhs->pos.filename, rhs->pos.filename, strlen(lhs->pos.filename)) != 0
-            ) {
+            if (lhs->data.cval != rhs->data.cval) {
                 return -1;
             }
 
