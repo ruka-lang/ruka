@@ -97,6 +97,21 @@ int token_compare(token_t* lhs, token_t* rhs) {
  *
  *
  */
+int tokens_compare(scanner_t* scanner, token_t expected_tokens[], int expected) {
+    int result = 0;
+
+    for (int i = 0; i < scanner->tokens->elements; i++) {
+        result = token_compare(vector_at(scanner->tokens, i), &expected_tokens[i]);
+        if (result != 0) return result;
+    }
+
+    return result;
+}
+
+/*
+ *
+ *
+ */
 int test_next_token() {
     int result = 0;
     char* filename = "test";
@@ -184,10 +199,7 @@ int test_next_token() {
         goto test_exit;
     }
 
-    for (int i = 0; i < scanner->tokens->elements; i++) {
-        result = token_compare(vector_at(scanner->tokens, i), &expected_tokens[i]);
-        if (result != 0) goto test_exit;
-    }
+    tokens_compare(scanner, expected_tokens, expected_count);
 
     test_exit:
         free(scanner);

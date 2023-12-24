@@ -32,6 +32,10 @@ scanner_t* create_scanner(
     return process;
 }
 
+void free_tokens(void* token) {
+    free_token((token_t*) token);
+}
+
 /* Frees a scanner process from memory
  * @param process The scanner process to be freed
  * @return void
@@ -39,7 +43,7 @@ scanner_t* create_scanner(
 void free_scanner(scanner_t* process) {
     if (!process) return;
 
-    free_vector(process->tokens);
+    free_vector(process->tokens, free_tokens);
     free(process);
 }
 

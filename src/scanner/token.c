@@ -58,8 +58,6 @@ void free_token(token_t* token) {
         token->type == KEYWORD &&
         token->data.sval != NULL
     ) {
-        free((char*) token->data.sval);
+        free(token->data.sval);
     }
-
-    free(token);
 }

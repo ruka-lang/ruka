@@ -18,6 +18,8 @@ typedef struct vector_t {
     int capacity;
 } vector_t;
 
+typedef void (*VECTOR_ELEM_DESTRUCTOR)(void* element);
+
 /* Creates a new vector
  * @param type_size The size of the type being stored in the vector
  * @return A new Vector pointer or NULL
@@ -28,7 +30,7 @@ vector_t* create_vector(size_t type_size);
  * @param vector The vector to be freed
  * @return void
  */
-void free_vector(vector_t* vector);
+void free_vector(vector_t* vector, VECTOR_ELEM_DESTRUCTOR destructor);
 
 /* Pushes a new value onto the vector
  * @param vector The vector to push data onto

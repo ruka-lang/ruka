@@ -27,7 +27,15 @@ vector_t* create_vector(size_t type_size) {
  * @param vector The vector to be freed
  * @return void
  */
-void free_vector(vector_t* vector) {
+void free_vector(vector_t* vector, VECTOR_ELEM_DESTRUCTOR destructor) {
+    if (destructor) {
+        for (int i = 0; i < vector->capacity; i++) {
+            if (vector_at(vector, i)) {
+                destructor(vector_at(vector, i));
+            }
+        }
+    }
+
     free(vector->data);
     free(vector);
 }
