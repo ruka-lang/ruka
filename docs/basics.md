@@ -953,7 +953,7 @@ const AndGate = circuit {
     );
   
     arch (
-        z = x & y;
+        z = x and y;
     );
 };
 
