@@ -35,16 +35,14 @@ typedef struct token_t {
     int type;
     int flags;
     bool whitespace;
-    const char* between_brackets;
 
     pos_t pos;
     /* Data for various tokens */
     union {
         char cval;
         char* sval;
-        unsigned int inum;
-        unsigned long lnum;
-        unsigned long long llnum;
+        double fval;
+        u64 inum;
         void* any;
     } data;
 } token_t;
@@ -96,10 +94,10 @@ token_t* read_next_token(scanner_t* process);
  * @param private_data The private data only the caller understands
  * @return A pointer to a new Scanner or NULL
  */
-scanner_t* create_scanner(compiler_t* compiler, 
-                          scanner_functions_t* functions, 
-                          void* private_data
-                          );
+scanner_t* new_scanner(compiler_t* compiler, 
+                       scanner_functions_t* functions, 
+                       void* private_data
+                       );
 
 /* Frees a scanner process from memory
  * @param process The scanner process to be freed
@@ -144,23 +142,24 @@ void scanner_push_char(scanner_t* process, char c);
  * @param pos The position of the token
  * @return A pointer to a new token_t or NULL
  */
-token_t* create_token(scanner_t* scanner, int type, pos_t pos);
+token_t* new_token(scanner_t* scanner, int type, pos_t pos);
 
 /* Creates a new token
  * @param scanner The scanner process the token will belong to
  * @param type The type of the token
  * @param data The data of the token
+ * @param len The len of data if string
  * @param pos The position of the token
  * @param whitespace True if there is whitespace after this token
  * @return A pointer to a new token_t or NULL
  */
-token_t* create_token_with_all(scanner_t* scanner, 
-                               int type, 
-                               pos_t pos, 
-                               bool whitespace,
-                               int flags,
-                               char* between_brackets
-                               );
+token_t* new_token_with_all(scanner_t* scanner, 
+                            int type, 
+                            void* data,
+                            int len,
+                            pos_t pos, 
+                            bool whitespace
+                            );
 
 /* Frees a token from memory
  * @param token The token to be freed

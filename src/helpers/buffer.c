@@ -8,7 +8,7 @@
  * @param type_size The size of the type being stored in the buffer
  * @return A new Buffer pointer or NULL
  */
-buffer_t* create_buffer() {
+buffer_t* new_buffer() {
     buffer_t* buffer = (buffer_t*) malloc(sizeof(buffer_t));
     
     buffer_t tmp = {

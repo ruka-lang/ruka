@@ -11,6 +11,8 @@
 #include <sys/errno.h>
 #include "helpers/position.h"
 
+typedef unsigned long long u64;
+
 /* Compiler messages */
 enum {
     COMPILER_FILE_COMPILED_OK, 
@@ -67,10 +69,10 @@ void compiler_warning(compiler_t* compiler, const char* msg, ...);
  * @param flags Flags involving in file compilation
  * @return A new Compiler pointer or NULL
  */
-compiler_t* create_compiler(const char* in_filename, 
-                            const char* out_filename, 
-                            int flags
-                            );
+compiler_t* new_compiler(const char* in_filename, 
+                         const char* out_filename, 
+                         int flags
+                         );
 
 /* Free's the compiler from memory
  * @param process The compiler process to be freed

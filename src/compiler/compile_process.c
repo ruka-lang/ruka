@@ -36,7 +36,7 @@ char* read_to_string(compiler_t* process, FILE* file) {
  * @param flags Flags involving in file compilation
  * @return A new Compiler pointer or NULL
  */
-compiler_t* create_compiler(
+compiler_t* new_compiler(
         const char* in_filename, 
         const char* out_filename, 
         int flags
@@ -56,7 +56,7 @@ compiler_t* create_compiler(
     process->flags = flags;
     process->pos.line = 1;
     process->pos.col = 1;
-    process->pos.filename = in_filename;
+    process->pos.path = in_filename;
     process->in_file.contents = read_to_string(process, in_file);
     process->in_file.path = in_filename;
     process->out_file.fp = out_file;

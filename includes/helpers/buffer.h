@@ -22,7 +22,7 @@ typedef struct buffer_t {
  * @param type_size The size of the type being stored in the buffer
  * @return A new Buffer pointer or NULL
  */
-buffer_t* create_buffer();
+buffer_t* new_buffer();
 
 /* Frees a buffer from memory
  * @param buffer The buffer to be freed

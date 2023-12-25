@@ -24,7 +24,7 @@ typedef void (*VECTOR_ELEM_DESTRUCTOR)(void* element);
  * @param type_size The size of the type being stored in the vector
  * @return A new Vector pointer or NULL
  */
-vector_t* create_vector(size_t type_size);
+vector_t* new_vector(size_t type_size);
 
 /* Frees a vector from memory
  * @param vector The vector to be freed

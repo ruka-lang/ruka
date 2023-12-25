@@ -9,7 +9,12 @@
 typedef struct pos_t {
     int line;
     int col;
-    const char* filename;
+    const char* path;
 } pos_t;
+
+/*
+ *
+ */
+pos_t new_pos(int line, int col, const char* path);
 
 #endif

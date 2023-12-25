@@ -12,7 +12,7 @@
  * @param private_data The private data only the caller understands
  * @return A pointer to a new Scanner or NULL
  */
-scanner_t* create_scanner(
+scanner_t* new_scanner(
         compiler_t* compiler, 
         struct scanner_functions_t* functions, 
         void* private_data
@@ -27,11 +27,15 @@ scanner_t* create_scanner(
     process->function = functions;
     process->private_data = private_data;
     process->current_expression_count = 0;
-    process->tokens = create_vector(sizeof(token_t));
+    process->tokens = new_vector(sizeof(token_t));
 
     return process;
 }
 
+/*
+ *
+ *
+ */
 void free_tokens(void* token) {
     free_token((token_t*) token);
 }

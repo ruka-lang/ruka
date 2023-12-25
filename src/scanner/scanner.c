@@ -281,7 +281,6 @@ token_t* token_create(scanner_t* process, token_t* restrict _token) {
 
     token->pos = process->token_pos;
     token->whitespace = false;
-    token->between_brackets = NULL;
     token->flags = 0;
 
     return token;
@@ -316,10 +315,10 @@ unsigned long read_number(scanner_t* process, buffer_t* buffer) {
  * @param number The number value the token represents
  * @return The number token
  */
-token_t* token_make_number_for_value(scanner_t* process, unsigned long number) {
+token_t* token_make_number_for_value(scanner_t* process, u64 number) {
     return token_create(process, &(token_t){
         .type=INTEGER,
-        .data.llnum=number
+        .data.inum=number
     }); 
 }
 
@@ -328,7 +327,7 @@ token_t* token_make_number_for_value(scanner_t* process, unsigned long number) {
  * @return The number token
  */
 token_t* token_make_number(scanner_t* process) {
-    buffer_t* buffer = create_buffer();
+    buffer_t* buffer = new_buffer();
     token_t* token = token_make_number_for_value(process, read_number(process, buffer));
 
     free_buffer(buffer);
@@ -394,7 +393,7 @@ token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_
  * @return The identifier or keyword token
  */
 token_t* token_make_identifier_or_keyword(scanner_t* process) {
-    buffer_t* buffer = create_buffer();
+    buffer_t* buffer = new_buffer();
     token_t* token = token_make_identifier_or_keyword_for_string(
         process, 
         read_identifier(process, buffer)
@@ -494,27 +493,18 @@ void scanner_debug(scanner_t* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                snprintf(buffer, 50, "val: %lld", t->data.llnum);
+                snprintf(buffer, 50, "val: %lld", t->data.inum);
                 break;
             case SYMBOL:
                 snprintf(buffer, 50, "val: '%c'", t->data.cval);
                 break;
-            case IDENTIFIER:
-                snprintf(buffer, 50, "val: \"%s\"", t->data.sval);
-                break;
             case KEYWORD:
+            case IDENTIFIER:
                 snprintf(buffer, 50, "val: \"%s\"", t->data.sval);
                 break;
         }
 
-        printf(msg, 
-               i, 
-               t->type, 
-               t->pos.line, 
-               t->pos.col, 
-               t->pos.filename, 
-               buffer
-               );
+        printf(msg, i, t->type, t->pos.line, t->pos.col, t->pos.path, buffer);
     }
 }
 

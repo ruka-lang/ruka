@@ -10,8 +10,8 @@
  * @param scanner The scanner token the token will belong to
  * @return A pointer to a new token_t or NULL
  */
-token_t* create_token(scanner_t* scanner, int type, pos_t pos) {
-    token_t* token = create_token_with_all(scanner, type, pos, false, 0, NULL);
+token_t* new_token(scanner_t* scanner, int type, pos_t pos) {
+    token_t* token = new_token_with_all(scanner, type, NULL, 0, pos, false);
 
     return token;
 }
@@ -20,28 +20,42 @@ token_t* create_token(scanner_t* scanner, int type, pos_t pos) {
  * @param scanner The scanner process the token will belong to
  * @param type The type of the token
  * @param data The data of the token
+ * @param len The length of string if data is a string
  * @param pos The position of the token
  * @param whitespace True if there is whitespace after this token
- * @param flags Token flags
- * @param between_brackets Data between brackets
  * @return A pointer to a new token_t or NULL
  */
-token_t* create_token_with_all(
+token_t* new_token_with_all(
     scanner_t* scanner, 
     int type, 
+    void* data,
+    int len,
     pos_t pos, 
-    bool whitespace,
-    int flags,
-    char* between_brackets
+    bool whitespace
 ) {
     token_t* token = (token_t*) malloc(sizeof(token_t));
 
     token->type = type;
     token->pos= pos;
-    token->flags = flags;
+    token->flags = 0;
     token->whitespace = whitespace;
-    token->between_brackets = between_brackets;
-    token->data.llnum = 0;
+    token->data.inum = 0;
+
+    char* sval = NULL;
+    switch (type) {
+        case KEYWORD:
+        case IDENTIFIER:
+            sval = calloc(len, sizeof(char));
+            memcpy(sval, data, len); 
+            token->data.sval = sval;
+            break;
+        case INTEGER:
+            memcpy(&token->data.inum, data, sizeof(u64));
+            break;
+        case SYMBOL:
+            memcpy(&token->data.cval, data, sizeof(char));
+            break;
+    }
 
     return token;
 }

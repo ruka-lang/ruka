@@ -29,7 +29,7 @@ void compiler_error(compiler_t* compiler, const char* msg, ...) {
     fprintf(stderr, " on line: %i, col: %i, in file: %s\n", 
             compiler->pos.line, 
             compiler->pos.col, 
-            compiler->pos.filename
+            compiler->pos.path
             );
 
     exit(-1);
@@ -52,7 +52,7 @@ void compiler_warning(compiler_t* compiler, const char* msg, ...) {
     fprintf(stderr, " on line: %i, col: %i, in file: %s\n", 
             compiler->pos.line, 
             compiler->pos.col, 
-            compiler->pos.filename
+            compiler->pos.path
             );
 }
 
@@ -63,11 +63,11 @@ void compiler_warning(compiler_t* compiler, const char* msg, ...) {
  * @return A integer signaling the compilation result
  */
 int compile(const char* in_filename, const char* out_filename, int flags) {
-    compiler_t* process = create_compiler(in_filename, out_filename, flags); 
+    compiler_t* process = new_compiler(in_filename, out_filename, flags); 
     if (!process) return ENOENT;
 
     /* Scan */
-    scanner_t* scanner = create_scanner(process, &scan_functions, NULL);
+    scanner_t* scanner = new_scanner(process, &scan_functions, NULL);
     if (!scanner) return COMPILER_FAILED_WITH_ERRORS;
 
     int scan_result = scan(scanner);

@@ -22,6 +22,7 @@ set( INCLUDES ${INCLUDE}/helpers/position.h
 
 set( SOURCES ${SOURCE}/helpers/vector.c
              ${SOURCE}/helpers/buffer.c
+             ${SOURCE}/helpers/position.c
              ${SOURCE}/compiler/compiler.c 
              ${SOURCE}/compiler/compile_process.c 
              ${SOURCE}/scanner/scanner.c

@@ -28,7 +28,7 @@ compiler_t* test_compiler(char* source, char* filename) {
     compiler->flags = 0;
     compiler->pos.col = 1;
     compiler->pos.line = 1;
-    compiler->pos.filename = filename;
+    compiler->pos.path = filename;
 
     return compiler;
 }
@@ -41,18 +41,17 @@ int token_compare(token_t* lhs, token_t* rhs) {
     if (
         lhs->type != rhs->type ||
         lhs->flags != rhs->flags ||
-        lhs->between_brackets != rhs->between_brackets ||
         lhs->whitespace != rhs->whitespace ||
         lhs->pos.col != rhs->pos.col ||
         lhs->pos.line != rhs->pos.line ||
-        strncmp(lhs->pos.filename, rhs->pos.filename, strlen(lhs->pos.filename)) != 0
+        strncmp(lhs->pos.path, rhs->pos.path, strlen(lhs->pos.path)) != 0
     ) {
         return -1;
     }
 
     switch (lhs->type) {
         case INTEGER:
-            if (lhs->data.llnum != rhs->data.llnum) {
+            if (lhs->data.inum != rhs->data.inum) {
                 return -1;
             }
 
@@ -82,11 +81,11 @@ int token_compare(token_t* lhs, token_t* rhs) {
  *
  *
  */
-int tokens_compare(scanner_t* scanner, token_t expected_tokens[], int expected) {
+int tokens_compare(scanner_t* scanner, token_t** expected_tokens, int expected) {
     int result = 0;
 
-    for (int i = 0; i < scanner->tokens->elements; i++) {
-        result = token_compare(vector_at(scanner->tokens, i), &expected_tokens[i]);
+    for (int i = 0; i < expected; i++) {
+        result = token_compare(vector_at(scanner->tokens, i), expected_tokens[i]);
         if (result != 0) return result;
     }
 
@@ -105,74 +104,27 @@ int test_next_token() {
     compiler_t* compiler = test_compiler(source, filename);
     if (!compiler) return -1;
 
-    scanner_t* scanner = create_scanner(compiler, &test_scan_functions, NULL);
+    scanner_t* scanner = new_scanner(compiler, &test_scan_functions, NULL);
     if (!scanner) {
         result = -1;
         goto test_exit;
     }
 
+    unsigned long long ival1 = 123;
+    unsigned long long ival2 = 12;
+    char cval1 = '=';
+    char cval2 = ';';
+    char* sval1 = "let";
+    char* sval2 = "x";
+
     int expected_count = 6;
-    token_t expected_tokens[] = {
-        (token_t){
-            .type = INTEGER, 
-            .pos.col = 1, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = true, 
-            .between_brackets = NULL, 
-            .data.llnum = 123
-        },
-        (token_t){
-            .type = KEYWORD, 
-            .pos.col = 5, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = true, 
-            .between_brackets = NULL, 
-            .data.sval = "let"
-        },
-        (token_t){
-            .type = IDENTIFIER, 
-            .pos.col = 9, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = true, 
-            .between_brackets = NULL, 
-            .data.sval = "x"
-        },
-        (token_t){
-            .type = SYMBOL, 
-            .pos.col = 11, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = true, 
-            .between_brackets = NULL, 
-            .data.cval = '='
-        },
-        (token_t){
-            .type = INTEGER, 
-            .pos.col = 13, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = false, 
-            .between_brackets = NULL, 
-            .data.llnum = 12
-        },
-        (token_t){
-            .type = SYMBOL, 
-            .pos.col = 15, 
-            .pos.line = 1, 
-            .pos.filename = filename, 
-            .flags = 0, 
-            .whitespace = false, 
-            .between_brackets = NULL, 
-            .data.cval = ';'
-        }
+    token_t* expected_tokens[] = {
+        new_token_with_all(scanner, INTEGER, &ival1, 0, new_pos(1, 1, filename), true),
+        new_token_with_all(scanner, KEYWORD, &sval1, 4, new_pos(1, 5, filename), true),
+        new_token_with_all(scanner, IDENTIFIER, &sval2, 2, new_pos(1, 9, filename), true),
+        new_token_with_all(scanner, SYMBOL, &cval1, 0, new_pos(1, 11, filename), true),
+        new_token_with_all(scanner, INTEGER, &ival2, 0, new_pos(1, 13, filename), false),
+        new_token_with_all(scanner, SYMBOL, &cval2, 0, new_pos(1, 15, filename), false),
     };
 
     result = scan(scanner);
