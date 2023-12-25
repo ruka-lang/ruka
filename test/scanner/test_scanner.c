@@ -111,21 +111,18 @@ int test_next_token() {
         goto test_exit;
     }
 
-    uint64_t ival1 = 123;
-    uint64_t ival2 = 12;
-    char cval1 = '=';
-    char cval2 = ';';
-    char* sval1 = "let";
-    char* sval2 = "x";
+    uint64_t ival[] = {123, 12};
+    char cval[] = {'=', ';'};
+    char* sval[] = {"let", "x"};
 
     int expected_count = 6;
     token_t* expected_tokens[] = {
-        new_token_with_all(scanner, INTEGER, &ival1, 0, new_pos(1, 1, filename), true),
-        new_token_with_all(scanner, KEYWORD, &sval1, 4, new_pos(1, 5, filename), true),
-        new_token_with_all(scanner, IDENTIFIER, &sval2, 2, new_pos(1, 9, filename), true),
-        new_token_with_all(scanner, SYMBOL, &cval1, 0, new_pos(1, 11, filename), true),
-        new_token_with_all(scanner, INTEGER, &ival2, 0, new_pos(1, 13, filename), false),
-        new_token_with_all(scanner, SYMBOL, &cval2, 0, new_pos(1, 15, filename), false),
+        new_token_with_all(scanner, INTEGER, &ival[0], 0, new_pos(1, 1, filename), true),
+        new_token_with_all(scanner, KEYWORD, &sval[0], 4, new_pos(1, 5, filename), true),
+        new_token_with_all(scanner, IDENTIFIER, &sval[1], 2, new_pos(1, 9, filename), true),
+        new_token_with_all(scanner, SYMBOL, &cval[0], 0, new_pos(1, 11, filename), true),
+        new_token_with_all(scanner, INTEGER, &ival[1], 0, new_pos(1, 13, filename), false),
+        new_token_with_all(scanner, SYMBOL, &cval[1], 0, new_pos(1, 15, filename), false),
     };
 
     result = scan(scanner);
