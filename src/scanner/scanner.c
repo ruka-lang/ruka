@@ -128,7 +128,6 @@
 
 #define WHITESPACE_CASE \
     case ' ':           \
-    case '\4':          \
     case '\t':          \
     case '\r':          \
     case '\n'
@@ -423,11 +422,14 @@ token_t* read_next_token(scanner_t* process) {
     char peek;
 
     switch (c) {
+        case '_':
+            /* Unused binding */
         ALPHABETICAL_CASE:
             token = token_make_identifier_or_keyword(process);
             break;
         DIGIT_CASE:
             token = token_make_number(process);
+            // token = token_make_integer_or_float(process);
             break;
         SYMBOL_CASE:
             c = nextc(process);
