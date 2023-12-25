@@ -19,10 +19,6 @@ enum {
 
 /* State for compilation process */
 typedef struct compiler_t {
-    /* The flags in regards to how this file should be compiled */
-    int flags;
-    pos_t pos;
-
     /* File to be compiled */
     struct InputFile {
         char* contents; 
@@ -35,6 +31,10 @@ typedef struct compiler_t {
         FILE* fp; 
         const char* path;
     } out_file;
+
+    pos_t pos;
+    /* The flags in regards to how this file should be compiled */
+    int flags;
 } compiler_t;
 
 /* Compiles the file specified into the specified output using flags
