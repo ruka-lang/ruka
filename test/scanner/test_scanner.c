@@ -109,7 +109,7 @@ int test_next_token() {
         goto test_exit;
     }
 
-    /* Expected tokens and values for the source */
+    /* Expected tokens and values from the source */
     uint64_t ival[] = {123, 12};
     char cval[] = {'=', ';'};
     char* sval[] = {"let", "x"};
@@ -121,7 +121,7 @@ int test_next_token() {
         new_token_with_all(scanner, IDENTIFIER, &sval[1], 2, new_pos(1,  9, filename), 0),
         new_token_with_all(scanner, SYMBOL,     &cval[0], 0, new_pos(1, 11, filename), 0),
         new_token_with_all(scanner, INTEGER,    &ival[1], 0, new_pos(1, 13, filename), 0),
-        new_token_with_all(scanner, SYMBOL,     &cval[1], 0, new_pos(1, 15, filename), 0),
+        new_token_with_all(scanner, SYMBOL,     &cval[1], 0, new_pos(1, 15, filename), 0)
     };
 
     result = scan(scanner);
