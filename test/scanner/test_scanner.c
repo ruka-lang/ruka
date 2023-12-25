@@ -97,9 +97,10 @@ int tokens_compare(scanner_t* scanner, token_t** expected_tokens, int expected) 
  *
  */
 int test_next_token() {
+    char* source = "123 let x = 12;";
+
     int result = 0;
     char* filename = "test";
-    char* source = "123 let x = 12;";
 
     compiler_t* compiler = test_compiler(source, filename);
     if (!compiler) return -1;
