@@ -110,8 +110,8 @@ int test_next_token() {
         goto test_exit;
     }
 
-    unsigned long long ival1 = 123;
-    unsigned long long ival2 = 12;
+    uint64_t ival1 = 123;
+    uint64_t ival2 = 12;
     char cval1 = '=';
     char cval2 = ';';
     char* sval1 = "let";

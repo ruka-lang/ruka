@@ -5,6 +5,7 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include "helpers/position.h"
@@ -42,7 +43,7 @@ typedef struct token_t {
         char cval;
         char* sval;
         double fval;
-        u64 inum;
+        uint64_t inum;
         void* any;
     } data;
 } token_t;

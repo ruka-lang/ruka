@@ -315,7 +315,7 @@ unsigned long read_number(scanner_t* process, buffer_t* buffer) {
  * @param number The number value the token represents
  * @return The number token
  */
-token_t* token_make_number_for_value(scanner_t* process, u64 number) {
+token_t* token_make_number_for_value(scanner_t* process, uint64_t number) {
     return token_create(process, &(token_t){
         .type=INTEGER,
         .data.inum=number
@@ -493,7 +493,7 @@ void scanner_debug(scanner_t* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                snprintf(buffer, 50, "val: %lld", t->data.inum);
+                snprintf(buffer, 50, "val: %ld", t->data.inum);
                 break;
             case SYMBOL:
                 snprintf(buffer, 50, "val: '%c'", t->data.cval);

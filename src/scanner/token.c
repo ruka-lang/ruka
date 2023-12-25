@@ -50,7 +50,7 @@ token_t* new_token_with_all(
             token->data.sval = sval;
             break;
         case INTEGER:
-            memcpy(&token->data.inum, data, sizeof(u64));
+            memcpy(&token->data.inum, data, sizeof(uint64_t));
             break;
         case SYMBOL:
             memcpy(&token->data.cval, data, sizeof(char));

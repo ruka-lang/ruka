@@ -11,8 +11,6 @@
 #include <sys/errno.h>
 #include "helpers/position.h"
 
-typedef unsigned long long u64;
-
 /* Compiler messages */
 enum {
     COMPILER_FILE_COMPILED_OK, 
