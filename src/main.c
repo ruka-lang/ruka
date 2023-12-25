@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/errno.h>
 #include "../includes/compiler.h"
 
@@ -41,5 +42,5 @@ int main(int argc, const char** argv) {
         printf("%s", prompt);
     }
     
-    return 0;
+    return EXIT_SUCCESS;
 }
