@@ -29,17 +29,15 @@ token_t* new_token_with_all(
     scanner_t* scanner, 
     int type, 
     void* data,
-    int len,
+    size_t len,
     pos_t pos, 
-    bool whitespace
+    uint32_t flags
 ) {
     token_t* token = (token_t*) malloc(sizeof(token_t));
 
     token->type = type;
     token->pos= pos;
-    token->flags = 0;
-    token->whitespace = whitespace;
-    token->data.inum = 0;
+    token->flags = flags;
 
     char* sval = NULL;
     switch (type) {

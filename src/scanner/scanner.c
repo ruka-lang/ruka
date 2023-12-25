@@ -226,9 +226,6 @@ token_t* read_next_token(scanner_t* process);
  */
 token_t* skip_whitespace(scanner_t* process) {
     token_t* last_token = scanner_last_token(process);
-    if (last_token) {
-        last_token->whitespace = true;
-    }
 
     nextc(process);
 
@@ -280,7 +277,6 @@ token_t* token_create(scanner_t* process, token_t* restrict _token) {
     memcpy(token, _token, sizeof(token_t));
 
     token->pos = process->token_pos;
-    token->whitespace = false;
     token->flags = 0;
 
     return token;

@@ -41,7 +41,6 @@ int token_compare(token_t* lhs, token_t* rhs) {
     if (
         lhs->type != rhs->type ||
         lhs->flags != rhs->flags ||
-        lhs->whitespace != rhs->whitespace ||
         lhs->pos.col != rhs->pos.col ||
         lhs->pos.line != rhs->pos.line ||
         strncmp(lhs->pos.path, rhs->pos.path, strlen(lhs->pos.path)) != 0
@@ -117,12 +116,12 @@ int test_next_token() {
 
     int expected_count = 6;
     token_t* expected_tokens[] = {
-        new_token_with_all(scanner, INTEGER, &ival[0], 0, new_pos(1, 1, filename), true),
-        new_token_with_all(scanner, KEYWORD, &sval[0], 4, new_pos(1, 5, filename), true),
-        new_token_with_all(scanner, IDENTIFIER, &sval[1], 2, new_pos(1, 9, filename), true),
-        new_token_with_all(scanner, SYMBOL, &cval[0], 0, new_pos(1, 11, filename), true),
-        new_token_with_all(scanner, INTEGER, &ival[1], 0, new_pos(1, 13, filename), false),
-        new_token_with_all(scanner, SYMBOL, &cval[1], 0, new_pos(1, 15, filename), false),
+        new_token_with_all(scanner, INTEGER,    &ival[0], 0, new_pos(1,  1, filename), 0),
+        new_token_with_all(scanner, KEYWORD,    &sval[0], 4, new_pos(1,  5, filename), 0),
+        new_token_with_all(scanner, IDENTIFIER, &sval[1], 2, new_pos(1,  9, filename), 0),
+        new_token_with_all(scanner, SYMBOL,     &cval[0], 0, new_pos(1, 11, filename), 0),
+        new_token_with_all(scanner, INTEGER,    &ival[1], 0, new_pos(1, 13, filename), 0),
+        new_token_with_all(scanner, SYMBOL,     &cval[1], 0, new_pos(1, 15, filename), 0),
     };
 
     result = scan(scanner);

@@ -33,10 +33,6 @@ enum {
 
 /* Token structure */
 typedef struct token_t {
-    int type;
-    int flags;
-    bool whitespace;
-
     pos_t pos;
     /* Data for various tokens */
     union {
@@ -46,6 +42,9 @@ typedef struct token_t {
         uint64_t inum;
         void* any;
     } data;
+
+    int type;
+    uint32_t flags;
 } token_t;
 
 typedef struct scanner_functions_t scanner_functions_t;
@@ -157,9 +156,9 @@ token_t* new_token(scanner_t* scanner, int type, pos_t pos);
 token_t* new_token_with_all(scanner_t* scanner, 
                             int type, 
                             void* data,
-                            int len,
+                            size_t len,
                             pos_t pos, 
-                            bool whitespace
+                            uint32_t flags
                             );
 
 /* Frees a token from memory
