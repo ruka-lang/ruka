@@ -3,6 +3,7 @@
  */
 
 #include "test_scanner.h"
+#include <string.h>
 
 /* Functions for the scanner to use */
 scanner_functions_t test_scan_functions = {
@@ -15,11 +16,15 @@ scanner_functions_t test_scan_functions = {
  *
  *
  */
-compiler_t* test_compiler(char* source, char* filename) {
-    compiler_t* compiler = malloc(sizeof(compiler_t));
+compiler_t* test_compiler(char* source, const char* filename) {
+    compiler_t* compiler = (compiler_t*) malloc(sizeof(compiler_t));
 
-    compiler->in_file.contents = source;
-    compiler->in_file.len = strlen(source);
+    size_t len = strlen(source);
+
+    compiler->in_file.contents = (char*) calloc(len, sizeof(char));
+    memcpy(compiler->in_file.contents, source, len);
+
+    compiler->in_file.len = len;
     compiler->in_file.path = filename;
 
     compiler->out_file.path = NULL;
@@ -50,23 +55,16 @@ int token_compare(token_t* lhs, token_t* rhs) {
 
     switch (lhs->type) {
         case INTEGER:
-            if (lhs->data.inum != rhs->data.inum) {
-                return -1;
-            }
-
+            if (lhs->data.inum != rhs->data.inum) return -1;
             break;
         case IDENTIFIER:
         case KEYWORD:
             if (strncmp(lhs->data.sval, rhs->data.sval, strlen(lhs->data.sval)) != 0) {
                 return -1;
             }
-
             break;
         case SYMBOL:
-            if (lhs->data.cval != rhs->data.cval) {
-                return -1;
-            }
-
+            if (lhs->data.cval != rhs->data.cval) return -1;
             break;
         default:
             return -1;
@@ -99,8 +97,9 @@ int test_next_token() {
     char* source = "123 let x = 12;";
 
     int result = 0;
-    char* filename = "test";
+    const char* filename = "test";
 
+    /* Compiler and scanner creation */
     compiler_t* compiler = test_compiler(source, filename);
     if (!compiler) return -1;
 
@@ -110,6 +109,7 @@ int test_next_token() {
         goto test_exit;
     }
 
+    /* Expected tokens and values for the source */
     uint64_t ival[] = {123, 12};
     char cval[] = {'=', ';'};
     char* sval[] = {"let", "x"};
@@ -136,8 +136,8 @@ int test_next_token() {
     tokens_compare(scanner, expected_tokens, expected_count);
 
     test_exit:
-        free(scanner);
-        free(compiler);
+        free_scanner(scanner);
+        free_compiler(compiler);
 
         return result;
 }
