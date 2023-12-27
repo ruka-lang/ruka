@@ -868,7 +868,7 @@ intList.insert(12);
   - &   : Bitwise AND
   - |   : Bitwise OR
   - ^   : Bitwise XOR
-  - !   : Bitwise Negation
+  - not : Bitwise Negation
   - <<  : Bitshift Left
   - >>  : Bitshift Right
 - Type Symbols
