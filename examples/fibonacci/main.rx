@@ -1,5 +1,7 @@
 const std = rex.import("std");
 
+/* Program to calculate fibonacci numbers using dynamic programming */
+
 /* Static array for caching fibonacci number calculations */
 static fib_cache = [50]int{0, 1, 1};
 
