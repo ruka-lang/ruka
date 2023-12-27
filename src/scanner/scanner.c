@@ -137,11 +137,11 @@
     ALPHABETICAL_CASE
 
 /* Keywords */
-#define NUM_KEYWORDS 33
+#define NUM_KEYWORDS 34
 const char* KEYWORDS[NUM_KEYWORDS] = {
+    /* In use */
     "const",
     "let",
-    "static",
     "pub",
     "return",
     "fn",
@@ -165,13 +165,16 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "and",
     "or",
     "not",
-    "any",
     "use",
     "from",
+    "any",
     "mut",
     "mov",
     "loc",
-    "ctime"
+    "ctime",
+    /* Reserved */
+    "static",
+    "in"
 };
 
 /* Macro that writes characters from in_file to buffer while exp returns true
