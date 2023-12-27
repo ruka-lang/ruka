@@ -137,11 +137,12 @@
     ALPHABETICAL_CASE
 
 /* Keywords */
-#define NUM_KEYWORDS 31
+#define NUM_KEYWORDS 33
 const char* KEYWORDS[NUM_KEYWORDS] = {
     "const",
     "let",
     "static",
+    "pub",
     "return",
     "fn",
     "record",
@@ -166,6 +167,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "not",
     "any",
     "use",
+    "from",
     "mut",
     "mov",
     "loc",
