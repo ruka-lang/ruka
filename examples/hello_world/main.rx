@@ -1,8 +1,13 @@
 const std = rex.import("std");
+const fmt = std.fmt;
 
-// Program to print Hello, world! to the terminal
+/* Program to print Hello, world! to the terminal */
 const main = () => int {
-    std.io.println("Hello, world!");
+    let name = "world";
+    let msg = name
+        |> fmt.sprintf(format: "Hello, {}!");
+
+    std.io.println(msg);
 
     return 0;
 }
