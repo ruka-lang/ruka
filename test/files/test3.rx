@@ -3,9 +3,9 @@ const std = rex.import("std");
 const name = "Foo";
 const year = 2023;
 const multi = "| Hello,
-             | {s}!
-             | From {d}
-             |";
+               | {s}!
+               | From {d}
+               |";
 
 // Formats greeting with name and year
 const greet = (name: string, year: int) => string { |&multi|

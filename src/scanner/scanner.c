@@ -259,13 +259,9 @@ token_t* skip_comment(scanner_t* process) {
             for (; c != '/' && c != EOF; c = nextc(process)) {
                 if (c == '*') {
                     next = peekc(process);
-                    if (next == '/') {
-                        continue;
-                    }
                 }
             }
 
-            nextc(process);
             break;
     }
 

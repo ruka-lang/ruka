@@ -62,7 +62,7 @@ compiler_t* new_compiler(
         process = NULL;
         goto exit;
     }
-
+    
     process->flags = flags;
     process->pos.line = 1;
     process->pos.col = 1;
