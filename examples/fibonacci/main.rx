@@ -6,7 +6,7 @@ const std = rex.import("std");
 
 var cache = [50]int{0, 1, 1, -1, ...};
 
-const fibonacci = (n: int) -> int {
+const fibonacci = (n) => {
     if n < 0 {
         return 0;
     } else if cache[n] != -1 {
@@ -17,7 +17,7 @@ const fibonacci = (n: int) -> int {
     }
 }
 
-const main = () -> Result((), any) {
+const main = () => Result((), any) {
     /* 
     use {parse_int as parse} from std;
 

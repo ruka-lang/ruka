@@ -237,7 +237,7 @@ Anonymous function creation follows the form of:
 <pre>
   ([mode] parameter [: type]) [: return type] body;
 </pre>
-the body is a block or single-line do:
+the body is a block or single-line =>
 
 Function definition follows the form of:
 <pre>
@@ -246,7 +246,7 @@ Function definition follows the form of:
 
 A single-line body function
 ```rust
-const hello = () do return "Hello, world!";
+const hello = () => return "Hello, world!";
 ```
 values must be returned explicitly
 
