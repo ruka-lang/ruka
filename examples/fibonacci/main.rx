@@ -3,8 +3,9 @@
  */
 
 const std = rex.import("std");
+// use {Result, !} from rex;
 
-var cache = [50]int{0, 1, 1, -1, ...};
+var cache = [50]{0, 1, 1, -1, ...};
 
 const fibonacci = (n) => {
     if n < 0 {
@@ -17,14 +18,7 @@ const fibonacci = (n) => {
     }
 }
 
-const main = () => Result((), any) {
-    /* 
-    use {parse_int as parse} from std;
-
-    let n = std.io.getline()
-        .parse().!;
-    */
-    
+const main = (args: []string) => !() {
     let n = std.io.gets()
         |> std.parse_int() 
         |> !;

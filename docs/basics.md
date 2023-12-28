@@ -54,6 +54,12 @@ let (
 let (x, y);
 
 ```
+
+## Polish notation
+```rust
+(operator)(args);
+(++)(x);
+```
 ## Type specification basics
 
 When declaring bindings, types are usually inferred based on later usage of the binding, 
@@ -275,14 +281,14 @@ add(1); //# x = 1, y = null
 ## Error Handling
 ```rust
 // Returns a result, which is a union (string or error)
-const func1 = () => string! {
+const func1 = () => !string {
     if (...) {
         return error.someError;
     }
 };
 
 // Returns a result, which is a union (void or error)
-const func1 = () => void! {
+const func1 = () => !void {
     if (...) {
         return error.someError;
     }
@@ -294,7 +300,7 @@ let s: string = func1() as string;
 let s: string = func1().!;
 
 // Returns a optional, which is a union (int or null)
-const func2 = () => int? {
+const func2 = () => ?int {
 
 };
 
