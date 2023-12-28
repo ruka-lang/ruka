@@ -118,11 +118,11 @@ int test(char* source, token_t* expected[], size_t count) {
 
     tokens_compare(scanner, expected, count);
 
-    test_exit:
-        free_scanner(scanner);
-        free_compiler(compiler);
+test_exit:
+    free_scanner(scanner);
+    free_compiler(compiler);
 
-        return result;
+    return result;
 }
 
 
