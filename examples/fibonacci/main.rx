@@ -7,7 +7,7 @@ const std = rex.import("std");
 
 var cache = [50]{0, 1, 1, -1, ...};
 
-const fibonacci = (n) => {
+const fibonacci = (n) {
     if n < 0 {
         return 0;
     } else if cache[n] != -1 {
