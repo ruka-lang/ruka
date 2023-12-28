@@ -156,6 +156,7 @@ int test_next_token() {
  *
  */
 int test_operators() {
+    /* / and * causing early EOF */
     char* source = "+-=<>(){}[]/\\|'\";:?.,!@#$%^&*~`";
 
     /* Expected tokens and values from the source */

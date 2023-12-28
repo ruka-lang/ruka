@@ -15,7 +15,7 @@ char* read_to_string(compiler_t* process, const char* filename) {
     if (!file) return NULL;
 
     fseek(file, 0, SEEK_END);
-    int len = ftell(file);
+    size_t len = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     char* contents = (char*) calloc(len + 1, sizeof(char));

@@ -428,8 +428,6 @@ token_t* read_next_token(scanner_t* process) {
     process->token_pos = process->curr_pos;
     char peek;
 
-    printf("%d\n", c);
-
     switch (c) {
         case '_':
             /* Unused binding */
@@ -457,7 +455,7 @@ token_t* read_next_token(scanner_t* process) {
                     peek = peekc(process);
 
                     /* Check for comments */
-                    if (peek == '/' || peek == '*') {
+                    if (c == '/' && (peek == '/' || peek == '*')) {
                         token = skip_comment(process);
                     } else {
                         token = token_make_symbol(process, c);
