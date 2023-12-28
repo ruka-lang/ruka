@@ -1,7 +1,7 @@
 const std = rex.import("std");
 
-const main = () => int {
+const main = () -> void {
     std.io.println("Hello, world!");
 
-    return 0;
+    return ();
 }
