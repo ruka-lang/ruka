@@ -148,6 +148,10 @@ int test_next_token() {
         new_token_with_all(SYMBOL,     &cval[1], 0, new_pos(1, 15, "test"), 0)
     };
 
+    for (int i = 0; i < expected_count; i++) {
+        free_token(expected_tokens[i]);
+    }
+
     return test(source, expected_tokens, expected_count);
 }
 
@@ -199,6 +203,10 @@ int test_operators() {
         new_token_with_all(SYMBOL, &cval[29], 0, new_pos(1, 30, "test"), 0),
         new_token_with_all(SYMBOL, &cval[30], 0, new_pos(1, 31, "test"), 0),
     };
+
+    for (int i = 0; i < expected_count; i++) {
+        free_token(expected_tokens[i]);
+    }
 
     return test(source, expected_tokens, expected_count);
 }
