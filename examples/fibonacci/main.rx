@@ -1,21 +1,23 @@
+/*
+ * Program to calculate fibonacci numbers using dynamic programming 
+ */
+
 const std = rex.import("std");
 
-/* Program to calculate fibonacci numbers using dynamic programming */
+var cache = [50]int{0, 1, 1, -1, ...};
 
-/* Global array for caching fibonacci number calculations */
-let cache = [50]int{0, 1, 1, -1, ...};
-
-const fibonacci = (n: int) => {
-    if (n < 0) {
+const fibonacci = (n: int) -> int {
+    if n < 0 {
         return 0;
-    } else if (cache[n] != -1) {
+    } else if cache[n] != -1 {
         return cache[n];
     } else {
-        return cache[n] := fibonacci(n-1) + fibonacci(n-2);
+        cache[n] = fibonacci(n-1) + fibonacci(n-2);
+        return cache[n];
     }
 }
 
-const main = () => Result((), any) {
+const main = () -> Result((), any) {
     /* 
     use {parse_int as parse} from std;
 
@@ -23,8 +25,8 @@ const main = () => Result((), any) {
         .parse().!;
     */
     
-    let n = std.io.getline()
-        |> parse() 
+    let n = std.io.gets()
+        |> std.parse_int() 
         |> !;
 
     let value = fibonacci(n);

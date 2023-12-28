@@ -137,12 +137,12 @@
     ALPHABETICAL_CASE
 
 /* Keywords */
-#define NUM_KEYWORDS 34
+#define NUM_KEYWORDS 36
 const char* KEYWORDS[NUM_KEYWORDS] = {
     /* In use */
     "const",
     "let",
-    "pub",
+    "var",
     "return",
     "fn",
     "record",
@@ -151,7 +151,6 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "module",
     "defer",
     "when",
-    "inline",
     "true",
     "false",
     "for",
@@ -161,19 +160,22 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "match",
     "if",
     "else",
-    "as",
     "and",
     "or",
     "not",
-    "use",
-    "from",
+    "ctime",
+    /* Reserved */
     "any",
     "mut",
     "mov",
     "loc",
-    "ctime",
-    /* Reserved */
+    "pub",
+    "pri",
+    "inline",
     "static",
+    "use",
+    "from",
+    "as",
     "in"
 };
 
@@ -316,7 +318,7 @@ unsigned long read_number(scanner_t* process, buffer_t* buffer) {
 token_t* token_make_number_for_value(scanner_t* process, uint64_t number) {
     return token_create(process, &(token_t){
         .type=INTEGER,
-        .data.inum=number
+        .data.ival=number
     }); 
 }
 
@@ -494,7 +496,7 @@ void scanner_debug(scanner_t* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                snprintf(buffer, 50, "val: %ld", t->data.inum);
+                snprintf(buffer, 50, "val: %llu", t->data.ival);
                 break;
             case SYMBOL:
                 snprintf(buffer, 50, "val: '%c'", t->data.cval);

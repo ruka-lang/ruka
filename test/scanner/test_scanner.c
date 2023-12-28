@@ -55,7 +55,7 @@ int token_compare(token_t* lhs, token_t* rhs) {
 
     switch (lhs->type) {
         case INTEGER:
-            if (lhs->data.inum != rhs->data.inum) return -1;
+            if (lhs->data.ival != rhs->data.ival) return -1;
             break;
         case IDENTIFIER:
         case KEYWORD:

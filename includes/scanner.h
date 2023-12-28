@@ -39,7 +39,7 @@ typedef struct token_t {
         char cval;
         char* sval;
         double fval;
-        uint64_t inum;
+        uint64_t ival;
         void* any;
     } data;
 
