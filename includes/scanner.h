@@ -139,13 +139,11 @@ void scanner_push_char(scanner_t* process, char c);
 /* Creates a new token
  * @param scanner The scanner process the token will belong to
  * @param type The type of the token
- * @param pos The position of the token
  * @return A pointer to a new token_t or NULL
  */
-token_t* new_token(scanner_t* scanner, int type, pos_t pos);
+token_t* new_token(scanner_t* scanner, int type);
 
 /* Creates a new token
- * @param scanner The scanner process the token will belong to
  * @param type The type of the token
  * @param data The data of the token
  * @param len The len of data if string
@@ -153,8 +151,7 @@ token_t* new_token(scanner_t* scanner, int type, pos_t pos);
  * @param whitespace True if there is whitespace after this token
  * @return A pointer to a new token_t or NULL
  */
-token_t* new_token_with_all(scanner_t* scanner, 
-                            int type, 
+token_t* new_token_with_all(int type, 
                             void* data,
                             size_t len,
                             pos_t pos, 

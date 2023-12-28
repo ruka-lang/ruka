@@ -428,6 +428,8 @@ token_t* read_next_token(scanner_t* process) {
     process->token_pos = process->curr_pos;
     char peek;
 
+    printf("%d\n", c);
+
     switch (c) {
         case '_':
             /* Unused binding */

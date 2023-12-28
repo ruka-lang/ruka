@@ -49,5 +49,5 @@ add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
 target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
 
 add_test( NAME scanner_next_token ${TEST_CMD} scanner next_token )
-add_test( NAME scanner_identifier ${TEST_CMD} scanner identifiers )
+add_test( NAME scanner_operators ${TEST_CMD} scanner operators )
 #add_test( NAME scanner_numbers    ${TEST_CMD} scanner numbers )
