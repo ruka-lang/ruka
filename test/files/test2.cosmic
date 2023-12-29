@@ -4,7 +4,7 @@
 
 const std = cosmic.import("std");
 
-let main = (argc: int, argv: []string) => int {
+public const main = (args: []string) => int {
     std.io.printf("{}\n", "Hello, world!");
 
     return 0;
