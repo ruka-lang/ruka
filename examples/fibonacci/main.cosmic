@@ -1,0 +1,32 @@
+/*
+ * Program to calculate fibonacci numbers using dynamic programming 
+ */
+
+const std = cosmic.import("std");
+// use {Result, !} from cosmic;
+
+var cache = [50]{0, 1, 1, -1, ...};
+
+const fibonacci = (n) {
+    if n < 0 {
+        return 0;
+    } else if cache[n] != -1 {
+        return cache[n];
+    } else {
+        cache[n] = fibonacci(n-1) + fibonacci(n-2);
+        return cache[n];
+    }
+}
+
+// const main = (args: []string) -> Result((), any) {
+const main = (args: []string) -> !() {
+    let n = std.io.gets()
+        |> std.parse_int() 
+        |> (!);
+
+    let value = fibonacci(n);
+
+    std.io.println("Fibonacci number {} is {}", n, value);
+
+    return ();
+}

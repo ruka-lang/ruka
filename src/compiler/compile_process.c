@@ -10,23 +10,28 @@
  * @param file The file to read to string
  * @return Char* containing the file contents
  */
-char* read_to_string(compiler_t* process, FILE* file) {
+char* read_to_string(compiler_t* process, const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (!file) return NULL;
+
     fseek(file, 0, SEEK_END);
-    int len = ftell(file);
+    size_t len = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     char* contents = (char*) calloc(len + 1, sizeof(char));
 
-    char c;
-    int i = 0;
-    for (c = fgetc(file); c != EOF; c = fgetc(file)) {
-       contents[i] = c;
-       i++;
+    int read_res = fread(contents, sizeof(char), len, file);
+    if (read_res != len) {
+        free(contents);
+        fclose(file);
+        return NULL;
     }
-    contents[i] = '\0';
+
+    contents[len] = '\0';
 
     process->in_file.len = len;
 
+    fclose(file);
     return contents;
 }
 
@@ -41,9 +46,6 @@ compiler_t* new_compiler(
         const char* out_filename, 
         int flags
 ) {
-    FILE* in_file = fopen(in_filename, "r");
-    if (!in_file) return NULL;
-
     FILE* out_file = NULL;
     if (out_filename) {
         out_file = fopen(out_filename, "w");
@@ -52,17 +54,25 @@ compiler_t* new_compiler(
 
     // Create compiler
     compiler_t* process = (compiler_t*) malloc(sizeof(compiler_t));
+    char* contents = read_to_string(process, in_filename);
 
+    if (!contents) {
+        free_compiler(process);
+
+        process = NULL;
+        goto exit;
+    }
+    
     process->flags = flags;
     process->pos.line = 1;
     process->pos.col = 1;
     process->pos.path = in_filename;
-    process->in_file.contents = read_to_string(process, in_file);
     process->in_file.path = in_filename;
+    process->in_file.contents = contents;
     process->out_file.fp = out_file;
     process->out_file.path = out_filename;
 
-    fclose(in_file);
+exit:
 
     return process;
 }

@@ -15,15 +15,15 @@
 
 /* Switch case macros */
 #define DIGIT_CASE \
-    case '0':        \
-    case '1':        \
-    case '2':        \
-    case '3':        \
-    case '4':        \
-    case '5':        \
-    case '6':        \
-    case '7':        \
-    case '8':        \
+    case '0':      \
+    case '1':      \
+    case '2':      \
+    case '3':      \
+    case '4':      \
+    case '5':      \
+    case '6':      \
+    case '7':      \
+    case '8':      \
     case '9'
 
 #define NUMERIC_CASE \
@@ -128,7 +128,6 @@
 
 #define WHITESPACE_CASE \
     case ' ':           \
-    case '\4':          \
     case '\t':          \
     case '\r':          \
     case '\n'
@@ -138,10 +137,12 @@
     ALPHABETICAL_CASE
 
 /* Keywords */
-#define NUM_KEYWORDS 29
+#define NUM_KEYWORDS 36
 const char* KEYWORDS[NUM_KEYWORDS] = {
+    /* In use */
     "const",
     "let",
+    "var",
     "return",
     "fn",
     "record",
@@ -150,7 +151,6 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "module",
     "defer",
     "when",
-    "inline",
     "true",
     "false",
     "for",
@@ -160,15 +160,23 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "match",
     "if",
     "else",
-    "as",
     "and",
     "or",
+    "not",
+    "ctime",
+    /* Reserved */
     "any",
-    "use",
     "mut",
     "mov",
     "loc",
-    "ctime"
+    "pub",
+    "pri",
+    "inline",
+    "static",
+    "use",
+    "from",
+    "as",
+    "in"
 };
 
 /* Macro that writes characters from in_file to buffer while exp returns true
@@ -253,13 +261,9 @@ token_t* skip_comment(scanner_t* process) {
             for (; c != '/' && c != EOF; c = nextc(process)) {
                 if (c == '*') {
                     next = peekc(process);
-                    if (next == '/') {
-                        continue;
-                    }
                 }
             }
 
-            nextc(process);
             break;
     }
 
@@ -314,7 +318,7 @@ unsigned long read_number(scanner_t* process, buffer_t* buffer) {
 token_t* token_make_number_for_value(scanner_t* process, uint64_t number) {
     return token_create(process, &(token_t){
         .type=INTEGER,
-        .data.inum=number
+        .data.ival=number
     }); 
 }
 
@@ -423,11 +427,14 @@ token_t* read_next_token(scanner_t* process) {
     char peek;
 
     switch (c) {
+        case '_':
+            /* Unused binding */
         ALPHABETICAL_CASE:
             token = token_make_identifier_or_keyword(process);
             break;
         DIGIT_CASE:
             token = token_make_number(process);
+            // token = token_make_integer_or_float(process);
             break;
         SYMBOL_CASE:
             c = nextc(process);
@@ -446,7 +453,7 @@ token_t* read_next_token(scanner_t* process) {
                     peek = peekc(process);
 
                     /* Check for comments */
-                    if (peek == '/' || peek == '*') {
+                    if (c == '/' && (peek == '/' || peek == '*')) {
                         token = skip_comment(process);
                     } else {
                         token = token_make_symbol(process, c);
@@ -489,7 +496,7 @@ void scanner_debug(scanner_t* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                snprintf(buffer, 50, "val: %ld", t->data.inum);
+                snprintf(buffer, 50, "val: %llu", t->data.ival);
                 break;
             case SYMBOL:
                 snprintf(buffer, 50, "val: '%c'", t->data.cval);

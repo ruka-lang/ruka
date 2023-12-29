@@ -64,7 +64,7 @@ void compiler_warning(compiler_t* compiler, const char* msg, ...) {
  */
 int compile(const char* in_filename, const char* out_filename, int flags) {
     compiler_t* process = new_compiler(in_filename, out_filename, flags); 
-    if (!process) return ENOENT;
+    if (!process) return COMPILER_FAILED_WITH_ERRORS;
 
     /* Scan */
     scanner_t* scanner = new_scanner(process, &scan_functions, NULL);

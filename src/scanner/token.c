@@ -8,16 +8,16 @@
 
 /* Creates a new token
  * @param scanner The scanner token the token will belong to
+ * @param type Token type
  * @return A pointer to a new token_t or NULL
  */
-token_t* new_token(scanner_t* scanner, int type, pos_t pos) {
-    token_t* token = new_token_with_all(scanner, type, NULL, 0, pos, false);
+token_t* new_token(scanner_t* scanner, int type) {
+    token_t* token = new_token_with_all(type, NULL, 0, scanner->token_pos, false);
 
     return token;
 }
 
 /* Creates a new token
- * @param scanner The scanner process the token will belong to
  * @param type The type of the token
  * @param data The data of the token
  * @param len The length of string if data is a string
@@ -26,7 +26,6 @@ token_t* new_token(scanner_t* scanner, int type, pos_t pos) {
  * @return A pointer to a new token_t or NULL
  */
 token_t* new_token_with_all(
-    scanner_t* scanner, 
     int type, 
     void* data,
     size_t len,
@@ -48,7 +47,7 @@ token_t* new_token_with_all(
             token->data.sval = sval;
             break;
         case INTEGER:
-            memcpy(&token->data.inum, data, sizeof(uint64_t));
+            memcpy(&token->data.ival, data, sizeof(uint64_t));
             break;
         case SYMBOL:
             memcpy(&token->data.cval, data, sizeof(char));

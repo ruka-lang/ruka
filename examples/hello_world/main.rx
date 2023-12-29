@@ -1,8 +1,0 @@
-const std = rex.import("std");
-
-// Program to print Hello, world! to the terminal
-const main = () => int {
-    std.io.println("Hello, world!");
-
-    return 0;
-}
