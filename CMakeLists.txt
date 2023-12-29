@@ -6,7 +6,7 @@ set( CMAKE_BUILD_TYPE Debug )
 set( CMAKE_C_STANDARD 17 )
 set( CMAKE_C_STANDARD_REQUIRED 1 )
 
-project( rex-c LANGUAGES C )
+project( cosmic-c LANGUAGES C )
 
 # Files and Libs
 set( SOURCE src )
@@ -35,18 +35,18 @@ set( SOURCES ${SOURCE}/helpers/vector.c
 set( LIBRARIES )
 
 # Executables
-add_executable( rex-c ${SOURCE}/main.c ${INCLUDES} ${SOURCES} )
-target_link_libraries( rex-c PRIVATE ${LIBRARIES} )
+add_executable( cosmic-c ${SOURCE}/main.c ${INCLUDES} ${SOURCES} )
+target_link_libraries( cosmic-c PRIVATE ${LIBRARIES} )
 
 # Tests
 enable_testing()
 
-set( TEST_CMD COMMAND $<TARGET_FILE:rex-c-test> )
+set( TEST_CMD COMMAND $<TARGET_FILE:cosmic-c-test> )
 set( TESTS ${TEST}/scanner/test_scanner.h 
            ${TEST}/scanner/test_scanner.c )
 
-add_executable( rex-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
-target_link_libraries( rex-c-test PRIVATE ${LIBRARIES} )
+add_executable( cosmic-c-test ${TEST}/test.c ${TESTS} ${INCLUDES} ${SOURCES} )
+target_link_libraries( cosmic-c-test PRIVATE ${LIBRARIES} )
 
 add_test( NAME scanner_next_token ${TEST_CMD} scanner next_token )
 add_test( NAME scanner_operators ${TEST_CMD} scanner operators )
