@@ -7,10 +7,10 @@
 #include <sys/errno.h>
 #include "../includes/compiler.h"
 
-const char* prompt = "Rex compiler\n"
+const char* prompt = "Cosmic compiler\n"
                      "version: 0.1.0\n"
                      "\n"
-                     "Usage: rex-c [options] source\n";
+                     "Usage: cosmic-c [options] source\n";
 
 int main(int argc, const char** argv) {
     /* Check if first argument was provided (required) */
