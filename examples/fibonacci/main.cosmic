@@ -18,8 +18,7 @@ const fibonacci = (n) {
     }
 }
 
-// const main = (args: []string) -> Result((), any) {
-const main = (args: []string) -> !() {
+public const main = (args: []string) -> Result((), any) {
     let n = std.io.gets()
         |> std.parse_int() 
         |> (!);
