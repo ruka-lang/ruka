@@ -30,10 +30,10 @@ int main(int argc, const char** argv) {
             case COMPILER_FAILED_WITH_ERRORS:
                 printf("Compilation failed with errors\n");
                 break;
-            case ENOENT:
-                printf("Compilation failed. File not found: %s\n", argv[1]);
-                return ENOENT;
-                break;
+            //case COMPILER_FAILED_SOURCE_NOT_FOUND:
+            //    printf("Compilation failed. File not found: %s\n", argv[1]);
+            //    return ENOENT;
+            //    break;
             default: 
                 printf("File compiled with unknown response\n");
                 break;

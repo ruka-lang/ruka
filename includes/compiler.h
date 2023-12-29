@@ -14,6 +14,7 @@
 /* Compiler messages */
 enum {
     COMPILER_FILE_COMPILED_OK, 
+    COMPILER_FAILED_SOURCE_NOT_FOUND,
     COMPILER_FAILED_WITH_ERRORS
 };
 
