@@ -12,7 +12,7 @@
  * @return A pointer to a new token_t or NULL
  */
 token_t* new_token(scanner_t* scanner, int type) {
-    token_t* token = new_token_with_all(type, NULL, 0, scanner->token_pos, false);
+    token_t* token = new_token_with_all(type, NULL, scanner->token_pos, false);
 
     return token;
 }
