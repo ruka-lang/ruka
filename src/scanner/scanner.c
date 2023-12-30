@@ -196,7 +196,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
  * @param process The scanner process to get a character from
  * @return The next character in the scanner process
  */
-char nextc(scanner_t* process) {
+char nextc(scanner_t* restrict process) {
     char c = process->function->next_char(process);
 
     return c;
@@ -206,7 +206,7 @@ char nextc(scanner_t* process) {
  * @param process The scanner process to peek a character from
  * @return The next character in the scanner process
  */
-char peekc(scanner_t* process) {
+char peekc(scanner_t* restrict process) {
     return process->function->peek_char(process);
 }
 
@@ -215,7 +215,7 @@ char peekc(scanner_t* process) {
  * @param c The character to push onto the file
  * @return void
  */
-void pushc(scanner_t* process, char c) {
+void pushc(scanner_t* restrict process, char c) {
     process->function->push_char(process, c);
 }
 
@@ -223,16 +223,16 @@ void pushc(scanner_t* process, char c) {
  * @param process The scanner process to get the last token from
  * @return The last token stored in the scanner's token vector
  */
-token_t* scanner_last_token(scanner_t* process) {
+token_t* scanner_last_token(scanner_t* restrict process) {
     return vector_peek(process->tokens);
 }
 
-token_t* read_next_token(scanner_t* process);
+token_t* read_next_token(scanner_t* restrict process);
 /* Skips whitespace characters from the file
  * @param process The scanner process to skip whitespace characters in
  * @return The token after the whitespace character
  */
-token_t* skip_whitespace(scanner_t* process) {
+token_t* skip_whitespace(scanner_t* restrict process) {
     token_t* last_token = scanner_last_token(process);
 
     nextc(process);
@@ -245,7 +245,7 @@ token_t* skip_whitespace(scanner_t* process) {
  * @param process The scanner process to skip comments in
  * @return The token after the comment
  */
-token_t* skip_comment(scanner_t* process) {
+token_t* skip_comment(scanner_t* restrict process) {
     char c = nextc(process);
     char next;
 
@@ -276,7 +276,7 @@ token_t* skip_comment(scanner_t* process) {
  * @param _token The token struct to copy
  * @return The token
  */
-token_t* token_create(scanner_t* process, token_t* restrict _token) {
+token_t* token_create(scanner_t* restrict process, token_t* restrict _token) {
     token_t* token = (token_t*) malloc(sizeof(token_t));
     memcpy(token, _token, sizeof(token_t));
 
@@ -291,7 +291,7 @@ token_t* token_create(scanner_t* process, token_t* restrict _token) {
  * @param buffer The buffer to write to
  * @return The string representing the number literal
  */
-const char* read_number_string(scanner_t* process, buffer_t* buffer) {
+const char* read_number_string(scanner_t* restrict process, buffer_t* restrict buffer) {
     char c = peekc(process);
 
     SCAN_GETC_IF(process, buffer, c, IS_DIGIT(c));
@@ -305,7 +305,7 @@ const char* read_number_string(scanner_t* process, buffer_t* buffer) {
  * @param buffer The buffer storing the numbers string representation
  * @return The usigned long value of the buffer
  */
-unsigned long read_number(scanner_t* process, buffer_t* buffer) {
+unsigned long read_number(scanner_t* restrict process, buffer_t* restrict buffer) {
     const char* s = read_number_string(process, buffer);
     return atoll(s);
 }
@@ -315,7 +315,7 @@ unsigned long read_number(scanner_t* process, buffer_t* buffer) {
  * @param number The number value the token represents
  * @return The number token
  */
-token_t* token_make_number_for_value(scanner_t* process, uint64_t number) {
+token_t* token_make_number_for_value(scanner_t* restrict process, uint64_t number) {
     return token_create(process, &(token_t){
         .type=INTEGER,
         .data.ival=number
@@ -326,7 +326,7 @@ token_t* token_make_number_for_value(scanner_t* process, uint64_t number) {
  * @param process The scanner process the token belongs to
  * @return The number token
  */
-token_t* token_make_number(scanner_t* process) {
+token_t* token_make_number(scanner_t* restrict process) {
     buffer_t* buffer = new_buffer();
     token_t* token = token_make_number_for_value(process, read_number(process, buffer));
 
@@ -339,7 +339,7 @@ token_t* token_make_number(scanner_t* process) {
  * @param buffer The buffer to write to
  * @return The string representing the number literal
  */
-buffer_t* read_identifier(scanner_t* process, buffer_t* buffer) {
+buffer_t* read_identifier(scanner_t* restrict process, buffer_t* restrict buffer) {
     char c = peekc(process);
 
     SCAN_GETC_IF(process, buffer, c, IS_ALPHANUMERIC(c));
@@ -355,7 +355,7 @@ buffer_t* read_identifier(scanner_t* process, buffer_t* buffer) {
 bool check_keyword(char* string) {
     for (int i = 0; i < NUM_KEYWORDS; i++) {
         const char* keyword = KEYWORDS[i];
-        size_t keyword_len = strlen(keyword);
+        size_t keyword_len = strnlen(keyword, 15);
 
         if (strncmp(keyword, string, keyword_len) == 0) {
             return true;
@@ -370,7 +370,7 @@ bool check_keyword(char* string) {
  * @param buffer The the buffer containing the string the token represents
  * @return The identifier token
  */
-token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_t* buffer) {
+token_t* token_make_identifier_or_keyword_for_string(scanner_t* restrict process, buffer_t* restrict buffer) {
     char* string = (char*) calloc(buffer->elements, buffer->size);
     strncpy(string, buffer_ptr(buffer), buffer->elements);
 
@@ -392,7 +392,7 @@ token_t* token_make_identifier_or_keyword_for_string(scanner_t* process, buffer_
  * @param process The scanner process the token belongs to
  * @return The identifier or keyword token
  */
-token_t* token_make_identifier_or_keyword(scanner_t* process) {
+token_t* token_make_identifier_or_keyword(scanner_t* restrict process) {
     buffer_t* buffer = new_buffer();
     token_t* token = token_make_identifier_or_keyword_for_string(
         process, 
@@ -408,7 +408,7 @@ token_t* token_make_identifier_or_keyword(scanner_t* process) {
  * @param c The char representing the symbol
  * @return The symbol token
  */
-token_t* token_make_symbol(scanner_t* process, char c) {
+token_t* token_make_symbol(scanner_t* restrict process, char c) {
     return token_create(process, &(token_t){
         .type=SYMBOL,
         .data.cval=c
@@ -419,7 +419,7 @@ token_t* token_make_symbol(scanner_t* process, char c) {
  * @param process The scanner process to read from
  * @return The next token in the input file
  */
-token_t* read_next_token(scanner_t* process) {
+token_t* read_next_token(scanner_t* restrict process) {
     token_t* token = NULL;
 
     char c = peekc(process);
@@ -482,7 +482,7 @@ token_t* read_next_token(scanner_t* process) {
  * @param process The process whose tokens will be printed
  * @return void
  */
-void scanner_debug(scanner_t* process) {
+void scanner_debug(scanner_t* restrict process) {
     const char* msg = "token: %d {\n"
                       "    type: %d,\n"
                       "    pos: line %d, col %d,\n"
@@ -515,7 +515,7 @@ void scanner_debug(scanner_t* process) {
  * @param process The scan process to be used in scanning
  * @return A integer signaling the result of the scan
  */
-int scan(scanner_t* process) {
+int scan(scanner_t* restrict process) {
     token_t* token = read_next_token(process);
     while(token) {
         vector_push(process->tokens, token);
