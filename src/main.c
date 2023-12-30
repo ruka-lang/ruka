@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/errno.h>
 #include "../includes/compiler.h"
 
@@ -15,14 +16,20 @@ const char* prompt = "Cosmic compiler\n"
 int main(int argc, const char** argv) {
     /* Check if first argument was provided (required) */
     if (argv[1]) {
+        const char* input = argv[1];
         const char* output = NULL;
         
         /* Check if second argument was provided (optional) */
         if (argv[2]) {
-            output = argv[2];
+            /* Check if output path is the same as the input path */
+            if (strncmp(input, argv[2], strnlen(input, 150)) == 0) {
+                printf("Warning: Input file and output file must be different, ignoring output\n");
+            } else {
+                output = argv[2];
+            }
         }
 
-        int result = compile(argv[1], output, 0);
+        int result = compile(input, output, 0);
         switch (result) {
             case COMPILER_FILE_COMPILED_OK:
                 printf("Compiled successfully\n");
