@@ -44,7 +44,7 @@ token_t* new_token_with_all(
             len = strnlen(data, 150);
 
             sval = calloc(len, sizeof(char));
-            memcpy(sval, data, len); 
+            strncpy(sval, data, len); 
 
             token->data.sval = sval;
             break;
