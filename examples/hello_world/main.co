@@ -1,6 +1,6 @@
 const std = cosmic.import("std");
 
-public const main = () => void {
+public const main = () {
     std.io.println("Hello, world!");
 
     return ();
