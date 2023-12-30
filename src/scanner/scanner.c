@@ -163,7 +163,7 @@ const char* KEYWORDS[NUM_KEYWORDS] = {
     "and",
     "or",
     "not",
-    "ctime",
+    "comptime",
     /* Reserved */
     "any",
     "mut",

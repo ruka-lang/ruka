@@ -25,7 +25,7 @@ There are two kinds of bindings:
 
 - `const`  
 ```rust
-// Constants must be assign a value when declared, and cannot be reassigned, they must be known at compile time, either a literal or a ctime expression result
+// Constants must be assign a value when declared, and cannot be reassigned, they must be known at compile time, either a literal or a comptime expression result
 const msg = "Hello, world!";
 ```
 
@@ -481,7 +481,7 @@ may be able to be relaxed, so all values behind borrows can be modified
       - `mov` unique mode, ownership of borrow is moved into function
       - `mut` exclusive mode, only one active borrow to value so safe to mutate
 - All types
-  - `@` or `ctime@` compile time mode
+  - `@` or `comptime@` compile time mode
 ```rust
 let x, y = 12, 11;
 
@@ -682,7 +682,7 @@ const members = (@tup: any) => {
 };
 
 // Can be run at compile time, so result is known at compile time
-ctime.{
+comptime.{
     members(.{...});
 }
 
@@ -775,21 +775,21 @@ let player = Player.{}; // If field values are not provided they will be set to 
 system(&player);
 ```
 
-## `ctime` Expressions
-Metaprogramming in `Cosmic` is done using ctime expressions, which is just `Cosmic` code executed at compile time
+## Metaprogramming
+In `Cosmic`, metaprogramming is done using comptime expressions, which is just `Cosmic` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
-// `@` or `ctime@` preceeding a identifier states that this parameter must be known at compile time
-const Vector = (ctime@t: typeid) => typeid {
+// `@` or `comptime@` preceeding a identifier states that this parameter must be known at compile time
+const Vector = (comptime@t: typeid) => typeid {
     return record {
         x: t,
         y: t
     };
 };
 
-// Code can be run at compile time using ctime.{} for a block of code, @ for a single expression 
-ctime.{
+// Code can be run at compile time using comptime.{} or @.{} for a block of code, @ for a single expression 
+comptime.{
     let _ = Vector(string);
     ...
 }
@@ -800,20 +800,20 @@ const t = int;
 // The function :Vector could be called at runtime:
 let Pos = Vector(t); // This cannot be used in meta expressions 
                      //   because it is executed at runtime
-// Or compile time (@ is used to run an expression at ctime):
+// Or compile time (@ is used to run an expression at comptime):
 let Pos = @Vector(t); // This can be used in later compile time expressions as long as it is not assigned to again
 const Pos = @Vector(t); // This can be used in later compile time expressions
 
 // Blocks can also be run at compile time
-const screen_size = @{
+const screen_size = @.{
     return {1920, 1080};
 };
 ```
 ## First Class Modules
-Modules are first class in `Cosmic`, so they can be passed into and out of functions
+In `Cosmic`, modules are first class, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
-const List = (ctime@type: typeid) => moduleid {
+const List = (comptime@type: typeid) => moduleid {
     return module {
         const Node = record {
             next: cosmic.this(),
@@ -846,7 +846,7 @@ intList.insert(12);
   - .   : Member Access 
   - ()  : Function Call 
   - &   : Borrow 
-  - @   : Ctime Mode
+  - @   : Comptime Mode
   - *   : Dereference
   - $   : Built in function
 - Arithmetic Operators          - Wrapping - Saturating
@@ -878,7 +878,7 @@ intList.insert(12);
   - <<  : Bitshift Left
   - >>  : Bitshift Right
 - Type Symbols
-  - any             : Ctime Inferred type
+  - any             : Comptime Inferred type
   - (type or type)  : Union
   - !type           : type or error
   - ?type           : type or null
@@ -898,7 +898,7 @@ intList.insert(12);
 
 ## Example: Linked List
 ```rust
-const List = (ctime@type: typeid) => moduleid {
+const List = (comptime@type: typeid) => moduleid {
     return module {
         let max_size = 100;
 
