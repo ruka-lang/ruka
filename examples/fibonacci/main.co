@@ -3,9 +3,9 @@
  */
 
 const std = cosmic.import("std");
-const io, parse = std.io, std.parse;
+const {io, parse} = {std.io, std.parse};
 
-var cache = [50]{0, 1, 1, -1...};
+static var cache = [50]{0, 1, 1, -1...};
 
 const fibonacci = (n) {
     if n < 0 {

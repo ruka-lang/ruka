@@ -496,7 +496,7 @@ void scanner_debug(scanner_t* process) {
         char buffer[50];
         switch (t->type) {
             case INTEGER:
-                snprintf(buffer, 50, "val: %lu", t->data.ival);
+                snprintf(buffer, 50, "val: %llu", t->data.ival);
                 break;
             case SYMBOL:
                 snprintf(buffer, 50, "val: '%c'", t->data.cval);
