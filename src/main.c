@@ -8,10 +8,10 @@
 #include <sys/errno.h>
 #include "../includes/compiler.h"
 
-const char* prompt = "Cosmic compiler\n"
+const char* prompt = "Conjure compiler\n"
                      "version: 0.1.0\n"
                      "\n"
-                     "Usage: cosmic-c [options] source\n";
+                     "Usage: conjure-c [options] source\n";
 
 int main(int argc, const char** argv) {
     /* Check if first argument was provided (required) */

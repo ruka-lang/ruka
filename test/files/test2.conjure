@@ -2,7 +2,7 @@
  * Program to print Hello, world!
  */ 
 
-const std = cosmic.import("std");
+const std = conjure.import("std");
 
 public const main = (args: []string) -> int {
     std.io.printf("{}\n", "Hello, world!");

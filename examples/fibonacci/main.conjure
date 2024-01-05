@@ -2,7 +2,7 @@
  * Program to calculate fibonacci numbers
  */
 
-const std = cosmic.import("std");
+const std = conjure.import("std");
 const {io, parse} = {std.io, std.parse};
 
 static var cache = [50]{0, 1, 1, -1...};
