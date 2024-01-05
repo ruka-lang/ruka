@@ -1,7 +1,0 @@
-const std = cosmic.import("std");
-
-const main = () -> void {
-    std.io.println("Hello, world!");
-
-    return ();
-}

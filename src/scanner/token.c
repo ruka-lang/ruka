@@ -12,7 +12,7 @@
  * @return A pointer to a new token_t or NULL
  */
 token_t* new_token(scanner_t* scanner, int type) {
-    token_t* token = new_token_with_all(type, NULL, 0, scanner->token_pos, false);
+    token_t* token = new_token_with_all(type, NULL, scanner->token_pos, false);
 
     return token;
 }
@@ -20,7 +20,6 @@ token_t* new_token(scanner_t* scanner, int type) {
 /* Creates a new token
  * @param type The type of the token
  * @param data The data of the token
- * @param len The length of string if data is a string
  * @param pos The position of the token
  * @param whitespace True if there is whitespace after this token
  * @return A pointer to a new token_t or NULL
@@ -28,7 +27,6 @@ token_t* new_token(scanner_t* scanner, int type) {
 token_t* new_token_with_all(
     int type, 
     void* data,
-    size_t len,
     pos_t pos, 
     uint32_t flags
 ) {
@@ -39,11 +37,15 @@ token_t* new_token_with_all(
     token->flags = flags;
 
     char* sval = NULL;
+    size_t len;
     switch (type) {
         case KEYWORD:
         case IDENTIFIER:
+            len = strnlen(data, 150);
+
             sval = calloc(len, sizeof(char));
-            memcpy(sval, data, len); 
+            strncpy(sval, data, len); 
+
             token->data.sval = sval;
             break;
         case INTEGER:
