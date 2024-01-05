@@ -3,7 +3,7 @@
  */
 
 const std = conjure.import("std");
-const {io, parse} = {std.io, std.parse};
+const {io, parse, string} = {std.io, std.parse, std.string};
 
 static var cache = [50]{0, 1, 1, -1...};
 
@@ -20,7 +20,7 @@ const fibonacci = (n) {
 
 public const main = (args: []string) -> Result((), any) {
     let n = io.gets()
-        |> parse(t: int) 
+        |> string.parse(into: int) 
         |> (!);
 
     let value = fibonacci(n);
