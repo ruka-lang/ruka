@@ -832,6 +832,25 @@ const List = (comptime@type: typeid) => moduleid {
 let intList = List(int).t.{};
 intList.insert(12);
 ```
+Functionality can be "derived" similar to macros by chaining functions which accept and return modules
+```rust
+
+const derive_debug = (mod: moduleid) -> moduleid {
+    // code
+};
+
+const derive_clone = (mod: moduleid) -> moduleid {
+    // code
+};
+
+const proto_idk = module {
+    // code
+};
+
+const idk = proto_idk
+    |> derive_debug()
+    |> derive_clone();
+```
 
 ## Operators
 `Conjure` has many operators and symbols, some have different meaning depending on context:
