@@ -5,12 +5,12 @@
 const std = conjure.import("std");
 const {io, parse, string} = {std.io, std.parse, std.string};
 
-static var cache = [50]{0, 1, 1, -1...};
+static var cache = [50]{0, 1, 1, -1, ...};
 
 const fibonacci = (n) {
-    if n < 0 {
-        return 0;
-    } else if cache[n] != -1 {
+    if (n < 0) { return 0; } 
+
+    if (cache[n] != -1) {
         return cache[n];
     } else {
         cache[n] = fibonacci(n-1) + fibonacci(n-2);
