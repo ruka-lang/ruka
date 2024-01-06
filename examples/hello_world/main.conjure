@@ -1,6 +1,6 @@
 const std = conjure.import("std");
 
-public const main = () {
+public fn main() {
     std.io.println("Hello, world!");
 
     return ();
