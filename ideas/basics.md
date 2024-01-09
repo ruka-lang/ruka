@@ -14,7 +14,7 @@
 ```
 
 ## Bindings
-Bindings in `Conjure` follow the form of:  
+Bindings in `Ghous` follow the form of:  
 <pre>
   kind tag [: type] [= expression];
 </pre>
@@ -36,7 +36,7 @@ let year = 2023;
 year = 2024;
 ```
 
-`Conjure` supports multiple assignment
+`Ghous` supports multiple assignment
 ```rust
 let x = 12;
 let y = 31;
@@ -78,10 +78,10 @@ let name: string;
 ```
 
 ## Memory Management
-In `Conjure` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
+In `Ghous` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
-  - Allocators use the built-in memory functions under the hood like conjure.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
+  - Allocators use the built-in memory functions under the hood like gh.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
 ```rust
 let name: int = 12; // Stack allocated
 
@@ -90,7 +90,7 @@ let allocator = std.mem.testingAllocator.{};
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
 ```
-In `Conjure`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+In `Ghous`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
     free: fn (mut&)() -> void
@@ -115,7 +115,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) => moduleid {
 ```
 
 ## Basic Primitive Types
-Here is a list of `Conjure`'s primitive types:
+Here is a list of `Ghous`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -144,7 +144,7 @@ Here is a list of `Conjure`'s primitive types:
   - also ().
 - `null`
 - `typeid` 
-  - i32, int, char, MyRecord. Types are values in `Conjure`
+  - i32, int, char, MyRecord. Types are values in `Ghous`
 - `moduleid`
 - `error`
 - `range` 
@@ -158,7 +158,7 @@ Here is a list of `Conjure`'s primitive types:
 - `rawptr`
 
 ## Primitive Data Collections
-`Conjure` has a few primitive data collections for you to use:
+`Ghous` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -176,11 +176,11 @@ std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
-Tuples can be indexed, or destructured using pattern matching. The conjure.len() function can be used to assess the length of a tuple
+Tuples can be indexed, or destructured using pattern matching. The gh.len() function can be used to assess the length of a tuple
 ```rust
 let pos = {10, 15};
 
-std.testing.expect(conjure.len(pos) == 2);
+std.testing.expect(gh.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; // The lhs braces are not required
@@ -237,7 +237,7 @@ Blocks can also have capture groups
 ```
 
 ## Function Basics
-All functions in `Conjure` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Ghous` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -325,12 +325,12 @@ const add = () => int {
 
 add(); // Context passed implicitly
 
-let newContext = conjure.Context.{}; // Create a new context
+let newContext = gh.Context.{}; // Create a new context
 newContext.x = 10.0;
 newContext.y = 8.1;
 
 // Unsure on syntax for passing context explicitly
-conjure.context(newContext)
+gh.context(newContext)
 add(); // Error, mismatched types
 add(context: newContext); // Error, mismatched types
 ```
@@ -384,7 +384,7 @@ match (nums[..]) {
 
 ```
 
-`Conjure` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Ghous` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -431,7 +431,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Conjure` has two looping constructs, range-based for loops, and while loops.
+`Ghous` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) { |i, i2|
 
@@ -466,7 +466,7 @@ const add = (x, y: int) => int {
 };
 
 // Function types can be specified separately
-conjure.type(fn (int, int, int) -> int)
+gh.type(fn (int, int, int) -> int)
 const add_three = (x, y, z) do return x + y + z;
 ```
 
@@ -557,7 +557,7 @@ if (.ok =~ x) { |z|
 ```
 
 ## Modules
-In `Conjure`, modules are collections of bindings. Bindings can be let or const.
+In `Ghous`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -581,7 +581,7 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-There are no methods in Conjure, instead Conjure uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Ghous, instead Ghous uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -600,22 +600,22 @@ player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
 
 ## File imports
 When files are imported, they are stored as modules.
-Builtin functions are under the implicitly imported conjure module
+Builtin functions are under the implicitly imported gh module
 ```rust
-const std = conjure.import("std");
+const std = gh.import("std");
 ```
 
 ## Signals
 Reactivity
 ```rust
 // name: &string, update_name: signal
-let {name, update_name} = conjure.signal(string);
+let {name, update_name} = gh.signal(string);
 ```
 
 ## Threads
 Green threads
 ```rust
-let tid = conjure.spawn(() => {
+let tid = gh.spawn(() => {
     // Some code
 });
 defer tid.join();
@@ -623,10 +623,10 @@ defer tid.join();
 
 ## Channels
 ```rust
-let chan = conjure.channel(string);
+let chan = gh.channel(string);
 
 for (0..10) { |i|
-    conjure.spawn(() { |*chan|
+    gh.spawn(() { |*chan|
         chan.*.send(i);
     });
 }
@@ -668,7 +668,7 @@ std.testing.expect(result.quo == 2);
 // Must be the final argument
 // ...tag can be used as shorthand for $any tuples
 const variadic = (...args) => {
-    let size = conjure.len(args);
+    let size = gh.len(args);
 
     for (0..size) { |i|
         std.fmt.printf("{} ", args[i]);
@@ -676,7 +676,7 @@ const variadic = (...args) => {
 };
 
 const members = (@tup: any) => {
-    inline for (conjure.typeOf(tup).members) { |member|
+    inline for (gh.typeOf(tup).members) { |member|
 
     }
 };
@@ -742,7 +742,7 @@ use compiler.{
 ```
 
 ## Traits
-`Conjure` doesn't have inheritance, instead `Conjure` uses interfaces called `traits`.
+`Ghous` doesn't have inheritance, instead `Ghous` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -776,7 +776,7 @@ system(&player);
 ```
 
 ## Metaprogramming
-In `Conjure`, metaprogramming is done using comptime expressions, which is just `Conjure` code executed at compile time
+In `Ghous`, metaprogramming is done using comptime expressions, which is just `Ghous` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -810,13 +810,13 @@ const screen_size = @.{
 };
 ```
 ## First Class Modules
-In `Conjure`, modules are first class, so they can be passed into and out of functions
+In `Ghous`, modules are first class, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (comptime@type: typeid) => moduleid {
     return module {
         const Node = record {
-            next: conjure.this(),
+            next: gh.this(),
             data: type
         };   
     
@@ -853,7 +853,7 @@ const idk = proto_idk
 ```
 
 ## Operators
-`Conjure` has many operators and symbols, some have different meaning depending on context:
+`Ghous` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -922,7 +922,7 @@ const List = (comptime@type: typeid) => moduleid {
         let max_size = 100;
 
         const node = record {
-            next: conjure.this()?,
+            next: gh.this()?,
             data: type
         };
 
@@ -963,7 +963,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Conjure` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Ghous` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust
