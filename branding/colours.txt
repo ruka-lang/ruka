@@ -1,2 +1,2 @@
-Main       = #a04732
-Background = #edeae2
+Main       = #a0323f
+Background = #f9f5e8
