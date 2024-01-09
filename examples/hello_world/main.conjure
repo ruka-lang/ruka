@@ -1,7 +1,0 @@
-const std = conjure.import("std");
-
-public const main = () {
-    std.io.println("Hello, world!");
-
-    return ();
-}
