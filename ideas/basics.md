@@ -516,8 +516,8 @@ const Pos = record { // record{} is the syntax to create anonymous record type
 
 // Record members can be given default values, the types will be inferred
 const Other = record {
-    x = 12, # int
-    y = 32.1 # float
+    x = 12, // int
+    y = 32.1 // float
 };
 
 let pos = .{x = 12, y = 13}; // .{} is the syntax to create anonymous record instances, type will be inferred
