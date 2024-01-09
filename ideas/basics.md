@@ -14,7 +14,7 @@
 ```
 
 ## Bindings
-Bindings in `Ghous` follow the form of:  
+Bindings in `Ghoose` follow the form of:  
 <pre>
   kind tag [: type] [= expression];
 </pre>
@@ -36,7 +36,7 @@ let year = 2023;
 year = 2024;
 ```
 
-`Ghous` supports multiple assignment
+`Ghoose` supports multiple assignment
 ```rust
 let x = 12;
 let y = 31;
@@ -78,7 +78,7 @@ let name: string;
 ```
 
 ## Memory Management
-In `Ghous` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
+In `Ghoose` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
   - Allocators use the built-in memory functions under the hood like gh.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
@@ -90,7 +90,7 @@ let allocator = std.mem.testingAllocator.{};
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
 ```
-In `Ghous`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+In `Ghoose`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
     free: fn (mut&)() -> void
@@ -115,7 +115,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) => moduleid {
 ```
 
 ## Basic Primitive Types
-Here is a list of `Ghous`'s primitive types:
+Here is a list of `Ghoose`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -144,7 +144,7 @@ Here is a list of `Ghous`'s primitive types:
   - also ().
 - `null`
 - `typeid` 
-  - i32, int, char, MyRecord. Types are values in `Ghous`
+  - i32, int, char, MyRecord. Types are values in `Ghoose`
 - `moduleid`
 - `error`
 - `range` 
@@ -158,7 +158,7 @@ Here is a list of `Ghous`'s primitive types:
 - `rawptr`
 
 ## Primitive Data Collections
-`Ghous` has a few primitive data collections for you to use:
+`Ghoose` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -237,7 +237,7 @@ Blocks can also have capture groups
 ```
 
 ## Function Basics
-All functions in `Ghous` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Ghoose` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -384,7 +384,7 @@ match (nums[..]) {
 
 ```
 
-`Ghous` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Ghoose` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -431,7 +431,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Ghous` has two looping constructs, range-based for loops, and while loops.
+`Ghoose` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) { |i, i2|
 
@@ -557,7 +557,7 @@ if (.ok =~ x) { |z|
 ```
 
 ## Modules
-In `Ghous`, modules are collections of bindings. Bindings can be let or const.
+In `Ghoose`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -581,7 +581,7 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-There are no methods in Ghous, instead Ghous uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Ghoose, instead Ghoose uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -742,7 +742,7 @@ use compiler.{
 ```
 
 ## Traits
-`Ghous` doesn't have inheritance, instead `Ghous` uses interfaces called `traits`.
+`Ghoose` doesn't have inheritance, instead `Ghoose` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -776,7 +776,7 @@ system(&player);
 ```
 
 ## Metaprogramming
-In `Ghous`, metaprogramming is done using comptime expressions, which is just `Ghous` code executed at compile time
+In `Ghoose`, metaprogramming is done using comptime expressions, which is just `Ghoose` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -810,7 +810,7 @@ const screen_size = @.{
 };
 ```
 ## First Class Modules
-In `Ghous`, modules are first class, so they can be passed into and out of functions
+In `Ghoose`, modules are first class, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (comptime@type: typeid) => moduleid {
@@ -853,7 +853,7 @@ const idk = proto_idk
 ```
 
 ## Operators
-`Ghous` has many operators and symbols, some have different meaning depending on context:
+`Ghoose` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -963,7 +963,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Ghous` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Ghoose` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust
