@@ -3,7 +3,7 @@
  */
 
 const std = gh.import("std");
-const {io, parse, string} = {std.io, std.parse, std.string};
+const .{io, parse, string, ...} = std;
 
 static var cache = [50]{0, 1, 1, -1, ...};
 
@@ -17,10 +17,10 @@ const fibonacci = (n) => {
         cache[n] = fibonacci(n-1) + fibonacci(n-2);
         return cache[n];
     }
-}
+};
 
 /* Named function */
-public fn main(args: []string) => Result((), any) {
+public fn main() => Result((), any) {
     let n = io.gets()
         |> string.parse(~into=int) 
         |> (!);
