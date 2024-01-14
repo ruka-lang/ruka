@@ -14,7 +14,7 @@ pub struct CompileError {
 }
 
 impl CompileError {
-    /// Creates a new CompileError
+    /// Creates a new Boxed CompileError
     ///
     /// # Arguments
     /// * `file` - 
@@ -22,7 +22,7 @@ impl CompileError {
     /// * `pos`  - 
     ///
     /// # Returns
-    /// * A new CompileError 
+    /// * A new Boxed CompileError 
     ///
     /// # Examples
     ///

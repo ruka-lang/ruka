@@ -14,7 +14,7 @@ pub struct ScannerError {
 }
 
 impl ScannerError {
-    /// Creates a new ScannerError
+    /// Creates a new Boxed ScannerError
     ///
     /// # Arguments
     /// * `file` -
@@ -22,7 +22,7 @@ impl ScannerError {
     /// * `pos`  -
     ///
     /// # Returns
-    /// * A new ScannerError
+    /// * A new Boxed ScannerError
     ///
     /// # Examples
     ///
