@@ -20,10 +20,10 @@ impl<'a> Scanner<'a> {
     /// Creates a new Scanner process
     /// 
     /// # Arguments 
-    ///
     /// * `compiler` - 
     ///
     /// # Returns
+    /// * A new Scanner process
     ///
     /// # Examples 
     ///

@@ -23,11 +23,11 @@ impl Compiler {
     /// Creates a new Compiler process
     ///
     /// # Arguments
-    ///
     /// * `input`  -
     /// * `output` -
     ///
-    /// # Returns
+    /// * Returns 
+    /// * An anyhow::Result, containing the Compiler proces if successful
     ///
     /// # Examples
     ///
@@ -60,10 +60,10 @@ impl Compiler {
     /// Starts the compilation process
     ///
     /// # Arguments
-    ///
     /// * `self` - 
     ///
-    /// # Returns
+    /// # Returns 
+    /// * An anyhow::Result containing unit if successful
     ///
     /// # Examples
     ///

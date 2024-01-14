@@ -17,12 +17,12 @@ impl ScannerError {
     /// Creates a new ScannerError
     ///
     /// # Arguments
-    ///
     /// * `file` -
     /// * `msg`  -
     /// * `pos`  -
     ///
     /// # Returns
+    /// * A new ScannerError
     ///
     /// # Examples
     ///

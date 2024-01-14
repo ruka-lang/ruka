@@ -13,11 +13,11 @@ impl Position {
     /// Creates a new position
     ///
     /// # Arguments
-    ///
     /// * `line`   - 
     /// * `column` -
     ///
     /// # Returns
+    /// * A new Position
     ///
     /// # Examples
     ///

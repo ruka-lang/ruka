@@ -14,15 +14,15 @@ pub struct CompileError {
 }
 
 impl CompileError {
-    /// Returns a new CompileError
+    /// Creates a new CompileError
     ///
     /// # Arguments
-    ///
     /// * `file` - 
     /// * `msg`  - 
     /// * `pos`  - 
     ///
     /// # Returns
+    /// * A new CompileError 
     ///
     /// # Examples
     ///
