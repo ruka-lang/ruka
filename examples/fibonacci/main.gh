@@ -20,7 +20,7 @@ const fibonacci = (n) => {
 };
 
 /* Named function */
-public fn main() => Result((), any) {
+public fn main = () => Result((), any) {
     let n = io.gets()
         |> string.parse(~into=int) 
         |> (!);
