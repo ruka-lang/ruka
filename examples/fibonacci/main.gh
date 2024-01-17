@@ -2,22 +2,10 @@
  * Program to calculate fibonacci numbers
  */
 
-const std = gh.import("std");
-const .{io, parse, string, ...} = std;
-
-static var cache = [50]{0, 1, 1, -1, ...};
-
-/* Anonymous function */
-const fibonacci = (n) {
-    if (n < 0) { return 0; } 
-
-    if (cache[n] != -1) {
-        return cache[n];
-    } else {
-        cache[n] = fibonacci(n-1) + fibonacci(n-2);
-        return cache[n];
-    }
-};
+/* Loads the modules into variables, could also be done with std */
+const fib = gh.import("fib.gh");
+/* Exposes bindings from modules */
+use .{io, parse, string} from "std";
 
 /* Named function */
 public fn main = () -> Result((), any) {
@@ -25,7 +13,7 @@ public fn main = () -> Result((), any) {
         |> string.parse(~into=int) 
         |> (!);
 
-    let value = fibonacci.(n);
+    let value = fib.fibonacci(n);
 
     io.println("Fibonacci number {} is {}", n, value);
 
