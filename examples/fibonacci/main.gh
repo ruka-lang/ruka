@@ -4,6 +4,7 @@
 
 /* Loads the modules into variables, could also be done with std */
 const fib = gh.import("fib.gh");
+
 /* Exposes bindings from modules */
 use .{io, parse, string} from "std";
 
