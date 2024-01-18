@@ -2,13 +2,13 @@
  * Program to calculate fibonacci numbers
  */
 
-/* Loads the modules into variables, could also be done with std */
+// Loads the modules into variables, could also be done with std
 const fib = gh.import("fib.gh");
 
-/* Exposes bindings from modules */
+// Exposes bindings from modules
 use .{io, parse, string} from "std";
 
-/* Named function */
+// Named function
 public fn main = () -> Result((), any) {
     let n = io.gets()
         |> string.parse(~into=int) 
