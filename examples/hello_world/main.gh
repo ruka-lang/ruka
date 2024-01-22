@@ -1,6 +1,6 @@
 const std = gh.import("std");
 
-public fn main = () {
+def main = () {
     std.io.println("Hello, world!");
 
     return ();
