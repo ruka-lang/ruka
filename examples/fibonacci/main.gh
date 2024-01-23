@@ -7,7 +7,7 @@ use std.(io.*, parse, string);
 use fib;
 
 /* Named function */
-def main = () -> Result((), any) {
+fn main = () -> Result((), any) {
     let n = gets()
         |> string.parse(~into: int) 
         |> (!);

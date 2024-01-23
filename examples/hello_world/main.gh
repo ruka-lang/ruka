@@ -1,6 +1,6 @@
 use std;
 
-def main = () {
+fn main = () {
     std.io.println("Hello, world!");
 
     return ();
