@@ -1,4 +1,4 @@
-const std = gh.import("std");
+use std;
 
 def main = () {
     std.io.println("Hello, world!");
