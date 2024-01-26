@@ -2,11 +2,9 @@
  * Program to calculate fibonacci numbers
  */
 
-/* Exposes bindings from modules */
-use std.(io.*, parse, string);
+use std.(io.*, parse, string, iter, testing);
 use fib;
 
-/* Named function */
 fn main = () -> Result((), any) {
     let n = gets()
         |> string.parse(~into: int) 

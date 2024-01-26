@@ -1,7 +1,6 @@
 let mut cache = [50]{0, 1, 1, -1, ...};
 
-/* Anonymous closure */
-pub const fibonacci = (n) { |&|
+pub const fibonacci = (n) { |&| // |&| designates closing over the entire surrounding scope by ref
     if n < 0 => return 0;
 
     if cache[n] != -1 {

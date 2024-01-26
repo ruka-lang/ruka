@@ -1,0 +1,26 @@
+/*
+ * Program to split a string
+ */
+
+use std.(string, iter, testing);
+
+// Splits a string using a imperitive approach
+fn strsplit = (str: string, ch: char) -> [..]string {
+    var indices = [..]int;
+    str.foreach_idx (c: char, i: int) => {
+        if (c == ch) {
+            indices.push(i);
+        }
+    }
+
+    iter.split_at(str, indices);
+}
+
+fn main = () -> () {
+    let words = "Hello, world!"
+        |> strsplit(' ');
+
+    testing.assert(words.len() == 2);
+
+    return ();
+}
