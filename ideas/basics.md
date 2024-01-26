@@ -31,8 +31,11 @@ const msg = "Hello, world!";
 
 - `let`  
 ```rust
-// A variable
-let year = 2023;
+// A runtime binding, must be marked mut to be assigned to multiple times
+let day = 26;
+day.++; // Error, cannot assign to a immutable binding twice
+
+let mut year = 2023;
 year = 2024;
 ```
 
@@ -40,7 +43,7 @@ year = 2024;
 ```rust
 let x = 12;
 let y = 31;
-x, y = y, x; # swaps bindings with no need for temporary bindings
+let (a, b) = (y, x);
 ```
 
 Bindings of the same type can be grouped together.
