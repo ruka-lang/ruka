@@ -1,7 +1,7 @@
 use std;
 
-fn main = () {
+fn main = () do
     std.io.println("Hello, world!");
 
     return ();
-}
+end

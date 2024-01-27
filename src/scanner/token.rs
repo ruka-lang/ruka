@@ -23,61 +23,62 @@ impl<'a> Token<'a> {
 pub enum TokenType<'a> {
     Identifier(&'a str),
     Keyword(Keyword),
-    Mode(Mode),
+    Mode(Keyword),
     String(&'a str),
     Regex(&'a str),
     Integer(&'a str),
     Float(&'a str),
     // Assignment
-    Assign,
-    AssignExp,
+    Assign,               // =
+    AssignExp,            // :=
     // Punctuation
-    Dot,
-    Comma,
-    LeftParen,
-    RightParen,
-    LeftBracket,
-    RightBracket,
-    LeftSquirly,
-    RightSquirly,
-    Colon,
-    Semicolon,
-    Arrow,
-    WideArrow,
+    Dot,                  // .
+    Comma,                // ,
+    LeftParen,            // (
+    RightParen,           // )
+    LeftBracket,          // [
+    RightBracket,         // ]
+    LeftSquirly,          // {
+    RightSquirly,         // }
+    Colon,                // :
+    Semicolon,            // ;
+    Arrow,                // ->
+    WideArrow,            // =>
     // Operators
-    Address,
-    Cash,
-    Pound,
-    Bang,
-    Question,
-    RangeExc,
-    RangeInc,
-    Pipeline,
+    Address,              // @
+    Cash,                 // $
+    Pound,                // #
+    Bang,                 // !
+    Question,             // ?
+    RangeExc,             // ..
+    RangeInc,             // ...
+    ForwardApp,           // |>
+    ReverseApp,           // <|
     // Arithmetic
-    Plus,
-    Minus,
-    Asterisk,
-    Slash,
-    Percent,
-    Increment,
-    Decrement,
-    Power,
+    Plus,                 // +
+    Minus,                // -
+    Asterisk,             // *
+    Slash,                // /
+    Percent,              // %
+    Increment,            // ++
+    Decrement,            // --
+    Power,                // **
     // Bitwise
-    Ampersand,
-    Pipe,
-    Caret,
-    Tilde,
-    LeftShift,
-    RightShift,
+    Ampersand,            // &
+    Pipe,                 // |
+    Caret,                // ^
+    Tilde,                // ~
+    LeftShift,            // <<
+    RightShift,           // >>
     // Comparators
-    Lesser,
-    LesserEq,
-    Greater,
-    GreaterEq,
-    Equal,
-    NotEqual,
-    PatternMatch,
-    PatternNotMatch,
+    Lesser,               // <
+    LesserEq,             // <=
+    Greater,              // >
+    GreaterEq,            // >=
+    Equal,                // ==
+    NotEqual,             // !=
+    PatternMatch,         // ~=
+    PatternNotMatch,      // !~
     // Others
     Newline,
     Illegal,
@@ -94,12 +95,14 @@ pub enum Keyword {
     Static,
     Const,
     Let,
-    Var,
     Public,
     Return,
     Fn,
+    Do,
+    End,
     Record,
     Union,
+    Use,
     Trait,
     Module,
     Defer,
@@ -117,28 +120,18 @@ pub enum Keyword {
     Or,
     Not,
     Comptime,
+    Mut,
+    Mov,
+    Loc,
     // Reserved
     Any,
     Private,
     Inline,
-    Use,
     From,
     As,
     In
 }
 
 impl Keyword {
-
-}
-
-/// Enumeration of the modes supported
-#[derive(Clone, Debug, PartialEq)]
-pub enum Mode {
-    Mut,
-    Mov,
-    Loc
-}
-
-impl Mode {
 
 }

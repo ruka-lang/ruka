@@ -1,12 +1,12 @@
 let mut cache = [50]{0, 1, 1, -1, ...};
 
-pub const fibonacci = (n) { |&| // |&| designates closing over the entire surrounding scope by ref
-    if n < 0 => return 0;
+public const fibonacci = (n) do |&| // |&| designates closing over the entire surrounding scope by ref
+    if (n < 0) => return 0;
 
-    if cache[n] != -1 {
+    if (cache[n] != -1) do
         return cache[n];
-    } else {
+    else do
         cache[n] = fibonacci(n-1) + fibonacci(n-2);
         return cache[n];
-    }
-}
+    end
+end
