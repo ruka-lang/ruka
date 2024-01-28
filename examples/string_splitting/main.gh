@@ -9,9 +9,7 @@ fn strsplit -> [..]string = (
     ch: char
 ) do
     let mut indices = [..]int{};
-    str.foreach_idx() ~f: (c: char, i: int) do
-        if (c == ch) => indices.push(i);
-    end
+    str.foreach_idx() ~f: (c, i) where (c == ch) => indices.push(i);
 
     let mut words = [..]string{};
     let mut prev = 0;
