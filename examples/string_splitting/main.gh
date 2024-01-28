@@ -4,7 +4,19 @@
 
 use std.(string, iter, testing);
 
-fn strsplit -> [..]string.t = (str: string.t, ch: u8) {
+/** Takes a string and splits the string into substrings at each occurence of
+  * the passed in character
+  * 
+  * # Examples
+  * ```
+  * ghoose> strsplit("Hello, world!", ' ')
+  * ["Hello,", "world!"]
+  * ```
+  */
+fn strsplit -> [..]string.t = (
+    str: string.t, 
+    ch: u8
+) {
     let mut indices = [..]{};
     str |> foreach_idx() ~f: (c, i) when c == ch => indices |> push(i);
 

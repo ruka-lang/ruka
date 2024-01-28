@@ -1,20 +1,18 @@
-let mut cache = [50]{0, 1, 1, -1, ..};
+pub fn fibonacci -> int = n do
+    let mut cache = [50]{0, 1, 1, -1, ..};
+    return _fibonacci(n, &cache); 
+end
 
-pub fn fibonacci -> int = match n {
-    | n when cache[n] != -1 => cache[n],
-    | n when n < 0 => 0,
-    | n => {
-        cache[n] = fibonacci(n-1) + fibonacci(n-2);
-        return cache[n];
-    }
-}
-
-pub fn fibonacci = n when n < 0 => 0;
-pub fn fibonacci = n when cache[n] != -1 => cache[n];
-pub fn fibonacci = n {
-    cache[n] = fibonacci(n-1) + fibonacci(n-2);
-    return cache[n];
-}
+rec fn _fibonacci -> int = (n: int, mut& arr: []int) do
+    match n do
+        | n when cache[n] != -1 => cache[n],
+        | n when n < 0 => 0,
+        | n => do
+            cache[n] = fibonacci(n-1) + fibonacci(n-2);
+            return cache[n];
+        end
+    end
+end
 
 test "fibonacci" -> ! = () do
 		use std;
