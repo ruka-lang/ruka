@@ -1,9 +1,9 @@
 let mut cache = [50]{0, 1, 1, -1, ..};
 
 pub rec fn fibonacci = begin |mut& cache|
-    n when (n < 0)          => 0;
-    n when (cache[n] != -1) => cache[n];
-    n do
+    (n) when (n < 0)          => 0;
+    (n) when (cache[n] != -1) => cache[n];
+    (n) do
         cache[n] = fibonacci(n-1) + fibonacci(n-2);
         return cache[n];
     end
