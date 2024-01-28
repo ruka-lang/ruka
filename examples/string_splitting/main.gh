@@ -20,7 +20,7 @@ fn strsplit -> [..]string.t = (str: string.t, ch: u8) {
     return words;
 }
 
-fn main -> () = () {
+fn main = () {
     let words = "Hello, world!"
         |> strsplit(' ');
 
