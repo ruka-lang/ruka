@@ -1,6 +1,6 @@
 let mut cache = [50]{0, 1, 1, -1, ..};
 
-pub rec fn fibonacci = begin |mut& cache|
+pub rec fn fibonacci -> int = begin |mut& cache|
     (n) when (n < 0)          => 0;
     (n) when (cache[n] != -1) => cache[n];
     (n) do
