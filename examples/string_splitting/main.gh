@@ -9,16 +9,16 @@ fn strsplit -> [..]string.t = (
     ch: char
 ) do
     let mut indices = [..]{};
-    str.foreach_idx() ~f: (c, i) where (c == ch) => indices.push(i);
+    str |> foreach_idx() ~f: (c, i) where c == ch => indices |> push(i);
 
     let mut words = [..]{};
     let mut prev = 0;
     for (idx in indices) do
-        words.push(str[prev..idx].into()); 
+        words |> push(str[prev..idx] |> into()); 
         prev = idx + 1;
     end
 
-    words.push(str[prev..str.len()].into()); 
+    words.push(str[prev..str.len] |> into()); 
 
     return words;
 end
@@ -27,7 +27,7 @@ fn main -> () = () do
     let words = "Hello, world!"
         |> strsplit(' ');
 
-    testing.assert(words.len() == 2);
+    testing.assert(words |> len() == 2);
 
     return ();
 end
