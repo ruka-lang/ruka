@@ -8,7 +8,7 @@ use fib;
 fn main -> Result((), any) = () do
     let n = gets()
         |> string.parse() ~into: int 
-        |> (!)();
+        |> (!);
 
     let value = fib.fibonacci(n);
 

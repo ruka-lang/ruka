@@ -6,10 +6,10 @@ use std.(string, iter, testing);
 
 fn strsplit -> [..]string.t = (
     str: string.t, 
-    ch: char
+    ch: u8
 ) do
     let mut indices = [..]{};
-    str |> foreach_idx() ~f: (c, i) where c == ch => indices |> push(i);
+    str |> foreach_idx() ~f: (c, i) when c == ch => indices |> push(i);
 
     let mut words = [..]{};
     let mut prev = 0;
