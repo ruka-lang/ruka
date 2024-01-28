@@ -1,19 +1,17 @@
 let mut cache = [50]{0, 1, 1, -1, ..};
 
-pub rec fn fibonacci -> int = n do |mut& cache|
-    match n do
-        | n when cache[n] != -1 => cache[n];
-        | n when n < 0          => 0;
-        | n do
-            cache[n] = fibonacci(n-1) + fibonacci(n-2);
-            return cache[n];
-        end
+pub fn fibonacci -> int = match n do
+    | n when cache[n] != -1 => cache[n],
+    | n when n < 0 => 0,
+    | n => do
+        cache[n] = fibonacci(n-1) + fibonacci(n-2);
+        return cache[n];
     end
 end
 
-pub rec fn fibonacci = n when n < 0 => 0;
-pub rec fn fibonacci = n when cache[n] != -1 => cache[n];
-pub rec fn fibonacci = n do
+pub fn fibonacci = n when n < 0 => 0;
+pub fn fibonacci = n when cache[n] != -1 => cache[n];
+pub fn fibonacci = n do
     cache[n] = fibonacci(n-1) + fibonacci(n-2);
     return cache[n];
 end
