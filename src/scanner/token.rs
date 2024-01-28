@@ -99,6 +99,7 @@ pub enum Keyword {
     Return,
     Fn,
     Do,
+    Begin,
     End,
     Record,
     Union,

@@ -1,11 +1,16 @@
-let mut cache = [50]{0, 1, 1, -1, ...};
+let mut cache = [50]int{0, 1, 1, -1...};
 
-public const fibonacci = (n) do |&| // |&| designates closing over the entire surrounding scope by ref
-    if (n < 0) => return 0;
+pub rec fn fibonacci = n when (n < 0)          => |mut& cache| 0;
+pub rec fn fibonacci = n when (cache[n] != -1) => |mut& cache| cache[n];
+pub rec fn fibonacci = n do |mut& cache|
+    cache[n] = fibonacci(n-1) + fibonacci(n-2);
+    return cache[n];
+end
 
-    if (cache[n] != -1) do
-        return cache[n];
-    else do
+pub rec fn fibonacci = begin |mut& cache|
+    | n when (n < 0)          => 0;
+    | n when (cache[n] != -1) => cache[n];
+    | n => do
         cache[n] = fibonacci(n-1) + fibonacci(n-2);
         return cache[n];
     end

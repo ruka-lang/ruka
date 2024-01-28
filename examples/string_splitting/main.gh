@@ -8,15 +8,24 @@ fn strsplit -> [..]string = (
     str: string, 
     ch: char
 ) do
-    var indices = [..]int;
+    let mut indices = [..]int{};
     str.foreach_idx() <| (c: char, i: int) do
         if (c == ch) => indices.push(i);
     end
 
-    iter.split_at(str, indices)
+    let mut words = [..]string{};
+    let mut prev = 0;
+    for (idx in indices) do
+        words.push(str[prev..idx].to_string()); 
+        prev = idx + 1;
+    end
+
+    words.push(str[prev..str.len()].to_string()); 
+
+    return words;
 end
 
-fn main = () do
+fn main -> () = () do
     let words = "Hello, world!"
         |> strsplit(' ');
 
