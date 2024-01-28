@@ -23,7 +23,7 @@ impl<'a> Token<'a> {
 pub enum TokenType<'a> {
     Identifier(&'a str),
     Keyword(Keyword),
-    Mode(Keyword),
+    Mode(Mode),
     String(&'a str),
     Regex(&'a str),
     Integer(&'a str),
@@ -121,9 +121,6 @@ pub enum Keyword {
     Or,
     Not,
     Comptime,
-    Mut,
-    Mov,
-    Loc,
     // Reserved
     Any,
     Private,
@@ -134,5 +131,17 @@ pub enum Keyword {
 }
 
 impl Keyword {
+
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Mode {
+    Comptime,
+    Mut,
+    Mov,
+    Loc
+}
+
+impl Mode {
 
 }
