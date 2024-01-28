@@ -16,9 +16,11 @@ pub fn fibonacci = n {
     return cache[n];
 }
 
-test "fibonacci" = () do
+test "fibonacci" -> ! = () do
 		use std;
 
 		let result = fibonacci(5);
-		std.testing.assert(result == 5);
+		std.testing.assert!(result == 5).!;
+
+        return ();
 end
