@@ -4,21 +4,21 @@ pub fn fibonacci -> int = n do
 end
 
 rec fn _fibonacci -> int = (n: int, mut& arr: []int) do
-    match n do
+    return match n do
         | n when cache[n] != -1 => cache[n],
         | n when n < 0 => 0,
         | n => do
             cache[n] = fibonacci(n-1) + fibonacci(n-2);
-            return cache[n];
+            cache[n]
         end
-    end
+    end;
 end
 
 test `fibonacci` -> ! = () do
-		use std;
+    use std;
 
-		let result = fibonacci(5);
-		std.testing.assert!(result == 5).!;
+    let result = fibonacci(5);
+    std.testing.assert!(result == 5).!;
 
-        return ();
+    return ();
 end
