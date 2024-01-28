@@ -14,7 +14,7 @@ rec fn _fibonacci -> int = (n: int, mut& arr: []int) do
     end
 end
 
-test "fibonacci" -> ! = () do
+test `fibonacci` -> ! = () do
 		use std;
 
 		let result = fibonacci(5);
