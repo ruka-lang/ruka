@@ -2,12 +2,12 @@
  * Program to calculate fibonacci numbers
  */
 
-use std.(io.*, parse);
+use std.(io.*, string);
 use fib;
 
 fn main -> Result((), any) = () do
     let n = gets()
-        |> parse() ~into: int 
+        |> string.parse() ~into: int 
         |> (!)();
 
     let value = fib.fibonacci(n);

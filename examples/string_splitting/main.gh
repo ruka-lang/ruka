@@ -4,21 +4,21 @@
 
 use std.(string, iter, testing);
 
-fn strsplit -> [..]string = (
-    str: string, 
+fn strsplit -> [..]string.t = (
+    str: string.t, 
     ch: char
 ) do
-    let mut indices = [..]int{};
+    let mut indices = [..]{};
     str.foreach_idx() ~f: (c, i) where (c == ch) => indices.push(i);
 
-    let mut words = [..]string{};
+    let mut words = [..]{};
     let mut prev = 0;
     for (idx in indices) do
-        words.push(str[prev..idx].to_string()); 
+        words.push(str[prev..idx].into()); 
         prev = idx + 1;
     end
 
-    words.push(str[prev..str.len()].to_string()); 
+    words.push(str[prev..str.len()].into()); 
 
     return words;
 end
