@@ -15,3 +15,10 @@ pub fn fibonacci = n {
     cache[n] = fibonacci(n-1) + fibonacci(n-2);
     return cache[n];
 }
+
+test "fibonacci" = () do
+		use std;
+
+		let result = fibonacci(5);
+		std.testing.assert(result == 5);
+end
