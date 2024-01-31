@@ -58,9 +58,8 @@ impl<'a> Scanner<'a> {
             tokens.push(token.clone()); 
             token = self.next_token()?;
         } 
-
         self.tokens = tokens;
-
+        
         Ok(())
     }
 }
