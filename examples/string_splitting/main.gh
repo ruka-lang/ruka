@@ -32,7 +32,7 @@ fn strsplit -> [..]string.t = (
     return words;
 end
 
-fn main = () do
+fn main -> () = () do
     let words = "Hello, world!"
         |> strsplit(' ');
 

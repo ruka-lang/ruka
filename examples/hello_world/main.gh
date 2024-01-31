@@ -6,7 +6,7 @@ fn main = () {
     return ();
 }
 
-fn main = () do
+fn main -> () = () do
     std.io.println("Hello, world!");
 
     return ();
