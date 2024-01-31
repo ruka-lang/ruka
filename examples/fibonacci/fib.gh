@@ -3,7 +3,10 @@ pub fn fibonacci -> int = n do
     return _fibonacci(n, mut& cache); 
 end
 
-rec fn _fibonacci -> int = (n: int, mut& arr: []int) do
+rec fn _fibonacci -> int = (
+    n: int, 
+    mut& arr: []int
+) do
     return match n do
         | n when cache[n] != -1 => cache[n],
         | n when n < 0          => 0,
@@ -13,11 +16,11 @@ rec fn _fibonacci -> int = (n: int, mut& arr: []int) do
     end
 end
 
-test `fibonacci` -> !() = () do
+test `fibonacci` -> Result((), any) = () do
     use std;
 
     let result = fibonacci(5);
-    std.testing.assert!(result == 5).(!);
+    std.testing.assert!(result == 5).!;
 
-    return ();
+    return () |> Ok;
 end
