@@ -9,13 +9,19 @@ use std::sync::Arc;
 /// Contains a token's type and position, and file it belongs to
 #[derive(Clone, Debug, PartialEq)]
 pub struct Token<'a> {
-    pub token_type: TokenType<'a>,
+    pub ttype: TokenType<'a>,
     pub file: Arc<str>,
     pub pos: Position
 }
 
 impl<'a> Token<'a> {
-
+    pub fn new(ttype: TokenType<'a>, file: Arc<str>, pos: Position) -> Self {
+        Self {
+            ttype,
+            file,
+            pos
+        }
+    }
 }
 
 /// Represents the type of a token

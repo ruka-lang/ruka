@@ -4,6 +4,8 @@
 
 use crate::prelude::*;
 
+use anyhow::Result;
+
 pub mod token;
 pub mod error;
 
@@ -41,5 +43,24 @@ impl<'a> Scanner<'a> {
             compiler,
             read: 0
         }
+    }
+
+    fn next_token(&mut self) -> Result<Token> {
+
+        Ok(Token::new(TokenType::Illegal, "".into(), Position::new(0, 0)))
+    }
+
+    pub fn scan(&'a mut self) -> Result<()> {
+        let mut tokens = vec![];
+        let mut token = self.next_token()?;
+
+        while token.ttype != TokenType::Eof {
+            tokens.push(token.clone()); 
+            token = self.next_token()?;
+        } 
+
+        self.tokens = tokens;
+
+        Ok(())
     }
 }
