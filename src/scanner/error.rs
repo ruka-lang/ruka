@@ -7,6 +7,7 @@ use crate::prelude::*;
 use std::rc::Rc;
 
 /// Represents scanning errors
+#[derive(Debug)]
 pub struct ScannerError {
     pub file: Rc<str>,
     pub msg: Box<str>,
