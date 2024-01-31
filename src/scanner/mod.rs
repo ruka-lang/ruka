@@ -18,7 +18,7 @@ pub struct Scanner<'a> {
     pub read: usize
 }
 
-impl<'a> Scanner<'a> {
+impl<'a, 'b> Scanner<'a> {
     /// Creates a new Scanner process
     /// 
     /// # Arguments 
@@ -45,7 +45,7 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    fn next_token(&mut self) -> Result<Token> {
+    fn next_token(&mut self) -> Result<Token<'b>> {
 
         Ok(Token::new(TokenType::Illegal, "".into(), Position::new(0, 0)))
     }
