@@ -2,11 +2,9 @@
  * @author: dwclake
  */
 
-use std::ops::{FromResidual, Try};
-
 use crate::prelude::*;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 pub mod token;
 pub mod error;
@@ -66,53 +64,5 @@ impl<'a, 'b> Scanner<'a> {
         self.tokens = tokens;
         
         Ok(())
-    }
-}
-
-#[derive(Debug)]
-pub enum ScanResult<'a> {
-    Ok(Token<'a>),
-    Err(ScannerError)
-}
-
-impl<'a, 'b> ScanResult<'b> {
-    pub fn check_error(self, _compiler: &'a Compiler) -> Result<Token<'b>> {
-        match self {
-            ScanResult::Err(err) => {
-                // Create scanning error and store in compiler
-                Err(anyhow!(err.to_string()))
-            },
-            ScanResult::Ok(tok) => {
-               Ok(tok)
-            }
-        }
-    }
-
-}
-
-impl<'b> FromResidual for ScanResult<'b> {
-    fn from_residual(residual: <Self as Try>::Residual) -> Self {
-        ScanResult::Err(residual)
-    }
-}
-
-impl<'b> Try for ScanResult<'b> {
-    type Output = Token<'b>;
-
-    type Residual = ScannerError;
-
-    fn from_output(output: Self::Output) -> Self {
-        ScanResult::Ok(output)
-    }
-
-    fn branch(self) -> std::ops::ControlFlow<Self::Residual, Self::Output> {
-        match self {
-            ScanResult::Ok(token) => {
-                std::ops::ControlFlow::from_output(token)
-            },
-            ScanResult::Err(err) => {
-                std::ops::ControlFlow::from_residual(std::ops::ControlFlow::Break(err))
-            }
-        }
     }
 }
