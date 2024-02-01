@@ -1,9 +1,9 @@
 pub fn fibonacci -> int = n do
     let mut cache = [50]{0, 1, 1, -1, ..};
-    return _fibonacci(n, mut& cache); 
+    return fibonacci'(n, mut& cache); 
 end
 
-rec fn _fibonacci -> int = (
+rec fn fibonacci' -> int = (
     n: int, 
     mut& arr: []int
 ) do
@@ -11,7 +11,7 @@ rec fn _fibonacci -> int = (
         | n when cache[n] != -1 => cache[n],
         | n when n < 0          => 0,
         | n => do
-            cache[n] := fibonacci(n-1) + fibonacci(n-2)
+            cache[n] := fibonacci'(n-1) + fibonacci'(n-2)
         end
     end
 end
@@ -20,7 +20,7 @@ test `fibonacci` -> Result((), any) = () do
     use std;
 
     let result = fibonacci(5);
-    std.testing.assert!(result == 5).!;
+    std.testing.assert!(result == 5).(!);
 
-    return () |> Ok;
+    return Ok <| ();
 end
