@@ -1,0 +1,43 @@
+use std;
+
+fn List -> typeid = (
+    comptime@ type: typeid
+) do
+    return module {
+        let t = struct {
+            const Self = gh.this();
+
+            pub val: type,
+            pub next: *Self
+        };
+
+        fn new -> t = () do
+            return t.{
+                val = default(type);
+                next = null;
+            };
+        end
+
+        fn push = (mut& list: t, val: type) do
+            if list.next == null do
+                list.next = new(type);
+            else
+                let mut current = list.next;
+                while (current.next != null) do
+                    current = current.next;
+                end
+
+                current.next = new(val);
+            end
+        end
+    };
+end
+
+fn main = () do
+    let list: List(int).t = List(int).new();
+
+    let IntList = List(int);
+    let list: IntList.t = IntList.new();
+
+    list.push(12);
+end
