@@ -5,39 +5,39 @@ fn List -> typeid = (
 ) do
     return module {
         let t = struct {
-            const Self = gh.this();
+            const Self = This();
 
             pub val: type,
-            pub next: *Self
+            pub next: Option <| Box(Self)
         };
 
-        fn new -> t = () do
+        fn new -> t = (val: type) do
             return t.{
-                val = default(type);
-                next = null;
+                val,
+                next = None
             };
         end
 
         fn push = (mut& list: t, val: type) do
-            if list.next == null do
-                list.next = new(type);
-            else
+            if list == None do
+                list = Some <| Box(t).new(val);
+            else if list.next == None do
+                list.next = Some <| Box(t).new(val);
+            else do
                 let mut current = list.next;
-                while (current.next != null) do
+                while (current.next != None) do
                     current = current.next;
                 end
 
-                current.next = new(val);
+                current.next = Some <| Box(t).new(val);
             end
         end
     };
 end
 
 fn main = () do
-    let list: List(int).t = List(int).new();
+    let mut list = List(int).new(12);
+    list.push(14);
 
-    let IntList = List(int);
-    let list: IntList.t = IntList.new();
-
-    list.push(12);
+    std.io.println("List: [{}, {}]", .{list.val, list.next.val});
 end
