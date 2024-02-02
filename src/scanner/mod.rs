@@ -59,6 +59,10 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     fn peek(&self) -> char {
+        if self.read >= self.compiler.contents.len() {
+            return '\0'
+        }
+
         self.compiler.contents.as_bytes()[self.read + 1] as char
     }
 
