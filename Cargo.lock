@@ -123,6 +123,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ghoosec"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "const_format",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -187,17 +198,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sghc"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "const_format",
- "serde",
- "serde_json",
 ]
 
 [[package]]
