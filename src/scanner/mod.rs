@@ -45,6 +45,23 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
+    fn advance(&mut self) -> char {
+        let ch = self.read();
+        self.read += 1;
+        ch
+    }
+
+    fn read(&self) -> char {
+        if self.read >= self.compiler.contents.len() {
+            return '\0'
+        }
+        self.compiler.contents.as_bytes()[self.read] as char
+    }
+
+    fn peek(&self) -> char {
+        self.compiler.contents.as_bytes()[self.read + 1] as char
+    }
+
     ///
     fn next_token(&mut self) -> Result<Token<'b>> {
 
