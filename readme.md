@@ -1,5 +1,5 @@
 # `Ghoose` compiler
-[![Build](https://github.com/ghoose-lang/ghsc/workflows/Build/badge.svg)](https://github.com/ghoose-lang/ghsc/actions/workflows/build.yml) |
+[![Build](https://github.com/ghoose-lang/ghoose-c/workflows/Build/badge.svg)](https://github.com/ghoose-lang/ghoose-c/actions/workflows/build.yml) |
 [![License: APACHE](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
