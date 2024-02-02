@@ -1,5 +1,5 @@
 [package]
-name = "ghoosec"
+name = "ghsc"
 version = "0.1.0"
 description = "Compiler for the Ghoose programming language"
 edition = "2021"
