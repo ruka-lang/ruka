@@ -48,6 +48,14 @@ impl<'a, 'b> Scanner<'a> {
     fn advance(&mut self) -> char {
         let ch = self.read();
         self.read += 1;
+
+        self.current_pos.column += 1;
+        if ch == '\n' {
+            self.current_pos.line += 1;
+            self.current_pos.column = 0;
+        }
+        self.token_pos = self.current_pos.clone();
+
         ch
     }
 
@@ -68,8 +76,34 @@ impl<'a, 'b> Scanner<'a> {
 
     ///
     fn next_token(&mut self) -> Result<Token<'b>> {
-
-        Ok(Token::new(TokenType::Eof, "".into(), self.token_pos.clone()))
+        let ch = self.advance();
+        if ch != '\0' {
+            match ch {
+                ch if is_alphanumeric(ch) => {
+                    Ok(Token::new(
+                        TokenType::Illegal, 
+                        self.compiler.input.clone(), 
+                        self.token_pos.clone()
+                        )
+                    )
+                },
+                _ => {
+                    Ok(Token::new(
+                        TokenType::Illegal, 
+                        self.compiler.input.clone(), 
+                        self.token_pos.clone()
+                        )
+                    )
+                }
+            }
+        } else {
+            Ok(Token::new(
+                TokenType::Eof, 
+                self.compiler.input.clone(), 
+                self.token_pos.clone()
+                )
+            )
+        }
     }
 
     ///
@@ -86,4 +120,26 @@ impl<'a, 'b> Scanner<'a> {
         
         Ok(())
     }
+}
+
+fn is_alphabetical(ch: char) -> bool {
+    match ch {
+        'a'..='z' | 'A'..='Z' => true,
+        _ => false
+    }
+}
+
+fn is_integral(ch: char) -> bool {
+    match ch {
+        '0'..='9' | '_' => true,
+        _ => false
+    }
+}
+
+fn is_numeric(ch: char) -> bool {
+    return is_integral(ch) || ch == '.';
+}
+
+fn is_alphanumeric(ch: char) -> bool {
+    return is_alphabetical(ch) || is_integral(ch);
 }
