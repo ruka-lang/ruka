@@ -48,7 +48,7 @@ impl<'a, 'b> Scanner<'a> {
     ///
     fn next_token(&mut self) -> Result<Token<'b>> {
 
-        Ok(Token::new(TokenType::Illegal, "".into(), Position::new(0, 0)))
+        Ok(Token::new(TokenType::Eof, "".into(), self.token_pos.clone()))
     }
 
     ///
