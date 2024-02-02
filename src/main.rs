@@ -2,8 +2,8 @@
  * @author: dwclake
  */
 
-use ghoosec::prelude::*;
-use ghoosec::cli::*;
+use sghc::prelude::*;
+use sghc::cli::*;
 
 use clap::Parser;
 use anyhow::Result;
