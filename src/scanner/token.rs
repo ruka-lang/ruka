@@ -96,7 +96,7 @@ pub enum TokenType<'a> {
 }
 
 impl<'a> TokenType<'a> {
-    fn from_char(ch: char) -> TokenType<'a> {
+    pub fn try_from_char(ch: char) -> TokenType<'a> {
         match ch {
             '=' => TokenType::Assign,
 
@@ -141,7 +141,7 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    fn from_str(str: &str) -> Option<TokenType<'a>> {
+    pub fn try_from_str(str: &str) -> Option<TokenType<'a>> {
         match str {
             ":="  => Some(TokenType::AssignExp),
 
@@ -172,7 +172,7 @@ impl<'a> TokenType<'a> {
 
     }
 
-    fn try_keyword(str: &str) -> Option<TokenType<'a>> {
+    pub fn try_keyword(str: &str) -> Option<TokenType<'a>> {
         use Keyword::*;
         match str {
             "static"  => Some(TokenType::Keyword(Static)),
@@ -215,7 +215,7 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    fn try_mode(str: &str) -> Option<TokenType<'a>> {
+    pub fn try_mode(str: &str) -> Option<TokenType<'a>> {
         use Mode::*;
         match str {
             "comptime"  => Some(TokenType::Mode(Comptime)),
@@ -227,7 +227,7 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    fn to_str(ttype: &TokenType<'a>) -> &'a str {
+    pub fn to_str(ttype: &TokenType<'a>) -> &'a str {
         todo!()
     }
 }
@@ -274,7 +274,7 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    fn to_str(keyword: &Self) -> &'static str {
+    pub fn to_str(keyword: &Self) -> &'static str {
         todo!()
     }
 }
@@ -288,7 +288,7 @@ pub enum Mode {
 }
 
 impl Mode {
-    fn to_str(keyword: &Self) -> &'static str {
+    pub fn to_str(keyword: &Self) -> &'static str {
         todo!()
     }
 }
