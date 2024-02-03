@@ -11,21 +11,21 @@ fn List -> typeid = (
             pub next: Option <| Box(Self)
         };
 
-        fn new -> t = (val: type) do
+        pub fn new -> t = (val: type) do
             return t.{
                 val,
                 next = None
             };
         end
 
-        fn push = (mut& list: t, val: type) do
+        pub fn push = (mut list: &t, val: type) do
             if list == None do
                 list = Some <| Box(t).new(val);
             else if list.next == None do
                 list.next = Some <| Box(t).new(val);
             else do
                 let mut current = list.next;
-                while (current.next != None) do
+                while current.next != None do
                     current = current.next;
                 end
 

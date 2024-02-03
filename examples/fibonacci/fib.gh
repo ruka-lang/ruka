@@ -1,11 +1,11 @@
-pub fn fibonacci -> int = n do
+pub fn fibonacci -> int = (n) => do
     let mut cache = [50]{0, 1, 1, -1, ..};
     return fibonacci'(n, mut& cache); 
 end
 
 rec fn fibonacci' -> int = (
     n: int, 
-    mut& arr: []int
+    mut arr: &[]int
 ) do
     return match n do
         | n when cache[n] != -1 => cache[n],
