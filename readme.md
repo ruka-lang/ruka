@@ -15,7 +15,7 @@ When `Ghoose` reaches a usable state, the instructions for installing the build 
 [Read the docs](https://www.ghoose-lang.org)
 
 ## Repositories
-- [Compiler](https://www.github.com/ghoose-lang/ghoose-c)
+- [Compiler](https://www.github.com/ghoose-lang/ghoosec)
 - [Build System](https://www.github.com/ghoose-lang/ghoose-pm)
 - [Standard Library](https://www.github.com/ghoose-lang/ghoose-std)
 - [Language Server](https://www.github.com/ghoose-lang/ghoose-ls)
