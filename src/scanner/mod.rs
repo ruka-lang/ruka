@@ -79,7 +79,15 @@ impl<'a, 'b> Scanner<'a> {
         let ch = self.advance();
         if ch != '\0' {
             match ch {
-                ch if is_alphanumeric(ch) => {
+                ch if is_alphabetical(ch) => {
+                    Ok(Token::new(
+                        TokenType::Illegal, 
+                        self.compiler.input.clone(), 
+                        self.token_pos.clone()
+                        )
+                    )
+                },
+                ch if is_integral(ch) => {
                     Ok(Token::new(
                         TokenType::Illegal, 
                         self.compiler.input.clone(), 
