@@ -2,8 +2,8 @@
  * @author: dwclake
  */
 
-use ghoosec::prelude::*;
-use ghoosec::cli::*;
+use amuletc::prelude::*;
+use amuletc::cli::*;
 
 use clap::Parser;
 use anyhow::Result;

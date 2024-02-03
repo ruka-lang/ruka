@@ -3,6 +3,17 @@
 version = 3
 
 [[package]]
+name = "amuletc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "const_format",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,17 +131,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-xid",
-]
-
-[[package]]
-name = "ghoosec"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "const_format",
- "serde",
- "serde_json",
 ]
 
 [[package]]
