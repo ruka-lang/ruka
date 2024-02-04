@@ -27,7 +27,7 @@ impl Compiler {
     /// * `output` -
     ///
     /// * Returns 
-    /// * An anyhow::Result, containing the Compiler proces if successful
+    /// * An anyhow::Result, containing the Compiler process if successful
     ///
     /// # Examples
     ///
@@ -55,6 +55,31 @@ impl Compiler {
             contents,
             errors
         });
+    }
+
+    /// Creates a new Compiler process for compiling a string
+    ///
+    /// # Arguments
+    /// * `source`  -
+    /// * `contents` -
+    ///
+    /// * Returns 
+    /// * A Compiler process
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn new_using_str(source: Arc<str>, contents: Box<str>) -> Self {
+        let errors = vec![];
+
+        return Self{
+            input: source, 
+            output: None,
+            contents,
+            errors
+        };
     }
 
     /// Starts the compilation process

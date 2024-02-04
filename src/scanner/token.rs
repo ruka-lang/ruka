@@ -8,14 +8,15 @@ use std::sync::Arc;
 
 /// Contains a token's type and position, and file it belongs to
 #[derive(Clone, Debug, PartialEq)]
-pub struct Token<'a> {
-    pub ttype: TokenType<'a>,
+pub struct Token {
+    pub ttype: TokenType,
     pub file: Arc<str>,
     pub pos: Position
 }
 
-impl<'a> Token<'a> {
-    pub fn new(ttype: TokenType<'a>, file: Arc<str>, pos: Position) -> Self {
+impl Token {
+    ///
+    pub fn new(ttype: TokenType, file: Arc<str>, pos: Position) -> Self {
         Self {
             ttype,
             file,
@@ -26,14 +27,14 @@ impl<'a> Token<'a> {
 
 /// Represents the type of a token
 #[derive(Clone, Debug, PartialEq)]
-pub enum TokenType<'a> {
-    Identifier(&'a str),
+pub enum TokenType {
+    Identifier(Box<str>),
     Keyword(Keyword),
     Mode(Mode),
-    String(&'a str),
-    Regex(&'a str),
-    Integer(&'a str),
-    Float(&'a str),
+    String(Box<str>),
+    Regex(Box<str>),
+    Integer(Box<str>),
+    Float(Box<str>),
     // Assignment
     Assign,               // =
     AssignExp,            // :=
@@ -95,8 +96,9 @@ pub enum TokenType<'a> {
     Eof
 }
 
-impl<'a> TokenType<'a> {
-    pub fn try_from_char(ch: char) -> TokenType<'a> {
+impl TokenType {
+    ///
+    pub fn from_char(ch: char) -> TokenType {
         match ch {
             '=' => TokenType::Assign,
 
@@ -141,7 +143,8 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    pub fn try_from_str(str: &str) -> Option<TokenType<'a>> {
+    ///
+    pub fn try_from_str(str: &str) -> Option<TokenType> {
         match str {
             ":="  => Some(TokenType::AssignExp),
 
@@ -172,7 +175,8 @@ impl<'a> TokenType<'a> {
 
     }
 
-    pub fn try_keyword(str: &str) -> Option<TokenType<'a>> {
+    ///
+    pub fn try_keyword(str: &str) -> Option<TokenType> {
         use Keyword::*;
         match str {
             "static"  => Some(TokenType::Keyword(Static)),
@@ -215,7 +219,8 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    pub fn try_mode(str: &str) -> Option<TokenType<'a>> {
+    ///
+    pub fn try_mode(str: &str) -> Option<TokenType> {
         use Mode::*;
         match str {
             "comptime"  => Some(TokenType::Mode(Comptime)),
@@ -227,7 +232,8 @@ impl<'a> TokenType<'a> {
         }
     }
 
-    pub fn to_str(ttype: &TokenType<'a>) -> &'a str {
+    ///
+    pub fn to_str(ttype: &TokenType) -> &str {
         todo!()
     }
 }
@@ -274,11 +280,13 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    pub fn to_str(keyword: &Self) -> &'static str {
+    ///
+    pub fn to_str(keyword: &Self) -> &str {
         todo!()
     }
 }
 
+///
 #[derive(Clone, Debug, PartialEq)]
 pub enum Mode {
     Comptime,
@@ -288,7 +296,8 @@ pub enum Mode {
 }
 
 impl Mode {
-    pub fn to_str(keyword: &Self) -> &'static str {
+    ///
+    pub fn to_str(keyword: &Self) -> &str {
         todo!()
     }
 }
