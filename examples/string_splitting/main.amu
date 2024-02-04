@@ -1,6 +1,7 @@
-/*
- * Program to split a string
- */
+/!*
+  * Program to split a string
+  * @author: dwclake
+  */
 
 use std.(string, iter, testing);
 

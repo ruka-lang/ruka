@@ -11,6 +11,10 @@
 /**
   *  Documentation comment
   */
+
+/!*
+  * Module comment
+  */
 ```
 
 ## Bindings
