@@ -13,3 +13,7 @@ pub use crate::scanning::token::TokenType;
 
 pub use crate::utility::position::Position;
 pub use crate::utility::error::Error;
+pub use crate::utility::is_alphabetical;
+pub use crate::utility::is_integral;
+pub use crate::utility::is_numeric;
+pub use crate::utility::is_alphanumeric;

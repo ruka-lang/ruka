@@ -183,32 +183,6 @@ impl<'a, 'b> Scanner<'a> {
     }
 }
 
-//
-fn is_alphabetical(ch: char) -> bool {
-    match ch {
-        'a'..='z' | 'A'..='Z' => true,
-        _ => false
-    }
-}
-
-//
-fn is_integral(ch: char) -> bool {
-    match ch {
-        '0'..='9' | '_' => true,
-        _ => false
-    }
-}
-
-//
-fn is_numeric(ch: char) -> bool {
-    return is_integral(ch) || ch == '.';
-}
-
-//
-fn is_alphanumeric(ch: char) -> bool {
-    return is_alphabetical(ch) || is_integral(ch);
-}
-
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
