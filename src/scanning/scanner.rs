@@ -2,8 +2,9 @@
  * @author: dwclake
  */
 
-
 use crate::prelude::*;
+
+use std::mem::take;
 
 /// Scanning process, responsible for scanning a single file
 pub struct Scanner<'a> {
@@ -179,7 +180,7 @@ impl<'a, 'b> Scanner<'a> {
         
         self.tokens.push(token);
 
-        return std::mem::take(&mut self.tokens);
+        return take(&mut self.tokens);
     }
 }
 
