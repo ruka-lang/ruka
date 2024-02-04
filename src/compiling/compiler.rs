@@ -13,7 +13,8 @@ use anyhow::{anyhow, Result};
 pub struct Compiler {
     pub input: Arc<str>,
     pub output: Option<Arc<str>>,
-    pub contents: Box<str>,
+    pub contents: Option<Box<str>>,
+    pub ast: Option<Box<Ast>>,
     pub errors: Vec<Box<dyn Error>>
 }
 
@@ -50,7 +51,8 @@ impl Compiler {
         return Ok(Self{
             input, 
             output,
-            contents,
+            contents: Some(contents),
+            ast: None,
             errors
         });
     }
@@ -75,7 +77,34 @@ impl Compiler {
         return Self{
             input: source, 
             output: None,
-            contents,
+            contents: Some(contents),
+            ast: None,
+            errors
+        };
+    }
+    
+    /// Creates a new Compiler process for compiling an AST
+    ///
+    /// # Arguments
+    /// * `source`  -
+    /// * `contents` -
+    ///
+    /// * Returns 
+    /// * A Compiler process
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn _new_using_ast(source: Arc<str>, ast: Box<Ast>) -> Self {
+        let errors = vec![];
+
+        return Self{
+            input: source, 
+            output: None,
+            contents: None,
+            ast: Some(ast),
             errors
         };
     }

@@ -16,7 +16,7 @@ fn main() -> Result<()> {
             let mut compiler = Compiler::new(input.clone(), output.clone())?;
             compiler.compile()?;
 
-            println!("{}", compiler.contents);
+            println!("{}", compiler.contents.unwrap());
         },
         _ => {}
     }

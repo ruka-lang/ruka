@@ -5,5 +5,6 @@
 pub mod prelude;
 pub mod utility;
 pub mod compiling;
+pub mod parsing;
 pub mod scanning;
 pub mod commandline;

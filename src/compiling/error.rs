@@ -40,7 +40,12 @@ impl CompileError {
 
 impl Error for CompileError {
     fn to_string(&self) -> String {
-        todo!()
+        return format!("Compilation Error in {} at {}, {}: \n\t{}", 
+                       self.file, 
+                       self.pos.line, 
+                       self.pos.column, 
+                       self.msg
+                       );
     }
 
     fn message(&self) -> &Box<str> {
@@ -52,6 +57,6 @@ impl Error for CompileError {
     }
 
     fn kind(&self) -> String {
-        return "Compile Error".to_string();
+        return "Compilation Error".to_string();
     }
 }

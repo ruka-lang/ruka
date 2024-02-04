@@ -28,7 +28,7 @@ impl Token {
 /// Represents the type of a token
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
-    Identifier(Box<str>),
+    Tag(Box<str>),
     Keyword(Keyword),
     Mode(Mode),
     String(Box<str>),

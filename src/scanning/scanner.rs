@@ -2,8 +2,10 @@
  * @author: dwclake
  */
 
+
 use crate::prelude::*;
 
+use anyhow::{anyhow, Result};
 use std::mem::take;
 
 /// Scanning process, responsible for scanning a single file
@@ -47,7 +49,7 @@ impl<'a, 'b> Scanner<'a> {
         let count = count.clamp(0, 3);
 
         for _ in 0..count {
-            self.read = self.read.clamp(self.read + 1, self.compiler.contents.len());
+            self.read = self.read.clamp(self.read + 1, self.compiler.contents.as_ref().unwrap().len());
 
             self.current_pos.column += 1;
             if self.read() == '\n' {
@@ -59,32 +61,32 @@ impl<'a, 'b> Scanner<'a> {
 
     //
     fn read(&'b self) -> char {
-        if self.read >= self.compiler.contents.len() {
+        if self.read >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
-        self.compiler.contents.chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
     }
 
     //
     fn peek(&'b self) -> char {
-        if self.read >= self.compiler.contents.len() {
+        if self.read >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
 
-        self.compiler.contents.chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
     }
     
     //
     fn peek_plus(&self, count: usize) -> char {
-        if self.read + count >= self.compiler.contents.len() {
+        if self.read + count >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
 
-        self.compiler.contents.chars().nth(self.read + count).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read + count).unwrap()
     }
 
     //
-    fn read_tag(&'b mut self) -> Token {
+    fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
         let mut end = start;
         
@@ -95,10 +97,10 @@ impl<'a, 'b> Scanner<'a> {
             char = self.read();
         } 
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents.as_ref().unwrap()[start..end];
 
         Token::new(
-            TokenType::Identifier(str.into()), 
+            TokenType::Tag(str.into()), 
             self.compiler.input.clone(), 
             self.token_pos.clone()
         )
@@ -108,21 +110,45 @@ impl<'a, 'b> Scanner<'a> {
     fn read_number(&'b mut self) -> Token {
         let start = self.read;
         let mut end = start;
+        let mut is_float = false;
         
         let mut char = self.read();
         while is_numeric(char) {
             end += 1; 
+            
+            if self.read() == '.' {
+                self.read_integer(&mut end);
+                is_float = true;
+                break;
+            }
+
             self.advance(1);
             char = self.read();
         } 
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents.as_ref().unwrap()[start..end];
+        let ttype = match is_float {
+            false => TokenType::Integer(str.into()),
+            _     => TokenType::Float(str.into())
+        };
 
         Token::new(
-            TokenType::Integer(str.into()), 
+            ttype, 
             self.compiler.input.clone(), 
             self.token_pos.clone()
         )
+    }
+
+    //
+    fn read_integer(&'b mut self, end: &mut usize) {
+        self.advance(1);
+
+        let mut char = self.read();
+        while is_integral(char) {
+            *end += 1; 
+            self.advance(1);
+            char = self.read();
+        } 
     }
 
     //
@@ -145,7 +171,7 @@ impl<'a, 'b> Scanner<'a> {
         if ch != '\0' {
             match ch {
                 ch if is_alphabetical(ch) => {
-                    self.read_tag()
+                    self.read_tag_keyword_mode()
                 },
                 ch if is_integral(ch) => {
                     self.read_number()
@@ -169,36 +195,44 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     ///
-    pub fn scan(&'a mut self) -> Vec<Token> {
-        let mut token = self.next_token();
+    pub fn scan(&'a mut self) -> Result<Vec<Token>> {
+        match self.compiler.contents {
+            None => {
+                Err(anyhow!("Error, compiler has no scannable contents"))
+            },
+            _ => {
+                let mut token = self.next_token();
 
-        while token.ttype != TokenType::Eof {
-            self.tokens.push(token);
-            token = self.next_token();
+                while token.ttype != TokenType::Eof {
+                    self.tokens.push(token);
+                    token = self.next_token();
+                }
+                
+                self.tokens.push(token);
+
+                return Ok(take(&mut self.tokens));
+            }
         }
-        
-        self.tokens.push(token);
-
-        return take(&mut self.tokens);
     }
 }
 
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
+    use anyhow::Result;
 
     #[test]
-    fn test_next_token() {
-        let source = "let x = 12;";
+    fn test_next_token() -> Result<()> {
+        let source = "let x = 12_000 12_000.50;";
 
         let expected = vec![
             Token::new(
-                TokenType::Identifier("let".into()),
+                TokenType::Tag("let".into()),
                 "identifier scanning test".into(),
                 Position::new(1, 1)
             ),
             Token::new(
-                TokenType::Identifier("x".into()),
+                TokenType::Tag("x".into()),
                 "identifier scanning test".into(),
                 Position::new(1, 5)
             ),
@@ -208,28 +242,36 @@ mod scanner_tests {
                 Position::new(1, 7)
             ),
             Token::new(
-                TokenType::Integer("12".into()),
+                TokenType::Integer("12_000".into()),
                 "identifier scanning test".into(),
                 Position::new(1, 9)
             ),
             Token::new(
+                TokenType::Float("12_000.50".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 16)
+            ),
+            Token::new(
                 TokenType::Semicolon,
                 "identifier scanning test".into(),
-                Position::new(1, 11)
+                Position::new(1, 25)
             ),
             Token::new(
                 TokenType::Eof,
                 "identifier scanning test".into(),
-                Position::new(1, 12)
+                Position::new(1, 26)
             ),
         ];
 
         let mut compiler = Compiler::new_using_str("identifier scanning test".into(), source.into());
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
+        let actual = scanner.scan()?;
 
-        for (et, at) in expected.iter().zip(actual.iter()) {
+        assert_eq!(actual.len(), expected.len());
+        for (at, et) in actual.iter().zip(expected.iter()) {
             assert_eq!(et, at)
         }
+
+        Ok(())
     }
 }
