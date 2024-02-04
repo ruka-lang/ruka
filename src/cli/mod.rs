@@ -4,7 +4,7 @@ use std::sync::Arc;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name="ghoose-c", author="ghoose-lang", version=VERSION, about=ABOUT, arg_required_else_help=true)]
+#[command(name="amuletc", author="amulet-lang", version=VERSION, about=ABOUT, arg_required_else_help=true)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>
