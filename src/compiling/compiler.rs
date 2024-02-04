@@ -15,6 +15,7 @@ pub struct Compiler {
     pub output: Option<Arc<str>>,
     pub contents: Option<Box<str>>,
     pub ast: Option<Box<Ast>>,
+    pub context: Vec<()>,
     pub errors: Vec<Box<dyn Error>>
 }
 
@@ -53,6 +54,7 @@ impl Compiler {
             output,
             contents: Some(contents),
             ast: None,
+            context: vec![],
             errors
         });
     }
@@ -79,6 +81,7 @@ impl Compiler {
             output: None,
             contents: Some(contents),
             ast: None,
+            context: vec![],
             errors
         };
     }
@@ -97,7 +100,7 @@ impl Compiler {
     /// ```
     ///
     /// ```
-    pub fn _new_using_ast(source: Arc<str>, ast: Box<Ast>) -> Self {
+    pub fn new_using_ast(source: Arc<str>, ast: Box<Ast>) -> Self {
         let errors = vec![];
 
         return Self{
@@ -105,6 +108,7 @@ impl Compiler {
             output: None,
             contents: None,
             ast: Some(ast),
+            context: vec![],
             errors
         };
     }
