@@ -1,0 +1,17 @@
+use std;
+
+fn Result -> typeid = (
+    @success: typeid,
+    @failure: typeid
+) do 
+    return union {
+        Ok(success),
+        Err(failure)
+    };
+end
+
+fn main -> Result((), any) = () do
+    std.io.println("Hello, world!"); 
+
+    Ok(())
+end

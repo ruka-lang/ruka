@@ -1,0 +1,43 @@
+use std;
+
+fn List -> typeid = (
+    @type: typeid
+) do
+    return module {
+        let t = record {
+            const Self = This();
+
+            pub val: type,
+            pub next: Option <| Box(Self)
+        };
+
+        pub fn new -> t = (val: type) do
+            return t.{
+                val,
+                next = None
+            };
+        end
+
+        pub fn push = (mut list: &t, val: type) do
+            if list == None do
+                list = Some <| Box(t).new(val);
+            else if list.next == None do
+                list.next = Some <| Box(t).new(val);
+            else do
+                let mut current = list.next;
+                while current.next != None do
+                    current = current.next;
+                end
+
+                current.next = Some <| Box(t).new(val);
+            end
+        end
+    };
+end
+
+fn main = () do
+    let mut list = List(int).new(12);
+    list.push(14);
+
+    std.io.println("List: [{}, {}]", .{list.val, list.next.val});
+end

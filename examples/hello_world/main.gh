@@ -1,7 +1,0 @@
-const std = gh.import("std");
-
-public fn main() {
-    std.io.println("Hello, world!");
-
-    return ();
-}

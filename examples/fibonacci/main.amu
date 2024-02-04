@@ -1,0 +1,18 @@
+/*
+ * Program to calculate fibonacci numbers
+ */
+
+use std.(io.*, string);
+use fib;
+
+fn main -> Result((), any) = () do
+    let n = gets()
+        |> string.parse() ~into: int 
+        |> (!);
+
+    let value = fib.fibonacci(n);
+
+    println("Fibonacci number {} is {}", n, value);
+
+    return () |> Ok;
+end

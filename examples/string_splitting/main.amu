@@ -1,0 +1,43 @@
+/!*
+  * Program to split a string
+  * @author: dwclake
+  */
+
+use std.(string, iter, testing);
+
+/** Takes a string and splits the string into substrings at each occurence of
+  * the passed in character
+  * 
+  * # Examples
+  * ```
+  * ghoose> strsplit("Hello, world!", ' ')
+  * ["Hello,", "world!"]
+  * ```
+  */
+fn strsplit -> [..]string.t = (
+    str: string.t, 
+    ch: u8
+) {
+    let mut indices = [..]{};
+    str |> foreach_idx() ~f: (c, i) when c == ch => indices |> push(i);
+
+    let mut words = [..]{};
+    let mut prev = 0;
+    for idx in indices {
+        words |> push(str[prev..idx] |> into()); 
+        prev = idx + 1;
+    }
+
+    words.push(str[prev..str.len] |> into()); 
+
+    return words;
+}
+
+fn main = () {
+    let words = "Hello, world!"
+        |> strsplit(' ');
+
+    testing.assert(words |> len() == 2);
+
+    return ();
+}
