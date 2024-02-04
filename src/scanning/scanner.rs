@@ -43,7 +43,7 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
-    fn advance(&mut self, count: usize) {
+    fn advance(&'b mut self, count: usize) {
         let count = count.clamp(0, 3);
 
         for _ in 0..count {
@@ -52,14 +52,13 @@ impl<'a, 'b> Scanner<'a> {
             self.current_pos.column += 1;
             if self.read() == '\n' {
                 self.current_pos.line += 1;
-                self.current_pos.column = 0;
+                self.current_pos.column = 1;
             }
-            self.token_pos = self.current_pos.clone();
         }
     }
 
     //
-    fn read(&self) -> char {
+    fn read(&'b self) -> char {
         if self.read >= self.compiler.contents.len() {
             return '\0'
         }
@@ -67,7 +66,7 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
-    fn peek(&self) -> char {
+    fn peek(&'b self) -> char {
         if self.read >= self.compiler.contents.len() {
             return '\0'
         }
@@ -189,13 +188,48 @@ mod scanner_tests {
     use crate::prelude::*;
 
     #[test]
-    fn test_identifier() {
+    fn test_next_token() {
         let source = "let x = 12;";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Identifier("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Identifier("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Integer("12".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Semicolon,
+                "identifier scanning test".into(),
+                Position::new(1, 11)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 12)
+            ),
+        ];
+
         let mut compiler = Compiler::new_using_str("identifier scanning test".into(), source.into());
         let mut scanner = Scanner::new(&mut compiler);
-        let tokens = scanner.scan();
+        let actual = scanner.scan();
 
-        assert!(tokens[0].ttype == TokenType::Identifier("let".into()));
-        assert!(tokens[1].ttype == TokenType::Identifier("x".into()));
+        for (et, at) in expected.iter().zip(actual.iter()) {
+            assert_eq!(et, at)
+        }
     }
 }
