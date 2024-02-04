@@ -5,9 +5,6 @@
 
 use crate::prelude::*;
 
-pub mod token;
-pub mod error;
-
 /// Scanning process, responsible for scanning a single file
 pub struct Scanner<'a> {
     pub current_pos: Position,
@@ -76,6 +73,15 @@ impl<'a, 'b> Scanner<'a> {
 
         self.compiler.contents.chars().nth(self.read).unwrap()
     }
+    
+    //
+    fn peek_plus(&self, count: usize) -> char {
+        if self.read + count >= self.compiler.contents.len() {
+            return '\0'
+        }
+
+        self.compiler.contents.chars().nth(self.read + count).unwrap()
+    }
 
     //
     fn read_tag(&'b mut self) -> Token {
@@ -104,7 +110,7 @@ impl<'a, 'b> Scanner<'a> {
         let mut end = start;
         
         let mut char = self.read();
-        while is_integral(char) {
+        while is_numeric(char) {
             end += 1; 
             self.advance(1);
             char = self.read();

@@ -3,13 +3,11 @@
  */
 
 use crate::prelude::*;
-use crate::constants::*;
+use crate::commandline::constants::*;
 
 use std::sync::Arc;
 use std::{fs, env};
 use anyhow::{anyhow, Result};
-
-pub mod error;
 
 /// Represents a compilation process, responsible for compiling a single file
 pub struct Compiler {

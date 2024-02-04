@@ -3,8 +3,7 @@
  */
 
 pub mod prelude;
-pub mod constants;
 pub mod utility;
-pub mod compiler;
-pub mod scanner;
-pub mod cli;
+pub mod compiling;
+pub mod scanning;
+pub mod commandline;

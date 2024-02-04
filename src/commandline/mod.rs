@@ -1,7 +1,9 @@
-use crate::constants::*;
+use constants::*;
 
 use std::sync::Arc;
 use clap::{Parser, Subcommand};
+
+pub mod constants;
 
 #[derive(Parser)]
 #[command(name="amuletc", author="amulet-lang", version=VERSION, about=ABOUT, arg_required_else_help=true)]

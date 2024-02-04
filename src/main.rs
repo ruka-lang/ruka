@@ -3,7 +3,7 @@
  */
 
 use amuletc::prelude::*;
-use amuletc::cli::*;
+use amuletc::commandline::*;
 
 use clap::Parser;
 use anyhow::Result;
