@@ -3,7 +3,7 @@
  */
 
 use crate::prelude::*;
-use crate::commandline::constants::*;
+use crate::cli::constants::*;
 
 use std::sync::Arc;
 use std::{fs, env};
