@@ -13,7 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-
+    
+    - name: Install latest nighlty
+      uses: actions-rs/toolchain@v1
+      with: 
+        toolchain: nightly
+        override: true
     - name: Build
       run: cargo build --verbose
     - name: Test
