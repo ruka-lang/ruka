@@ -69,9 +69,7 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents
-            .as_ref().unwrap()
-            .chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
     }
 
     //
@@ -80,9 +78,7 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents
-            .as_ref().unwrap()
-            .chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
     }
     
     //
@@ -91,9 +87,7 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents
-            .as_ref().unwrap()
-            .chars().nth(self.read + count).unwrap()
+        self.compiler.contents.as_ref().unwrap().chars().nth(self.read + count).unwrap()
     }
 
     //
@@ -214,7 +208,7 @@ impl<'a, 'b> Scanner<'a> {
             _ => {
                 let mut token = self.next_token();
 
-                while token.ttype != TokenType::Eof {
+                while token.token_type != TokenType::Eof {
                     self.tokens.push(token);
                     token = self.next_token();
                 }
