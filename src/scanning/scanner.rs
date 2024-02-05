@@ -172,7 +172,7 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn skip_single_comment(&'b mut self) {
         match self.read() {
-            '\n' | '\0' => {},
+            '\n' | '\0' => (),
             _ => {
                 self.advance(1);
                 self.skip_single_comment()
@@ -182,7 +182,6 @@ impl<'a, 'b> Scanner<'a> {
 
     //
     fn skip_multi_comment(&'b mut self) {
-        /*
         let mut ch = self.read();
         let mut next = self.peek();
 
@@ -196,25 +195,6 @@ impl<'a, 'b> Scanner<'a> {
                 next = self.peek();
             }
         } 
-        */
-        match self.read() {
-            '*' => {
-                match self.peek() {
-                    '/' => {
-                        self.advance(2);
-                    },
-                    _ => {
-                        self.advance(1);
-                        self.skip_multi_comment();
-                    }
-                }
-            },
-            '\0' => {},
-            _ => {
-                self.advance(1);
-                self.skip_multi_comment()
-            }
-        }
     }
 
     //
