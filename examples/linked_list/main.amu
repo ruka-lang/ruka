@@ -36,7 +36,7 @@ fn List -> typeid = (
 end
 
 fn main = () do
-    let mut list = @List(int).new(12);
+    let mut list = List(int).new(12);
 
     list.push(14);
     /* Can pass named parameters by name after the parameter list

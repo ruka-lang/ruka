@@ -16,7 +16,7 @@ rec fn fibonacci' -> int = (
     end
 end
 
-test `fibonacci` -> @Result((), any) = () do
+test `fibonacci` -> Result((), any) = () do
     use std;
 
     let result = fibonacci(5);
