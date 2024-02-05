@@ -170,12 +170,34 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
-    fn skip_comment(&'b mut self) {
+    fn skip_single_comment(&'b mut self) {
         match self.read() {
             '\n' | '\0' => {},
             _ => {
                 self.advance(1);
-                self.skip_comment()
+                self.skip_single_comment()
+            }
+        }
+    }
+
+    //
+    fn skip_multi_comment(&'b mut self) {
+        match self.read() {
+            '*' => {
+                match self.peek() {
+                    '/' => {
+                        self.advance(2);
+                    },
+                    _ => {
+                        self.advance(1);
+                        self.skip_multi_comment();
+                    }
+                }
+            },
+            '\0' => {},
+            _ => {
+                self.advance(1);
+                self.skip_multi_comment()
             }
         }
     }
@@ -197,7 +219,11 @@ impl<'a, 'b> Scanner<'a> {
                 '/' => {
                     match self.peek() {
                         '/' => {
-                            self.skip_comment();
+                            self.skip_single_comment();
+                            self.next_token()
+                        },
+                        '*' => {
+                            self.skip_multi_comment();
                             self.next_token()
                         },
                         _ => {
@@ -320,7 +346,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_skip_comment() -> Result<()> {
+    fn test_skip_single_comment() -> Result<()> {
         let source = "let x = //12_000 12_000.50;";
 
         let expected = vec![
@@ -357,6 +383,47 @@ mod scanner_tests {
         check_results(actual, expected);
 
         Ok(())
+    }
 
+    #[test]
+    fn test_skip_multi_comment() -> Result<()> {
+        let source = "let x = /*
+            12_000 12_000.50;
+        */";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Tag("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 28)
+            ),
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+
+        check_results(actual, expected);
+
+        Ok(())
     }
 }
