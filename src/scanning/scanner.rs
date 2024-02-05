@@ -182,6 +182,21 @@ impl<'a, 'b> Scanner<'a> {
 
     //
     fn skip_multi_comment(&'b mut self) {
+        /*
+        let mut ch = self.read();
+        let mut next = self.peek();
+
+        while ch != '\0' {
+            if ch == '*' && next == '/' {
+                self.advance(2);
+                break;
+            } else {
+                self.advance(1);
+                ch = self.read();
+                next = self.peek();
+            }
+        } 
+        */
         match self.read() {
             '*' => {
                 match self.peek() {
@@ -387,9 +402,9 @@ mod scanner_tests {
 
     #[test]
     fn test_skip_multi_comment() -> Result<()> {
-        let source = "let x = /*
-            12_000 12_000.50;
-        */";
+        let source = "let x = /*\
+            12_000 12_000.50;   \
+            */";
 
         let expected = vec![
             Token::new(
@@ -410,7 +425,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "identifier scanning test".into(),
-                Position::new(1, 28)
+                Position::new(1, 33)
             ),
         ];
 
