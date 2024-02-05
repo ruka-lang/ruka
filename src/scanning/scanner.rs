@@ -69,7 +69,9 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read).unwrap()
     }
 
     //
@@ -78,7 +80,9 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents.as_ref().unwrap().chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read).unwrap()
     }
     
     //
@@ -87,7 +91,9 @@ impl<'a, 'b> Scanner<'a> {
             return '\0'
         }
 
-        self.compiler.contents.as_ref().unwrap().chars().nth(self.read + count).unwrap()
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read + count).unwrap()
     }
 
     //
@@ -268,15 +274,18 @@ mod scanner_tests {
             ),
         ];
 
-        let mut compiler = Compiler::new_using_str("identifier scanning test".into(), 
-                                                   source.into()
-                                                   );
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
 
         let mut scanner = Scanner::new(&mut compiler);
         let actual = scanner.scan()?;
 
         assert_eq!(actual.len(), expected.len());
-        for (at, et) in actual.iter().zip(expected.iter()) {
+
+        let iter = actual.iter().zip(expected.iter());
+        for (at, et) in iter {
             assert_eq!(et, at)
         }
 
