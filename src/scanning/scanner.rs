@@ -49,11 +49,7 @@ impl<'a, 'b> Scanner<'a> {
         let count = count.clamp(0, 3);
 
         for _ in 0..count {
-            self.read = self.read.clamp(self.read + 1, 
-                                        self.compiler.contents
-                                            .as_ref().unwrap()
-                                            .len()
-                                        );
+            self.read = self.read + 1;
 
             self.current_pos.column += 1;
             if self.read() == '\n' {
@@ -174,6 +170,17 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
+    fn skip_comment(&'b mut self) {
+        match self.read() {
+            '\n' | '\0' => {},
+            _ => {
+                self.advance(1);
+                self.skip_comment()
+            }
+        }
+    }
+
+    //
     fn next_token(&'b mut self) -> Token {
         self.skip_whitespace();
         self.token_pos = self.current_pos.clone();
@@ -187,6 +194,22 @@ impl<'a, 'b> Scanner<'a> {
                 ch if is_integral(ch) => {
                     self.read_number()
                 },
+                '/' => {
+                    match self.peek() {
+                        '/' => {
+                            self.skip_comment();
+                            self.next_token()
+                        },
+                        _ => {
+                            self.advance(1);
+                            Token::new(
+                                TokenType::Slash,
+                                self.compiler.input.clone(),
+                                self.token_pos.clone()
+                            )
+                        }
+                    }
+                }
                 ch => {
                     self.advance(1);
                     Token::new(
@@ -214,7 +237,7 @@ impl<'a, 'b> Scanner<'a> {
             _ => {
                 let mut token = self.next_token();
 
-                while token.token_type != TokenType::Eof {
+                while token.kind != TokenType::Eof {
                     self.tokens.push(token);
                     token = self.next_token();
                 }
@@ -231,6 +254,15 @@ impl<'a, 'b> Scanner<'a> {
 mod scanner_tests {
     use crate::prelude::*;
     use anyhow::Result;
+
+    fn check_results(actual: Vec<Token>, expected: Vec<Token>) {
+        assert_eq!(actual.len(), expected.len());
+
+        let iter = actual.iter().zip(expected.iter());
+        for (at, et) in iter {
+            assert_eq!(et, at)
+        }
+    }
 
     #[test]
     fn test_next_token() -> Result<()> {
@@ -281,14 +313,50 @@ mod scanner_tests {
 
         let mut scanner = Scanner::new(&mut compiler);
         let actual = scanner.scan()?;
-
-        assert_eq!(actual.len(), expected.len());
-
-        let iter = actual.iter().zip(expected.iter());
-        for (at, et) in iter {
-            assert_eq!(et, at)
-        }
+        
+        check_results(actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_skip_comment() -> Result<()> {
+        let source = "let x = //12_000 12_000.50;";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Tag("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 28)
+            ),
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+
+        check_results(actual, expected);
+
+        Ok(())
+
     }
 }
