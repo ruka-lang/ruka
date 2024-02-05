@@ -14,8 +14,8 @@ use std.(string, iter, testing);
   * ["Hello,", "world!"]
   * ```
   */
-fn strsplit -> [..]string.t = (
-    str: string.t, 
+fn strsplit -> [..]string = (
+    str: string, 
     ch: u8
 ) {
     let mut indices = [..]{};

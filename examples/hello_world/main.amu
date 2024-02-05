@@ -1,6 +1,6 @@
 use std;
 
-pub fn main = () {
+fn main = () {
     std.io.println("Hello, world!");
 
     return ();
