@@ -18,7 +18,7 @@ fn List -> typeid = (
             };
         end
 
-        pub fn push = (mut ~list: &t, ~val: type) do
+        pub fn push = (mut list: &t, val: type) do
             if list == None do
                 list = Some <| Box(t).new(val);
             else if list.next == None do
@@ -39,9 +39,11 @@ fn main = () do
     let mut list = @List(int).new(12);
 
     list.push(14);
+    /* Can pass named parameters by name after the parameter list
     push()
         ~list: mut& list,
-        ~val: 14;
+        ~val: 16;
+    */
 
     std.io.println("List: [{}, {}]", .{list.val, list.next.val});
 end
