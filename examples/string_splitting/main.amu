@@ -19,7 +19,8 @@ fn strsplit -> [..]string = (
     ch: u8
 ) {
     let mut indices = [..]{};
-    str |> foreach_idx() ~f: (c, i) when c == ch => indices |> push(i);
+    str |> foreach_idx() 
+        ~f: (c, i) when c == ch => indices |> push(i);
 
     let mut words = [..]{};
     let mut prev = 0;
