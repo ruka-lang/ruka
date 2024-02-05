@@ -35,7 +35,7 @@ fn List -> typeid = (
     };
 end
 
-pub fn main = () do
+fn main = () do
     let mut list = List(int).new(12);
     list.push(14);
 
