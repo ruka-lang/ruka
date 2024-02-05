@@ -10,7 +10,7 @@ fn Result -> typeid = (
     };
 end
 
-fn main -> Result((), any) = () do
+pub fn main -> Result((), any) = () do
     std.io.println("Hello, world!"); 
 
     Ok(())

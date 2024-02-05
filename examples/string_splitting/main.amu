@@ -33,7 +33,7 @@ fn strsplit -> [..]string.t = (
     return words;
 }
 
-fn main = () {
+pub fn main = () {
     let words = "Hello, world!"
         |> strsplit(' ');
 
