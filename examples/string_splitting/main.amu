@@ -37,7 +37,7 @@ fn main = () {
     let words = "Hello, world!"
         |> strsplit(' ');
 
-    testing.assert(words |> len() == 2);
+    testing.assert(words.len == 2);
 
     return ();
 }
