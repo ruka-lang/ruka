@@ -1,11 +1,11 @@
 use std;
 
 fn List -> typeid = (
-    comptime type: typeid
+    comptime@ type: typeid
 ) do
     return module {
         const t = record {
-            const Self = This();
+            const Self = warp.this();
 
             val: type,
             next: Option <| Box(Self)

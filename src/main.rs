@@ -2,8 +2,8 @@
  * @author: dwclake
  */
 
-use amuletc::prelude::*;
-use amuletc::cli::*;
+use warpc::prelude::*;
+use warpc::cli::*;
 
 use clap::Parser;
 use anyhow::Result;
