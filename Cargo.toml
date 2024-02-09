@@ -1,7 +1,7 @@
 [package]
-name = "amuletc"
+name = "warpc"
 version = "0.1.0"
-description = "Compiler for the Amulet programming language"
+description = "Compiler for the Warp programming language"
 edition = "2021"
 
 [lib]
