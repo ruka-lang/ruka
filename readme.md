@@ -15,6 +15,6 @@ When `Warp` reaches a usable state, the instructions for installing the build to
 
 ## Repositories
 - [Compiler](https://www.github.com/warp-lang/warpc)
-- [Build System](https://www.github.com/warp-lang/warp-pm)
+- [Build System](https://www.github.com/warp-lang/warp-drive)
 - [Standard Library](https://www.github.com/warp-lang/warp-std)
 - [Language Server](https://www.github.com/warp-lang/warp-ls)
