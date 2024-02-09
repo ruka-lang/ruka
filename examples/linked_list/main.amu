@@ -4,11 +4,11 @@ fn List -> typeid = (
     comptime type: typeid
 ) do
     return module {
-        let t = record {
+        const t = record {
             const Self = This();
 
-            pub val: type,
-            pub next: Option <| Box(Self)
+            val: type,
+            next: Option <| Box(Self)
         };
 
         pub fn new -> t = (val: type) do

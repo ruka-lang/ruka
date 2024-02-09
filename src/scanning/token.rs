@@ -191,6 +191,7 @@ impl TokenType {
             "union"  => Some(TokenType::Keyword(Union)),
             "use"  => Some(TokenType::Keyword(Use)),
             "trait"  => Some(TokenType::Keyword(Trait)),  
+            "impl"  => Some(TokenType::Keyword(Impl)),  
             "module"  => Some(TokenType::Keyword(Module)), 
             "defer"  => Some(TokenType::Keyword(Defer)), 
             "when"  => Some(TokenType::Keyword(When)), 
@@ -207,8 +208,9 @@ impl TokenType {
             "or"  => Some(TokenType::Keyword(Or)), 
             "not"  => Some(TokenType::Keyword(Not)), 
             "comptime"  => Some(TokenType::Keyword(Comptime)), 
-
+            "test"  => Some(TokenType::Keyword(Test)), 
             "any"  => Some(TokenType::Keyword(Any)), 
+
             "private"  => Some(TokenType::Keyword(Private)), 
             "inline"  => Some(TokenType::Keyword(Inline)), 
             "from"  => Some(TokenType::Keyword(From)), 
@@ -254,6 +256,7 @@ pub enum Keyword {
     Union,
     Use,
     Trait,
+    Impl,
     Module,
     Defer,
     When,
@@ -270,8 +273,9 @@ pub enum Keyword {
     Or,
     Not,
     Comptime,
-    // Reserved
+    Test,
     Any,
+    // Reserved
     Private,
     Inline,
     From,
