@@ -1,14 +1,14 @@
 use std;
 
 fn List -> typeid = (
-    @type: typeid
+    comptime@ type: typeid
 ) do
     return module {
-        let t = record {
-            const Self = This();
+        const t = record {
+            const Self = warp.this();
 
-            pub val: type,
-            pub next: Option <| Box(Self)
+            val: type,
+            next: Option <| Box(Self)
         };
 
         pub fn new -> t = (val: type) do
@@ -37,7 +37,13 @@ end
 
 fn main = () do
     let mut list = List(int).new(12);
+
     list.push(14);
+    /* Can pass named parameters by name after the parameter list
+    push()
+        ~list: mut& list,
+        ~val: 16;
+    */
 
     std.io.println("List: [{}, {}]", .{list.val, list.next.val});
 end

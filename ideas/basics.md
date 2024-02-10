@@ -18,7 +18,7 @@
 ```
 
 ## Bindings
-Bindings in `Amulet` follow the form of:  
+Bindings in `Warp` follow the form of:  
 <pre>
   kind tag [: type] [= expression];
 </pre>
@@ -43,7 +43,7 @@ let mut year = 2023;
 year = 2024;
 ```
 
-`Amulet` supports multiple assignment
+`Warp` supports multiple assignment
 ```rust
 let x = 12;
 let y = 31;
@@ -85,10 +85,10 @@ let name: string;
 ```
 
 ## Memory Management
-In `Amulet` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
+In `Warp` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
 - Manual management:
   - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
-  - Allocators use the built-in memory functions under the hood like amu.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
+  - Allocators use the built-in memory functions under the hood like warp.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
 ```rust
 let name: int = 12; // Stack allocated
 
@@ -97,7 +97,7 @@ let allocator = std.mem.testingAllocator.{};
 let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
 defer allocator.delete(names); // Manual memory must be freed
 ```
-In `Amulet`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
+In `Warp`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
 ```rust
 const Free = trait {
     free: fn (mut&)() -> void
@@ -122,7 +122,7 @@ const Vector = (@type: typeid, allocator: std.mem.Allocator) => moduleid {
 ```
 
 ## Basic Primitive Types
-Here is a list of `Amulet`'s primitive types:
+Here is a list of `Warp`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -151,7 +151,7 @@ Here is a list of `Amulet`'s primitive types:
   - also ().
 - `null`
 - `typeid` 
-  - i32, int, char, MyRecord. Types are values in `Amulet`
+  - i32, int, char, MyRecord. Types are values in `Warp`
 - `moduleid`
 - `error`
 - `range` 
@@ -165,7 +165,7 @@ Here is a list of `Amulet`'s primitive types:
 - `rawptr`
 
 ## Primitive Data Collections
-`Amulet` has a few primitive data collections for you to use:
+`Warp` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -183,11 +183,11 @@ std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
-Tuples can be indexed, or destructured using pattern matching. The amu.len() function can be used to assess the length of a tuple
+Tuples can be indexed, or destructured using pattern matching. The warp.len() function can be used to assess the length of a tuple
 ```rust
 let pos = {10, 15};
 
-std.testing.expect(amu.len(pos) == 2);
+std.testing.expect(warp.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; // The lhs braces are not required
@@ -244,7 +244,7 @@ Blocks can also have capture groups
 ```
 
 ## Function Basics
-All functions in `Amulet` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Warp` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -332,12 +332,12 @@ const add = () => int {
 
 add(); // Context passed implicitly
 
-let newContext = amu.Context.{}; // Create a new context
+let newContext = warp.Context.{}; // Create a new context
 newContext.x = 10.0;
 newContext.y = 8.1;
 
 // Unsure on syntax for passing context explicitly
-amu.context(newContext)
+warp.context(newContext)
 add(); // Error, mismatched types
 add(context: newContext); // Error, mismatched types
 ```
@@ -391,7 +391,7 @@ match (nums[..]) {
 
 ```
 
-`Amulet` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Warp` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -438,7 +438,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Amulet` has two looping constructs, range-based for loops, and while loops.
+`Warp` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) { |i, i2|
 
@@ -473,7 +473,7 @@ const add = (x, y: int) => int {
 };
 
 // Function types can be specified separately
-amu.type(fn (int, int, int) -> int)
+warp.type(fn (int, int, int) -> int)
 const add_three = (x, y, z) do return x + y + z;
 ```
 
@@ -564,7 +564,7 @@ if (.ok =~ x) { |z|
 ```
 
 ## Modules
-In `Amulet`, modules are collections of bindings. Bindings can be let or const.
+In `Warp`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -588,7 +588,7 @@ const MoreConstants = module {
 
 ## Methods and Receivers
 
-There are no methods in Amulet, instead Amulet uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Warp, instead Warp uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -607,22 +607,22 @@ player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
 
 ## File imports
 When files are imported, they are stored as modules.
-Builtin functions are under the implicitly imported amu module
+Builtin functions are under the implicitly imported warp module
 ```rust
-const std = amu.import("std");
+const std = warp.import("std");
 ```
 
 ## Signals
 Reactivity
 ```rust
 // name: &string, update_name: signal
-let {name, update_name} = amu.signal(string);
+let {name, update_name} = warp.signal(string);
 ```
 
 ## Threads
 Green threads
 ```rust
-let tid = amu.spawn(() => {
+let tid = warp.spawn(() => {
     // Some code
 });
 defer tid.join();
@@ -630,10 +630,10 @@ defer tid.join();
 
 ## Channels
 ```rust
-let chan = amu.channel(string);
+let chan = warp.channel(string);
 
 for (0..10) { |i|
-    amu.spawn(() { |*chan|
+    warp.spawn(() { |*chan|
         chan.*.send(i);
     });
 }
@@ -675,7 +675,7 @@ std.testing.expect(result.quo == 2);
 // Must be the final argument
 // ...tag can be used as shorthand for $any tuples
 const variadic = (...args) => {
-    let size = amu.len(args);
+    let size = warp.len(args);
 
     for (0..size) { |i|
         std.fmt.printf("{} ", args[i]);
@@ -683,7 +683,7 @@ const variadic = (...args) => {
 };
 
 const members = (@tup: any) => {
-    inline for (amu.typeOf(tup).members) { |member|
+    inline for (warp.typeOf(tup).members) { |member|
 
     }
 };
@@ -749,7 +749,7 @@ use compiler.{
 ```
 
 ## Traits
-`Amulet` doesn't have inheritance, instead `Amulet` uses interfaces called `traits`.
+`Warp` doesn't have inheritance, instead `Warp` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -783,7 +783,7 @@ system(&player);
 ```
 
 ## Metaprogramming
-In `Amulet`, metaprogramming is done using comptime expressions, which is just `Amulet` code executed at compile time
+In `Warp`, metaprogramming is done using comptime expressions, which is just `Warp` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -817,13 +817,13 @@ const screen_size = @.{
 };
 ```
 ## First Class Modules
-In `Amulet`, modules are first class, so they can be passed into and out of functions
+In `Warp`, modules are first class, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (comptime@type: typeid) => moduleid {
     return module {
         const Node = record {
-            next: amu.this(),
+            next: warp.this(),
             data: type
         };   
     
@@ -860,7 +860,7 @@ const idk = proto_idk
 ```
 
 ## Operators
-`Amulet` has many operators and symbols, some have different meaning depending on context:
+`Warp` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -929,7 +929,7 @@ const List = (comptime@type: typeid) => moduleid {
         let max_size = 100;
 
         const node = record {
-            next: amu.this()?,
+            next: warp.this()?,
             data: type
         };
 
@@ -970,7 +970,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Amulet` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Warp` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust

@@ -5,6 +5,9 @@
 
 use crate::prelude::*;
 
+use anyhow::{anyhow, Result};
+use std::mem::take;
+
 /// Scanning process, responsible for scanning a single file
 pub struct Scanner<'a> {
     pub current_pos: Position,
@@ -42,49 +45,55 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
-    fn advance(&mut self, count: usize) {
+    fn advance(&'b mut self, count: usize) {
         let count = count.clamp(0, 3);
 
         for _ in 0..count {
-            self.read = self.read.clamp(self.read + 1, self.compiler.contents.len());
+            self.read = self.read + 1;
 
             self.current_pos.column += 1;
             if self.read() == '\n' {
                 self.current_pos.line += 1;
-                self.current_pos.column = 0;
+                self.current_pos.column = 1;
             }
-            self.token_pos = self.current_pos.clone();
         }
     }
 
     //
-    fn read(&self) -> char {
-        if self.read >= self.compiler.contents.len() {
+    fn read(&'b self) -> char {
+        if self.read >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
-        self.compiler.contents.chars().nth(self.read).unwrap()
+
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read).unwrap()
     }
 
     //
-    fn peek(&self) -> char {
-        if self.read >= self.compiler.contents.len() {
+    fn peek(&'b self) -> char {
+        if self.read >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
 
-        self.compiler.contents.chars().nth(self.read).unwrap()
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read).unwrap()
     }
     
     //
     fn peek_plus(&self, count: usize) -> char {
-        if self.read + count >= self.compiler.contents.len() {
+        if self.read + count >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
 
-        self.compiler.contents.chars().nth(self.read + count).unwrap()
+        self.compiler.contents.as_ref().unwrap()
+            .chars()
+            .nth(self.read + count).unwrap()
     }
 
     //
-    fn read_tag(&'b mut self) -> Token {
+    fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
         let mut end = start;
         
@@ -95,10 +104,10 @@ impl<'a, 'b> Scanner<'a> {
             char = self.read();
         } 
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents.as_ref().unwrap()[start..end];
 
         Token::new(
-            TokenType::Identifier(str.into()), 
+            TokenType::Tag(str.into()), 
             self.compiler.input.clone(), 
             self.token_pos.clone()
         )
@@ -108,21 +117,45 @@ impl<'a, 'b> Scanner<'a> {
     fn read_number(&'b mut self) -> Token {
         let start = self.read;
         let mut end = start;
+        let mut is_float = false;
         
         let mut char = self.read();
         while is_numeric(char) {
             end += 1; 
+            
+            if self.read() == '.' {
+                self.read_integer(&mut end);
+                is_float = true;
+                break;
+            }
+
             self.advance(1);
             char = self.read();
         } 
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents.as_ref().unwrap()[start..end];
+        let ttype = match is_float {
+            false => TokenType::Integer(str.into()),
+            _     => TokenType::Float(str.into())
+        };
 
         Token::new(
-            TokenType::Integer(str.into()), 
+            ttype, 
             self.compiler.input.clone(), 
             self.token_pos.clone()
         )
+    }
+
+    //
+    fn read_integer(&'b mut self, end: &mut usize) {
+        self.advance(1);
+
+        let mut char = self.read();
+        while is_integral(char) {
+            *end += 1; 
+            self.advance(1);
+            char = self.read();
+        } 
     }
 
     //
@@ -137,6 +170,34 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
+    fn skip_single_comment(&'b mut self) {
+        match self.read() {
+            '\n' | '\0' => (),
+            _ => {
+                self.advance(1);
+                self.skip_single_comment()
+            }
+        }
+    }
+
+    //
+    fn skip_multi_comment(&'b mut self) {
+        let mut ch = self.read();
+        let mut next = self.peek();
+
+        while ch != '\0' {
+            if ch == '*' && next == '/' {
+                self.advance(2);
+                break;
+            } else {
+                self.advance(1);
+                ch = self.read();
+                next = self.peek();
+            }
+        } 
+    }
+
+    //
     fn next_token(&'b mut self) -> Token {
         self.skip_whitespace();
         self.token_pos = self.current_pos.clone();
@@ -145,11 +206,31 @@ impl<'a, 'b> Scanner<'a> {
         if ch != '\0' {
             match ch {
                 ch if is_alphabetical(ch) => {
-                    self.read_tag()
+                    self.read_tag_keyword_mode()
                 },
                 ch if is_integral(ch) => {
                     self.read_number()
                 },
+                '/' => {
+                    match self.peek() {
+                        '/' => {
+                            self.skip_single_comment();
+                            self.next_token()
+                        },
+                        '*' => {
+                            self.skip_multi_comment();
+                            self.next_token()
+                        },
+                        _ => {
+                            self.advance(1);
+                            Token::new(
+                                TokenType::Slash,
+                                self.compiler.input.clone(),
+                                self.token_pos.clone()
+                            )
+                        }
+                    }
+                }
                 ch => {
                     self.advance(1);
                     Token::new(
@@ -169,58 +250,175 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     ///
-    pub fn scan(&'a mut self) -> Vec<Token> {
-        let mut token = self.next_token();
+    pub fn scan(&'a mut self) -> Result<Vec<Token>> {
+        match self.compiler.contents {
+            None => {
+                Err(anyhow!("Error, compiler has no scannable contents"))
+            },
+            _ => {
+                let mut token = self.next_token();
 
-        while token.ttype != TokenType::Eof {
-            self.tokens.push(token);
-            token = self.next_token();
+                while token.kind != TokenType::Eof {
+                    self.tokens.push(token);
+                    token = self.next_token();
+                }
+                
+                self.tokens.push(token);
+
+                return Ok(take(&mut self.tokens));
+            }
         }
-        
-        self.tokens.push(token);
-
-        return std::mem::take(&mut self.tokens);
     }
-}
-
-//
-fn is_alphabetical(ch: char) -> bool {
-    match ch {
-        'a'..='z' | 'A'..='Z' => true,
-        _ => false
-    }
-}
-
-//
-fn is_integral(ch: char) -> bool {
-    match ch {
-        '0'..='9' | '_' => true,
-        _ => false
-    }
-}
-
-//
-fn is_numeric(ch: char) -> bool {
-    return is_integral(ch) || ch == '.';
-}
-
-//
-fn is_alphanumeric(ch: char) -> bool {
-    return is_alphabetical(ch) || is_integral(ch);
 }
 
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
+    use anyhow::Result;
+
+    fn check_results(actual: Vec<Token>, expected: Vec<Token>) {
+        assert_eq!(actual.len(), expected.len());
+
+        let iter = actual.iter().zip(expected.iter());
+        for (at, et) in iter {
+            assert_eq!(et, at)
+        }
+    }
 
     #[test]
-    fn test_identifier() {
-        let source = "let x = 12;";
-        let mut compiler = Compiler::new_using_str("identifier scanning test".into(), source.into());
-        let mut scanner = Scanner::new(&mut compiler);
-        let tokens = scanner.scan();
+    fn test_next_token() -> Result<()> {
+        let source = "let x = 12_000 12_000.50;";
 
-        assert!(tokens[0].ttype == TokenType::Identifier("let".into()));
-        assert!(tokens[1].ttype == TokenType::Identifier("x".into()));
+        let expected = vec![
+            Token::new(
+                TokenType::Tag("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Integer("12_000".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Float("12_000.50".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 16)
+            ),
+            Token::new(
+                TokenType::Semicolon,
+                "identifier scanning test".into(),
+                Position::new(1, 25)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 26)
+            ),
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+        
+        check_results(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_skip_single_comment() -> Result<()> {
+        let source = "let x = //12_000 12_000.50;";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Tag("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 28)
+            ),
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+
+        check_results(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_skip_multi_comment() -> Result<()> {
+        let source = "let x = /*\
+            12_000 12_000.50;   \
+            */";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Tag("let".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "identifier scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "identifier scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "identifier scanning test".into(),
+                Position::new(1, 33)
+            ),
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "identifier scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+
+        check_results(actual, expected);
+
+        Ok(())
     }
 }

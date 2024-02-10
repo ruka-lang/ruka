@@ -20,7 +20,7 @@ test `fibonacci` -> Result((), any) = () do
     use std;
 
     let result = fibonacci(5);
-    std.testing.assert!(result == 5).(!);
+    std.testing.assert!(result == 5).!;
 
     return Ok <| ();
 end

@@ -14,12 +14,13 @@ use std.(string, iter, testing);
   * ["Hello,", "world!"]
   * ```
   */
-fn strsplit -> [..]string.t = (
-    str: string.t, 
+fn strsplit -> [..]string = (
+    str: string, 
     ch: u8
 ) {
     let mut indices = [..]{};
-    str |> foreach_idx() ~f: (c, i) when c == ch => indices |> push(i);
+    str |> foreach_idx() 
+        ~f: (c, i) when c == ch => indices |> push(i);
 
     let mut words = [..]{};
     let mut prev = 0;
@@ -37,7 +38,7 @@ fn main = () {
     let words = "Hello, world!"
         |> strsplit(' ');
 
-    testing.assert(words |> len() == 2);
+    testing.assert(words.len == 2);
 
     return ();
 }

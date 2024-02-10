@@ -9,16 +9,16 @@ use std::sync::Arc;
 /// Contains a token's type and position, and file it belongs to
 #[derive(Clone, Debug, PartialEq)]
 pub struct Token {
-    pub ttype: TokenType,
+    pub kind: TokenType,
     pub file: Arc<str>,
     pub pos: Position
 }
 
 impl Token {
     ///
-    pub fn new(ttype: TokenType, file: Arc<str>, pos: Position) -> Self {
+    pub fn new(kind: TokenType, file: Arc<str>, pos: Position) -> Self {
         Self {
-            ttype,
+            kind,
             file,
             pos
         }
@@ -28,7 +28,7 @@ impl Token {
 /// Represents the type of a token
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenType {
-    Identifier(Box<str>),
+    Tag(Box<str>),
     Keyword(Keyword),
     Mode(Mode),
     String(Box<str>),
@@ -191,6 +191,7 @@ impl TokenType {
             "union"  => Some(TokenType::Keyword(Union)),
             "use"  => Some(TokenType::Keyword(Use)),
             "trait"  => Some(TokenType::Keyword(Trait)),  
+            "impl"  => Some(TokenType::Keyword(Impl)),  
             "module"  => Some(TokenType::Keyword(Module)), 
             "defer"  => Some(TokenType::Keyword(Defer)), 
             "when"  => Some(TokenType::Keyword(When)), 
@@ -207,8 +208,9 @@ impl TokenType {
             "or"  => Some(TokenType::Keyword(Or)), 
             "not"  => Some(TokenType::Keyword(Not)), 
             "comptime"  => Some(TokenType::Keyword(Comptime)), 
-
+            "test"  => Some(TokenType::Keyword(Test)), 
             "any"  => Some(TokenType::Keyword(Any)), 
+
             "private"  => Some(TokenType::Keyword(Private)), 
             "inline"  => Some(TokenType::Keyword(Inline)), 
             "from"  => Some(TokenType::Keyword(From)), 
@@ -233,7 +235,7 @@ impl TokenType {
     }
 
     ///
-    pub fn to_str(ttype: &TokenType) -> &str {
+    pub fn to_str(kind: &TokenType) -> &str {
         todo!()
     }
 }
@@ -254,6 +256,7 @@ pub enum Keyword {
     Union,
     Use,
     Trait,
+    Impl,
     Module,
     Defer,
     When,
@@ -270,8 +273,9 @@ pub enum Keyword {
     Or,
     Not,
     Comptime,
-    // Reserved
+    Test,
     Any,
+    // Reserved
     Private,
     Inline,
     From,
