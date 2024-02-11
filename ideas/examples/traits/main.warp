@@ -15,7 +15,7 @@ impl Num for Vector = ('a) do
             x: lhs.x + rhs.x,
             y: lhs.y + rhs.y
         }
-    do
+    end
 end
 
 fn add -> any Num = (x, y: any Num) do
