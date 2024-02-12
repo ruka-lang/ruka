@@ -1,17 +1,17 @@
 use std;
 
 fn List -> typeid = (
-    comptime@ type: typeid
+    comptime@ 'a: type
 ) do
     return module {
         const t = record {
             const Self = warp.this();
 
-            val: type,
+            val: 'a,
             next: Option <| Box(Self)
         };
 
-        pub fn new -> t = (val: type) do
+        pub fn new -> t = (val: 'a) do
             return t.{
                 val,
                 next = None
@@ -38,7 +38,7 @@ end
 fn main = () do
     let mut list = List(int).new(12);
 
-    list.push(14);
+    list.push(16);
     /* Can pass named parameters by name after the parameter list
     push()
         ~list: mut& list,

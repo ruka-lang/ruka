@@ -1,8 +1,8 @@
 use std;
 
 fn Result -> typeid = (
-    comptime@ success: typeid,
-    comptime@ failure: typeid
+    comptime@ success: type,
+    comptime@ failure: type
 ) do 
     return union {
         Ok(success),
