@@ -1,7 +1,7 @@
 use std;
 
-fn List -> typeid = (
-    comptime@ 'a: type
+fn List -> module = (
+    comptime 'a: type
 ) do
     return module {
         const t = record {
@@ -36,13 +36,19 @@ fn List -> typeid = (
 end
 
 fn main = () do
-    let mut list = List(int).new(12);
+    const IntList = List(int);
+    let mut list = IntList.new(12);
 
+    // Functions called like methods will search within the module the type belongs to
+    // if no candidate exists in the current scope, so no use statement is needed
     list.push(16);
-    /* Can pass named parameters by name after the parameter list
-    push()
-        ~list: mut& list,
-        ~val: 16;
+
+    /* Could also use a use statement, which expose symbols with the current scope
+        use List(int).*; 
+
+        let mut list = new(12);
+        push(mut& list, 16);
+        list.push(16);
     */
 
     std.io.println("List: [{}, {}]", .{list.val, list.next.val});
