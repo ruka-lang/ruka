@@ -10,8 +10,8 @@ derive Num = ('a) do
         
         let mut result = 'a.{};
 
-        for members('a).enum() do |i|
-            result[i] = lhs[i] + rhs[i];
+        for reflection.members('a) do |member|
+            result[member] = lhs[member] + rhs[member];
         end
     end
 end
