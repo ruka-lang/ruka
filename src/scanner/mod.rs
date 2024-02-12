@@ -2,11 +2,12 @@
  * @author: dwclake
  */
 
-
 use crate::prelude::*;
 
 use anyhow::{anyhow, Result};
 use std::mem::take;
+
+pub mod token;
 
 /// Scanning process, responsible for scanning a single file
 pub struct Scanner<'a> {

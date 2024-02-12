@@ -9,6 +9,8 @@ use std::sync::Arc;
 use std::{fs, env};
 use anyhow::{anyhow, Result};
 
+pub mod error;
+
 /// Represents a compilation process, responsible for compiling a single file
 pub struct Compiler {
     pub input: Arc<str>,
@@ -127,6 +129,25 @@ impl Compiler {
     ///
     /// ```
     pub fn compile(&mut self) -> Result<()> {
+        let _scanner = Scanner::new(self);
+
+        return Ok(());
+    }
+    
+    /// Starts the interpretation process
+    ///
+    /// # Arguments
+    /// * `self` - 
+    ///
+    /// # Returns 
+    /// * An anyhow::Result containing unit if successful
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn interpret(&mut self) -> Result<()> {
         let _scanner = Scanner::new(self);
 
         return Ok(());
