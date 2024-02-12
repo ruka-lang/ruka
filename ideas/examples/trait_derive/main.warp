@@ -4,19 +4,23 @@ const Num = trait ('a) {
     (+): fn (lhs, rhs: 'a) -> 'a
 };
 
+derive Num = ('a) do 
+    fn (+) -> 'a = (lhs, rhs: 'a) do
+        use warp.reflection;
+        
+        let mut result = 'a.{};
+
+        for members('a).enum() do |i|
+            result[i] = lhs[i] + rhs[i];
+        end
+    end
+end
+
+#[derive(Num)]
 const Vector = record {
     x: int,
     y: int
 };
-
-impl Num for Vector do
-    fn (+) -> Vector = (lhs, rhs: Vector) do
-        Vector.{
-            x: lhs.x + rhs.x,
-            y: lhs.y + rhs.y
-        }
-    end
-end
 
 fn add -> any Num = (x, y: any Num) do
     x + y
