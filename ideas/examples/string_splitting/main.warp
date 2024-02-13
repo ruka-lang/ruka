@@ -3,7 +3,7 @@
   * @author: dwclake
   */
 
-use std.(string, iter, testing);
+use std.(string.*, iter.*, testing);
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character

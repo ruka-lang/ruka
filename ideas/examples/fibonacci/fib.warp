@@ -2,7 +2,7 @@ pub fn fibonacci -> int = (n) {
     const BUFFER_SIZE = 50;
     let mut cache = [BUFFER_SIZE]{0, 1, 1, -1};
 
-    return fibonacci'(n, mut& cache); 
+    return fibonacci'(n, mut &cache); 
 }
 
 fn fibonacci' -> int = (n: int, arr: mut []int) {
