@@ -5,7 +5,7 @@
 use std.(io.*, string);
 use fib;
 
-fn main -> Result((), any) = () do
+fn main -> Result((), any) = () {
     let n = gets()
         |> string.parse() ~into: int 
         |> (!);
@@ -15,4 +15,4 @@ fn main -> Result((), any) = () do
     println("Fibonacci number {} is {}", n, value);
 
     return () |> Ok;
-end
+}

@@ -1,8 +1,6 @@
 use std;
 
-fn List -> module = (
-    comptime 'a: type
-) do
+fn List -> module = (comptime 'a: type) do
     return module {
         const t = record {
             const Self = warp.this();
@@ -18,7 +16,7 @@ fn List -> module = (
             };
         end
 
-        pub fn push = (mut list: &t, val: type) do
+        pub fn push = (list: mut &t, val: 'a) do
             if list == None do
                 list = Some <| Box(t).new(val);
             else if list.next == None do

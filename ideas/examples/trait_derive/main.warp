@@ -4,17 +4,17 @@ const Num = trait ('a) {
     (+): fn (lhs, rhs: 'a) -> 'a
 };
 
-derive Num = ('a) do 
-    fn (+) -> 'a = (lhs, rhs: 'a) do
+derive Num = ('a) {
+    fn (+) -> 'a = (lhs, rhs: 'a) {
         use warp.reflection;
         
         let mut result = 'a.{};
 
-        for reflection.members('a) do |member|
-            result[member] = lhs[member] + rhs[member];
-        end
-    end
-end
+        for reflection.members('a) { |member|
+            result.[member] = lhs.[member] + rhs.[member];
+        }
+    }
+}
 
 #[derive(Num)]
 const Vector = record {
@@ -22,11 +22,11 @@ const Vector = record {
     y: int
 };
 
-fn add -> any Num = (x, y: any Num) do
+fn add -> any Num = (x, y: any Num) {
     x + y
-end
+}
 
-fn main = () do
+fn main = () {
     let a = Vector.{x: 10, y: 5};
     let b = Vector.{x: 5, y: 10};
     let c = add(a, b);
@@ -38,4 +38,4 @@ fn main = () do
     let f = add(d, e);
 
     std.testing.assert(f == 15);
-end
+}
