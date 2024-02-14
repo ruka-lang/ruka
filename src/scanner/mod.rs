@@ -160,6 +160,26 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
+    fn try_compound_operator(
+        &'b mut self, 
+        mut matches: Vec<(usize, &str, TokenType)>
+    ) -> Option<TokenType> {
+        matches.sort_by(|(c1, _, _), (c2, _, _)| {
+            c1 < c2
+        });
+
+        for (count, operator, kind) in matches.iter() {
+            let contents = self.compiler.contents.as_ref().unwrap();
+            if contents[self.read..self.read+count] == operator {
+                return Some(kind);
+            }
+        }
+
+        None
+    }
+
+
+    //
     fn skip_whitespace(&'b mut self) {
         match self.read() {
             ' ' | '\t' => {
@@ -190,11 +210,11 @@ impl<'a, 'b> Scanner<'a> {
             if ch == '*' && next == '/' {
                 self.advance(2);
                 break;
-            } else {
-                self.advance(1);
-                ch = self.read();
-                next = self.peek();
-            }
+            } 
+
+            self.advance(1);
+            ch = self.read();
+            next = self.peek();
         } 
     }
 
