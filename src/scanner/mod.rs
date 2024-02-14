@@ -162,18 +162,8 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn try_compound_operator(
         &'b mut self, 
-        mut matches: Vec<(usize, &str, TokenType)>
+        matches: Vec<(usize, &str, TokenType)>
     ) -> Option<TokenType> {
-        matches.sort_by(|(c1, _, _), (c2, _, _)| {
-            if c1 < c2 {
-                Ordering::Greater
-            } else if c1 == c2 {
-                Ordering::Equal
-            } else {
-                Ordering::Less
-            }
-        });
-
         for (count, operator, kind) in matches.iter() {
             let contents = self.compiler.contents.as_ref().unwrap();
             let start = self.read;
@@ -384,8 +374,8 @@ impl<'a, 'b> Scanner<'a> {
                 },
                 '.' => {
                     let kind = self.try_compound_operator(vec![
-                        (2, "..", TokenType::RangeExc),
-                        (3, "..=", TokenType::RangeInc)
+                        (3, "..=", TokenType::RangeInc),
+                        (2, "..", TokenType::RangeExc)
                     ]);
 
                     let kind = match kind {
