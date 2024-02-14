@@ -273,6 +273,25 @@ impl<'a, 'b> Scanner<'a> {
                         self.token_pos.clone()
                     )
                 },
+                ':' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, ":=", TokenType::AssignExp)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Colon
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
                 '>' => {
                     let kind = self.try_compound_operator(vec![
                         (2, ">=", TokenType::GreaterEq),
@@ -562,7 +581,7 @@ mod scanner_tests {
 
     #[test]
     fn test_compound_op() -> Result<()> {
-        let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..=";
+        let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..= :=";
 
         let expected = vec![
             Token::new(
@@ -651,9 +670,14 @@ mod scanner_tests {
                 Position::new(1, 49)
             ),
             Token::new(
+                TokenType::AssignExp,
+                "compound operator scanning test".into(),
+                Position::new(1, 53)
+            ),
+            Token::new(
                 TokenType::Eof,
                 "compound operator scanning test".into(),
-                Position::new(1, 52)
+                Position::new(1, 55)
             )
         ];
 
