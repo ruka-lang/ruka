@@ -62,7 +62,7 @@ pub enum TokenType {
     Bang,                 // !
     Question,             // ?
     RangeExc,             // ..
-    RangeInc,             // ...
+    RangeInc,             // ..=
     ForwardApp,           // |>
     ReverseApp,           // <|
     // Arithmetic

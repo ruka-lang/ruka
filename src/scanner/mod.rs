@@ -5,7 +5,7 @@
 use crate::prelude::*;
 
 use anyhow::{anyhow, Result};
-use std::mem::take;
+use std::{cmp::Ordering, mem::take};
 
 pub mod token;
 
@@ -36,7 +36,7 @@ impl<'a, 'b> Scanner<'a> {
         let current_pos = Position::new(1, 1);
         let tokens = vec![];
 
-        return Self {
+        Self {
             current_pos: current_pos.clone(),
             token_pos: current_pos,
             tokens,
@@ -165,13 +165,23 @@ impl<'a, 'b> Scanner<'a> {
         mut matches: Vec<(usize, &str, TokenType)>
     ) -> Option<TokenType> {
         matches.sort_by(|(c1, _, _), (c2, _, _)| {
-            c1 < c2
+            if c1 < c2 {
+                Ordering::Greater
+            } else if c1 == c2 {
+                Ordering::Equal
+            } else {
+                Ordering::Less
+            }
         });
 
         for (count, operator, kind) in matches.iter() {
             let contents = self.compiler.contents.as_ref().unwrap();
-            if contents[self.read..self.read+count] == operator {
-                return Some(kind);
+            let start = self.read;
+            let end = (self.read + count).clamp(0, contents.len());
+            
+            if &contents[start..end] == *operator {
+                self.advance(*count);
+                return Some(kind.clone());
             }
         }
 
@@ -251,7 +261,206 @@ impl<'a, 'b> Scanner<'a> {
                             )
                         }
                     }
-                }
+                },
+                // Operators which may be multiple characters long
+                '=' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "=>", TokenType::WideArrow),
+                        (2, "==", TokenType::Equal)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Assign
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '>' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, ">=", TokenType::GreaterEq),
+                        (2, ">>", TokenType::RightShift)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Greater
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '<' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "<=", TokenType::LesserEq),
+                        (2, "<<", TokenType::LeftShift),
+                        (2, "<|", TokenType::ForwardApp)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Lesser
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '-' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "->", TokenType::Arrow),
+                        (2, "--", TokenType::Decrement)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Minus
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '+' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "++", TokenType::Increment)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Plus
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '*' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "**", TokenType::Power)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Asterisk
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '.' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "..", TokenType::RangeExc),
+                        (3, "..=", TokenType::RangeInc)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Dot
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '~' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "~=", TokenType::PatternMatch)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Tilde
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '!' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "!=", TokenType::NotEqual),
+                        (2, "!~", TokenType::PatternNotMatch)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Bang
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                '|' => {
+                    let kind = self.try_compound_operator(vec![
+                        (2, "|>", TokenType::ReverseApp)
+                    ]);
+
+                    let kind = match kind {
+                        Some(k) => k,
+                        None => {
+                            self.advance(1);
+                            TokenType::Pipe
+                        }
+                    };
+
+                    Token::new(
+                        kind,
+                        self.compiler.input.clone(),
+                        self.token_pos.clone()
+                    )
+                },
+                // Single character tokens
                 ch => {
                     self.advance(1);
                     Token::new(
@@ -286,7 +495,7 @@ impl<'a, 'b> Scanner<'a> {
                 
                 self.tokens.push(token);
 
-                return Ok(take(&mut self.tokens));
+                Ok(take(&mut self.tokens))
             }
         }
     }
@@ -313,43 +522,153 @@ mod scanner_tests {
         let expected = vec![
             Token::new(
                 TokenType::Tag("let".into()),
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 1)
             ),
             Token::new(
                 TokenType::Tag("x".into()),
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 5)
             ),
             Token::new(
                 TokenType::Assign,
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 7)
             ),
             Token::new(
                 TokenType::Integer("12_000".into()),
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 9)
             ),
             Token::new(
                 TokenType::Float("12_000.50".into()),
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 16)
             ),
             Token::new(
                 TokenType::Semicolon,
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 25)
             ),
             Token::new(
                 TokenType::Eof,
-                "identifier scanning test".into(),
+                "next token scanning test".into(),
                 Position::new(1, 26)
-            ),
+            )
         ];
 
         let mut compiler = Compiler::new_using_str(
-            "identifier scanning test".into(), 
+            "next token scanning test".into(), 
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan()?;
+        
+        check_results(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_compound_op() -> Result<()> {
+        let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..=";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Equal,
+                "compound operator scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::NotEqual,
+                "compound operator scanning test".into(),
+                Position::new(1, 4)
+            ),
+            Token::new(
+                TokenType::GreaterEq,
+                "compound operator scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::LesserEq,
+                "compound operator scanning test".into(),
+                Position::new(1, 10)
+            ),
+            Token::new(
+                TokenType::PatternMatch,
+                "compound operator scanning test".into(),
+                Position::new(1, 13)
+            ),
+            Token::new(
+                TokenType::PatternNotMatch,
+                "compound operator scanning test".into(),
+                Position::new(1, 16)
+            ),
+            Token::new(
+                TokenType::ReverseApp,
+                "compound operator scanning test".into(),
+                Position::new(1, 19)
+            ),
+            Token::new(
+                TokenType::ForwardApp,
+                "compound operator scanning test".into(),
+                Position::new(1, 22)
+            ),
+            Token::new(
+                TokenType::LeftShift,
+                "compound operator scanning test".into(),
+                Position::new(1, 25)
+            ),
+            Token::new(
+                TokenType::RightShift,
+                "compound operator scanning test".into(),
+                Position::new(1, 28)
+            ),
+            Token::new(
+                TokenType::Increment,
+                "compound operator scanning test".into(),
+                Position::new(1, 31)
+            ),
+            Token::new(
+                TokenType::Decrement,
+                "compound operator scanning test".into(),
+                Position::new(1, 34)
+            ),
+            Token::new(
+                TokenType::Power,
+                "compound operator scanning test".into(),
+                Position::new(1, 37)
+            ),
+            Token::new(
+                TokenType::Arrow,
+                "compound operator scanning test".into(),
+                Position::new(1, 40)
+            ),
+            Token::new(
+                TokenType::WideArrow,
+                "compound operator scanning test".into(),
+                Position::new(1, 43)
+            ),
+            Token::new(
+                TokenType::RangeExc,
+                "compound operator scanning test".into(),
+                Position::new(1, 46)
+            ),
+            Token::new(
+                TokenType::RangeInc,
+                "compound operator scanning test".into(),
+                Position::new(1, 49)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "compound operator scanning test".into(),
+                Position::new(1, 52)
+            )
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "compound operator scanning test".into(), 
             source.into()
         );
 
@@ -368,28 +687,28 @@ mod scanner_tests {
         let expected = vec![
             Token::new(
                 TokenType::Tag("let".into()),
-                "identifier scanning test".into(),
+                "single comment skip scanning test".into(),
                 Position::new(1, 1)
             ),
             Token::new(
                 TokenType::Tag("x".into()),
-                "identifier scanning test".into(),
+                "single comment skip scanning test".into(),
                 Position::new(1, 5)
             ),
             Token::new(
                 TokenType::Assign,
-                "identifier scanning test".into(),
+                "single comment skip scanning test".into(),
                 Position::new(1, 7)
             ),
             Token::new(
                 TokenType::Eof,
-                "identifier scanning test".into(),
+                "single comment skip scanning test".into(),
                 Position::new(1, 28)
-            ),
+            )
         ];
 
         let mut compiler = Compiler::new_using_str(
-            "identifier scanning test".into(), 
+            "single comment skip scanning test".into(), 
             source.into()
         );
 
@@ -410,28 +729,28 @@ mod scanner_tests {
         let expected = vec![
             Token::new(
                 TokenType::Tag("let".into()),
-                "identifier scanning test".into(),
+                "multi comment skip scanning test".into(),
                 Position::new(1, 1)
             ),
             Token::new(
                 TokenType::Tag("x".into()),
-                "identifier scanning test".into(),
+                "multi comment skip scanning test".into(),
                 Position::new(1, 5)
             ),
             Token::new(
                 TokenType::Assign,
-                "identifier scanning test".into(),
+                "multi comment skip scanning test".into(),
                 Position::new(1, 7)
             ),
             Token::new(
                 TokenType::Eof,
-                "identifier scanning test".into(),
+                "multi comment skip scanning test".into(),
                 Position::new(1, 33)
-            ),
+            )
         ];
 
         let mut compiler = Compiler::new_using_str(
-            "identifier scanning test".into(), 
+            "multi comment skip scanning test".into(), 
             source.into()
         );
 
