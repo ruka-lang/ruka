@@ -237,7 +237,7 @@ impl TokenType {
     }
 
     ///
-    pub fn to_str(kind: &TokenType) -> &str {
+    pub fn to_str(_kind: &TokenType) -> &str {
         todo!()
     }
 }
@@ -289,7 +289,7 @@ pub enum Keyword {
 
 impl Keyword {
     ///
-    pub fn to_str(keyword: &Self) -> &str {
+    pub fn to_str(_keyword: &Self) -> &str {
         todo!()
     }
 }
@@ -305,7 +305,7 @@ pub enum Mode {
 
 impl Mode {
     ///
-    pub fn to_str(keyword: &Self) -> &str {
+    pub fn to_str(_keyword: &Self) -> &str {
         todo!()
     }
 }

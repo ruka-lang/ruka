@@ -7,14 +7,14 @@ use crate::prelude::*;
 use std::sync::Arc;
 
 /// Represents compiling errors
-pub struct CompileError {
+pub struct ScanError {
     pub file: Arc<str>,
     pub msg: Box<str>,
     pub pos: Position
 }
 
-impl CompileError {
-    /// Creates a new Boxed CompileError
+impl ScanError {
+    /// Creates a new Boxed ScanError
     ///
     /// # Arguments
     /// * `file` - 
@@ -22,7 +22,7 @@ impl CompileError {
     /// * `pos`  - 
     ///
     /// # Returns
-    /// * A new Boxed CompileError 
+    /// * A new Boxed ScanError 
     ///
     /// # Examples
     ///
@@ -38,9 +38,9 @@ impl CompileError {
     }
 }
 
-impl Error for CompileError {
+impl Error for ScanError {
     fn to_string(&self) -> String {
-        format!("Compilation Error in {} at {}, {}: \n\t{}", 
+        format!("Scanning Error in {} at {}, {}: \n\t{}", 
             self.file, 
             self.pos.line, 
             self.pos.column, 
@@ -57,6 +57,6 @@ impl Error for CompileError {
     }
 
     fn kind(&self) -> String {
-        "Compilation Error".to_string()
+        "Scanning Error".to_string()
     }
 }

@@ -3,11 +3,9 @@
  */
 
 use crate::prelude::*;
-use crate::cli::constants::*;
 
 use std::sync::Arc;
-use std::{fs, env};
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 /// Represents a interpretation process, responsible for compiling a single file
 pub struct Interpreter<'a> {
@@ -33,11 +31,11 @@ impl<'a> Interpreter<'a> {
     ///
     /// ```
     pub fn new(source: Arc<str>, ast: Box<Ast>, compiler: &'a mut Compiler) -> Self {
-        return Self{
+        Self{
             input: source, 
             ast: Some(ast),
             compiler
-        };
+        }
     }
 
     /// Starts the interpretation process
@@ -55,6 +53,6 @@ impl<'a> Interpreter<'a> {
     /// ```
     pub fn interpret(&mut self) -> Result<()> {
 
-        return Ok(());
+        Ok(())
     }
 }

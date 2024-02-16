@@ -5,8 +5,11 @@
 use crate::prelude::*;
 
 use anyhow::{anyhow, Result};
-use std::{cmp::Ordering, mem::take};
+use std::mem::take;
 
+use self::error::ScanError;
+
+pub mod error;
 pub mod token;
 
 /// Scanning process, responsible for scanning a single file
@@ -83,7 +86,7 @@ impl<'a, 'b> Scanner<'a> {
     }
     
     //
-    fn peek_plus(&self, count: usize) -> char {
+    fn _peek_plus(&self, count: usize) -> char {
         if self.read + count >= self.compiler.contents.as_ref().unwrap().len() {
             return '\0'
         }
@@ -173,7 +176,11 @@ impl<'a, 'b> Scanner<'a> {
         self.advance(1);
 
         if self.read() != '"' {
-            // create scanner error
+            self.compiler.errors.push(ScanError::new(
+                self.compiler.input.clone(),
+                "Unterminated string literal".into(),
+                self.current_pos.clone()
+            ));
         }
 
         let contents = self.compiler.contents.as_ref().unwrap();

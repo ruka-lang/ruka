@@ -51,14 +51,14 @@ impl Compiler {
 
         let errors = vec![];
 
-        return Ok(Self{
+        Ok(Self{
             input, 
             output,
             contents: Some(contents),
             ast: None,
             context: vec![],
             errors
-        });
+        })
     }
 
     /// Creates a new Compiler process for compiling a string
@@ -78,14 +78,14 @@ impl Compiler {
     pub fn new_using_str(source: Arc<str>, contents: Box<str>) -> Self {
         let errors = vec![];
 
-        return Self{
+        Self{
             input: source, 
             output: None,
             contents: Some(contents),
             ast: None,
             context: vec![],
             errors
-        };
+        }
     }
     
     /// Creates a new Compiler process for compiling an AST
@@ -105,14 +105,14 @@ impl Compiler {
     pub fn new_using_ast(source: Arc<str>, ast: Box<Ast>) -> Self {
         let errors = vec![];
 
-        return Self{
+        Self{
             input: source, 
             output: None,
             contents: None,
             ast: Some(ast),
             context: vec![],
             errors
-        };
+        }
     }
 
     /// Starts the compilation process
@@ -131,7 +131,7 @@ impl Compiler {
     pub fn compile(&mut self) -> Result<()> {
         let _scanner = Scanner::new(self);
 
-        return Ok(());
+        Ok(())
     }
     
     /// Starts the interpretation process
@@ -150,6 +150,6 @@ impl Compiler {
     pub fn interpret(&mut self) -> Result<()> {
         let _scanner = Scanner::new(self);
 
-        return Ok(());
+        Ok(())
     }
 }
