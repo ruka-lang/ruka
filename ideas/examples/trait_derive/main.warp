@@ -11,7 +11,7 @@ derive Num = ('a) {
         let mut result = 'a.{};
 
         for reflection.members('a) { |member|
-            result.[member] = lhs.[member] + rhs.[member];
+            result.(member) = lhs.(member) + rhs.(member);
         }
     }
 }
