@@ -16,7 +16,7 @@ const List -> module = (comptime 'a: type) do
             }
         end
 
-        pub const push = (list: mut &t, val: 'a) do
+        pub const push = (mut list: &t, val: 'a) do
             if list == None do
                 list = Some <| Box(t).new(val);
             else if list.next == None do
@@ -54,5 +54,5 @@ const main = () do
         let mut list = List.new(12);
         list.push(16);
     */
-    std.io.println("List: [{}, {}]", .{list.val, list.next.val});
+    println("List: [{}, {}]", {list.val, list.next.val});
 end

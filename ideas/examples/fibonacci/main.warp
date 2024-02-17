@@ -2,17 +2,17 @@
  * Program to calculate fibonacci numbers
  */
 
-use std.(io.*, string);
+use std.string;
 use fib;
 
-const main -> Result((), any) = () do
+const main -> Result(()) = () do
     let n = gets()
         |> string.parse() ~into: int 
-        |> (!);
+        |> (?);
 
     let value = fib.fibonacci(n);
 
-    println("Fibonacci number {} is {}", n, value);
+    println("Fibonacci number {} is {}", {n, value});
 
     () |> Ok
 end

@@ -17,11 +17,11 @@ const fibonacci' -> int = (n: int, arr: mut []int) do
 end
 
 #[test]
-const `fibonacci` -> Result((), any) = () do
+const `fibonacci` -> Result(()) = () do
     use std;
 
     let result = fibonacci(5);
-    std.testing.assert!(result == 5).!;
+    std.testing.assert(result == 5)?;
 
     Ok <| ()
 end

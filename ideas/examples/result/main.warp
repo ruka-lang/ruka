@@ -1,17 +1,30 @@
-use std;
-
 const Result -> type = (
-    comptime success: type,
-    comptime failure: type
+    comptime success: type
 ) do 
     union {
         Ok(success),
-        Err(failure)
+        Err(any Error)
     }
 end
 
-const main -> Result((), string) = () do
-    std.io.println("Hello, world!"); 
+const parseError = struct {
+    ...
+}
+
+impl Error(parseError) = do
+    ...
+end
+
+const parse -> Result(int) = (&str: string) do
+    if ... do
+        return Err <| parseError.{};
+    end
+end
+
+const main -> Result(()) = () do
+    let str = "Hello";
+    let result = parse(str)?;
+    println("result: {d}", {result});
 
     Ok(())
 end

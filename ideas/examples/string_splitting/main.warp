@@ -19,26 +19,27 @@ const strsplit -> [..]string = (
     ch: u8
 ) do
     let mut indices = [..]{};
-    str |> foreach_idx() 
-        ~f: (c, i) when c == ch => indices |> push(i);
+    for (str, 1..) do |c, i|
+        if c == ch => indices.push(i);
+    end
 
     let mut words = [..]{};
     let mut prev = 0;
-    for idx in indices do
-        words |> push(str[prev..idx] |> into()); 
+    for indices do |idx|
+        words |> push(str[prev..idx].into()); 
         prev = idx + 1;
     end
 
-    words.push(str[prev..str.len] |> into()); 
+    words.push(str[prev..str.len].into()); 
 
     words
 end
 
-const main = () do
+const main -> Result(()) = () do
     let words = "Hello, world!"
         |> strsplit(' ');
 
-    testing.assert(words.len == 2);
+    testing.assert(words.len == 2)?;
 
-    return ();
+    ()
 end
