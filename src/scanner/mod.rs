@@ -214,7 +214,7 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn skip_whitespace(&'b mut self) {
         match self.read() {
-            ' ' | '\t' => {
+            ' ' | '\t' | '\n' => {
                 self.advance(1);
                 self.skip_whitespace();
             },

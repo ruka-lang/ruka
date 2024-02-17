@@ -10,7 +10,7 @@ const Vector = record {
 };
 
 impl Num(Vector) = {
-    fn (+) -> Vector = (lhs, rhs: Vector) {
+    const (+) -> Vector = (lhs, rhs: Vector) {
         Vector.{
             x: lhs.x + rhs.x,
             y: lhs.y + rhs.y
@@ -18,11 +18,11 @@ impl Num(Vector) = {
     }
 }
 
-fn add -> any Num = (x, y: any Num) {
+const add -> any Num = (x, y: any Num) {
     x + y
 }
 
-fn main = () {
+const main = () {
     let a = Vector.{x: 10, y: 5};
     let b = Vector.{x: 5, y: 10};
     let c = add(a, b);

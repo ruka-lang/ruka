@@ -1,6 +1,6 @@
 use std;
 
-fn List -> module = (comptime 'a: type) do
+const List -> module = (comptime 'a: type) do
     return module {
         const t = record {
             const Self = warp.this();
@@ -9,14 +9,14 @@ fn List -> module = (comptime 'a: type) do
             next: Option <| Box(Self)
         };
 
-        pub fn new -> t = (val: 'a) do
-            return t.{
+        pub const new -> t = (val: 'a) do
+            t.{
                 val,
                 next = None
-            };
+            }
         end
 
-        pub fn push = (list: mut &t, val: 'a) do
+        pub const push = (list: mut &t, val: 'a) do
             if list == None do
                 list = Some <| Box(t).new(val);
             else if list.next == None do
@@ -33,7 +33,7 @@ fn List -> module = (comptime 'a: type) do
     };
 end
 
-fn main = () do
+const main = () do
     const IntList = List(int);
     let mut list = IntList.new(12);
 

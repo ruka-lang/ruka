@@ -1,16 +1,16 @@
 use std;
 
-fn Result -> typeid = (
+const Result -> typeid = (
     comptime success: type,
     comptime failure: type
 ) do 
-    return union {
+    union {
         Ok(success),
         Err(failure)
-    };
+    }
 end
 
-fn main -> Result((), any) = () do
+const main -> Result((), any) = () do
     std.io.println("Hello, world!"); 
 
     Ok(())

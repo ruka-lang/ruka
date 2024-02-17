@@ -91,7 +91,6 @@ pub enum TokenType {
     PatternMatch,         // ~=
     PatternNotMatch,      // !~
     // Others
-    Newline,
     Illegal,
     Eof
 }
@@ -137,7 +136,6 @@ impl TokenType {
             '<'  => TokenType::Lesser,
             '>'  => TokenType::Greater,
 
-            '\n' => TokenType::Newline,
             '\0' => TokenType::Eof,
             _    => TokenType::Illegal
         }

@@ -129,7 +129,10 @@ impl Compiler {
     ///
     /// ```
     pub fn compile(&mut self) -> Result<()> {
-        let _scanner = Scanner::new(self);
+        let mut scanner = Scanner::new(self);
+        let tokens = scanner.scan()?;
+
+        dbg!(&tokens);
 
         Ok(())
     }

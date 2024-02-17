@@ -5,7 +5,7 @@ const Num = trait ('a) {
 };
 
 derive Num = ('a) {
-    fn (+) -> 'a = (lhs, rhs: 'a) {
+    const (+) -> 'a = (lhs, rhs: 'a) {
         use warp.reflection;
         
         let mut result = 'a.{};
@@ -22,11 +22,11 @@ const Vector = record {
     y: int
 };
 
-fn add -> any Num = (x, y: any Num) {
+const add -> any Num = (x, y: any Num) {
     x + y
 }
 
-fn main = () {
+const main = () {
     let a = Vector.{x: 10, y: 5};
     let b = Vector.{x: 5, y: 10};
     let c = add(a, b);

@@ -5,7 +5,7 @@
 use std.(io.*, string);
 use fib;
 
-fn main -> Result((), any) = () {
+const main -> Result((), any) = () {
     let n = gets()
         |> string.parse() ~into: int 
         |> (!);

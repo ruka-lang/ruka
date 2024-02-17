@@ -2,9 +2,9 @@
  * Program to print Hello, world!
  */ 
 
-const std = gh.import("std");
+const std = warp.import("std");
 
-public const main = (args: []string) => int {
+pub const main = (args: []string) => int {
     std.io.printf("{}\n", "Hello, world!");
 
     return 0;
