@@ -62,7 +62,7 @@ pub enum TokenType {
     Bang,                 // !
     Question,             // ?
     RangeExc,             // ..
-    RangeInc,             // ...
+    RangeInc,             // ..=
     ForwardApp,           // |>
     ReverseApp,           // <|
     // Arithmetic
@@ -91,7 +91,6 @@ pub enum TokenType {
     PatternMatch,         // ~=
     PatternNotMatch,      // !~
     // Others
-    Newline,
     Illegal,
     Eof
 }
@@ -137,7 +136,6 @@ impl TokenType {
             '<'  => TokenType::Lesser,
             '>'  => TokenType::Greater,
 
-            '\n' => TokenType::Newline,
             '\0' => TokenType::Eof,
             _    => TokenType::Illegal
         }
@@ -189,9 +187,12 @@ impl TokenType {
             "end"  => Some(TokenType::Keyword(End)),
             "record"  => Some(TokenType::Keyword(Record)),
             "union"  => Some(TokenType::Keyword(Union)),
+            "error"  => Some(TokenType::Keyword(Error)),
             "use"  => Some(TokenType::Keyword(Use)),
+            "macro"  => Some(TokenType::Keyword(Macro)),
             "trait"  => Some(TokenType::Keyword(Trait)),  
             "impl"  => Some(TokenType::Keyword(Impl)),  
+            "derive"  => Some(TokenType::Keyword(Derive)),  
             "module"  => Some(TokenType::Keyword(Module)), 
             "defer"  => Some(TokenType::Keyword(Defer)), 
             "when"  => Some(TokenType::Keyword(When)), 
@@ -235,7 +236,7 @@ impl TokenType {
     }
 
     ///
-    pub fn to_str(kind: &TokenType) -> &str {
+    pub fn to_str(_kind: &TokenType) -> &str {
         todo!()
     }
 }
@@ -254,9 +255,12 @@ pub enum Keyword {
     End,
     Record,
     Union,
+    Error,
     Use,
+    Macro,
     Trait,
     Impl,
+    Derive,
     Module,
     Defer,
     When,
@@ -285,7 +289,7 @@ pub enum Keyword {
 
 impl Keyword {
     ///
-    pub fn to_str(keyword: &Self) -> &str {
+    pub fn to_str(_keyword: &Self) -> &str {
         todo!()
     }
 }
@@ -301,7 +305,7 @@ pub enum Mode {
 
 impl Mode {
     ///
-    pub fn to_str(keyword: &Self) -> &str {
+    pub fn to_str(_keyword: &Self) -> &str {
         todo!()
     }
 }

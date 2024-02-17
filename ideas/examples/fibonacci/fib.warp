@@ -1,26 +1,27 @@
-pub fn fibonacci -> int = (n) => do
-    let mut cache = [50]{0, 1, 1, -1, ..};
-    return fibonacci'(n, mut& cache); 
+pub const fibonacci -> int = (n) do
+    const BUFFER_SIZE = 50;
+    let mut cache = [BUFFER_SIZE]{0, 1, 1, -1};
+
+    fibonacci'(n, mut &cache)
 end
 
-rec fn fibonacci' -> int = (
-    n: int, 
-    mut arr: &[]int
-) do
-    return match n do
-        | n when cache[n] != -1 => cache[n],
-        | n when n < 0          => 0,
-        | n => do
-            cache[n] := fibonacci'(n-1) + fibonacci'(n-2)
-        end
+const fibonacci' -> int = (n: int, arr: mut []int) do
+    if n < 0 do
+        0
+    else if cache[n] != -1 do
+        cache[n]
+    else do
+        cache[n] = fibonacci'(n-1) + fibonacci'(n-2)
+        cache[n]
     end
 end
 
-test `fibonacci` -> Result((), any) = () do
+#[test]
+const `fibonacci` -> Result(()) = () do
     use std;
 
     let result = fibonacci(5);
-    std.testing.assert!(result == 5).!;
+    std.testing.assert(result == 5)?;
 
-    return Ok <| ();
+    Ok <| ()
 end

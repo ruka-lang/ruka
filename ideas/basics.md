@@ -150,9 +150,10 @@ Here is a list of `Warp`'s primitive types:
 - `void` 
   - also ().
 - `null`
-- `typeid` 
+- `type` 
   - i32, int, char, MyRecord. Types are values in `Warp`
-- `moduleid`
+- `module`
+- `trait`
 - `error`
 - `range` 
   - 0..10, 5...15

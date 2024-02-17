@@ -1,12 +1,12 @@
 use std;
 
-fn main = () {
+const main = () {
     std.io.println("Hello, world!");
 
     return ();
 }
 
-fn main = () do
+const main = () do
     std.io.println("Hello, world!");
 
     return ();

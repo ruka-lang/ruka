@@ -9,6 +9,8 @@ use std::sync::Arc;
 use std::{fs, env};
 use anyhow::{anyhow, Result};
 
+pub mod error;
+
 /// Represents a compilation process, responsible for compiling a single file
 pub struct Compiler {
     pub input: Arc<str>,
@@ -49,14 +51,14 @@ impl Compiler {
 
         let errors = vec![];
 
-        return Ok(Self{
+        Ok(Self{
             input, 
             output,
             contents: Some(contents),
             ast: None,
             context: vec![],
             errors
-        });
+        })
     }
 
     /// Creates a new Compiler process for compiling a string
@@ -76,14 +78,14 @@ impl Compiler {
     pub fn new_using_str(source: Arc<str>, contents: Box<str>) -> Self {
         let errors = vec![];
 
-        return Self{
+        Self{
             input: source, 
             output: None,
             contents: Some(contents),
             ast: None,
             context: vec![],
             errors
-        };
+        }
     }
     
     /// Creates a new Compiler process for compiling an AST
@@ -103,14 +105,14 @@ impl Compiler {
     pub fn new_using_ast(source: Arc<str>, ast: Box<Ast>) -> Self {
         let errors = vec![];
 
-        return Self{
+        Self{
             input: source, 
             output: None,
             contents: None,
             ast: Some(ast),
             context: vec![],
             errors
-        };
+        }
     }
 
     /// Starts the compilation process
@@ -127,8 +129,30 @@ impl Compiler {
     ///
     /// ```
     pub fn compile(&mut self) -> Result<()> {
+        let mut scanner = Scanner::new(self);
+        let tokens = scanner.scan()?;
+
+        dbg!(&tokens);
+
+        Ok(())
+    }
+    
+    /// Starts the interpretation process
+    ///
+    /// # Arguments
+    /// * `self` - 
+    ///
+    /// # Returns 
+    /// * An anyhow::Result containing unit if successful
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn interpret(&mut self) -> Result<()> {
         let _scanner = Scanner::new(self);
 
-        return Ok(());
+        Ok(())
     }
 }
