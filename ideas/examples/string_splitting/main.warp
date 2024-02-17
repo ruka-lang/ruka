@@ -17,28 +17,28 @@ use std.(string.*, iter.*, testing);
 const strsplit -> [..]string = (
     str: string, 
     ch: u8
-) {
+) do
     let mut indices = [..]{};
     str |> foreach_idx() 
         ~f: (c, i) when c == ch => indices |> push(i);
 
     let mut words = [..]{};
     let mut prev = 0;
-    for idx in indices {
+    for idx in indices do
         words |> push(str[prev..idx] |> into()); 
         prev = idx + 1;
-    }
+    end
 
     words.push(str[prev..str.len] |> into()); 
 
     words
-}
+end
 
-const main = () {
+const main = () do
     let words = "Hello, world!"
         |> strsplit(' ');
 
     testing.assert(words.len == 2);
 
     return ();
-}
+end

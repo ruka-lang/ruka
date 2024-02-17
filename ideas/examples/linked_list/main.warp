@@ -1,13 +1,13 @@
 use std;
 
 const List -> module = (comptime 'a: type) do
-    return module {
-        const t = record {
+    module {
+        pub const t = record {
             const Self = warp.this();
 
             val: 'a,
             next: Option <| Box(Self)
-        };
+        }
 
         pub const new -> t = (val: 'a) do
             t.{
@@ -30,12 +30,12 @@ const List -> module = (comptime 'a: type) do
                 current.next = Some <| Box(t).new(val);
             end
         end
-    };
+    }
 end
 
 const main = () do
     const IntList = List(int);
-    let mut list = IntList.new(12);
+    let mut list: IntList.t = IntList.new(12);
 
     // Functions called like methods will search within the module the type belongs to
     // if no candidate exists in the current scope, so no use statement is needed

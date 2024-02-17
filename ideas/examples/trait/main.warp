@@ -2,27 +2,27 @@ use std;
 
 const Num = trait ('a) {
     (+): fn (lhs, rhs: 'a) -> 'a
-};
+}
 
 const Vector = record {
     x: int,
     y: int
-};
+}
 
-impl Num(Vector) = {
-    const (+) -> Vector = (lhs, rhs: Vector) {
+impl Num(Vector) = do
+    const (+) -> Vector = (lhs, rhs: Vector) do
         Vector.{
             x: lhs.x + rhs.x,
             y: lhs.y + rhs.y
         }
-    }
-}
+    end
+end
 
-const add -> any Num = (x, y: any Num) {
+const add -> any Num = (x, y: any Num) do
     x + y
-}
+end
 
-const main = () {
+const main = () do
     let a = Vector.{x: 10, y: 5};
     let b = Vector.{x: 5, y: 10};
     let c = add(a, b);
@@ -34,4 +34,4 @@ const main = () {
     let f = add(d, e);
 
     std.testing.assert(f == 15);
-}
+end

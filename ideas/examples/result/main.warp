@@ -1,6 +1,6 @@
 use std;
 
-const Result -> typeid = (
+const Result -> type = (
     comptime success: type,
     comptime failure: type
 ) do 
@@ -10,7 +10,7 @@ const Result -> typeid = (
     }
 end
 
-const main -> Result((), any) = () do
+const main -> Result((), string) = () do
     std.io.println("Hello, world!"); 
 
     Ok(())
