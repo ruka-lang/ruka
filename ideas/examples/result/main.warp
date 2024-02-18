@@ -1,6 +1,6 @@
 const Result -> type = (
     comptime success: type
-) do 
+) do
     union {
         Ok(success),
         Err(any Error)
@@ -11,14 +11,14 @@ const parseError = struct {
     ...
 }
 
-impl Error(parseError) = do
+impl Error(parseError) = {
     ...
-end
+}
 
 const parse -> Result(int) = (&str: string) do
-    if ... do
+    if ... {
         return Err <| parseError.{};
-    end
+    }
 end
 
 const main -> Result(()) = () do
