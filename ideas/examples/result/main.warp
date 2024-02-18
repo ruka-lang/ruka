@@ -1,11 +1,11 @@
 const Result -> type = (
     comptime success: type
-) do
+) {
     union {
         Ok(success),
         Err(any Error)
     }
-end
+}
 
 const parseError = struct {
     ...
@@ -15,16 +15,16 @@ impl Error(parseError) = {
     ...
 }
 
-const parse -> Result(int) = (&str: string) do
+const parse -> Result(int) = (&str: string) {
     if ... {
         return Err <| parseError.{};
     }
-end
+}
 
-const main -> Result(()) = () do
+const main -> Result(()) = () {
     let str = "Hello";
     let result = parse(str)?;
     println("result: {d}", {result});
 
     Ok(())
-end
+}
