@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 pub mod constants;
 
 #[derive(Parser)]
-#[command(name="amuletc", author="amulet-lang", version=VERSION, about=ABOUT, arg_required_else_help=true)]
+#[command(name="warpc", author="warp-lang", version=VERSION, about=ABOUT, arg_required_else_help=true)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>
