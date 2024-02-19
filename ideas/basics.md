@@ -59,7 +59,7 @@ Here is a list of `Warp`'s primitive types:
   - Polymorphic enums, i.e. don't need to be part of a type. 
   - Also used for identifiers, when used for identifiers the ":" can be omitted.
   - When used for map keys, the ":" is moved to the rhs
-- `box`
+- `any`
 
 ## Primitive Data Collections
 `Warp` has a few primitive data collections for you to use:
