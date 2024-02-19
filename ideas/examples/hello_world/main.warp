@@ -1,13 +1,11 @@
-use std;
-
 const main = () {
-    std.io.println("Hello, world!");
+    println("Hello, world!");
 
     return ();
-}
+};
 
 const main = () do
-    std.io.println("Hello, world!");
+    println("Hello, world!")
 
-    return ();
+    return ()
 end

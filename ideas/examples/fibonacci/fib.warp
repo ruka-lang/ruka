@@ -5,7 +5,7 @@ pub const fibonacci -> int = (n) {
     fibonacci'(n, mut &cache)
 }
 
-const fibonacci' -> int = (n: int, arr: mut []int) {
+const fibonacci' -> int = (n: int, mut arr: &[]int) {
     if n < 0 {
         0
     } else if cache[n] != -1 {
@@ -16,12 +16,9 @@ const fibonacci' -> int = (n: int, arr: mut []int) {
     }
 }
 
-#[test]
-const `fibonacci` -> Result(()) = () {
-    use std;
-
+test `fibonacci` -> Result(()) = () {
     let result = fibonacci(5);
-    std.testing.assert(result == 5)?;
+    assert(result == 5)?;
 
     Ok <| ()
 }

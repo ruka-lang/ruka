@@ -1,125 +1,22 @@
-# Language Syntax
- 
-## Comments
-```
-// A single-line comment
+# Warp
 
-/*
- * multi-line comment
- */
+Warp is planned to be a general use, compiled programming language. Warp's planned features include:
+    - Strong Static Typing
+    - Memory Management:
+        - Either:
+            - Ownership & Borrow Checking a la Rust
+            - GC with Ownership & Borrow Checking for greater control over lifetimes
+    - Errors as values:
+        - Sum types
+        - Predefined Error interface for defining own error types
+    - Uniform function call syntax
+    - Interfaces for shared functionality, can apply to any kind of types
+    - First class Functions, Modules, Interfaces, and Types
+    - Compile time execution of Warp code
+    - Mutable semantics
+    - Named arguments
 
-/**
-  *  Documentation comment
-  */
-
-/!*
-  * Module comment
-  */
-```
-
-## Bindings
-Bindings in `Warp` follow the form of:  
-<pre>
-  kind tag [: type] [= expression];
-</pre>
-with the parts surrounded by [] being optional.  
-
-## Binding Declaration and Initialization
-There are two kinds of bindings:
-
-- `const`  
-```rust
-// Constants must be assign a value when declared, and cannot be reassigned, they must be known at compile time, either a literal or a comptime expression result
-const msg = "Hello, world!";
-```
-
-- `let`  
-```rust
-// A runtime binding, must be marked mut to be assigned to multiple times
-let day = 26;
-day.++; // Error, cannot assign to a immutable binding twice
-
-let mut year = 2023;
-year = 2024;
-```
-
-`Warp` supports multiple assignment
-```rust
-let x = 12;
-let y = 31;
-let (a, b) = (y, x);
-```
-
-Bindings of the same type can be grouped together.
-```rust
-// let bindings still don't need to be initialized right away
-let (
-    x = 72;
-    y;
-)
-// If done on the same line, must be separated by commas
-let (x, y);
-
-```
-
-## Polish notation
-```rust
-(operator)(args);
-(++)(x);
-```
-## Type specification basics
-
-When declaring bindings, types are usually inferred based on later usage of the binding, 
-but types can be specified if desired.
-
-<pre>
-    kind tag [: type] [= expression];
-</pre>
-
-If the binding is not initialized,
-then a type specification must be added.
-```rust
-let x = 83;
-
-let name: string;
-```
-
-## Memory Management
-In `Warp` memory is GC/stack allocated by default. Memory can be allocated manually using an allocator if desired. And GC can be disabled completely on a pre project basis.
-- Manual management:
-  - Using an allocator, you can manage memory manually, which will return a pointer to the memory which must be freed before the program ends
-  - Allocators use the built-in memory functions under the hood like warp.new() rex.free() (for many pointers), rex.create(), rex.delete() (for individual variables)
-```rust
-let name: int = 12; // Stack allocated
-
-let allocator = std.mem.testingAllocator.{};
-
-let names: *[5]string = allocator.create([5]string); // Allocates an array and returns a pointer to it
-defer allocator.delete(names); // Manual memory must be freed
-```
-In `Warp`, any type that implements the `Free` trait will have their `free` method called at the end of their scope
-```rust
-const Free = trait {
-    free: fn (mut&)() -> void
-};
-
-const Vector = (@type: typeid, allocator: std.mem.Allocator) => moduleid {
-    return module {
-        const t = record {
-            data: [*]type,
-            size: int,
-            capacity: int,
-            allocator = allocator // Properites can have default values which will infer the type
-        };
-
-        // Will be called when a Vector(type) goes out of scope
-        const free = (mut self: &t) => {
-            self.allocator.free(self.data);
-        };
-    }
-};
-
-```
+# The following is NOT up-to-date/accurate
 
 ## Basic Primitive Types
 Here is a list of `Warp`'s primitive types:
@@ -153,17 +50,16 @@ Here is a list of `Warp`'s primitive types:
 - `type` 
   - i32, int, char, MyRecord. Types are values in `Warp`
 - `module`
-- `trait`
+- `interface`
 - `error`
 - `range` 
-  - 0..10, 5...15
+  - 0..10, 5..=15
 - `tag`   
   - :quick :skip
   - Polymorphic enums, i.e. don't need to be part of a type. 
   - Also used for identifiers, when used for identifiers the ":" can be omitted.
   - When used for map keys, the ":" is moved to the rhs
-- `any`
-- `rawptr`
+- `box`
 
 ## Primitive Data Collections
 `Warp` has a few primitive data collections for you to use:
@@ -229,21 +125,6 @@ let lname = "bar";
 let name = foo ++ " " ++ bar;
 ```
 
-## Blocks
-
-Multi-line blocks are enclosed using braces: {}
-```rust
-{
-    let x = 83;
-}
-```
-Blocks can also have capture groups
-```rust
-{ |&| // captures reference to all variables in above scope
-
-}
-```
-
 ## Function Basics
 All functions in `Warp` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
@@ -288,14 +169,14 @@ add(1); //# x = 1, y = null
 
 ## Error Handling
 ```rust
-// Returns a result, which is a union (string or error)
+// Returns a result, which is a enum (string or error)
 const func1 = () => !string {
     if (...) {
         return error.someError;
     }
 };
 
-// Returns a result, which is a union (void or error)
+// Returns a result, which is a enum (void or error)
 const func1 = () => !void {
     if (...) {
         return error.someError;
@@ -307,7 +188,7 @@ let s: string = func1() as string;
 // If error, returns error from current function
 let s: string = func1().!;
 
-// Returns a optional, which is a union (int or null)
+// Returns a optional, which is a enum (int or null)
 const func2 = () => ?int {
 
 };
@@ -321,31 +202,9 @@ let i: int = func2().?;
 let i: int = func2() or 12; 
 ```
 
-## Context
-Every scope contains an implicitly defined context binding, which is passed to scopes and functions called in the scope either implicitly or explicity
-```rust
-context.x = 12;
-context.y = 15;
-
-const add = () => int {
-   return context.x + context.y;
-};
-
-add(); // Context passed implicitly
-
-let newContext = warp.Context.{}; // Create a new context
-newContext.x = 10.0;
-newContext.y = 8.1;
-
-// Unsure on syntax for passing context explicitly
-warp.context(newContext)
-add(); // Error, mismatched types
-add(context: newContext); // Error, mismatched types
-```
-
 ## Pattern Matching
 ```rust
-const Result = union {
+const Result = enum {
     ok(int),
     err(string),
     other
@@ -484,7 +343,7 @@ in the scope they are defined in. Values passed to functions by borrow
 cannot be mutated, unless they are passed in the unique or exclusive modes. This
 may be able to be relaxed, so all values behind borrows can be modified
 - Borrow types
-  - `&` borrow mode, pass by reference
+  - `&` borrow mode, pass by reference, immutable
       - `loc` local mode, borrow cannot escape scope
       - `mov` unique mode, ownership of borrow is moved into function
       - `mut` exclusive mode, only one active borrow to value so safe to mutate
@@ -538,11 +397,11 @@ let pos_y = pos.y;
 let pos_z = pos[:x];
 ```
 
-- `Union`  
+- `Enum`  
 
 Tagged unions, anonymous. If a tag is not given a type, it is given void. Can specify tag integer type
 ```rust
-const Result = union(u8) {
+const Result = enum(u8) {
     ok(int),
     err(string),
     other
@@ -587,7 +446,7 @@ const MoreConstants = module {
 };
 ```
 
-## Methods and Receivers
+## Methods
 
 There are no methods in Warp, instead Warp uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
@@ -603,7 +462,7 @@ const set_pos = (mut self: &Player, pos: {f32, f32}) do self.pos = pos;
 const set_health = (self: &Player, health: int) do self.health = health;
 
 let player = Player.{};
-player.set_pos(pos: {0.0, 10.0}); // Arguments can be passed with labels
+player.set_pos({0.0, 10.0});
 ```
 
 ## File imports
@@ -661,7 +520,7 @@ const div = (x, y: int) => {int, int} {
 let result: {int, int} = div(12, 5);
 let {quo, rem} = div(12, 5);
 
-const div = (x, y: int) => record{quo, rem: int} {
+const div -> record {quo, rem: int} = (x, y: int) {
     let quo = x / y;
     let rem = x % y;
     // return .{quo = quo, rem = rem};
@@ -755,7 +614,7 @@ use compiler.{
 Traits cannot specify data members, only methods
 ```rust
 // Trait definition
-const Entity = trait {
+const Entity = interface {
     // Trait method types have restrictions on the receiver type, which goes after fn
     // Both of these methods require receivers to be mut& (a exclusive mode borrow)
     // Reviever is the first parenthesis, the second is the parameter types

@@ -2,8 +2,10 @@
  * Program to calculate fibonacci numbers
  */
 
+const std = warp.import("std");
+const fib = warp.import("fib");
+
 use std.string;
-use fib;
 
 const main -> Result(()) = () {
     let n = gets()

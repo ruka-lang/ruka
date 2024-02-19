@@ -1,7 +1,5 @@
-const Result -> type = (
-    comptime success: type
-) {
-    union {
+const Result -> type = (@success: type) {
+    enum {
         Ok(success),
         Err(any Error)
     }

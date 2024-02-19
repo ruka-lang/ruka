@@ -1,0 +1,44 @@
+const std = warp.import("std");
+
+const Num = interface ('a) {
+    (+): fn (lhs, rhs: 'a) -> 'a
+}
+
+const num -> module = (@'a: type) {
+    module {
+        const t = 'a;
+
+        pub const (+) -> t = (lhs, rhs: t) {
+            use warp.reflection;
+            
+            let mut result = t.{};
+
+            inline for reflection.members(t) { |member|
+                result.(member) = lhs.(member) + rhs.(member);
+            }
+        }
+    }
+}
+
+const Vector = record {
+    x: int,
+    y: int
+} |> num();
+
+const add -> any Num = (x, y: any Num) {
+    x + y
+}
+
+const main -> Result(()) = () {
+    let a = Vector.t.{x: 10, y: 5};
+    let b = Vector.t.{x: 5, y: 10};
+    let c = add(a, b);
+
+    std.testing.assert(c.x == 15 and c.y == 15)?;
+
+    let d = 10;
+    let e = 5;
+    let f = add(d, e);
+
+    std.testing.assert(f == 15)?;
+}

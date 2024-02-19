@@ -1,4 +1,4 @@
-use std;
+const std = warp.import("std");
 
 const List -> module = (comptime 'a: type) {
     module {
