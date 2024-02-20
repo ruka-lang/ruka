@@ -177,21 +177,16 @@ impl TokenType {
     pub fn try_keyword(str: &str) -> Option<TokenType> {
         use Keyword::*;
         match str {
-            "static"  => Some(TokenType::Keyword(Static)),
             "const"  => Some(TokenType::Keyword(Const)),
             "let"  => Some(TokenType::Keyword(Let)),
             "pub"  => Some(TokenType::Keyword(Pub)),
             "return" => Some(TokenType::Keyword(Return)),
-            "fn"  => Some(TokenType::Keyword(Fn)),
             "do"  => Some(TokenType::Keyword(Do)),
             "end"  => Some(TokenType::Keyword(End)),
             "record"  => Some(TokenType::Keyword(Record)),
             "enum"  => Some(TokenType::Keyword(Enum)),
-            "error"  => Some(TokenType::Keyword(Error)),
             "use"  => Some(TokenType::Keyword(Use)),
             "interface"  => Some(TokenType::Keyword(Interface)),  
-            "impl"  => Some(TokenType::Keyword(Impl)),  
-            "mod"  => Some(TokenType::Keyword(Mod)), 
             "module"  => Some(TokenType::Keyword(Module)), 
             "defer"  => Some(TokenType::Keyword(Defer)), 
             "when"  => Some(TokenType::Keyword(When)), 
@@ -210,14 +205,19 @@ impl TokenType {
             "comptime"  => Some(TokenType::Keyword(Comptime)), 
             "inline"  => Some(TokenType::Keyword(Inline)), 
             "test"  => Some(TokenType::Keyword(Test)), 
-            "any"  => Some(TokenType::Keyword(Any)), 
-
+            "as"  => Some(TokenType::Keyword(As)), 
+            // Reserved
             "private"  => Some(TokenType::Keyword(Private)), 
             "derive"  => Some(TokenType::Keyword(Derive)),  
+            "static"  => Some(TokenType::Keyword(Static)),
+            "error"  => Some(TokenType::Keyword(Error)),
             "macro"  => Some(TokenType::Keyword(Macro)),
             "from"  => Some(TokenType::Keyword(From)), 
-            "as"  => Some(TokenType::Keyword(As)), 
+            "impl"  => Some(TokenType::Keyword(Impl)),  
+            "any"  => Some(TokenType::Keyword(Any)), 
+            "mod"  => Some(TokenType::Keyword(Mod)), 
             "in"  => Some(TokenType::Keyword(In)), 
+            "fn"  => Some(TokenType::Keyword(Fn)),
 
             _     => None
         }
@@ -245,22 +245,17 @@ impl TokenType {
 /// Enumeration of the keywords supported
 #[derive(Clone, Debug, PartialEq)]
 pub enum Keyword {
-    Static,
     Const,
     Let,
     Pub,
     Return,
-    Fn,
     Do,
     Begin,
     End,
     Record,
     Enum,
-    Error,
     Use,
     Interface,
-    Impl,
-    Mod,
     Module,
     Defer,
     When,
@@ -279,13 +274,18 @@ pub enum Keyword {
     Comptime,
     Inline,
     Test,
-    Any,
+    As,
     // Reserved
     Private,
     Derive,
+    Static,
+    Error,
     Macro,
     From,
-    As,
+    Impl,
+    Any,
+    Mod,
+    Fn,
     In
 }
 
