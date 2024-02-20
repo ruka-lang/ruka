@@ -1,4 +1,4 @@
-const std = warp.import("std")
+use std
 
 const Num = interface ('a) do
     (+): fn (lhs, rhs: 'a) -> 'a

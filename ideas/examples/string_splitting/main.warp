@@ -3,7 +3,6 @@
   * @author: dwclake
   */
 
-const std = warp.import("std")
 use std.(string.*, iter.*, testing)
 
 /** Takes a string and splits the string into substrings at each occurence of
