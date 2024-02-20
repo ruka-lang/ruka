@@ -1,11 +1,7 @@
 const main = () {
-    println("Hello, world!");
-
-    return ();
-};
+    println("Hello, world!")
+}
 
 const main = () do
     println("Hello, world!")
-
-    return ()
 end

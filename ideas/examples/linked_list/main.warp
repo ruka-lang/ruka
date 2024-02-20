@@ -1,12 +1,12 @@
-const std = warp.import("std");
+const std = warp.import("std")
 
 const List -> module = (comptime 'a: type) {
     module {
         pub const t = record {
-            const Self = warp.this();
+            const Self = warp.this()
 
             val: 'a,
-            next: Option <| Box(Self)
+            next: Option <| Self
         }
 
         pub const new -> t = (val: 'a) {
@@ -18,41 +18,41 @@ const List -> module = (comptime 'a: type) {
 
         pub const push = (mut list: &t, val: 'a) {
             if list == None {
-                list = Some <| Box(t).new(val);
+                list = Some <| t.new(val)
             } else if list.next == None {
-                list.next = Some <| Box(t).new(val);
+                list.next = Some <| t.new(val)
             } else {
-                let mut current = list.next;
+                let mut current = list.next
                 while current.next != None {
-                    current = current.next;
+                    current = current.next
                 }
 
-                current.next = Some <| Box(t).new(val);
+                current.next = Some <| t.new(val)
             }
         }
     }
 }
 
 const main = () {
-    const IntList = List(int);
-    let mut list: IntList.t = IntList.new(12);
+    const IntList = List(int)
+    let mut list: IntList.t = IntList.new(12)
 
     // Functions called like methods will search within the module the type belongs to
     // if no candidate exists in the current scope, so no use statement is needed
-    list.push(16);
+    list.push(16)
 
     /* Could also use a use statement, which expose symbols with the current scope
-        use List(int).*; 
+        use List(int).*
 
-        let mut list = new(12);
-        push(mut& list, 16);
-        list.push(16);
+        let mut list = new(12)
+        push(mut& list, 16)
+        list.push(16)
     */
     /* can also alias a modules when using it to simplify usages without importing it's symbols
-        use List(int) as List; 
+        use List(int) as List
 
-        let mut list = List.new(12);
-        list.push(16);
+        let mut list = List.new(12)
+        list.push(16)
     */
-    println("List: [{}, {}]", {list.val, list.next.val});
+    println("List: [{}, {}]", {list.val, list.next.val})
 }

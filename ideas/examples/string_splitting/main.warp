@@ -3,15 +3,15 @@
   * @author: dwclake
   */
 
-const std = warp.import("std");
-use std.(string.*, iter.*, testing);
+const std = warp.import("std")
+use std.(string.*, iter.*, testing)
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
   * 
   * # Examples
   * ```
-  * ghoose> strsplit("Hello, world!", ' ')
+  * @> strsplit("Hello, world!", ' ')
   * ["Hello,", "world!"]
   * ```
   */
@@ -19,28 +19,28 @@ const strsplit -> [..]string = (
     str: string, 
     ch: u8
 ) {
-    let mut indices = [..]{};
+    let mut indices = [..]{}
     for {str, 1..} { |c, i|
-        if c == ch => indices.push(i);
+        if c == ch => indices.push(i)
     }
 
-    let mut words = [..]{};
-    let mut prev = 0;
+    let mut words = [..]{}
+    let mut prev = 0
     for indices { |idx|
-        words |> push(str[prev..idx].into()); 
-        prev = idx + 1;
+        words.push(str[prev..idx].into())
+        prev = idx + 1
     }
 
-    words.push(str[prev..str.len].into()); 
+    words.push(str[prev..str.len].into())
 
     words
 }
 
-const main -> Result(()) = () {
+const main -> Result(unit) = () {
     let words = "Hello, world!"
-        |> strsplit(' ');
+        |> strsplit(' ')
 
-    assert(words.len == 2)?;
+    assert(words.len == 2)?
 
-    ()
+    Ok(())
 }

@@ -1,7 +1,7 @@
 const Result -> type = (@success: type) {
     enum {
         Ok(success),
-        Err(any Error)
+        Err(Error) // predefined interface
     }
 }
 
@@ -15,14 +15,14 @@ impl Error(parseError) = {
 
 const parse -> Result(int) = (&str: string) {
     if ... {
-        return Err <| parseError.{};
+        return Err <| parseError.{}
     }
 }
 
-const main -> Result(()) = () {
-    let str = "Hello";
-    let result = parse(str)?;
-    println("result: {d}", {result});
+const main -> Result(unit) = () {
+    let str = "Hello"
+    let result = parse(str)?
+    println("result: {d}", {result})
 
     Ok(())
 }

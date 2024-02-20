@@ -1,5 +1,3 @@
-const std = warp.import("std");
-
 const Num = interface ('a) {
     (+): fn (lhs, rhs: 'a) -> 'a
 }
@@ -9,29 +7,29 @@ const Vector = record {
     y: int
 }
 
-impl Num(Vector) = {
-    const (+) -> Vector = (lhs, rhs: Vector) {
-        Vector.{
-            x: lhs.x + rhs.x,
-            y: lhs.y + rhs.y
-        }
+const (+) -> Vector = (lhs, rhs: Vector) {
+    Vector.{
+        x: lhs.x + rhs.x,
+        y: lhs.y + rhs.y
     }
 }
 
-const add -> any Num = (x, y: any Num) {
+const add -> Num = (x, y: Num) {
     x + y
 }
 
-const main -> Result(()) = () {
-    let a = Vector.{x: 10, y: 5};
-    let b = Vector.{x: 5, y: 10};
-    let c = add(a, b);
+const main -> Result(unit) = () {
+    let a = Vector.{x: 10, y: 5}
+    let b = Vector.{x: 5, y: 10}
+    let c = add(a, b)
 
-    assert(c.x == 15 and c.y == 15)?;
+    assert(c.x == 15 and c.y == 15)?
 
-    let d = 10;
-    let e = 5;
-    let f = add(d, e);
+    let d = 10
+    let e = 5
+    let f = add(d, e)
 
-    assert(f == 15)?;
+    assert(f == 15)?
+
+    Ok <| ()
 }
