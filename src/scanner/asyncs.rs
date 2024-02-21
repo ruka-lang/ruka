@@ -4,7 +4,7 @@
 
 use crate::prelude::*;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::mem::take;
 use std::sync::Arc;
 
@@ -15,6 +15,7 @@ pub struct Scanner {
     pub tokens: Vec<Token>,
     pub errors: Vec<Error>,
     pub contents: Arc<str>,
+    pub line: usize,
     pub read: usize
 }
 
@@ -32,8 +33,8 @@ impl<'a, 'b> Scanner {
     /// ```
     ///
     /// ```
-    pub fn new(file: Arc<str>, contents: Arc<str>) -> Self {
-        let current_pos = Position::new(1, 1);
+    pub fn new(file: Arc<str>, line: usize, contents: Arc<str>) -> Self {
+        let current_pos = Position::new(line, 1);
         let tokens = vec![];
         let errors = vec![];
 
@@ -44,6 +45,7 @@ impl<'a, 'b> Scanner {
             contents,
             file: file.clone(),
             errors,
+            line,
             read: 0
         }
     }
@@ -56,10 +58,6 @@ impl<'a, 'b> Scanner {
             self.read = self.read + 1;
 
             self.current_pos.column += 1;
-            if self.read() == '\n' {
-                self.current_pos.line += 1;
-                self.current_pos.column = 1;
-            }
         }
     }
 

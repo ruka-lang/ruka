@@ -150,22 +150,31 @@ impl<'a, 'b> Compiler {
     pub fn compile_async(&'a self) -> Result<()> {
         let (tokens_tx, tokens_rx) = channel::unbounded();
 
-        for (_i, line) in self.contents.clone().unwrap().split('\n').enumerate() {
+        for (i, line) in self.contents.clone().unwrap().split('\n').enumerate() {
             let tokens_tx2 = tokens_tx.clone();
             let file = self.input.clone();
             let line = line.into();
+            let i = i + 1;
             thread::spawn(move ||{
-                let mut scanner = crate::scanner::asyncs::Scanner::new(file, line);
+                let mut scanner = crate::scanner::asyncs::Scanner::new(file, i, line);
                 let tokens = scanner.scan();
 
                 let _ = tokens_tx2.send(tokens);
+                drop(tokens_tx2);
             });
         }
 
-        for token in tokens_rx {
+        drop(tokens_tx);
+        let mut tokens: Vec<_> = tokens_rx.iter()
+            .map(|v| v.unwrap())
+            .flatten()
+            .collect::<Vec<_>>();
+        
+        tokens.sort_by(|l, r| l.pos.cmp(&r.pos));
+
+        for token in tokens {
             dbg!(&token);
         }
-
 
         Ok(())
     }

@@ -3,7 +3,7 @@
  */
 
 use std.string
-use /fib
+use ./fib
 
 const main -> Result(unit) = () {
     let n = gets()
