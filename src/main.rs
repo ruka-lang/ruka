@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     match &cli.command {
         Some(Commands::Compile{input, output}) => {
             let mut compiler = Compiler::new(input.clone(), output.clone())?;
-            compiler.compile()?;
+            compiler.compile_async()?;
 
             println!("{}", compiler.contents.unwrap());
         },

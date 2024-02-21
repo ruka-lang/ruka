@@ -6,9 +6,9 @@ use crate::prelude::*;
 use crate::cli::constants::*;
 
 use std::sync::Arc;
-use std::{env, fs/*, thread*/};
+use std::{env, fs, thread};
 use anyhow::{anyhow, Result};
-//use crossbeam::channel;
+use crossbeam::channel;
 
 /// Represents a compilation process, responsible for compiling a single file
 pub struct Compiler {
@@ -143,6 +143,29 @@ impl<'a, 'b> Compiler {
         let tokens = scanner.scan()?;
         
         dbg!(&tokens);
+
+        Ok(())
+    }
+
+    pub fn compile_async(&'a self) -> Result<()> {
+        let (tokens_tx, tokens_rx) = channel::unbounded();
+
+        for (_i, line) in self.contents.clone().unwrap().split('\n').enumerate() {
+            let tokens_tx2 = tokens_tx.clone();
+            let file = self.input.clone();
+            let line = line.into();
+            thread::spawn(move ||{
+                let mut scanner = crate::scanner::asyncs::Scanner::new(file, line);
+                let tokens = scanner.scan();
+
+                let _ = tokens_tx2.send(tokens);
+            });
+        }
+
+        for token in tokens_rx {
+            dbg!(&token);
+        }
+
 
         Ok(())
     }
