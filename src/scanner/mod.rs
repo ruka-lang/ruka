@@ -7,9 +7,6 @@ use crate::prelude::*;
 use anyhow::{anyhow, Result};
 use std::mem::take;
 
-use self::error::ScanError;
-
-pub mod error;
 pub mod token;
 
 /// Scanning process, responsible for scanning a single file
@@ -176,8 +173,9 @@ impl<'a, 'b> Scanner<'a> {
         self.advance(1);
 
         if self.read() != '"' {
-            self.compiler.errors.push(ScanError::new(
+            self.compiler.errors.push(Error::new(
                 self.compiler.input.clone(),
+                "Scanning error".into(),
                 "Unterminated string literal".into(),
                 self.current_pos.clone()
             ));
