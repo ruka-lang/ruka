@@ -108,9 +108,19 @@ impl<'a, 'b> Scanner<'a> {
 
         let str = &self.compiler.contents[start..end];
 
+        let token_type = match TokenType::try_keyword(str) {
+            Some(keyword) => keyword,
+            None => {
+                match TokenType::try_mode(str) {
+                    Some(mode) => mode,
+                    None => TokenType::Tag(str.into())
+                }
+            }
+        };
+
         Token::new(
-            TokenType::Tag(str.into()),
-            self.compiler.input.clone(),
+            token_type, 
+            self.compiler.input.clone(), 
             self.token_pos.clone()
         )
     }
@@ -556,7 +566,7 @@ mod scanner_tests {
 
         let expected = vec![
             Token::new(
-                TokenType::Tag("let".into()),
+                TokenType::Keyword(Keyword::Let),
                 "next token scanning test".into(),
                 Position::new(1, 1)
             ),
@@ -726,7 +736,7 @@ mod scanner_tests {
 
         let expected = vec![
             Token::new(
-                TokenType::Tag("let".into()),
+                TokenType::Keyword(Keyword::Let),
                 "string reading scanning test".into(),
                 Position::new(1, 1)
             ),
@@ -764,7 +774,7 @@ mod scanner_tests {
 
         let mut scanner = Scanner::new(&mut compiler);
         let actual = scanner.scan()?;
-        dbg!(&actual);
+
         check_results(actual, expected);
 
         Ok(())
@@ -776,7 +786,7 @@ mod scanner_tests {
 
         let expected = vec![
             Token::new(
-                TokenType::Tag("let".into()),
+                TokenType::Keyword(Keyword::Let),
                 "single comment skip scanning test".into(),
                 Position::new(1, 1)
             ),
@@ -818,7 +828,7 @@ mod scanner_tests {
 
         let expected = vec![
             Token::new(
-                TokenType::Tag("let".into()),
+                TokenType::Keyword(Keyword::Let),
                 "multi comment skip scanning test".into(),
                 Position::new(1, 1)
             ),
