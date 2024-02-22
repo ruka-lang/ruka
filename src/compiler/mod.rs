@@ -128,19 +128,8 @@ impl<'a, 'b> Compiler {
     ///
     /// ```
     pub fn compile(&'a mut self) -> Result<()> {
-        //let (tokens_tx, tokens_rx) = channel::unbounded();
-        //let tokens_tx2 = tokens_tx.clone();
-
-        //for (i, line) in self.contents.as_ref().unwrap().split('\n').enumerate() {
-        //    thread::spawn(move ||{
-        //        let mut scanner = Scanner::new(line);
-        //        let tokens = scanner.scan();
-
-        //        let _ = tokens_tx2.send(tokens);
-        //    });
-        //}
         let mut scanner = Scanner::new(self);
-        let tokens = scanner.scan()?;
+        let tokens = scanner.scan();
 
         dbg!(&tokens);
 
@@ -167,7 +156,6 @@ impl<'a, 'b> Compiler {
 
         drop(tokens_tx);
         let mut tokens: Vec<_> = tokens_rx.iter()
-            .map(|v| v.unwrap())
             .flatten()
             .collect();
 

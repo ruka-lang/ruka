@@ -4,7 +4,6 @@
 
 use crate::prelude::*;
 
-use anyhow::Result;
 use std::mem::take;
 use std::sync::Arc;
 
@@ -21,14 +20,14 @@ pub struct Scanner {
 
 impl<'a, 'b> Scanner {
     /// Creates a new Scanner process
-    /// 
-    /// # Arguments 
-    /// * `compiler` - 
+    ///
+    /// # Arguments
+    /// * `compiler` -
     ///
     /// # Returns
     /// * A new Scanner process
     ///
-    /// # Examples 
+    /// # Examples
     ///
     /// ```
     ///
@@ -82,7 +81,7 @@ impl<'a, 'b> Scanner {
             .chars()
             .nth(self.read).unwrap()
     }
-    
+
     //
     fn _peek_plus(&self, count: usize) -> char {
         if self.read + count >= self.contents.len() {
@@ -98,19 +97,19 @@ impl<'a, 'b> Scanner {
     fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
         let mut end = start;
-        
+
         let mut char = self.read();
         while is_alphanumeric(char) {
-            end += 1; 
+            end += 1;
             self.advance(1);
             char = self.read();
-        } 
+        }
 
         let str = &self.contents[start..end];
 
         Token::new(
-            TokenType::Tag(str.into()), 
-            self.file.clone(), 
+            TokenType::Tag(str.into()),
+            self.file.clone(),
             self.token_pos.clone()
         )
     }
@@ -120,11 +119,11 @@ impl<'a, 'b> Scanner {
         let start = self.read;
         let mut end = start;
         let mut is_float = false;
-        
+
         let mut char = self.read();
         while is_numeric(char) {
-            end += 1; 
-            
+            end += 1;
+
             if self.read() == '.' {
                 self.read_integer(&mut end);
                 is_float = true;
@@ -133,7 +132,7 @@ impl<'a, 'b> Scanner {
 
             self.advance(1);
             char = self.read();
-        } 
+        }
 
         let str = &self.contents[start..end];
         let ttype = match is_float {
@@ -142,8 +141,8 @@ impl<'a, 'b> Scanner {
         };
 
         Token::new(
-            ttype, 
-            self.file.clone(), 
+            ttype,
+            self.file.clone(),
             self.token_pos.clone()
         )
     }
@@ -154,10 +153,10 @@ impl<'a, 'b> Scanner {
 
         let mut char = self.read();
         while is_integral(char) {
-            *end += 1; 
+            *end += 1;
             self.advance(1);
             char = self.read();
-        } 
+        }
     }
 
     //
@@ -191,13 +190,13 @@ impl<'a, 'b> Scanner {
 
     //
     fn try_compound_operator(
-        &'b mut self, 
+        &'b mut self,
         matches: Vec<(usize, &str, TokenType)>
     ) -> Option<TokenType> {
         for (count, operator, kind) in matches.iter() {
             let start = self.read;
             let end = (self.read + count).clamp(0, self.contents.len());
-            
+
             if &self.contents[start..end] == *operator {
                 self.advance(*count);
                 return Some(kind.clone());
@@ -239,12 +238,12 @@ impl<'a, 'b> Scanner {
             if ch == '*' && next == '/' {
                 self.advance(2);
                 break;
-            } 
+            }
 
             self.advance(1);
             ch = self.read();
             next = self.peek();
-        } 
+        }
     }
 
     //
@@ -502,8 +501,8 @@ impl<'a, 'b> Scanner {
             },
             '\0' => {
                 Token::new(
-                    TokenType::Eof, 
-                    self.file.clone(), 
+                    TokenType::Eof,
+                    self.file.clone(),
                     self.token_pos.clone()
                 )
             },
@@ -511,8 +510,8 @@ impl<'a, 'b> Scanner {
             ch => {
                 self.advance(1);
                 Token::new(
-                    TokenType::from_char(ch), 
-                    self.file.clone(), 
+                    TokenType::from_char(ch),
+                    self.file.clone(),
                     self.token_pos.clone()
                 )
             }
@@ -520,16 +519,16 @@ impl<'a, 'b> Scanner {
     }
 
     ///
-    pub fn scan(&'a mut self) -> Result<Vec<Token>> {
+    pub fn scan(&'a mut self) -> Vec<Token> {
         let mut token = self.next_token();
 
         while token.kind != TokenType::Eof {
             self.tokens.push(token);
             token = self.next_token();
         }
-        
+
         self.tokens.push(token);
 
-        Ok(take(&mut self.tokens))
+        take(&mut self.tokens)
     }
 }

@@ -11,9 +11,9 @@ use clap::Parser;
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    match &cli.command {
+    match cli.command {
         Some(Commands::Compile { input, output }) => {
-            let mut compiler = Compiler::new(input.clone(), output.clone())?;
+            let mut compiler = Compiler::new(input, output)?;
             compiler.compile()?;
 
             println!("{}", compiler.contents);

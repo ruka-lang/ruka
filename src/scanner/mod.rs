@@ -4,7 +4,6 @@
 
 use crate::prelude::*;
 
-use anyhow::{anyhow, Result};
 use std::mem::take;
 
 pub mod asyncs;
@@ -119,8 +118,8 @@ impl<'a, 'b> Scanner<'a> {
         };
 
         Token::new(
-            token_type, 
-            self.compiler.input.clone(), 
+            token_type,
+            self.compiler.input.clone(),
             self.token_pos.clone()
         )
     }
@@ -532,7 +531,7 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     ///
-    pub fn scan(&'a mut self) -> Result<Vec<Token>> {
+    pub fn scan(&'a mut self) -> Vec<Token> {
         let mut token = self.next_token();
 
         while token.kind != TokenType::Eof {
@@ -542,7 +541,7 @@ impl<'a, 'b> Scanner<'a> {
 
         self.tokens.push(token);
 
-        Ok(take(&mut self.tokens))
+        take(&mut self.tokens)
     }
 }
 
@@ -561,7 +560,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_next_token() -> Result<()> {
+    fn test_next_token() {
         let source = "let x = 12_000 12_000.50;";
 
         let expected = vec![
@@ -608,7 +607,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan()?;
+        let actual = scanner.scan();
 
         check_results(actual, expected);
 
@@ -616,7 +615,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_compound_op() -> Result<()> {
+    fn test_compound_op() {
         let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..= :=";
 
         let expected = vec![
@@ -723,7 +722,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan()?;
+        let actual = scanner.scan();
 
         check_results(actual, expected);
 
@@ -731,7 +730,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_string_reading() -> Result<()> {
+    fn test_string_reading() {
         let source = "let x = \"Hello, world!\";";
 
         let expected = vec![
@@ -773,7 +772,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan()?;
+        let actual = scanner.scan();
 
         check_results(actual, expected);
 
@@ -781,7 +780,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_skip_single_comment() -> Result<()> {
+    fn test_skip_single_comment() {
         let source = "let x = //12_000 12_000.50;";
 
         let expected = vec![
@@ -813,7 +812,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan()?;
+        let actual = scanner.scan();
 
         check_results(actual, expected);
 
@@ -821,7 +820,7 @@ mod scanner_tests {
     }
 
     #[test]
-    fn test_skip_multi_comment() -> Result<()> {
+    fn test_skip_multi_comment() {
         let source = "let x = /*\
             12_000 12_000.50;   \
             */";
@@ -855,7 +854,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan()?;
+        let actual = scanner.scan();
 
         check_results(actual, expected);
 
