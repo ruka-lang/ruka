@@ -14,7 +14,7 @@ use crossbeam::channel;
 pub struct Compiler {
     pub input: Arc<str>,
     pub output: Option<Arc<str>>,
-    pub contents: Option<Box<str>>,
+    pub contents: Box<str>,
     pub ast: Option<Box<Ast>>,
     pub context: Vec<()>,
     pub errors: Vec<Error>
@@ -27,7 +27,7 @@ impl<'a, 'b> Compiler {
     /// * `input`  -
     /// * `output` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * An anyhow::Result, containing the Compiler process if successful
     ///
     /// # Examples
@@ -51,9 +51,9 @@ impl<'a, 'b> Compiler {
         let errors = vec![];
 
         Ok(Self{
-            input, 
+            input,
             output,
-            contents: Some(contents),
+            contents,
             ast: None,
             context: vec![],
             errors
@@ -66,7 +66,7 @@ impl<'a, 'b> Compiler {
     /// * `source`  -
     /// * `contents` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * A Compiler process
     ///
     /// # Examples
@@ -78,22 +78,22 @@ impl<'a, 'b> Compiler {
         let errors = vec![];
 
         Self{
-            input: source, 
+            input: source,
             output: None,
-            contents: Some(contents),
+            contents,
             ast: None,
             context: vec![],
             errors
         }
     }
-    
+
     /// Creates a new Compiler process for compiling an AST
     ///
     /// # Arguments
     /// * `source`  -
     /// * `contents` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * A Compiler process
     ///
     /// # Examples
@@ -105,9 +105,9 @@ impl<'a, 'b> Compiler {
         let errors = vec![];
 
         Self{
-            input: source, 
+            input: source,
             output: None,
-            contents: None,
+            contents: "".into(),
             ast: Some(ast),
             context: vec![],
             errors
@@ -117,9 +117,9 @@ impl<'a, 'b> Compiler {
     /// Starts the compilation process
     ///
     /// # Arguments
-    /// * `self` - 
+    /// * `self` -
     ///
-    /// # Returns 
+    /// # Returns
     /// * An anyhow::Result containing unit if successful
     ///
     /// # Examples
@@ -141,7 +141,7 @@ impl<'a, 'b> Compiler {
         //}
         let mut scanner = Scanner::new(self);
         let tokens = scanner.scan()?;
-        
+
         dbg!(&tokens);
 
         Ok(())
@@ -150,11 +150,12 @@ impl<'a, 'b> Compiler {
     pub fn compile_async(&'a self) -> Result<()> {
         let (tokens_tx, tokens_rx) = channel::unbounded();
 
-        for (i, line) in self.contents.clone().unwrap().split('\n').enumerate() {
+        for (i, line) in self.contents.split('\n').enumerate() {
             let tokens_tx2 = tokens_tx.clone();
             let file = self.input.clone();
             let line = line.into();
             let i = i + 1;
+
             thread::spawn(move ||{
                 let mut scanner = crate::scanner::asyncs::Scanner::new(file, i, line);
                 let tokens = scanner.scan();
@@ -168,8 +169,8 @@ impl<'a, 'b> Compiler {
         let mut tokens: Vec<_> = tokens_rx.iter()
             .map(|v| v.unwrap())
             .flatten()
-            .collect::<Vec<_>>();
-        
+            .collect();
+
         tokens.sort_by(|l, r| l.pos.cmp(&r.pos));
 
         for token in tokens {
@@ -178,13 +179,13 @@ impl<'a, 'b> Compiler {
 
         Ok(())
     }
-    
+
     /// Starts the interpretation process
     ///
     /// # Arguments
-    /// * `self` - 
+    /// * `self` -
     ///
-    /// # Returns 
+    /// # Returns
     /// * An anyhow::Result containing unit if successful
     ///
     /// # Examples
