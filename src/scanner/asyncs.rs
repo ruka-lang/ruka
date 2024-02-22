@@ -533,4 +533,3 @@ impl<'a, 'b> Scanner {
         Ok(take(&mut self.tokens))
     }
 }
-

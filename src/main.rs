@@ -14,12 +14,12 @@ fn main() -> Result<()> {
     match &cli.command {
         Some(Commands::Compile{input, output}) => {
             let mut compiler = Compiler::new(input.clone(), output.clone())?;
-            compiler.compile_async()?;
+            compiler.compile()?;
 
             println!("{}", compiler.contents.unwrap());
         },
         _ => {}
     }
 
-    return Ok(());
+    Ok(())
 }
