@@ -10,7 +10,9 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
         - Sum types
         - Predefined Error interface for defining own error types
     - Uniform function call syntax
+    - Methods
     - Interfaces for shared functionality, can apply to any kind of types
+        - Interfaces can specify function requirements and method requirements
     - First class Functions, Modules, Interfaces, and Types
     - Compile time execution of Ruka code
     - Mutable semantics
@@ -32,8 +34,8 @@ Here is a list of `Ruka`'s primitive types:
   - 12.2, architecture dependent size
 - `f#`     
   - \# bit float i.e. f32
-- `byte`   
-  - 'a' or 0xfd
+- `char`   
+  - 'a'
 - `string`
   - "Hello, world!"
   - "| Multi
