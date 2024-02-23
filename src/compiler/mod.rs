@@ -133,10 +133,13 @@ impl<'a, 'b> Compiler {
 
         dbg!(&tokens);
 
-        Ok(())
+        match self.errors.is_empty() {
+            true => Ok(()),
+            _ => Err(anyhow!("Compiler with errors"))
+        }
     }
 
-    pub fn compile_async(&'a self) -> Result<()> {
+    pub fn _compile_async(&'a self) -> Result<()> {
         let (tokens_tx, tokens_rx) = channel::unbounded();
 
         for (i, line) in self.contents.split('\n').enumerate() {
