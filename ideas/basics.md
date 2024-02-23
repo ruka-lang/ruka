@@ -16,7 +16,7 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
     - Interfaces for shared functionality, can apply to any kind of types
         - Interfaces can specify function requirements and method requirements
     - First class Functions, Modules, Interfaces, and Types
-    - Compile time execution of Ruka code
+    - Metaprogramming by Compile time execution of Ruka code
     - Mutable semantics
     - Named arguments
 
