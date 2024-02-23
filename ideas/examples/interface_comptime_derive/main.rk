@@ -1,14 +1,14 @@
 use std
 
 const Num = interface ('a) do
-    (+): fn (lhs, rhs: 'a) -> 'a
+    (+): fn (rhs: &'a) -> 'a
 end
 
 const num -> module = (@'a: type) do
     module {
         const t = 'a;
 
-        pub const (+) -> t = (lhs, rhs: t) do
+        pub const (+)(lhs: &t) -> t = (rhs: &t) do
             use ruka.reflection
 
             let mut result = t.{}
