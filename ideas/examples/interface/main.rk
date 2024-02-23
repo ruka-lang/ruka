@@ -1,5 +1,6 @@
 const Num = interface ('a) {
-    (+): fn (lhs, rhs: 'a) -> 'a
+    (+): fn (&'a, &'a) -> 'a
+    add: fn (&'a)(&'a) -> 'a
 }
 
 const Vector = record {
@@ -7,7 +8,14 @@ const Vector = record {
     y: int
 }
 
-const (+) -> Vector = (lhs, rhs: Vector) {
+const (+) -> Vector = (lhs, rhs: &Vector) {
+    Vector.{
+        x: lhs.x + rhs.x,
+        y: lhs.y + rhs.y
+    }
+}
+
+const add(lhs: &Vector) -> Vector = (rhs: &Vector) {
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
@@ -15,7 +23,7 @@ const (+) -> Vector = (lhs, rhs: Vector) {
 }
 
 const add -> Num = (x, y: Num) {
-    x + y
+    x + y // x.add(&y)
 }
 
 const main -> Result(unit) = () {
