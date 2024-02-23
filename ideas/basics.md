@@ -1,11 +1,13 @@
 # Ruka
 
 Ruka is planned to be a general use, compiled programming language. Ruka's planned features include:
-    - Strong Static Typing
-    - Memory Management:
+    - Strong static typing
+    - Memory management:
         - Either:
             - Ownership & Borrow Checking a la Rust
             - GC with Ownership & Borrow Checking for greater control over lifetimes
+    - Pattern matching
+        - Can pattern match over array slices
     - Errors as values:
         - Sum types
         - Predefined Error interface for defining own error types
