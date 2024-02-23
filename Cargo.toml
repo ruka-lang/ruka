@@ -1,11 +1,11 @@
 [package]
-name = "warpc"
+name = "rukac"
 version = "0.1.0"
-description = "Compiler for the Warp programming language"
+description = "Compiler for the Ruka programming language"
 edition = "2021"
 
 [lib]
-doctest = false
+doctest = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

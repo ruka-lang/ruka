@@ -18,7 +18,7 @@ const fibonacci' -> int = (n: int, mut arr: &[]int) {
 
 test `fibonacci` -> Result(unit) = () {
     let result = fibonacci(5)
-    assert(result == 5)?
+    ruka.assert(result == 5)?
 
     Ok <| ()
 }

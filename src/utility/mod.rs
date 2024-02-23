@@ -23,10 +23,10 @@ pub fn is_integral(ch: char) -> bool {
 
 //
 pub fn is_numeric(ch: char) -> bool {
-    return is_integral(ch) || ch == '.';
+    is_integral(ch) || ch == '.'
 }
 
 //
 pub fn is_alphanumeric(ch: char) -> bool {
-    return is_alphabetical(ch) || is_integral(ch);
+    is_alphabetical(ch) || is_integral(ch)
 }

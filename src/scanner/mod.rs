@@ -610,8 +610,6 @@ mod scanner_tests {
         let actual = scanner.scan();
 
         check_results(actual, expected);
-
-        Ok(())
     }
 
     #[test]
@@ -725,8 +723,6 @@ mod scanner_tests {
         let actual = scanner.scan();
 
         check_results(actual, expected);
-
-        Ok(())
     }
 
     #[test]
@@ -775,8 +771,6 @@ mod scanner_tests {
         let actual = scanner.scan();
 
         check_results(actual, expected);
-
-        Ok(())
     }
 
     #[test]
@@ -815,8 +809,6 @@ mod scanner_tests {
         let actual = scanner.scan();
 
         check_results(actual, expected);
-
-        Ok(())
     }
 
     #[test]
@@ -857,7 +849,5 @@ mod scanner_tests {
         let actual = scanner.scan();
 
         check_results(actual, expected);
-
-        Ok(())
     }
 }

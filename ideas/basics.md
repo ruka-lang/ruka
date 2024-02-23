@@ -1,6 +1,6 @@
-# Warp
+# Ruka
 
-Warp is planned to be a general use, compiled programming language. Warp's planned features include:
+Ruka is planned to be a general use, compiled programming language. Ruka's planned features include:
     - Strong Static Typing
     - Memory Management:
         - Either:
@@ -12,14 +12,14 @@ Warp is planned to be a general use, compiled programming language. Warp's plann
     - Uniform function call syntax
     - Interfaces for shared functionality, can apply to any kind of types
     - First class Functions, Modules, Interfaces, and Types
-    - Compile time execution of Warp code
+    - Compile time execution of Ruka code
     - Mutable semantics
     - Named arguments
 
 # The following is NOT up-to-date/accurate
 
 ## Basic Primitive Types
-Here is a list of `Warp`'s primitive types:
+Here is a list of `Ruka`'s primitive types:
 - `int`    
   - 12, architecture dependent size
 - `i#`     
@@ -48,7 +48,7 @@ Here is a list of `Warp`'s primitive types:
   - also ().
 - `null`
 - `type` 
-  - i32, int, char, MyRecord. Types are values in `Warp`
+  - i32, int, char, MyRecord. Types are values in `Ruka`
 - `module`
 - `interface`
 - `error`
@@ -62,7 +62,7 @@ Here is a list of `Warp`'s primitive types:
 - `any`
 
 ## Primitive Data Collections
-`Warp` has a few primitive data collections for you to use:
+`Ruka` has a few primitive data collections for you to use:
 - `Array`
 ```rust
 // Arrays are static, their sizes cannot change and must be known at compile time
@@ -80,11 +80,11 @@ std.testing.expect(num == 2);
 ```
 
 - `Tuple`  
-Tuples can be indexed, or destructured using pattern matching. The warp.len() function can be used to assess the length of a tuple
+Tuples can be indexed, or destructured using pattern matching. The ruka.len() function can be used to assess the length of a tuple
 ```rust
 let pos = {10, 15};
 
-std.testing.expect(warp.len(pos) == 2);
+std.testing.expect(ruka.len(pos) == 2);
 
 let {x, y} = {pos[0], pos[1]};
 let x, y = pos; // The lhs braces are not required
@@ -126,7 +126,7 @@ let name = foo ++ " " ++ bar;
 ```
 
 ## Function Basics
-All functions in `Warp` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
+All functions in `Ruka` are anonymous closures, so function definition involves storing a function literal in a binding. Captured variables must be explicitly captured.
 
 Anonymous function creation follows the form of:
 <pre>
@@ -251,7 +251,7 @@ match (nums[..]) {
 
 ```
 
-`Warp` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
+`Ruka` also has a pattern matching operator `=~`, which returns rhs if pattern matches, otherwise returns null.
 ```rust
 let input = "foo";
 let reg = `foo|bar`;
@@ -298,7 +298,7 @@ unless (condition) {
 ```
 
 ## Loops
-`Warp` has two looping constructs, range-based for loops, and while loops.
+`Ruka` has two looping constructs, range-based for loops, and while loops.
 ```rust
 for (iterable, iterable2) { |i, i2|
 
@@ -333,7 +333,7 @@ const add = (x, y: int) => int {
 };
 
 // Function types can be specified separately
-warp.type(fn (int, int, int) -> int)
+ruka.type(fn (int, int, int) -> int)
 const add_three = (x, y, z) do return x + y + z;
 ```
 
@@ -424,7 +424,7 @@ if (.ok =~ x) { |z|
 ```
 
 ## Modules
-In `Warp`, modules are collections of bindings. Bindings can be let or const.
+In `Ruka`, modules are collections of bindings. Bindings can be let or const.
 All modules are anonymous, named modules are made by storing modules in bindings
 ``` rust
 const Constants = module {
@@ -448,7 +448,7 @@ const MoreConstants = module {
 
 ## Methods
 
-There are no methods in Warp, instead Warp uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
+There are no methods in Ruka, instead Ruka uses UFCS(Uniform Function Call Syntax), meaning any function can be used as a method aslong as the first parameter matches the type of the variable it is being called on
 ```rust
 const Player = record {
     pos: {f32, f32},
@@ -467,22 +467,22 @@ player.set_pos({0.0, 10.0});
 
 ## File imports
 When files are imported, they are stored as modules.
-Builtin functions are under the implicitly imported warp module
+Builtin functions are under the implicitly imported ruka module
 ```rust
-const std = warp.import("std");
+const std = ruka.import("std");
 ```
 
 ## Signals
 Reactivity
 ```rust
 // name: &string, update_name: signal
-let {name, update_name} = warp.signal(string);
+let {name, update_name} = ruka.signal(string);
 ```
 
 ## Threads
 Green threads
 ```rust
-let tid = warp.spawn(() => {
+let tid = ruka.spawn(() => {
     // Some code
 });
 defer tid.join();
@@ -490,10 +490,10 @@ defer tid.join();
 
 ## Channels
 ```rust
-let chan = warp.channel(string);
+let chan = ruka.channel(string);
 
 for (0..10) { |i|
-    warp.spawn(() { |*chan|
+    ruka.spawn(() { |*chan|
         chan.*.send(i);
     });
 }
@@ -535,7 +535,7 @@ std.testing.expect(result.quo == 2);
 // Must be the final argument
 // ...tag can be used as shorthand for $any tuples
 const variadic = (...args) => {
-    let size = warp.len(args);
+    let size = ruka.len(args);
 
     for (0..size) { |i|
         std.fmt.printf("{} ", args[i]);
@@ -543,7 +543,7 @@ const variadic = (...args) => {
 };
 
 const members = (@tup: any) => {
-    inline for (warp.typeOf(tup).members) { |member|
+    inline for (ruka.typeOf(tup).members) { |member|
 
     }
 };
@@ -609,7 +609,7 @@ use compiler.{
 ```
 
 ## Traits
-`Warp` doesn't have inheritance, instead `Warp` uses interfaces called `traits`.
+`Ruka` doesn't have inheritance, instead `Ruka` uses interfaces called `traits`.
 
 Traits cannot specify data members, only methods
 ```rust
@@ -643,7 +643,7 @@ system(&player);
 ```
 
 ## Metaprogramming
-In `Warp`, metaprogramming is done using comptime expressions, which is just `Warp` code executed at compile time
+In `Ruka`, metaprogramming is done using comptime expressions, which is just `Ruka` code executed at compile time
 
 The return of compile time expressions is a reference to a static variable
 ```rust
@@ -677,13 +677,13 @@ const screen_size = @.{
 };
 ```
 ## First Class Modules
-In `Warp`, modules are first class, so they can be passed into and out of functions
+In `Ruka`, modules are first class, so they can be passed into and out of functions
 ```rust
 // To create a generic ds with methods, you must return a record with static bindings
 const List = (comptime@type: typeid) => moduleid {
     return module {
         const Node = record {
-            next: warp.this(),
+            next: ruka.this(),
             data: type
         };   
     
@@ -720,7 +720,7 @@ const idk = proto_idk
 ```
 
 ## Operators
-`Warp` has many operators and symbols, some have different meaning depending on context:
+`Ruka` has many operators and symbols, some have different meaning depending on context:
 ```
 - Miscelaneous Operators
   - /   : Namespace Resolution
@@ -789,7 +789,7 @@ const List = (comptime@type: typeid) => moduleid {
         let max_size = 100;
 
         const node = record {
-            next: warp.this()?,
+            next: ruka.this()?,
             data: type
         };
 
@@ -830,7 +830,7 @@ names.insert("foobar");
 ```
 
 ## Circuits
-`Warp` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
+`Ruka` has an extension called `Silver`, which integrates HDL into the language for simple FPGA development.
 
 Refer to `Silver` for details
 ```rust

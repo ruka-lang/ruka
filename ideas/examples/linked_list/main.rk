@@ -1,7 +1,7 @@
 const List -> module = (comptime 'a: type) {
     module {
         pub const t = record {
-            const Self = warp.this()
+            const Self = ruka.this()
 
             val: 'a,
             next: Option <| Self
@@ -52,5 +52,5 @@ const main = () {
         let mut list = List.new(12)
         list.push(16)
     */
-    println("List: [{}, {}]", {list.val, list.next.val})
+    ruka.println("List: [{}, {}]", {list.val, list.next.val})
 }

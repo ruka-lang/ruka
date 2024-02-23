@@ -1,0 +1,7 @@
+const main = () {
+    ruka.println("Hello, world!")
+}
+
+const main = () do
+    ruka.println("Hello, world!")
+end

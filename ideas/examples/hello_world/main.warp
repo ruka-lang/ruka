@@ -1,7 +1,0 @@
-const main = () {
-    println("Hello, world!")
-}
-
-const main = () do
-    println("Hello, world!")
-end

@@ -12,7 +12,7 @@ const main -> Result(unit) = () {
 
     let value = fib.fibonacci(n)
 
-    println("Fibonacci number {} is {}", {n, value})
+    ruka.println("Fibonacci number {} is {}", {n, value})
 
     () |> Ok
 }

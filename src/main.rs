@@ -2,8 +2,8 @@
  * @author: dwclake
  */
 
-use warpc::cli::*;
-use warpc::prelude::*;
+use rukac::cli::*;
+use rukac::prelude::*;
 
 use anyhow::Result;
 use clap::Parser;
