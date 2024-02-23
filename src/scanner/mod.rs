@@ -548,7 +548,6 @@ impl<'a, 'b> Scanner<'a> {
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
-    use anyhow::Result;
 
     fn check_results(actual: Vec<Token>, expected: Vec<Token>) {
         assert_eq!(actual.len(), expected.len());
