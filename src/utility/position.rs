@@ -3,7 +3,7 @@
  */
 
 /// Represents a position in a file
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Position {
     pub line: usize,
     pub column: usize
@@ -25,9 +25,9 @@ impl Position {
     ///
     /// ```
     pub fn new(line: usize, column: usize) -> Self {
-        return Self{
+        Self{
             line,
             column
-        };
+        }
     }
 }

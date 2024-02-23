@@ -3,7 +3,6 @@
  */
 
 pub use crate::compiler::Compiler;
-pub use crate::compiler::error::CompileError;
 
 pub use crate::interpreter::Interpreter;
 

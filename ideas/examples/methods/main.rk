@@ -1,0 +1,19 @@
+use std
+
+const Vector = struct {
+    x: int,
+    y: int
+}
+
+const add(self: &Vector) -> Vector = (other: &Vector) {
+    Vector.{
+        x: self.x + other.x,
+        y: self.y + other.y
+    }
+}
+
+const main = () {
+    let a = Vector.{ x: 1, y: 2 }
+    let b = Vector.{ x: 3, y: 4 }
+    let c = a.add(b)
+}

@@ -1,0 +1,28 @@
+const Result -> type = (@success: type) {
+    enum {
+        Ok(success),
+        Err(Error) // predefined interface
+    }
+}
+
+const parseError = struct {
+    ...
+}
+
+impl Error(parseError) = {
+    ...
+}
+
+const parse -> Result(int) = (&str: string) {
+    if ... {
+        return Err <| parseError.{}
+    }
+}
+
+const main -> Result(unit) = () {
+    let str = "Hello"
+    let result = parse(str)?
+    ruka.println("result: {d}", {result})
+
+    Ok(())
+}

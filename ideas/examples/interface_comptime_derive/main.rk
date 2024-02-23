@@ -1,0 +1,46 @@
+use std
+
+const Num = interface ('a) do
+    (+): fn (lhs, rhs: 'a) -> 'a
+end
+
+const num -> module = (@'a: type) do
+    module {
+        const t = 'a;
+
+        pub const (+) -> t = (lhs, rhs: t) do
+            use ruka.reflection
+
+            let mut result = t.{}
+
+            inline for reflection.members(t) do |member|
+                result.(member) = lhs.(member) + rhs.(member)
+            end
+        end
+    }
+end
+
+const Vector = record {
+    x: int,
+    y: int
+} |> num()
+
+const add -> Num = (x, y: Num) do
+    x + y
+end
+
+const main -> Result(unit) = () do
+    let a = Vector.t.{x: 10, y: 5}
+    let b = Vector.t.{x: 5, y: 10}
+    let c = add(a, b)
+
+    ruka.assert(c.x == 15 and c.y == 15)?
+
+    let d = 10
+    let e = 5
+    let f = add(d, e)
+
+    ruka.assert(f == 15)?
+
+    Ok <| ()
+end

@@ -6,29 +6,28 @@ use crate::prelude::*;
 use crate::cli::constants::*;
 
 use std::sync::Arc;
-use std::{fs, env};
+use std::{env, fs, thread};
 use anyhow::{anyhow, Result};
-
-pub mod error;
+use crossbeam::channel;
 
 /// Represents a compilation process, responsible for compiling a single file
 pub struct Compiler {
     pub input: Arc<str>,
     pub output: Option<Arc<str>>,
-    pub contents: Option<Box<str>>,
+    pub contents: Box<str>,
     pub ast: Option<Box<Ast>>,
     pub context: Vec<()>,
-    pub errors: Vec<Box<dyn Error>>
+    pub errors: Vec<Error>
 }
 
-impl Compiler {
+impl<'a, 'b> Compiler {
     /// Creates a new Compiler process
     ///
     /// # Arguments
     /// * `input`  -
     /// * `output` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * An anyhow::Result, containing the Compiler process if successful
     ///
     /// # Examples
@@ -52,9 +51,9 @@ impl Compiler {
         let errors = vec![];
 
         Ok(Self{
-            input, 
+            input,
             output,
-            contents: Some(contents),
+            contents,
             ast: None,
             context: vec![],
             errors
@@ -67,7 +66,7 @@ impl Compiler {
     /// * `source`  -
     /// * `contents` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * A Compiler process
     ///
     /// # Examples
@@ -79,22 +78,22 @@ impl Compiler {
         let errors = vec![];
 
         Self{
-            input: source, 
+            input: source,
             output: None,
-            contents: Some(contents),
+            contents,
             ast: None,
             context: vec![],
             errors
         }
     }
-    
+
     /// Creates a new Compiler process for compiling an AST
     ///
     /// # Arguments
     /// * `source`  -
     /// * `contents` -
     ///
-    /// * Returns 
+    /// * Returns
     /// * A Compiler process
     ///
     /// # Examples
@@ -106,9 +105,9 @@ impl Compiler {
         let errors = vec![];
 
         Self{
-            input: source, 
+            input: source,
             output: None,
-            contents: None,
+            contents: "".into(),
             ast: Some(ast),
             context: vec![],
             errors
@@ -118,9 +117,9 @@ impl Compiler {
     /// Starts the compilation process
     ///
     /// # Arguments
-    /// * `self` - 
+    /// * `self` -
     ///
-    /// # Returns 
+    /// # Returns
     /// * An anyhow::Result containing unit if successful
     ///
     /// # Examples
@@ -128,21 +127,53 @@ impl Compiler {
     /// ```
     ///
     /// ```
-    pub fn compile(&mut self) -> Result<()> {
+    pub fn compile(&'a mut self) -> Result<()> {
         let mut scanner = Scanner::new(self);
-        let tokens = scanner.scan()?;
+        let tokens = scanner.scan();
 
         dbg!(&tokens);
 
         Ok(())
     }
-    
+
+    pub fn compile_async(&'a self) -> Result<()> {
+        let (tokens_tx, tokens_rx) = channel::unbounded();
+
+        for (i, line) in self.contents.split('\n').enumerate() {
+            let tokens_tx2 = tokens_tx.clone();
+            let file = self.input.clone();
+            let line = line.into();
+            let i = i + 1;
+
+            thread::spawn(move ||{
+                let mut scanner = crate::scanner::asyncs::Scanner::new(file, i, line);
+                let tokens = scanner.scan();
+
+                let _ = tokens_tx2.send(tokens);
+                drop(tokens_tx2);
+            });
+        }
+
+        drop(tokens_tx);
+        let mut tokens: Vec<_> = tokens_rx.iter()
+            .flatten()
+            .collect();
+
+        tokens.sort_by(|l, r| l.pos.cmp(&r.pos));
+
+        for token in tokens {
+            dbg!(&token);
+        }
+
+        Ok(())
+    }
+
     /// Starts the interpretation process
     ///
     /// # Arguments
-    /// * `self` - 
+    /// * `self` -
     ///
-    /// # Returns 
+    /// # Returns
     /// * An anyhow::Result containing unit if successful
     ///
     /// # Examples

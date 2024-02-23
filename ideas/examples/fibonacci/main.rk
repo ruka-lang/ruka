@@ -1,0 +1,18 @@
+/*
+ * Program to calculate fibonacci numbers
+ */
+
+use std.string
+use ./fib
+
+const main -> Result(unit) = () {
+    let n = gets()
+        |> string.parse() ~into: int 
+        |> (?)
+
+    let value = fib.fibonacci(n)
+
+    ruka.println("Fibonacci number {} is {}", {n, value})
+
+    () |> Ok
+}
