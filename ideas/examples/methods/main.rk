@@ -1,5 +1,3 @@
-use std
-
 const Vector = struct {
     x: int,
     y: int

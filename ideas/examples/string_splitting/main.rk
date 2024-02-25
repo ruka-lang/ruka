@@ -3,7 +3,7 @@
   * @author: dwclake
   */
 
-use std.(string.*, iter.*, testing)
+const testing = ruka.import("std").testing
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -19,18 +19,18 @@ const strsplit -> [..]string = (
     ch: u8
 ) {
     let mut indices = [..]{}
-    for {str, 1..} { |c, i|
+    for str, 1.. { |c, i|
         if c == ch => indices.push(i)
     }
 
     let mut words = [..]{}
     let mut prev = 0
     for indices { |idx|
-        words.push(str[prev..idx].into())
+        words.push(str[prev..idx].into(string))
         prev = idx + 1
     }
 
-    words.push(str[prev..str.len].into())
+    words.push(str[prev..str.len].into(string))
 
     words
 }

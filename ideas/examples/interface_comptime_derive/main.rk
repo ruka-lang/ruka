@@ -1,5 +1,3 @@
-use std
-
 const Num = interface ('a) do
     (+): fn (rhs: &'a) -> 'a
 end
@@ -9,7 +7,7 @@ const num -> module = (@'a: type) do
         const t = 'a;
 
         pub const (+)(lhs: &t) -> t = (rhs: &t) do
-            use ruka.reflection
+            const reflection = ruka.reflection
 
             let mut result = t.{}
 

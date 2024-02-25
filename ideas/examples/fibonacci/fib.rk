@@ -2,10 +2,10 @@ pub const fibonacci -> int = (n) {
     const BUFFER_SIZE = 50
     let mut cache = [BUFFER_SIZE]{0, 1, 1, -1}
 
-    fibonacci'(n, mut &cache)
+    fibonacci'(n, mut cache[..])
 }
 
-const fibonacci' -> int = (n: int, mut arr: &[]int) {
+const fibonacci' -> int = (n: int, mut arr: []int) {
     if n < 0 {
         0
     } else if cache[n] != -1 {
