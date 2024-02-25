@@ -36,7 +36,7 @@ Here is a list of `Ruka`'s primitive types:
   - 12.2, architecture dependent size
 - `f#`     
   - \# bit float i.e. f32
-- `char`   
+- `byte`   
   - 'a'
 - `string`
   - "Hello, world!"
