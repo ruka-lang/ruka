@@ -17,29 +17,29 @@ const testing = ruka.import("std").testing
 const strsplit -> [..]string = (
     str: string,
     ch: u8
-) {
+) do
     let mut indices = [..]{}
-    for str, 1.. { |c, i|
+    for str, 1.. do |c, i|
         if c == ch => indices.push(i)
-    }
+    end
 
     let mut words = [..]{}
     let mut prev = 0
-    for indices { |idx|
+    for indices do |idx|
         words.push(str[prev..idx].into(string))
         prev = idx + 1
-    }
+    end
 
     words.push(str[prev..str.len].into(string))
 
     words
-}
+end
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = () do
     let words = "Hello, world!"
         |> strsplit(' ')
 
     ruka.assert(words.len == 2)?
 
     Ok(())
-}
+end

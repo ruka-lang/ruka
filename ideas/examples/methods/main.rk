@@ -3,15 +3,15 @@ const Vector = struct {
     y: int
 }
 
-const add(self: &Vector) -> Vector = (other: &Vector) {
+const add(self: &Vector) -> Vector = (other: &Vector) do
     Vector.{
         x: self.x + other.x,
         y: self.y + other.y
     }
-}
+end
 
-const main = () {
+const main = () do
     let a = Vector.{ x: 1, y: 2 }
     let b = Vector.{ x: 3, y: 4 }
     let c = a.add(b)
-}
+end

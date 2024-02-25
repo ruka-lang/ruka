@@ -5,7 +5,7 @@
 const string = ruka.import("std").string
 const fib = ruka.import("fib")
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = () do
     let n = gets()
         |> string.parse() ~into: int
         |> (?)
@@ -15,4 +15,4 @@ const main -> Result(unit) = () {
     ruka.println("Fibonacci number {} is {}", {n, value})
 
     () |> Ok
-}
+end

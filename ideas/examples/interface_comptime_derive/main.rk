@@ -1,5 +1,5 @@
 const Num = interface ('a) do
-    (+): fn (rhs: &'a) -> 'a
+    (+): (rhs: &'a) -> 'a
 end
 
 const num -> module = (@'a: type) do

@@ -1,6 +1,6 @@
 const Num = interface ('a) {
-    (+): fn (&'a) -> 'a
-    add: fn (&'a) -> 'a
+    (+): (&'a) -> 'a
+    add: (&'a) -> 'a
 }
 
 const Vector = record {
@@ -8,23 +8,23 @@ const Vector = record {
     y: int
 }
 
-const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) {
+const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-}
+end
 
-const add(lhs: &Vector) -> Vector = (rhs: &Vector) {
+const add(lhs: &Vector) -> Vector = (rhs: &Vector) do
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-}
+end
 
-const add -> Num = (x, y: Num) {
+const add -> Num = (x, y: Num) do
     x + y // x.add(&y)
-}
+end
 
 const main -> Result(unit) = () {
     let a = Vector.{x: 10, y: 5}

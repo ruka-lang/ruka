@@ -1,4 +1,4 @@
-const List -> module = (comptime 'a: type) {
+const List -> module = (comptime 'a: type) do
     module {
         pub const t = record {
             const Self = ruka.this()
@@ -7,29 +7,29 @@ const List -> module = (comptime 'a: type) {
             next: Option <| Self
         }
 
-        pub const new -> t = (val: 'a) {
+        pub const new -> t = (val: 'a) do
             t.{
                 val,
                 next = None
             }
-        }
+        end
 
-        pub const push(mut self: &t) = (val: 'a) {
-            if self.next == None {
+        pub const push(mut self: &t) = (val: 'a) do
+            if self.next == None do
                 sself.next = Some <| t.new(val)
-            } else {
+            else do
                 let mut current = self.next
-                while current.next != None {
+                while current.next != None do
                     current = current.next
-                }
+                end
 
                 current.next = Some <| t.new(val)
-            }
-        }
+            end
+        end
     }
-}
+end
 
-const main = () {
+const main = () do
     const IntList = List(int)
     let mut list = IntList.new(12)
     list.push(16)
@@ -41,4 +41,4 @@ const main = () {
         list.push(16)
     */
     ruka.println("List: [{}, {}]", {list.val, list.next.val})
-}
+end
