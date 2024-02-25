@@ -95,16 +95,14 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
-        let mut end = start;
 
         let mut char = self.read();
         while is_alphanumeric(char) {
-            end += 1;
             self.advance(1);
             char = self.read();
         }
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents[start..self.read];
 
         let token_type = match TokenType::try_keyword(str) {
             Some(keyword) => keyword,
@@ -126,15 +124,12 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn read_number(&'b mut self) -> Token {
         let start = self.read;
-        let mut end = start;
         let mut is_float = false;
 
         let mut char = self.read();
         while is_numeric(char) {
-            end += 1;
-
             if self.read() == '.' {
-                self.read_integer(&mut end);
+                self.read_integer();
                 is_float = true;
                 break;
             }
@@ -143,7 +138,7 @@ impl<'a, 'b> Scanner<'a> {
             char = self.read();
         }
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents[start..self.read];
         let ttype = match is_float {
             false => TokenType::Integer(str.into()),
             _     => TokenType::Float(str.into())
@@ -157,12 +152,11 @@ impl<'a, 'b> Scanner<'a> {
     }
 
     //
-    fn read_integer(&'b mut self, end: &mut usize) {
+    fn read_integer(&'b mut self) {
         self.advance(1);
 
         let mut char = self.read();
         while is_integral(char) {
-            *end += 1;
             self.advance(1);
             char = self.read();
         }
@@ -173,11 +167,9 @@ impl<'a, 'b> Scanner<'a> {
         self.advance(1);
 
         let start = self.read;
-        let mut end = start;
 
         while self.peek() != '"' && self.peek() != '\0' {
             self.advance(1);
-            end += 1;
         }
         self.advance(1);
 
@@ -190,9 +182,9 @@ impl<'a, 'b> Scanner<'a> {
             ));
         }
 
-        let contents = &self.compiler.contents;
+        let str = &self.compiler.contents[start..self.read - 1];
         Token::new(
-            TokenType::String(contents[start..end].into()),
+            TokenType::String(str.into()),
             self.compiler.input.clone(),
             self.token_pos.clone()
         )
