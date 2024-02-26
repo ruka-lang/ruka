@@ -166,36 +166,48 @@ impl<'a, 'b, 'c> Scanner<'a> {
     fn handle_escape_characters(&'b mut self, str: &String) -> String {
         let mut new_str = String::new();
         let mut i = 0;
+
         while i < str.len() {
             match str.chars().nth(i) {
                 Some('\\') => {
-                    match str.chars().nth(i + 1) {
-                        Some('n') => {
-                            i = i + 2;
-                            new_str.push('\n');
-                        },
+                    match try_escape_char(str.get(i..=i+1)) {
                         Some(ch) => {
-                            self.compiler.errors.push(Error::new(
-                                self.compiler.input.clone(),
-                                "Scanning error".into(),
-                                format!("Unrecognized escape character: \\{}", ch)
-                                    .into(),
-                                self.current_pos.clone()
-                            ));
-                            i = i + 1;
+                            i = i + 2;
+                            new_str.push(ch);
                         },
                         _ => {
-                            i = i + 1;
-                        }
+                            match str.chars().nth(i + 1) {
+                                Some(ch) => {
+                                    i = i + 1;
+                                    new_str.push('\\');
+
+                                    self.compiler.errors.push(Error::new(
+                                        self.compiler.input.clone(),
+                                        "Scanning error".into(),
+                                        format!("Unrecognized escape character: \\{}", ch)
+                                            .into(),
+                                        self.current_pos.clone()
+                                    ));
+                                },
+                                _ => {
+                                    new_str.push('\\');
+
+                                    self.compiler.errors.push(Error::new(
+                                        self.compiler.input.clone(),
+                                        "Scanning error".into(),
+                                        "Unterminated escape character".into(),
+                                        self.current_pos.clone()
+                                    ));
+                                }
+                            }
+                        },
                     }
                 },
                 Some(ch) => {
                     i = i + 1;
                     new_str.push(ch);
                 },
-                _ => {
-                    i = i + 1;
-                }
+                _ => {}
             }
         }
 

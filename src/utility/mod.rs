@@ -30,3 +30,19 @@ pub fn is_numeric(ch: char) -> bool {
 pub fn is_alphanumeric(ch: char) -> bool {
     is_alphabetical(ch) || is_integral(ch)
 }
+
+///
+pub fn is_escape_char(str: &str) -> bool {
+    match str {
+        "\\n" => true,
+        _     => false
+    }
+}
+
+///
+pub fn try_escape_char(str: Option<&str>) -> Option<char> {
+    match str {
+        Some("\\n") => Some('\n'),
+        _     => None
+    }
+}
