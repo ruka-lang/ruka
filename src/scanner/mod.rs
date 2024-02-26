@@ -17,7 +17,7 @@ pub struct Scanner<'a> {
     pub read: usize
 }
 
-impl<'a, 'b> Scanner<'a> {
+impl<'a, 'b, 'c> Scanner<'a> {
     /// Creates a new Scanner process
     ///
     /// # Arguments
@@ -162,20 +162,57 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    fn handle_escape_characters(&'b mut self) {
+    //
+    fn handle_escape_characters(&'b mut self, str: &String) -> String {
+        let mut new_str = String::new();
+        let mut i = 0;
+        while i < str.len() {
+            match str.chars().nth(i) {
+                Some('\\') => {
+                    match str.chars().nth(i + 1) {
+                        Some('n') => {
+                            i = i + 2;
+                            new_str.push('\n');
+                        },
+                        Some(ch) => {
+                            self.compiler.errors.push(Error::new(
+                                self.compiler.input.clone(),
+                                "Scanning error".into(),
+                                format!("Unrecognized escape character: \\{}", ch)
+                                    .into(),
+                                self.current_pos.clone()
+                            ));
+                            i = i + 1;
+                        },
+                        _ => {
+                            i = i + 1;
+                        }
+                    }
+                },
+                Some(ch) => {
+                    i = i + 1;
+                    new_str.push(ch);
+                },
+                _ => {
+                    i = i + 1;
+                }
+            }
+        }
 
+        new_str
     }
 
     // Reads a single line string currently w/o escape character support from the source
     fn read_string(&'b mut self) -> Token {
-        let start = self.read + 1;
+        let mut str = String::new();
 
         while self.peek() != '"' && self.peek() != '\0' {
+            str.push(self.peek());
             self.advance(1);
         }
-        self.advance(1);
+        self.advance(2);
 
-        if self.read() != '"' {
+        if self.prev() != '"' {
             self.compiler.errors.push(Error::new(
                 self.compiler.input.clone(),
                 "Scanning error".into(),
@@ -184,8 +221,7 @@ impl<'a, 'b> Scanner<'a> {
             ));
         }
 
-        self.advance(1);
-        let str = &self.compiler.contents[start..self.read - 1];
+        let str = self.handle_escape_characters(&str);
 
         Token::new(
             TokenType::String(str.into()),
@@ -756,6 +792,49 @@ mod scanner_tests {
 
         let mut compiler = Compiler::new_using_str(
             "string reading scanning test".into(),
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan();
+
+        check_results(actual, expected);
+    }
+
+    #[test]
+    fn test_escape_characters() {
+        let source = "let x = \"Hello, \\nworld!\"";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Keyword(Keyword::Let),
+                "escape character scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "escape character scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "escape character scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::String("Hello, \nworld!".into()),
+                "escape character scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "escape character scanning test".into(),
+                Position::new(1, 26)
+            )
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "escape character scanning test".into(),
             source.into()
         );
 
