@@ -52,7 +52,7 @@ impl<'a, 'b> Scanner<'a> {
             self.read = self.read + 1;
 
             self.current_pos.column += 1;
-            if self.read() == '\n' {
+            if self.prev() == '\n' {
                 self.current_pos.line += 1;
                 self.current_pos.column = 1;
             }
@@ -72,24 +72,24 @@ impl<'a, 'b> Scanner<'a> {
 
     //
     fn peek(&'b self) -> char {
-        if self.read >= self.compiler.contents.len() {
+        if self.read + 1 >= self.compiler.contents.len() {
             return '\0'
         }
 
         self.compiler.contents
             .chars()
-            .nth(self.read).unwrap()
+            .nth(self.read + 1).unwrap()
     }
 
     //
-    fn _peek_plus(&self, count: usize) -> char {
-        if self.read + count >= self.compiler.contents.len() {
+    fn prev(&self) -> char {
+        if self.read - 1 >= self.compiler.contents.len() {
             return '\0'
         }
 
         self.compiler.contents
             .chars()
-            .nth(self.read + count).unwrap()
+            .nth(self.read - 1).unwrap()
     }
 
     //
@@ -164,9 +164,7 @@ impl<'a, 'b> Scanner<'a> {
 
     //
     fn read_string(&'b mut self) -> Token {
-        self.advance(1);
-
-        let start = self.read;
+        let start = self.read + 1;
 
         while self.peek() != '"' && self.peek() != '\0' {
             self.advance(1);
@@ -182,7 +180,9 @@ impl<'a, 'b> Scanner<'a> {
             ));
         }
 
+        self.advance(1);
         let str = &self.compiler.contents[start..self.read - 1];
+
         Token::new(
             TokenType::String(str.into()),
             self.compiler.input.clone(),
@@ -771,9 +771,9 @@ mod scanner_tests {
 
     #[test]
     fn test_skip_multi_comment() {
-        let source = "let x = /*\
-            12_000 12_000.50   \
-            */";
+        let source = "let x = /*\n\
+                          12_000 12_000.50\n\
+                       */";
 
         let expected = vec![
             Token::new(
@@ -794,7 +794,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "multi comment skip scanning test".into(),
-                Position::new(1, 32)
+                Position::new(3, 3)
             )
         ];
 
