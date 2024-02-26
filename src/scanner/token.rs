@@ -254,6 +254,7 @@ impl TokenType {
             "inline"  => Some(TokenType::Keyword(Inline)), 
             "test"  => Some(TokenType::Keyword(Test)), 
             "as"  => Some(TokenType::Keyword(As)), 
+            "in"  => Some(TokenType::Keyword(In)), 
             // Reserved
             "private"  => Some(TokenType::Keyword(Private)), 
             "derive"  => Some(TokenType::Keyword(Derive)),  
@@ -264,7 +265,6 @@ impl TokenType {
             "impl"  => Some(TokenType::Keyword(Impl)),  
             "any"  => Some(TokenType::Keyword(Any)), 
             "mod"  => Some(TokenType::Keyword(Mod)), 
-            "in"  => Some(TokenType::Keyword(In)), 
             "fn"  => Some(TokenType::Keyword(Fn)),
 
             _     => None
@@ -346,6 +346,7 @@ pub enum Keyword {
     Inline,
     Test,
     As,
+    In,
     // Reserved
     Private,
     Derive,
@@ -356,8 +357,7 @@ pub enum Keyword {
     Impl,
     Any,
     Mod,
-    Fn,
-    In
+    Fn
 }
 
 impl Keyword {

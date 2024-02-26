@@ -1,7 +1,7 @@
 const main = () {
-    ruka.println("Hello, world!")
+    @.println("Hello, world!")
 }
 
 const main = () do
-    ruka.println("Hello, world!")
+    @.println("Hello, world!")
 end

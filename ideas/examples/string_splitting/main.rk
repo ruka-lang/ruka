@@ -3,7 +3,7 @@
   * @author: dwclake
   */
 
-const testing = ruka.import("std").testing
+const testing = @.import("std").testing
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -19,13 +19,13 @@ const strsplit -> [..]string = (
     ch: u8
 ) do
     let mut indices = [..]{}
-    for str, 1.. do |c, i|
+    for c, i in str, 1.. do
         if c == ch => indices.push(i)
     end
 
     let mut words = [..]{}
     let mut prev = 0
-    for indices do |idx|
+    for idx in indices do
         words.push(str[prev..idx].into(string))
         prev = idx + 1
     end
@@ -39,7 +39,7 @@ const main -> Result(unit) = () do
     let words = "Hello, world!"
         |> strsplit(' ')
 
-    ruka.assert(words.len == 2)?
+    @.assert(words.len == 2)?
 
     Ok(())
 end

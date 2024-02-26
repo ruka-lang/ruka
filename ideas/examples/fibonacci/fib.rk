@@ -18,7 +18,7 @@ end
 
 test `fibonacci` -> Result(unit) = () do
     let result = fibonacci(5)
-    ruka.assert(result == 5)?
+    @.assert(result == 5)?
 
     Ok <| ()
 end

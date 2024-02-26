@@ -2,8 +2,8 @@
  * Program to calculate fibonacci numbers
  */
 
-const string = ruka.import("std").string
-const fib = ruka.import("fib")
+const string = @.import("std").string
+const fib = @.import("fib")
 
 const main -> Result(unit) = () do
     let n = gets()
@@ -12,7 +12,7 @@ const main -> Result(unit) = () do
 
     let value = fib.fibonacci(n)
 
-    ruka.println("Fibonacci number {} is {}", {n, value})
+    @.println("Fibonacci number {} is {}", {n, value})
 
     () |> Ok
 end

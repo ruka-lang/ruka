@@ -22,7 +22,7 @@ const parse -> Result(int) = (&str: string) {
 const main -> Result(unit) = () {
     let str = "Hello"
     let result = parse(str)?
-    ruka.println("result: {d}", {result})
+    @.println("result: {d}", {result})
 
     Ok(())
 }
