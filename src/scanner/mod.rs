@@ -213,7 +213,7 @@ impl<'a, 'b> Scanner<'a> {
     //
     fn skip_whitespace(&'b mut self) {
         match self.read() {
-            ' ' | '\t' | '\n' => {
+            ' ' | '\t' => {
                 self.advance(1);
                 self.skip_whitespace();
             },
@@ -445,28 +445,16 @@ impl<'a, 'b> Scanner<'a> {
                 )
             },
             '~' => {
-                let kind = self.try_compound_operator(vec![
-                    (2, "~=", TokenType::PatternMatch)
-                ]);
-
-                let kind = match kind {
-                    Some(k) => k,
-                    None => {
-                        self.advance(1);
-                        TokenType::Tilde
-                    }
-                };
-
+                self.advance(1);
                 Token::new(
-                    kind,
+                    TokenType::Tilde,
                     self.compiler.input.clone(),
                     self.token_pos.clone()
                 )
             },
             '!' => {
                 let kind = self.try_compound_operator(vec![
-                    (2, "!=", TokenType::NotEqual),
-                    (2, "!~", TokenType::PatternNotMatch)
+                    (2, "!=", TokenType::NotEqual)
                 ]);
 
                 let kind = match kind {
@@ -551,7 +539,7 @@ mod scanner_tests {
 
     #[test]
     fn test_next_token() {
-        let source = "let x = 12_000 12_000.50;";
+        let source = "let x = 12_000 12_000.50";
 
         let expected = vec![
             Token::new(
@@ -580,14 +568,9 @@ mod scanner_tests {
                 Position::new(1, 16)
             ),
             Token::new(
-                TokenType::Semicolon,
-                "next token scanning test".into(),
-                Position::new(1, 25)
-            ),
-            Token::new(
                 TokenType::Eof,
                 "next token scanning test".into(),
-                Position::new(1, 26)
+                Position::new(1, 25)
             )
         ];
 
@@ -604,7 +587,7 @@ mod scanner_tests {
 
     #[test]
     fn test_compound_op() {
-        let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..= :=";
+        let source = "== != >= <= |> <| << >> ++ -- ** -> => .. ..= :=";
 
         let expected = vec![
             Token::new(
@@ -628,79 +611,69 @@ mod scanner_tests {
                 Position::new(1, 10)
             ),
             Token::new(
-                TokenType::PatternMatch,
+                TokenType::ReverseApp,
                 "compound operator scanning test".into(),
                 Position::new(1, 13)
             ),
             Token::new(
-                TokenType::PatternNotMatch,
+                TokenType::ForwardApp,
                 "compound operator scanning test".into(),
                 Position::new(1, 16)
             ),
             Token::new(
-                TokenType::ReverseApp,
+                TokenType::LeftShift,
                 "compound operator scanning test".into(),
                 Position::new(1, 19)
             ),
             Token::new(
-                TokenType::ForwardApp,
+                TokenType::RightShift,
                 "compound operator scanning test".into(),
                 Position::new(1, 22)
             ),
             Token::new(
-                TokenType::LeftShift,
+                TokenType::Increment,
                 "compound operator scanning test".into(),
                 Position::new(1, 25)
             ),
             Token::new(
-                TokenType::RightShift,
+                TokenType::Decrement,
                 "compound operator scanning test".into(),
                 Position::new(1, 28)
             ),
             Token::new(
-                TokenType::Increment,
+                TokenType::Power,
                 "compound operator scanning test".into(),
                 Position::new(1, 31)
             ),
             Token::new(
-                TokenType::Decrement,
+                TokenType::Arrow,
                 "compound operator scanning test".into(),
                 Position::new(1, 34)
             ),
             Token::new(
-                TokenType::Power,
+                TokenType::WideArrow,
                 "compound operator scanning test".into(),
                 Position::new(1, 37)
             ),
             Token::new(
-                TokenType::Arrow,
+                TokenType::RangeExc,
                 "compound operator scanning test".into(),
                 Position::new(1, 40)
             ),
             Token::new(
-                TokenType::WideArrow,
+                TokenType::RangeInc,
                 "compound operator scanning test".into(),
                 Position::new(1, 43)
             ),
             Token::new(
-                TokenType::RangeExc,
-                "compound operator scanning test".into(),
-                Position::new(1, 46)
-            ),
-            Token::new(
-                TokenType::RangeInc,
-                "compound operator scanning test".into(),
-                Position::new(1, 49)
-            ),
-            Token::new(
                 TokenType::AssignExp,
                 "compound operator scanning test".into(),
-                Position::new(1, 53)
+                Position::new(1, 47)
             ),
             Token::new(
                 TokenType::Eof,
                 "compound operator scanning test".into(),
-                Position::new(1, 55)
+                Position::new(1, 49)
             )
         ];
 
@@ -717,7 +690,7 @@ mod scanner_tests {
 
     #[test]
     fn test_string_reading() {
-        let source = "let x = \"Hello, world!\";";
+        let source = "let x = \"Hello, world!\"";
 
         let expected = vec![
             Token::new(
@@ -741,14 +714,9 @@ mod scanner_tests {
                 Position::new(1, 9)
             ),
             Token::new(
-                TokenType::Semicolon,
-                "string reading scanning test".into(),
-                Position::new(1, 24)
-            ),
-            Token::new(
                 TokenType::Eof,
                 "string reading scanning test".into(),
-                Position::new(1, 25)
+                Position::new(1, 24)
             )
         ];
 
@@ -765,7 +733,7 @@ mod scanner_tests {
 
     #[test]
     fn test_skip_single_comment() {
-        let source = "let x = //12_000 12_000.50;";
+        let source = "let x = //12_000 12_000.50";
 
         let expected = vec![
             Token::new(
@@ -786,7 +754,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "single comment skip scanning test".into(),
-                Position::new(1, 28)
+                Position::new(1, 27)
             )
         ];
 
@@ -804,7 +772,7 @@ mod scanner_tests {
     #[test]
     fn test_skip_multi_comment() {
         let source = "let x = /*\
-            12_000 12_000.50;   \
+            12_000 12_000.50   \
             */";
 
         let expected = vec![
@@ -826,7 +794,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "multi comment skip scanning test".into(),
-                Position::new(1, 33)
+                Position::new(1, 32)
             )
         ];
 

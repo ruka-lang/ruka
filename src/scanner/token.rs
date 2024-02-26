@@ -88,9 +88,8 @@ pub enum TokenType {
     GreaterEq,            // >=
     Equal,                // ==
     NotEqual,             // !=
-    PatternMatch,         // ~=
-    PatternNotMatch,      // !~
     // Others
+    Newline,              // '\n'
     Illegal,
     Eof
 }
@@ -136,6 +135,7 @@ impl TokenType {
             '<'  => TokenType::Lesser,
             '>'  => TokenType::Greater,
 
+            '\n' => TokenType::Newline,
             '\0' => TokenType::Eof,
             _    => TokenType::Illegal
         }
@@ -150,7 +150,7 @@ impl TokenType {
             "=>"  => Some(TokenType::WideArrow),
 
             ".."  => Some(TokenType::RangeExc),
-            "..." => Some(TokenType::RangeInc),
+            "..=" => Some(TokenType::RangeInc),
             "|>"  => Some(TokenType::ReverseApp),
             "<|"  => Some(TokenType::ForwardApp),
 
@@ -165,8 +165,6 @@ impl TokenType {
             ">="  => Some(TokenType::GreaterEq), 
             "=="  => Some(TokenType::NotEqual), 
             "!="  => Some(TokenType::Equal), 
-            "~="  => Some(TokenType::PatternMatch), 
-            "!~"  => Some(TokenType::PatternNotMatch), 
 
             _     => None
         }
