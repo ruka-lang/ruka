@@ -163,6 +163,32 @@ impl<'a, 'b, 'c> Scanner<'a> {
     }
 
     //
+    fn create_escape_error(
+        &'b mut self, 
+        i: &usize, 
+        str: &String
+    ) {
+        match str.chars().nth(*i + 1) {
+            Some(ch) => {
+                self.compiler.errors.push(Error::new(
+                    self.compiler.input.clone(),
+                    "Scanning error".into(),
+                    format!("Unrecognized escape character: \\{}", ch).into(),
+                    self.current_pos.clone()
+                ));
+            },
+            _ => {
+                self.compiler.errors.push(Error::new(
+                    self.compiler.input.clone(),
+                    "Scanning error".into(),
+                    "Unterminated escape character".into(),
+                    self.current_pos.clone()
+                ));
+            }
+        }
+    }
+
+    //
     fn handle_escape_characters(&'b mut self, str: &String) -> String {
         let mut new_str = String::new();
         let mut i = 0;
@@ -170,36 +196,16 @@ impl<'a, 'b, 'c> Scanner<'a> {
         while i < str.len() {
             match str.chars().nth(i) {
                 Some('\\') => {
-                    match try_escape_char(str.get(i..=i+1)) {
+                    match try_escape_char(str.get(i..i+2)) {
                         Some(ch) => {
                             i = i + 2;
                             new_str.push(ch);
                         },
                         _ => {
-                            match str.chars().nth(i + 1) {
-                                Some(ch) => {
-                                    i = i + 1;
-                                    new_str.push('\\');
+                            self.create_escape_error(&i, &str);
 
-                                    self.compiler.errors.push(Error::new(
-                                        self.compiler.input.clone(),
-                                        "Scanning error".into(),
-                                        format!("Unrecognized escape character: \\{}", ch)
-                                            .into(),
-                                        self.current_pos.clone()
-                                    ));
-                                },
-                                _ => {
-                                    new_str.push('\\');
-
-                                    self.compiler.errors.push(Error::new(
-                                        self.compiler.input.clone(),
-                                        "Scanning error".into(),
-                                        "Unterminated escape character".into(),
-                                        self.current_pos.clone()
-                                    ));
-                                }
-                            }
+                            i = i + 1;
+                            new_str.push('\\');
                         },
                     }
                 },
@@ -815,7 +821,7 @@ mod scanner_tests {
 
     #[test]
     fn test_escape_characters() {
-        let source = "let x = \"Hello, \\nworld!\"";
+        let source = "let x = \"Hello, \\n\\sworld!\"";
 
         let expected = vec![
             Token::new(
@@ -834,14 +840,14 @@ mod scanner_tests {
                 Position::new(1, 7)
             ),
             Token::new(
-                TokenType::String("Hello, \nworld!".into()),
+                TokenType::String("Hello, \n\\sworld!".into()),
                 "escape character scanning test".into(),
                 Position::new(1, 9)
             ),
             Token::new(
                 TokenType::Eof,
                 "escape character scanning test".into(),
-                Position::new(1, 26)
+                Position::new(1, 28)
             )
         ];
 
@@ -852,6 +858,10 @@ mod scanner_tests {
 
         let mut scanner = Scanner::new(&mut compiler);
         let actual = scanner.scan();
+
+        assert!(compiler.errors.len() == 1);
+        let message: Box<str> = "Unrecognized escape character: \\s".into();
+        assert!(compiler.errors[0].message() == &message);
 
         check_results(actual, expected);
     }
