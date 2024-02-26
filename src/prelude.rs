@@ -20,5 +20,4 @@ pub use crate::utility::is_alphabetical;
 pub use crate::utility::is_integral;
 pub use crate::utility::is_numeric;
 pub use crate::utility::is_alphanumeric;
-pub use crate::utility::is_escape_char;
 pub use crate::utility::try_escape_char;

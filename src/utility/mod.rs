@@ -32,17 +32,15 @@ pub fn is_alphanumeric(ch: char) -> bool {
 }
 
 ///
-pub fn is_escape_char(str: &str) -> bool {
-    match str {
-        "\\n" => true,
-        _     => false
-    }
-}
-
-///
 pub fn try_escape_char(str: Option<&str>) -> Option<char> {
     match str {
         Some("\\n") => Some('\n'),
+        Some("\\r") => Some('\r'),
+        Some("\\t") => Some('\t'),
+        Some("\\\\") => Some('\\'),
+        Some("\\'") => Some('\''),
+        Some("\\\"") => Some('\"'),
+        Some("\\0") => Some('\0'),
         _     => None
     }
 }
