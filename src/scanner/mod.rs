@@ -162,6 +162,10 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
+    fn handle_escape_characters(&'b mut self) {
+
+    }
+
     // Reads a single line string currently w/o escape character support from the source
     fn read_string(&'b mut self) -> Token {
         let start = self.read + 1;
@@ -188,6 +192,16 @@ impl<'a, 'b> Scanner<'a> {
             self.compiler.input.clone(),
             self.token_pos.clone()
         )
+    }
+
+    //
+    fn read_multiline_string(&'b mut self) -> Token {
+        Token::new(
+            TokenType::String("".into()),
+            self.compiler.input.clone(),
+            self.token_pos.clone()
+        )
+
     }
 
     // Trys to read a operator composed of two or more characters from the source
