@@ -44,7 +44,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Advances the scanner by count, keeping track of line and column position
     fn advance(&'b mut self, count: usize) {
         let count = count.clamp(0, 3);
 
@@ -59,7 +59,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Reads the char at the current read position
     fn read(&'b self) -> char {
         if self.read >= self.compiler.contents.len() {
             return '\0'
@@ -70,7 +70,7 @@ impl<'a, 'b> Scanner<'a> {
             .nth(self.read).unwrap()
     }
 
-    //
+    // Reads the char after the current read position
     fn peek(&'b self) -> char {
         if self.read + 1 >= self.compiler.contents.len() {
             return '\0'
@@ -81,7 +81,7 @@ impl<'a, 'b> Scanner<'a> {
             .nth(self.read + 1).unwrap()
     }
 
-    //
+    // Reads the char before the current read position
     fn prev(&self) -> char {
         if self.read - 1 >= self.compiler.contents.len() {
             return '\0'
@@ -92,7 +92,7 @@ impl<'a, 'b> Scanner<'a> {
             .nth(self.read - 1).unwrap()
     }
 
-    //
+    // Reads a tag, keyword, or mode from the source
     fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
 
@@ -121,7 +121,7 @@ impl<'a, 'b> Scanner<'a> {
         )
     }
 
-    //
+    // Reads a number, either float or integer from the source
     fn read_number(&'b mut self) -> Token {
         let start = self.read;
         let mut is_float = false;
@@ -151,7 +151,7 @@ impl<'a, 'b> Scanner<'a> {
         )
     }
 
-    //
+    // Reads a number, without allowing decimal points from the source
     fn read_integer(&'b mut self) {
         self.advance(1);
 
@@ -162,7 +162,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Reads a single line string currently w/o escape character support from the source
     fn read_string(&'b mut self) -> Token {
         let start = self.read + 1;
 
@@ -190,7 +190,7 @@ impl<'a, 'b> Scanner<'a> {
         )
     }
 
-    //
+    // Trys to read a operator composed of two or more characters from the source
     fn try_compound_operator(
         &'b mut self,
         matches: Vec<(usize, &str, TokenType)>
@@ -210,7 +210,7 @@ impl<'a, 'b> Scanner<'a> {
     }
 
 
-    //
+    // Skips whitespace, spaces and tabs
     fn skip_whitespace(&'b mut self) {
         match self.read() {
             ' ' | '\t' => {
@@ -221,7 +221,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Skips a comment until the end of the line or file
     fn skip_single_comment(&'b mut self) {
         match self.read() {
             '\n' | '\0' => (),
@@ -232,7 +232,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Skips a comment until the closing delimiter is reached
     fn skip_multi_comment(&'b mut self) {
         let mut ch = self.read();
         let mut next = self.peek();
@@ -247,9 +247,18 @@ impl<'a, 'b> Scanner<'a> {
             ch = self.read();
             next = self.peek();
         }
+
+        if next != '/' {
+            self.compiler.errors.push(Error::new(
+                self.compiler.input.clone(),
+                "Scanning error".into(),
+                "Unterminated multiline string".into(),
+                self.current_pos.clone()
+            ));
+        }
     }
 
-    //
+    // Reads the next token from the source
     fn next_token(&'b mut self) -> Token {
         self.skip_whitespace();
         self.token_pos = self.current_pos.clone();
@@ -509,7 +518,18 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
+    /// Scans the source file within the compiler process this scanner was created in.
+    /// 
+    /// # Arguments
     ///
+    /// # Returns
+    /// * A vector of Tokens, representing the tokens in the source
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn scan(&'a mut self) -> Vec<Token> {
         let mut token = self.next_token();
 

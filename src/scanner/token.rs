@@ -15,7 +15,21 @@ pub struct Token {
 }
 
 impl Token {
+    /// Creates a new Token
+    /// 
+    /// # Arguments
+    /// * `kind` -
+    /// * `file` -
+    /// * `pos` -
     ///
+    /// # Returns
+    /// * A token, of type kind, belonging to file, at pos
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn new(kind: TokenType, file: Arc<str>, pos: Position) -> Self {
         Self {
             kind,
@@ -95,7 +109,19 @@ pub enum TokenType {
 }
 
 impl TokenType {
+    /// Converts a char into it's corresponding TokenType
+    /// 
+    /// # Arguments
+    /// * `ch` -
     ///
+    /// # Returns
+    /// * A TokenType, whose value will be Illegal if the char is not supported
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn from_char(ch: char) -> TokenType {
         match ch {
             '=' => TokenType::Assign,
@@ -141,7 +167,19 @@ impl TokenType {
         }
     }
 
+    /// Tries to create a TokenType from a string representing a compound operator
+    /// 
+    /// # Arguments
+    /// * `str` -
     ///
+    /// # Returns
+    /// * An optional TokenType
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn try_from_str(str: &str) -> Option<TokenType> {
         match str {
             ":="  => Some(TokenType::AssignExp),
@@ -171,7 +209,19 @@ impl TokenType {
 
     }
 
+    /// Tries to create a TokenType from a string representing a keyword
+    /// 
+    /// # Arguments
+    /// * `str` -
     ///
+    /// # Returns
+    /// * An optional TokenType
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn try_keyword(str: &str) -> Option<TokenType> {
         use Keyword::*;
         match str {
@@ -221,7 +271,19 @@ impl TokenType {
         }
     }
 
+    /// Tries to create a TokenType from a string representing a mode
+    /// 
+    /// # Arguments
+    /// * `str` -
     ///
+    /// # Returns
+    /// * An optional TokenType
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn try_mode(str: &str) -> Option<TokenType> {
         use Mode::*;
         match str {
@@ -234,8 +296,19 @@ impl TokenType {
         }
     }
 
+    /// Converts a TokenType to a string slice
+    /// 
+    /// # Arguments
     ///
-    pub fn to_str(_kind: &TokenType) -> &str {
+    /// # Returns
+    /// * A string slice
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn to_str(&self) -> &str {
         todo!()
     }
 }
@@ -288,8 +361,19 @@ pub enum Keyword {
 }
 
 impl Keyword {
+    /// Converts a Keyword to a string slice
+    /// 
+    /// # Arguments
     ///
-    pub fn to_str(_keyword: &Self) -> &str {
+    /// # Returns
+    /// * A string slice
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn to_str(&self) -> &str {
         todo!()
     }
 }
@@ -304,8 +388,19 @@ pub enum Mode {
 }
 
 impl Mode {
+    /// Converts a Mode to a string slice
+    /// 
+    /// # Arguments
     ///
-    pub fn to_str(_keyword: &Self) -> &str {
+    /// # Returns
+    /// * A string slice
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn to_str(&self) -> &str {
         todo!()
     }
 }
