@@ -1,14 +1,14 @@
 const Vector = module {
-    const t = struct {
+    pub const t = record {
         x: int,
         y: int
     }
 
-    const new -> t = (x, y: int) do
+    pub const new -> t = (x, y: int) do
         t.{x, y}
     end
 
-    const add(self: &t) -> t = (other: &t) do
+    pub const add(self: &t) -> t = (other: &t) do
         t.{
             x: self.x + other.x,
             y: self.y + other.y
