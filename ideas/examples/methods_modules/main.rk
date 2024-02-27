@@ -1,0 +1,28 @@
+const Vector = module {
+    const t = struct {
+        x: int,
+        y: int
+    }
+
+    const new -> t = (x, y: int) do
+        t.{x, y}
+    end
+
+    const add(self: &t) -> t = (other: &t) do
+        t.{
+            x: self.x + other.x,
+            y: self.y + other.y
+        }
+    end
+}
+
+const main = () do
+    let a = Vector.new(1, 2)
+    @.assert(@.type(a) == Vector.t)
+
+    let b = Vector.new(3, 4)
+    @.assert(@.type(b) == Vector.t)
+
+    let c = a.add(b)
+    @.assert(@.type(c) == Vector.t)
+end
