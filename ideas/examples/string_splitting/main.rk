@@ -19,18 +19,20 @@ const strsplit -> [..]string = (
     ch: u8
 ) do
     let mut indices = [..]{}
-    for c, i in str, 1.. do
+    for {c, i} in {str, 1..} do
         if c == ch => indices.push(i)
     end
 
     let mut words = [..]{}
     let mut prev = 0
     for idx in indices do
-        words.push(str[prev..idx].into(string))
+        let str = str[prev..idx].into(string)
+        words.push(str)
         prev = idx + 1
     end
 
-    words.push(str[prev..str.len].into(string))
+    let str = str[prev..str.len].into(string)
+    words.push(str)
 
     words
 end
