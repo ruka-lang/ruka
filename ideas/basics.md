@@ -11,12 +11,11 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
     - Errors as values:
         - Sum types
         - Predefined Error interface for defining own error types
-    - Uniform function call syntax
     - Methods
     - Interfaces for shared functionality, can apply to any kind of types
         - Interfaces can specify function requirements and method requirements
     - First class Functions, Modules, Interfaces, and Types
-    - Metaprogramming by Compile time execution of Ruka code
+    - Meta-programming by Compile time execution of Ruka code
     - Mutable semantics
     - Named arguments
 
