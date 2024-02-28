@@ -1,5 +1,6 @@
 /*
- * @author: dwclake
+ * @author: ruka-lang
+ * @created: 2024-02-28
  */
 
 use crate::prelude::*;
@@ -7,6 +8,7 @@ use crate::prelude::*;
 use std::sync::Arc;
 
 /// Represents compiling errors
+#[derive(Debug)]
 pub struct Error {
     pub file: Arc<str>,
     pub kind: Box<str>,

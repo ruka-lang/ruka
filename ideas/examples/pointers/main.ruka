@@ -5,7 +5,7 @@ const add = (mut x: *int, y: int) {
 }
 
 const new -> Option(*int) = (val: int) {
-    let allocator = std.heap.allocator{}
+    let mut allocator = std.heap.allocator{}
     allocator.new(int, val)
 }
 
@@ -13,4 +13,5 @@ const main -> Result(unit) = () {
     let mut x = new(10)?
     let y = 5
     add(mut x, y)
+    @.assert(x* == 15)?
 }

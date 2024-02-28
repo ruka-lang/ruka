@@ -1,5 +1,6 @@
 /*
- * @author: dwclake
+ * @author: ruka-lang
+ * @created: 2024-02-28
  */
 
 use rukac::cli::*;
@@ -14,9 +15,9 @@ fn main() -> Result<()> {
     match cli.command {
         Some(Commands::Compile { input, output }) => {
             let mut compiler = Compiler::new(input, output)?;
-            compiler.compile()?;
-
             println!("{}", compiler.contents);
+
+            compiler.compile()?;
         }
         _ => {}
     }

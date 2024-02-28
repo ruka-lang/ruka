@@ -1,5 +1,6 @@
 /*
- * @author: dwclake
+ * @author: ruka-lang
+ * @created: 2024-02-28
  */
 
 /// Represents a position in a file

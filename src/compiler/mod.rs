@@ -1,5 +1,6 @@
 /*
- * @author: dwclake
+ * @author: ruka-lang
+ * @created: 2024-02-28
  */
 
 use crate::prelude::*;
@@ -131,10 +132,11 @@ impl<'a, 'b> Compiler {
         let tokens = scanner.scan();
 
         dbg!(&tokens);
+        dbg!(&self.errors);
 
         match self.errors.is_empty() {
             true => Ok(()),
-            _ => Err(anyhow!("Compiler with errors"))
+            _ => Err(anyhow!("Compiled with errors"))
         }
     }
 

@@ -1,6 +1,6 @@
 /!*
   * Program to split a string
-  * @author: dwclake
+  * @author: ruka-lang
   */
 
 const string = @.import("std").string

@@ -5,16 +5,16 @@ const Result -> type = (@success: type) {
     }
 }
 
-const parseError = struct {
-    ...
-}
+const parseError = struct {/* */}
 
-impl Error(parseError) = {
-    ...
-}
+// Implement the methods required by Error
+const msg(err: &parseError) -> []u8 = () {/* */}
+const location(err: &parseError) -> []u8 = () {/* */}
+const kind(err: &parseError) -> []u8 = () {/* */}
+const severity(err: &parseError) -> Severity = () {/* */}
 
 const parse -> Result(int) = (str: []u8) {
-    if ... {
+    if /* */ {
         return Err <| parseError.{}
     }
 }
@@ -24,5 +24,5 @@ const main -> Result(unit) = () {
     let result = parse(str[..])?
     @.println("result: {d}", {result})
 
-    Ok(())
+    Ok <| ()
 }
