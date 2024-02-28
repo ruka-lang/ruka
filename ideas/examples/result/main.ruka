@@ -13,15 +13,15 @@ impl Error(parseError) = {
     ...
 }
 
-const parse -> Result(int) = (&str: string) {
+const parse -> Result(int) = (str: []u8) {
     if ... {
         return Err <| parseError.{}
     }
 }
 
 const main -> Result(unit) = () {
-    let str = "Hello"
-    let result = parse(str)?
+    let str: []u8 = "Hello"
+    let result = parse(str[..])?
     @.println("result: {d}", {result})
 
     Ok(())

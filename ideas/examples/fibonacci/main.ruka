@@ -3,7 +3,7 @@
  */
 
 const string = @.import("std").string
-const fib = @.import("fib")
+const fib = @.import("fib.ra")
 
 const main -> Result(unit) = () do
     let n = gets()

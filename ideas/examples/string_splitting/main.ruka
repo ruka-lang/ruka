@@ -3,6 +3,7 @@
   * @author: dwclake
   */
 
+const string = @.import("std").string
 const testing = @.import("std").testing
 
 /** Takes a string and splits the string into substrings at each occurence of
@@ -14,24 +15,24 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> [..]string = (
-    str: string,
+const strsplit -> [..]string.t = (
+    str: []u8,
     ch: u8
 ) do
-    let mut indices = [..]{}
+    let mut indices = [..]uint{}
     for {c, i} in {str, 1..} do
         if c == ch => indices.push(i)
     end
 
-    let mut words = [..]{}
+    let mut words = [..]string.t{}
     let mut prev = 0
     for idx in indices do
-        let str = str[prev..idx].into(string)
+        let str = str[prev..idx].into(string.t)
         words.push(str)
         prev = idx + 1
     end
 
-    let str = str[prev..str.len].into(string)
+    let str = str[prev..str.len].into(string.t)
     words.push(str)
 
     words
@@ -39,9 +40,10 @@ end
 
 const main -> Result(unit) = () do
     let words = "Hello, world!"
+        |> ([..])
         |> strsplit(' ')
 
-    @.assert(words.len == 2)?
+    @.assert(words.len() == 2)?
 
     Ok(())
 end

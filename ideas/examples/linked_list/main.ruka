@@ -30,15 +30,8 @@ const List -> module = (comptime 'a: type) do
 end
 
 const main = () do
-    const IntList = List(int)
-    let mut list = IntList.new(12)
+    let mut list = List(int).new(12)
     list.push(16)
 
-    /* can also alias a modules when using it to simplify usages without importing it's symbols
-        use List(int) as List
-
-        let mut list = List.new(12)
-        list.push(16)
-    */
     @.println("List: [{}, {}]", {list.val, list.next.val})
 end

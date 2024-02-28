@@ -9,7 +9,7 @@ const num -> module = (@'a: type) do
         pub const (+)(lhs: &t) -> t = (rhs: &t) do
             let mut result = t.{}
 
-            inline for member in @.reflection.members(t) do
+            inline for member in @.members_of(t) do
                 result.(member) = lhs.(member) + rhs.(member)
             end
         end
