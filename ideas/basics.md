@@ -11,12 +11,11 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
     - Errors as values:
         - Sum types
         - Predefined Error interface for defining own error types
-    - Uniform function call syntax
     - Methods
     - Interfaces for shared functionality, can apply to any kind of types
         - Interfaces can specify function requirements and method requirements
     - First class Functions, Modules, Interfaces, and Types
-    - Metaprogramming by Compile time execution of Ruka code
+    - Meta-programming by Compile time execution of Ruka code
     - Mutable semantics
     - Named arguments
 
@@ -36,34 +35,57 @@ Here is a list of `Ruka`'s primitive types:
   - 12.2, architecture dependent size
 - `f#`     
   - \# bit float i.e. f32
-- `char`   
-  - 'a'
-- `string`
+- `[]u8`
   - "Hello, world!"
   - "| Multi
      | line
      | string
      |"
-- `regex`
-  - \`foo|bar\`
 - `bool` 
   - true, false
-- `void` 
+- `unit` 
   - also ().
-- `null`
 - `type` 
   - i32, int, char, MyRecord. Types are values in `Ruka`
 - `module`
 - `interface`
 - `error`
+- `thread`
 - `range` 
   - 0..10, 5..=15
 - `tag`   
-  - :quick :skip
-  - Polymorphic enums, i.e. don't need to be part of a type. 
-  - Also used for identifiers, when used for identifiers the ":" can be omitted.
-  - When used for map keys, the ":" is moved to the rhs
+  - `quick `skip
+  - Also used for identifiers, when used for identifiers the "`" can be omitted.
+  - When used for map keys, the "`" is moved to the rhs
 - `any`
+- `pointer`
+  - Non-nullable, Non-borrow checked
+- `reference`
+  - Borrow checked
+
+## Built-in complex types
+
+- `Result`
+- `Option`
+
+## Built-in interfaces
+
+- `Drop`
+- `Eq`
+- `Ord`
+- `Add`
+- `Sub`
+- `Div`
+- `Mul`
+- `Mod`
+- `And`
+- `Or`
+- `Xor`
+- `Lshft`
+- `Rshft`
+- `Index`
+- `Deref`
+- `Clone`
 
 ## Primitive Data Collections
 `Ruka` has a few primitive data collections for you to use:
@@ -102,12 +124,12 @@ std.testing.expect(x == 10 and y == 15);
 let atomic_mass: %{tag, f32} = %{
     beryllium: 9.1022,
     carbon: 15.999
-};
+}
 
-let atomic_mass = %{
+let atomic_mass: %{[]u8, f32} = %{
     "beryllium" => 9.1022,
     "carbon" => 15.999
-};
+}
 
 let carbon_mass = atomic_mass[:carbon];
 std.testing.expect(carbon_mass == 15.999); // For floats == only compares the whole number
@@ -147,7 +169,6 @@ A single-line body function
 ```rust
 const hello = () => return "Hello, world!";
 ```
-values must be returned explicitly
 
 A multi line body.
 ```rust

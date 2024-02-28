@@ -6,7 +6,6 @@ use crate::prelude::*;
 
 use std::mem::take;
 
-pub mod asyncs;
 pub mod token;
 
 /// Scanning process, responsible for scanning a single file
@@ -18,7 +17,7 @@ pub struct Scanner<'a> {
     pub read: usize
 }
 
-impl<'a, 'b> Scanner<'a> {
+impl<'a, 'b, 'c> Scanner<'a> {
     /// Creates a new Scanner process
     ///
     /// # Arguments
@@ -45,7 +44,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Advances the scanner by count, keeping track of line and column position
     fn advance(&'b mut self, count: usize) {
         let count = count.clamp(0, 3);
 
@@ -53,14 +52,14 @@ impl<'a, 'b> Scanner<'a> {
             self.read = self.read + 1;
 
             self.current_pos.column += 1;
-            if self.read() == '\n' {
+            if self.prev() == '\n' {
                 self.current_pos.line += 1;
                 self.current_pos.column = 1;
             }
         }
     }
 
-    //
+    // Reads the char at the current read position
     fn read(&'b self) -> char {
         if self.read >= self.compiler.contents.len() {
             return '\0'
@@ -71,41 +70,39 @@ impl<'a, 'b> Scanner<'a> {
             .nth(self.read).unwrap()
     }
 
-    //
+    // Reads the char after the current read position
     fn peek(&'b self) -> char {
-        if self.read >= self.compiler.contents.len() {
+        if self.read + 1 >= self.compiler.contents.len() {
             return '\0'
         }
 
         self.compiler.contents
             .chars()
-            .nth(self.read).unwrap()
+            .nth(self.read + 1).unwrap()
     }
 
-    //
-    fn _peek_plus(&self, count: usize) -> char {
-        if self.read + count >= self.compiler.contents.len() {
+    // Reads the char before the current read position
+    fn prev(&self) -> char {
+        if self.read - 1 >= self.compiler.contents.len() {
             return '\0'
         }
 
         self.compiler.contents
             .chars()
-            .nth(self.read + count).unwrap()
+            .nth(self.read - 1).unwrap()
     }
 
-    //
+    // Reads a tag, keyword, or mode from the source
     fn read_tag_keyword_mode(&'b mut self) -> Token {
         let start = self.read;
-        let mut end = start;
 
         let mut char = self.read();
         while is_alphanumeric(char) {
-            end += 1;
             self.advance(1);
             char = self.read();
         }
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents[start..self.read];
 
         let token_type = match TokenType::try_keyword(str) {
             Some(keyword) => keyword,
@@ -124,18 +121,15 @@ impl<'a, 'b> Scanner<'a> {
         )
     }
 
-    //
+    // Reads a number, either float or integer from the source
     fn read_number(&'b mut self) -> Token {
         let start = self.read;
-        let mut end = start;
         let mut is_float = false;
 
         let mut char = self.read();
         while is_numeric(char) {
-            end += 1;
-
             if self.read() == '.' {
-                self.read_integer(&mut end);
+                self.read_integer();
                 is_float = true;
                 break;
             }
@@ -144,7 +138,7 @@ impl<'a, 'b> Scanner<'a> {
             char = self.read();
         }
 
-        let str = &self.compiler.contents[start..end];
+        let str = &self.compiler.contents[start..self.read];
         let ttype = match is_float {
             false => TokenType::Integer(str.into()),
             _     => TokenType::Float(str.into())
@@ -157,32 +151,86 @@ impl<'a, 'b> Scanner<'a> {
         )
     }
 
-    //
-    fn read_integer(&'b mut self, end: &mut usize) {
+    // Reads a number, without allowing decimal points from the source
+    fn read_integer(&'b mut self) {
         self.advance(1);
 
         let mut char = self.read();
         while is_integral(char) {
-            *end += 1;
             self.advance(1);
             char = self.read();
         }
     }
 
     //
-    fn read_string(&'b mut self) -> Token {
-        self.advance(1);
+    fn create_escape_error(
+        &'b mut self, 
+        i: &usize, 
+        str: &String
+    ) {
+        match str.chars().nth(*i + 1) {
+            Some(ch) => {
+                self.compiler.errors.push(Error::new(
+                    self.compiler.input.clone(),
+                    "Scanning error".into(),
+                    format!("Unrecognized escape character: \\{}", ch).into(),
+                    self.current_pos.clone()
+                ));
+            },
+            _ => {
+                self.compiler.errors.push(Error::new(
+                    self.compiler.input.clone(),
+                    "Scanning error".into(),
+                    "Unterminated escape character".into(),
+                    self.current_pos.clone()
+                ));
+            }
+        }
+    }
 
-        let start = self.read;
-        let mut end = start;
+    //
+    fn handle_escape_characters(&'b mut self, str: &String) -> String {
+        let mut new_str = String::new();
+        let mut i = 0;
+
+        while i < str.len() {
+            match str.chars().nth(i) {
+                Some('\\') => {
+                    match try_escape_char(str.get(i..i+2)) {
+                        Some(ch) => {
+                            i = i + 2;
+                            new_str.push(ch);
+                        },
+                        _ => {
+                            self.create_escape_error(&i, &str);
+
+                            i = i + 1;
+                            new_str.push('\\');
+                        },
+                    }
+                },
+                Some(ch) => {
+                    i = i + 1;
+                    new_str.push(ch);
+                },
+                _ => {}
+            }
+        }
+
+        new_str
+    }
+
+    // Reads a single line string currently w/o escape character support from the source
+    fn read_string(&'b mut self) -> Token {
+        let mut str = String::new();
 
         while self.peek() != '"' && self.peek() != '\0' {
+            str.push(self.peek());
             self.advance(1);
-            end += 1;
         }
-        self.advance(1);
+        self.advance(2);
 
-        if self.read() != '"' {
+        if self.prev() != '"' {
             self.compiler.errors.push(Error::new(
                 self.compiler.input.clone(),
                 "Scanning error".into(),
@@ -191,15 +239,80 @@ impl<'a, 'b> Scanner<'a> {
             ));
         }
 
-        let contents = &self.compiler.contents;
+        let str = self.handle_escape_characters(&str);
+
         Token::new(
-            TokenType::String(contents[start..end].into()),
+            TokenType::String(str.into()),
             self.compiler.input.clone(),
             self.token_pos.clone()
         )
     }
 
     //
+    fn read_multiline_string(&'b mut self) -> Token {
+        let mut str = String::new();
+
+        self.advance(1);
+        while self.peek() != '"' && self.peek() != '\0' {
+            match self.peek() {
+                '\\' => {
+                    self.advance(1);
+
+                    match self.peek() {
+                        '|' => str.push('|'),
+                        ch => {
+                            str.push('\\');
+                            str.push(ch);
+                        }
+                    }
+                },
+                '\n' => {
+                    str.push('\n');
+                    self.advance(1);
+                    self.skip_whitespace();
+
+                    match self.read() {
+                        '|' => {
+                            str.push(self.peek());
+                        },
+                        _ => {
+                            self.compiler.errors.push(Error::new(
+                                self.compiler.input.clone(),
+                                "Scanning error".into(),
+                                "Missing line delimiter '|'".into(),
+                                self.current_pos.clone()
+                            ));
+                        }
+                    }
+                    
+                }
+                ch => {
+                    str.push(ch);
+                }
+            }
+            self.advance(1);
+        }
+        self.advance(2);
+
+        if self.prev() != '"' {
+            self.compiler.errors.push(Error::new(
+                self.compiler.input.clone(),
+                "Scanning error".into(),
+                "Unterminated string literal".into(),
+                self.current_pos.clone()
+            ));
+        }
+
+        let str = self.handle_escape_characters(&str);
+
+        Token::new(
+            TokenType::String(str.into()),
+            self.compiler.input.clone(),
+            self.token_pos.clone()
+        )
+    }
+
+    // Trys to read a operator composed of two or more characters from the source
     fn try_compound_operator(
         &'b mut self,
         matches: Vec<(usize, &str, TokenType)>
@@ -219,10 +332,10 @@ impl<'a, 'b> Scanner<'a> {
     }
 
 
-    //
+    // Skips whitespace, spaces and tabs
     fn skip_whitespace(&'b mut self) {
         match self.read() {
-            ' ' | '\t' | '\n' => {
+            ' ' | '\t' => {
                 self.advance(1);
                 self.skip_whitespace();
             },
@@ -230,7 +343,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Skips a comment until the end of the line or file
     fn skip_single_comment(&'b mut self) {
         match self.read() {
             '\n' | '\0' => (),
@@ -241,7 +354,7 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
-    //
+    // Skips a comment until the closing delimiter is reached
     fn skip_multi_comment(&'b mut self) {
         let mut ch = self.read();
         let mut next = self.peek();
@@ -256,9 +369,18 @@ impl<'a, 'b> Scanner<'a> {
             ch = self.read();
             next = self.peek();
         }
+
+        if next != '/' {
+            self.compiler.errors.push(Error::new(
+                self.compiler.input.clone(),
+                "Scanning error".into(),
+                "Unterminated multiline string".into(),
+                self.current_pos.clone()
+            ));
+        }
     }
 
-    //
+    // Reads the next token from the source
     fn next_token(&'b mut self) -> Token {
         self.skip_whitespace();
         self.token_pos = self.current_pos.clone();
@@ -272,7 +394,10 @@ impl<'a, 'b> Scanner<'a> {
                 self.read_number()
             },
             '"' => {
-                self.read_string()
+                match self.peek() {
+                    '|' => self.read_multiline_string(),
+                    _ => self.read_string()
+                }
             },
             '/' => {
                 match self.peek() {
@@ -454,28 +579,16 @@ impl<'a, 'b> Scanner<'a> {
                 )
             },
             '~' => {
-                let kind = self.try_compound_operator(vec![
-                    (2, "~=", TokenType::PatternMatch)
-                ]);
-
-                let kind = match kind {
-                    Some(k) => k,
-                    None => {
-                        self.advance(1);
-                        TokenType::Tilde
-                    }
-                };
-
+                self.advance(1);
                 Token::new(
-                    kind,
+                    TokenType::Tilde,
                     self.compiler.input.clone(),
                     self.token_pos.clone()
                 )
             },
             '!' => {
                 let kind = self.try_compound_operator(vec![
-                    (2, "!=", TokenType::NotEqual),
-                    (2, "!~", TokenType::PatternNotMatch)
+                    (2, "!=", TokenType::NotEqual)
                 ]);
 
                 let kind = match kind {
@@ -530,7 +643,18 @@ impl<'a, 'b> Scanner<'a> {
         }
     }
 
+    /// Scans the source file within the compiler process this scanner was created in.
+    /// 
+    /// # Arguments
     ///
+    /// # Returns
+    /// * A vector of Tokens, representing the tokens in the source
+    ///
+    /// # Examples
+    ///
+    /// ```
+    ///
+    /// ```
     pub fn scan(&'a mut self) -> Vec<Token> {
         let mut token = self.next_token();
 
@@ -548,7 +672,6 @@ impl<'a, 'b> Scanner<'a> {
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
-    use anyhow::Result;
 
     fn check_results(actual: Vec<Token>, expected: Vec<Token>) {
         assert_eq!(actual.len(), expected.len());
@@ -561,7 +684,7 @@ mod scanner_tests {
 
     #[test]
     fn test_next_token() {
-        let source = "let x = 12_000 12_000.50;";
+        let source = "let x = 12_000 12_000.50";
 
         let expected = vec![
             Token::new(
@@ -590,14 +713,9 @@ mod scanner_tests {
                 Position::new(1, 16)
             ),
             Token::new(
-                TokenType::Semicolon,
-                "next token scanning test".into(),
-                Position::new(1, 25)
-            ),
-            Token::new(
                 TokenType::Eof,
                 "next token scanning test".into(),
-                Position::new(1, 26)
+                Position::new(1, 25)
             )
         ];
 
@@ -614,7 +732,7 @@ mod scanner_tests {
 
     #[test]
     fn test_compound_op() {
-        let source = "== != >= <= ~= !~ |> <| << >> ++ -- ** -> => .. ..= :=";
+        let source = "== != >= <= |> <| << >> ++ -- ** -> => .. ..= :=";
 
         let expected = vec![
             Token::new(
@@ -638,79 +756,69 @@ mod scanner_tests {
                 Position::new(1, 10)
             ),
             Token::new(
-                TokenType::PatternMatch,
+                TokenType::ReverseApp,
                 "compound operator scanning test".into(),
                 Position::new(1, 13)
             ),
             Token::new(
-                TokenType::PatternNotMatch,
+                TokenType::ForwardApp,
                 "compound operator scanning test".into(),
                 Position::new(1, 16)
             ),
             Token::new(
-                TokenType::ReverseApp,
+                TokenType::LeftShift,
                 "compound operator scanning test".into(),
                 Position::new(1, 19)
             ),
             Token::new(
-                TokenType::ForwardApp,
+                TokenType::RightShift,
                 "compound operator scanning test".into(),
                 Position::new(1, 22)
             ),
             Token::new(
-                TokenType::LeftShift,
+                TokenType::Increment,
                 "compound operator scanning test".into(),
                 Position::new(1, 25)
             ),
             Token::new(
-                TokenType::RightShift,
+                TokenType::Decrement,
                 "compound operator scanning test".into(),
                 Position::new(1, 28)
             ),
             Token::new(
-                TokenType::Increment,
+                TokenType::Power,
                 "compound operator scanning test".into(),
                 Position::new(1, 31)
             ),
             Token::new(
-                TokenType::Decrement,
+                TokenType::Arrow,
                 "compound operator scanning test".into(),
                 Position::new(1, 34)
             ),
             Token::new(
-                TokenType::Power,
+                TokenType::WideArrow,
                 "compound operator scanning test".into(),
                 Position::new(1, 37)
             ),
             Token::new(
-                TokenType::Arrow,
+                TokenType::RangeExc,
                 "compound operator scanning test".into(),
                 Position::new(1, 40)
             ),
             Token::new(
-                TokenType::WideArrow,
+                TokenType::RangeInc,
                 "compound operator scanning test".into(),
                 Position::new(1, 43)
             ),
             Token::new(
-                TokenType::RangeExc,
-                "compound operator scanning test".into(),
-                Position::new(1, 46)
-            ),
-            Token::new(
-                TokenType::RangeInc,
-                "compound operator scanning test".into(),
-                Position::new(1, 49)
-            ),
-            Token::new(
                 TokenType::AssignExp,
                 "compound operator scanning test".into(),
-                Position::new(1, 53)
+                Position::new(1, 47)
             ),
             Token::new(
                 TokenType::Eof,
                 "compound operator scanning test".into(),
-                Position::new(1, 55)
+                Position::new(1, 49)
             )
         ];
 
@@ -727,7 +835,7 @@ mod scanner_tests {
 
     #[test]
     fn test_string_reading() {
-        let source = "let x = \"Hello, world!\";";
+        let source = "let x = \"Hello, world!\"";
 
         let expected = vec![
             Token::new(
@@ -751,14 +859,9 @@ mod scanner_tests {
                 Position::new(1, 9)
             ),
             Token::new(
-                TokenType::Semicolon,
-                "string reading scanning test".into(),
-                Position::new(1, 24)
-            ),
-            Token::new(
                 TokenType::Eof,
                 "string reading scanning test".into(),
-                Position::new(1, 25)
+                Position::new(1, 24)
             )
         ];
 
@@ -774,8 +877,100 @@ mod scanner_tests {
     }
 
     #[test]
+    fn test_multiline_string_reading() {
+        let source = "let x = \"|\n\
+            | Hello, world!\n\
+            |\"";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Keyword(Keyword::Let),
+                "string reading scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "string reading scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "string reading scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::String("\n Hello, world!\n".into()),
+                "string reading scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "string reading scanning test".into(),
+                Position::new(3, 3)
+            )
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "string reading scanning test".into(),
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan();
+
+        check_results(actual, expected);
+    }
+
+    #[test]
+    fn test_escape_characters() {
+        let source = "let x = \"Hello, \\n\\sworld!\"";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Keyword(Keyword::Let),
+                "escape character scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "escape character scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "escape character scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::String("Hello, \n\\sworld!".into()),
+                "escape character scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "escape character scanning test".into(),
+                Position::new(1, 28)
+            )
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "escape character scanning test".into(),
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan();
+
+        assert!(compiler.errors.len() == 1);
+        let message: Box<str> = "Unrecognized escape character: \\s".into();
+        assert!(compiler.errors[0].message() == &message);
+
+        check_results(actual, expected);
+    }
+
+    #[test]
     fn test_skip_single_comment() {
-        let source = "let x = //12_000 12_000.50;";
+        let source = "let x = //12_000 12_000.50";
 
         let expected = vec![
             Token::new(
@@ -796,7 +991,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "single comment skip scanning test".into(),
-                Position::new(1, 28)
+                Position::new(1, 27)
             )
         ];
 
@@ -813,9 +1008,9 @@ mod scanner_tests {
 
     #[test]
     fn test_skip_multi_comment() {
-        let source = "let x = /*\
-            12_000 12_000.50;   \
-            */";
+        let source = "let x = /*\n\
+                          12_000 12_000.50\n\
+                       */";
 
         let expected = vec![
             Token::new(
@@ -836,7 +1031,7 @@ mod scanner_tests {
             Token::new(
                 TokenType::Eof,
                 "multi comment skip scanning test".into(),
-                Position::new(1, 33)
+                Position::new(3, 3)
             )
         ];
 

@@ -1,0 +1,18 @@
+/*
+ * Program to calculate fibonacci numbers
+ */
+
+const string = @.import("std").string
+const fib = @.import("fib.ra")
+
+const main -> Result(unit) = () do
+    let n = gets()
+        |> string.parse() ~into: int
+        |> (?)
+
+    let value = fib.fibonacci(n)
+
+    @.println("Fibonacci number {} is {}", {n, value})
+
+    () |> Ok
+end

@@ -1,6 +1,6 @@
 const Num = interface ('a) {
-    (+): fn (&'a) -> 'a
-    add: fn (&'a) -> 'a
+    (+): (&'a) -> 'a
+    add: (&'a) -> 'a
 }
 
 const Vector = record {
@@ -8,36 +8,36 @@ const Vector = record {
     y: int
 }
 
-const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) {
+const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-}
+end
 
-const add(lhs: &Vector) -> Vector = (rhs: &Vector) {
+const add(lhs: &Vector) -> Vector = (rhs: &Vector) do
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-}
+end
 
-const add -> Num = (x, y: Num) {
+const add -> Num = (x, y: Num) do
     x + y // x.add(&y)
-}
+end
 
 const main -> Result(unit) = () {
     let a = Vector.{x: 10, y: 5}
     let b = Vector.{x: 5, y: 10}
     let c = add(a, b)
 
-    ruka.assert(c.x == 15 and c.y == 15)?
+    @.assert(c.x == 15 and c.y == 15)?
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    ruka.assert(f == 15)?
+    @.assert(f == 15)?
 
     Ok <| ()
 }

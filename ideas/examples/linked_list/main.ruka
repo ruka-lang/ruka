@@ -1,0 +1,37 @@
+const List -> module = (comptime 'a: type) do
+    module {
+        pub const t = record {
+            const Self = @.this()
+
+            val: 'a,
+            next: Option <| Self
+        }
+
+        pub const new -> t = (val: 'a) do
+            t.{
+                val,
+                next = None
+            }
+        end
+
+        pub const push(mut self: &t) = (val: 'a) do
+            if self.next == None do
+                self.next = Some <| t.new(val)
+            else do
+                let mut current = self.next
+                while current.next != None do
+                    current = current.next
+                end
+
+                current.next = Some <| t.new(val)
+            end
+        end
+    }
+end
+
+const main = () do
+    let mut list = List(int).new(12)
+    list.push(16)
+
+    @.println("List: [{}, {}]", {list.val, list.next.val})
+end
