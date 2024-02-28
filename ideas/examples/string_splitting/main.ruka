@@ -39,11 +39,13 @@ const strsplit -> [..]string.t = (
 end
 
 const main -> Result(unit) = () do
-    let words = "Hello, world!"
+    let words = "| Hello, 
+                 | world!
+                 |"
         |> ([..])
-        |> strsplit(' ')
+        |> strsplit('\n')
 
-    @.assert(words.len() == 2)?
+    @.assert(words.len() == 3)?
 
     Ok(())
 end

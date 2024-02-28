@@ -261,6 +261,7 @@ impl<'a, 'b, 'c> Scanner<'a> {
 
                     match self.peek() {
                         '|' => str.push('|'),
+                        '"' => break,
                         ch => {
                             str.push('\\');
                             str.push(ch);
@@ -269,18 +270,22 @@ impl<'a, 'b, 'c> Scanner<'a> {
                 },
                 '\n' => {
                     str.push('\n');
-                    self.advance(1);
+                    self.advance(2);
                     self.skip_whitespace();
 
                     match self.read() {
                         '|' => {
-                            str.push(self.peek());
+                            match self.peek() {
+                                '"' => break,
+                                ch => str.push(ch)
+                            }
                         },
+                        '"' => break,
                         _ => {
                             self.compiler.errors.push(Error::new(
                                 self.compiler.input.clone(),
                                 "Scanning error".into(),
-                                "Missing line delimiter '|'".into(),
+                                "Missing start of line delimiter '|'".into(),
                                 self.current_pos.clone()
                             ));
                         }
