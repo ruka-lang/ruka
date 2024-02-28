@@ -885,33 +885,33 @@ mod scanner_tests {
         let expected = vec![
             Token::new(
                 TokenType::Keyword(Keyword::Let),
-                "string reading scanning test".into(),
+                "multiline string scanning test".into(),
                 Position::new(1, 1)
             ),
             Token::new(
                 TokenType::Tag("x".into()),
-                "string reading scanning test".into(),
+                "multiline string scanning test".into(),
                 Position::new(1, 5)
             ),
             Token::new(
                 TokenType::Assign,
-                "string reading scanning test".into(),
+                "multiline string scanning test".into(),
                 Position::new(1, 7)
             ),
             Token::new(
                 TokenType::String("\n Hello, world!\n".into()),
-                "string reading scanning test".into(),
+                "multiline string scanning test".into(),
                 Position::new(1, 9)
             ),
             Token::new(
                 TokenType::Eof,
-                "string reading scanning test".into(),
+                "multiline string scanning test".into(),
                 Position::new(3, 3)
             )
         ];
 
         let mut compiler = Compiler::new_using_str(
-            "string reading scanning test".into(),
+            "multiline string scanning test".into(),
             source.into()
         );
 
