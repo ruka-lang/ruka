@@ -38,6 +38,7 @@ pub fn try_escape_char(str: Option<&str>) -> Option<char> {
         Some("\\r") => Some('\r'),
         Some("\\t") => Some('\t'),
         Some("\\\\") => Some('\\'),
+        Some("\\|") => Some('|'),
         Some("\\'") => Some('\''),
         Some("\\\"") => Some('\"'),
         Some("\\0") => Some('\0'),

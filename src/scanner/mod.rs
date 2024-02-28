@@ -250,12 +250,66 @@ impl<'a, 'b, 'c> Scanner<'a> {
 
     //
     fn read_multiline_string(&'b mut self) -> Token {
+        let mut str = String::new();
+
+        self.advance(1);
+        while self.peek() != '"' && self.peek() != '\0' {
+            match self.peek() {
+                '\\' => {
+                    self.advance(1);
+
+                    match self.peek() {
+                        '|' => str.push('|'),
+                        ch => {
+                            str.push('\\');
+                            str.push(ch);
+                        }
+                    }
+                },
+                '\n' => {
+                    str.push('\n');
+                    self.advance(1);
+                    self.skip_whitespace();
+
+                    match self.read() {
+                        '|' => {
+                            str.push(self.peek());
+                        },
+                        _ => {
+                            self.compiler.errors.push(Error::new(
+                                self.compiler.input.clone(),
+                                "Scanning error".into(),
+                                "Missing line delimiter '|'".into(),
+                                self.current_pos.clone()
+                            ));
+                        }
+                    }
+                    
+                }
+                ch => {
+                    str.push(ch);
+                }
+            }
+            self.advance(1);
+        }
+        self.advance(2);
+
+        if self.prev() != '"' {
+            self.compiler.errors.push(Error::new(
+                self.compiler.input.clone(),
+                "Scanning error".into(),
+                "Unterminated string literal".into(),
+                self.current_pos.clone()
+            ));
+        }
+
+        let str = self.handle_escape_characters(&str);
+
         Token::new(
-            TokenType::String("".into()),
+            TokenType::String(str.into()),
             self.compiler.input.clone(),
             self.token_pos.clone()
         )
-
     }
 
     // Trys to read a operator composed of two or more characters from the source
@@ -340,7 +394,10 @@ impl<'a, 'b, 'c> Scanner<'a> {
                 self.read_number()
             },
             '"' => {
-                self.read_string()
+                match self.peek() {
+                    '|' => self.read_multiline_string(),
+                    _ => self.read_string()
+                }
             },
             '/' => {
                 match self.peek() {
@@ -805,6 +862,51 @@ mod scanner_tests {
                 TokenType::Eof,
                 "string reading scanning test".into(),
                 Position::new(1, 24)
+            )
+        ];
+
+        let mut compiler = Compiler::new_using_str(
+            "string reading scanning test".into(),
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let actual = scanner.scan();
+
+        check_results(actual, expected);
+    }
+
+    #[test]
+    fn test_multiline_string_reading() {
+        let source = "let x = \"|\n\
+            | Hello, world!\n\
+            |\"";
+
+        let expected = vec![
+            Token::new(
+                TokenType::Keyword(Keyword::Let),
+                "string reading scanning test".into(),
+                Position::new(1, 1)
+            ),
+            Token::new(
+                TokenType::Tag("x".into()),
+                "string reading scanning test".into(),
+                Position::new(1, 5)
+            ),
+            Token::new(
+                TokenType::Assign,
+                "string reading scanning test".into(),
+                Position::new(1, 7)
+            ),
+            Token::new(
+                TokenType::String("\n Hello, world!\n".into()),
+                "string reading scanning test".into(),
+                Position::new(1, 9)
+            ),
+            Token::new(
+                TokenType::Eof,
+                "string reading scanning test".into(),
+                Position::new(3, 3)
             )
         ];
 
