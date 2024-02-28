@@ -4,7 +4,7 @@ const main = () do
     let petal = std.petal.new((chan: std.channel.t) {
         const self = @.this()
 
-        match chan.rx.next() do // rx.next() is blocking, suspends when channel is empty
+        match chan.next() do // chan.next() is blocking, suspends when channel is empty
             0 => @.println("Recieved 0")
             1 => @.println("Recieved 1")
             _ => {
