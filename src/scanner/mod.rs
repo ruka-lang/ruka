@@ -9,11 +9,10 @@ pub mod token;
 
 /// Scanning process, responsible for scanning a single file
 pub struct Scanner<'a> {
-    pub current_pos: Position,
-    pub token_pos: Position,
-    pub tokens: Vec<Token>,
-    pub compiler: &'a mut Compiler,
-    pub read: usize
+    current_pos: Position,
+    token_pos: Position,
+    compiler: &'a mut Compiler,
+    read: usize
 }
 
 impl<'a, 'b, 'c> Scanner<'a> {
@@ -32,12 +31,10 @@ impl<'a, 'b, 'c> Scanner<'a> {
     /// ```
     pub fn new(compiler: &'a mut Compiler) -> Self {
         let current_pos = Position::new(1, 1);
-        let tokens = vec![];
 
         Self {
             current_pos: current_pos.clone(),
             token_pos: current_pos,
-            tokens,
             compiler,
             read: 0
         }
