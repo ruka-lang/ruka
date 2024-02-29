@@ -6,7 +6,9 @@ const Color = record {
     b: u8
 }
 
-const (+)(.{rl, gl, bl}: &Color) -> Color = (.{rr, gr, br}: &Color) {
+const (+)(lhs: &Color) -> Color = (rhs: &Color) {
+    let .{rl, gl, bl} = lhs
+    let .{rr, gr, br} = rhs
     Color.{
         r: rl + rr,
         g: gl + gr,
