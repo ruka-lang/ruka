@@ -16,7 +16,7 @@ const fibonacci' -> int = (n: int, mut arr: []int) do
     end
 end
 
-test `fibonacci` -> Result(unit) = () do
+test "fibonacci" -> Result(unit) = () do
     let result = fibonacci(5)
     @.assert(result == 5)?
 
