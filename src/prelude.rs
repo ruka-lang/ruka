@@ -8,7 +8,19 @@ pub use crate::compiler::Compiler;
 
 pub use crate::interpreter::Interpreter;
 
-pub use crate::parser::ast::Ast;
+pub use crate::parser::ast::Program;
+pub use crate::parser::ast::Block;
+pub use crate::parser::ast::Statement;
+pub use crate::parser::ast::Binding;
+pub use crate::parser::ast::Expression;
+pub use crate::parser::ast::Postfix;
+pub use crate::parser::ast::Infix;
+pub use crate::parser::ast::Prefix;
+pub use crate::parser::ast::FnCall;
+pub use crate::parser::ast::Closure;
+pub use crate::parser::ast::Fn;
+pub use crate::parser::ast::Case;
+pub use crate::parser::ast::Match;
 
 pub use crate::scanner::Scanner;
 pub use crate::scanner::token::Mode;

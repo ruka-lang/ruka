@@ -5,8 +5,6 @@
 
 use crate::prelude::*;
 
-use std::mem::take;
-
 pub mod token;
 
 /// Scanning process, responsible for scanning a single file

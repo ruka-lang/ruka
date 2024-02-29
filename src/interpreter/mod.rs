@@ -11,7 +11,7 @@ use anyhow::Result;
 /// Represents a interpretation process, responsible for compiling a single file
 pub struct Interpreter<'a> {
     pub input: Arc<str>,
-    pub ast: Option<Box<Ast>>,
+    pub ast: Option<Program>,
     pub compiler: &'a mut Compiler
 
 }
@@ -31,7 +31,7 @@ impl<'a> Interpreter<'a> {
     /// ```
     ///
     /// ```
-    pub fn new(source: Arc<str>, ast: Box<Ast>, compiler: &'a mut Compiler) -> Self {
+    pub fn new(source: Arc<str>, ast: Program, compiler: &'a mut Compiler) -> Self {
         Self{
             input: source, 
             ast: Some(ast),
