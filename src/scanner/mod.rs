@@ -387,7 +387,7 @@ impl<'a, 'b, 'c> Scanner<'a> {
     }
 
     // Reads the next token from the source
-    fn next_token(&'b mut self) -> Token {
+    pub fn next_token(&'b mut self) -> Token {
         self.skip_whitespace();
         self.token_pos = self.current_pos.clone();
 
@@ -649,6 +649,7 @@ impl<'a, 'b, 'c> Scanner<'a> {
         }
     }
 
+    /*
     /// Scans the source file within the compiler process this scanner was created in.
     /// 
     /// # Arguments
@@ -661,7 +662,8 @@ impl<'a, 'b, 'c> Scanner<'a> {
     /// ```
     ///
     /// ```
-    pub fn scan(&'a mut self) -> Vec<Token> {
+    */
+    /*fn scan(&'a mut self) -> Vec<Token> {
         let mut token = self.next_token();
 
         while token.kind != TokenType::Eof {
@@ -672,20 +674,26 @@ impl<'a, 'b, 'c> Scanner<'a> {
         self.tokens.push(token);
 
         take(&mut self.tokens)
-    }
+    }*/
 }
 
 #[cfg(test)]
 mod scanner_tests {
     use crate::prelude::*;
 
-    fn check_results(actual: Vec<Token>, expected: Vec<Token>) {
-        assert_eq!(actual.len(), expected.len());
+    fn check_results(scanner: &mut Scanner, expected: Vec<Token>) {
+        let mut i = 0;
 
-        let iter = actual.iter().zip(expected.iter());
-        for (at, et) in iter {
-            assert_eq!(et, at)
+        let mut token = scanner.next_token();
+        while token.kind != TokenType::Eof {
+            assert_eq!(token, expected[i]);
+            i = i + 1;
+
+            token = scanner.next_token();
         }
+        assert_eq!(token, expected[i]);
+
+        assert_eq!(i+1, expected.len());
     }
 
     #[test]
@@ -731,9 +739,8 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 
     #[test]
@@ -834,9 +841,8 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 
     #[test]
@@ -877,9 +883,8 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 
     #[test]
@@ -922,9 +927,8 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 
     #[test]
@@ -965,13 +969,12 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
+
+        check_results(&mut scanner, expected);
 
         assert!(compiler.errors.len() == 1);
         let message: Box<str> = "Unrecognized escape character: \\s".into();
         assert!(compiler.errors[0].message() == &message);
-
-        check_results(actual, expected);
     }
 
     #[test]
@@ -1007,9 +1010,8 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 
     #[test]
@@ -1047,8 +1049,7 @@ mod scanner_tests {
         );
 
         let mut scanner = Scanner::new(&mut compiler);
-        let actual = scanner.scan();
 
-        check_results(actual, expected);
+        check_results(&mut scanner, expected);
     }
 }

@@ -129,9 +129,13 @@ impl<'a, 'b> Compiler {
     /// ```
     pub fn compile(&'a mut self) -> Result<()> {
         let mut scanner = Scanner::new(self);
-        let tokens = scanner.scan();
 
-        dbg!(&tokens);
+        let mut token = scanner.next_token();
+        while token.kind != TokenType::Eof {
+            dbg!(token);
+            token = scanner.next_token();
+        }
+
         dbg!(&self.errors);
 
         match self.errors.is_empty() {
