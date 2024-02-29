@@ -4,19 +4,19 @@ const Vector = module {
         y: int
     }
 
-    pub const new -> t = (x, y: int) do
+    pub const new -> t = (x, y: int) {
         t.{x, y}
-    end
+    }
 
-    pub const add(self: &t) -> t = (other: &t) do
+    pub const add(self: &t) -> t = (other: &t) {
         t.{
             x: self.x + other.x,
             y: self.y + other.y
         }
-    end
+    }
 }
 
-const main = () do
+const main = () {
     let a = Vector.new(1, 2)
     @.assert(@.type_of(a) == Vector.t)
 
@@ -25,4 +25,4 @@ const main = () do
 
     let c = a.add(b)
     @.assert(@.type_of(c) == Vector.t)
-end
+}

@@ -38,7 +38,7 @@ const strsplit -> [..]string.t = (
     words
 end
 
-const main -> Result(unit) = () do
+const main -> Result<unit> = () do
     let words = "| Hello, 
                  | world!
                  |"

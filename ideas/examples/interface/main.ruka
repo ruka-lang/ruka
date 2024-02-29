@@ -8,23 +8,23 @@ const Vector = record {
     y: int
 }
 
-const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
+const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) {
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-end
+}
 
-const add(lhs: &Vector) -> Vector = (rhs: &Vector) do
+const add(lhs: &Vector) -> Vector = (rhs: &Vector) {
     Vector.{
         x: lhs.x + rhs.x,
         y: lhs.y + rhs.y
     }
-end
+}
 
-const add -> Num = (x, y: Num) do
+const add -> Num = (x, y: Num) {
     x + y // x.add(&y)
-end
+}
 
 const main -> Result(unit) = () {
     let a = Vector.{x: 10, y: 5}

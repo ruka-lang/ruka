@@ -1,24 +1,24 @@
 const std = @.import("std")
 
-const main = () do
+const main = () {
     let petal = std.petal.new((chan: std.channel.t) {
         const self = @.this()
 
-        match chan.next() do // chan.next() is blocking, suspends when channel is empty
-            0 => @.println("Recieved 0")
-            1 => @.println("Recieved 1")
-            _ => {
+        match chan.next() { // chan.next() is blocking, suspends when channel is empty
+            | 0 => chan.send(1)
+            | _ => {
                 @.println("Unsupported message")
                 self(chan)
             }
-        end
+        }
     })
 
     petal.go()
 
     petal.send(5) // "Unsupported message"
     petal.send(2) // "Unsupported message"
-    petal.send(0) // "Recieved 0" 
+    petal.send(0)
+    @.assert_eq(chan.recieve() == 1)?
 
     petal.join()
-end
+}

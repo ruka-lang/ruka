@@ -19,8 +19,10 @@ const (+)(lhs: &Color) -> Color = (rhs: &Color) {
 const main -> Result(unit) = () {
     let red = Color.{r: 255, g: 0, b: 0}
     let blue = Color.{r: 0, g: 0, b: 255}
+
     let purple = red + blue
     let .{r, g, b} = purple
+
     @.assert(r == 255 and g == 0 and b == 255)?
 
     Ok <| ()

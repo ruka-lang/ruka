@@ -1,31 +1,31 @@
-const Num = interface ('a) do
+const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
-end
+}
 
-const num -> module = (@'a: type) do
+const num -> module = (@'a: type) {
     module {
         const t = 'a;
 
-        pub const (+)(lhs: &t) -> t = (rhs: &t) do
+        pub const (+)(lhs: &t) -> t = (rhs: &t) {
             let mut result = t.{}
 
-            inline for member in @.members_of(t) do
+            inline for member in @.members_of(t) {
                 result.(member) = lhs.(member) + rhs.(member)
-            end
-        end
+            }
+        }
     }
-end
+}
 
 const Vector = record {
     x: int,
     y: int
 } |> num()
 
-const add -> Num = (x, y: Num) do
+const add -> Num = (x, y: Num) {
     x + y
-end
+}
 
-const main -> Result(unit) = () do
+const main -> Result(unit) = () {
     let a = Vector.t.{x: 10, y: 5}
     let b = Vector.t.{x: 5, y: 10}
     let c = add(a, b)
@@ -39,4 +39,4 @@ const main -> Result(unit) = () do
     @.assert(f == 15)?
 
     Ok <| ()
-end
+}
