@@ -21,6 +21,23 @@ enum Precedence {
     Index
 }
 
+impl Precedence {
+    pub fn from_token_type(kind: &TokenType) -> Precedence {
+        use TokenType::*;
+        use Precedence::*;
+
+        match kind {
+            Equal | NotEqual => Equals,
+            Lesser | LesserEq | Greater | GreaterEq => LtGt,
+            Plus | Minus => Sum,
+            Slash | Asterisk => Product,
+            LeftParen => Call,
+            LeftBracket => Index,
+            _ => Lowest
+        }
+    }
+}
+
 ///
 pub struct Parser<'a> {
     compiler: &'a mut Compiler,
@@ -50,9 +67,34 @@ impl<'a, 'b> Parser<'a> {
         }
     }
 
+    fn parse_statement(&'b mut self) -> Statement {
+        self.next_token(1);
+        
+        Statement::Return(
+            Expression::Unit
+        )   
+    }
+
     pub fn parse_program(&'a mut self) -> Program {
-        let statements = vec![];
+        let mut statements = vec![];
+
+        while self.read.kind != TokenType::Eof {
+            let stmt = self.parse_statement();
+            statements.push(stmt);
+        }
 
         Program{statements}
     }
+}
+
+mod test {
+    use crate::prelude::*;
+
+    fn check_results() {}
+
+    #[test]
+    fn test_assignment() {
+
+    }
+
 }
