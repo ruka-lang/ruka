@@ -9,8 +9,8 @@ const List -> module = (comptime 'a: type) {
 
         pub const new -> t = (val: 'a) {
             t.{
-                val,
-                next = None
+                .val,
+                .next = None
             }
         }
 

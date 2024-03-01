@@ -10,15 +10,15 @@ const Vector = record {
 
 const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) {
     Vector.{
-        x: lhs.x + rhs.x,
-        y: lhs.y + rhs.y
+        .x = lhs.x + rhs.x,
+        .y = lhs.y + rhs.y
     }
 }
 
 const add(lhs: &Vector) -> Vector = (rhs: &Vector) {
     Vector.{
-        x: lhs.x + rhs.x,
-        y: lhs.y + rhs.y
+        .x = lhs.x + rhs.x,
+        .y = lhs.y + rhs.y
     }
 }
 

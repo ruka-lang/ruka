@@ -5,13 +5,13 @@ const Vector = module {
     }
 
     pub const new -> t = (x, y: int) {
-        t.{x, y}
+        t.{.x, .y}
     }
 
     pub const add(self: &t) -> t = (other: &t) {
         t.{
-            x: self.x + other.x,
-            y: self.y + other.y
+            .x = self.x + other.x,
+            .y = self.y + other.y
         }
     }
 }

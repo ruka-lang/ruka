@@ -26,8 +26,8 @@ const add -> Num = (x, y: Num) {
 }
 
 const main -> Result(unit) = () {
-    let a = Vector.t.{x: 10, y: 5}
-    let b = Vector.t.{x: 5, y: 10}
+    let a = Vector.t.{.x = 10, .y = 5}
+    let b = Vector.t.{.x = 5, .y = 10}
     let c = add(a, b)
 
     @.assert(c.x == 15 and c.y == 15)?
