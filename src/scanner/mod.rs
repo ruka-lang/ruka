@@ -673,7 +673,7 @@ impl<'a, 'b, 'c> Scanner<'a> {
 }
 
 #[cfg(test)]
-mod scanner_tests {
+mod tests {
     use crate::prelude::*;
 
     fn check_results(scanner: &mut Scanner, expected: Vec<Token>) {
