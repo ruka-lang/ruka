@@ -7,11 +7,6 @@ use crate::prelude::*;
 
 use std::sync::Arc;
 
-//pub enum Node {
-//    Program(Program),
-//    Statement(Statement)
-//}
-
 #[derive(Debug)]
 pub enum Expression {
     Unit,
@@ -47,6 +42,11 @@ pub struct Match {
 pub struct Case {
     pub condition: Expression,
     pub consequence: Expression
+}
+
+#[derive(Debug)]
+pub struct Type {
+    
 }
 
 #[derive(Debug)]
@@ -93,7 +93,7 @@ pub struct Postfix {
 
 #[derive(Debug)]
 pub enum Statement {
-    Binding,
+    Binding(Binding),
     Return(Expression),
     Expression(Expression)
 }
@@ -102,6 +102,7 @@ pub enum Statement {
 pub struct Binding {
     pub kind: TokenType,
     pub name: Arc<str>,
+    pub expl_type: Option<Type>,
     pub value: Expression
 }
 

@@ -21,6 +21,7 @@ pub use crate::parser::ast::Closure;
 pub use crate::parser::ast::Fn;
 pub use crate::parser::ast::Case;
 pub use crate::parser::ast::Match;
+pub use crate::parser::ast::Type;
 
 pub use crate::scanner::Scanner;
 pub use crate::scanner::token::Mode;
