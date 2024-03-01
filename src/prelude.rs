@@ -8,9 +8,10 @@ pub use crate::compiler::Compiler;
 
 pub use crate::interpreter::Interpreter;
 
-pub use crate::parser::ast::Program;
+pub use crate::parser::Parser;
+pub use crate::parser::ast::Ast;
+pub use crate::parser::ast::Node;
 pub use crate::parser::ast::Block;
-pub use crate::parser::ast::Statement;
 pub use crate::parser::ast::Binding;
 pub use crate::parser::ast::Expression;
 pub use crate::parser::ast::Postfix;

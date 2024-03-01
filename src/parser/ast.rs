@@ -8,6 +8,21 @@ use crate::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug)]
+pub enum Node {
+    Binding(Binding),
+    Return(Expression),
+    Expression(Expression)
+}
+
+#[derive(Debug)]
+pub struct Binding {
+    pub kind: TokenType,
+    pub name: Arc<str>,
+    pub expl_type: Option<Type>,
+    pub value: Expression
+}
+
+#[derive(Debug)]
 pub enum Expression {
     Unit,
     Tag(Arc<str>),
@@ -58,6 +73,11 @@ pub struct Fn {
 }
 
 #[derive(Debug)]
+pub struct Block {
+    pub statements: Vec<Node>
+}
+
+#[derive(Debug)]
 pub struct Closure {
     pub name: Arc<str>,
     pub parameters: Vec<Arc<str>>,
@@ -92,26 +112,6 @@ pub struct Postfix {
 }
 
 #[derive(Debug)]
-pub enum Statement {
-    Binding(Binding),
-    Return(Expression),
-    Expression(Expression)
-}
-
-#[derive(Debug)]
-pub struct Binding {
-    pub kind: TokenType,
-    pub name: Arc<str>,
-    pub expl_type: Option<Type>,
-    pub value: Expression
-}
-
-#[derive(Debug)]
-pub struct Block {
-    pub statements: Vec<Statement>
-}
-
-#[derive(Debug)]
-pub struct Program {
-    pub statements: Vec<Statement>
+pub struct Ast {
+    pub nodes: Vec<Node>
 }

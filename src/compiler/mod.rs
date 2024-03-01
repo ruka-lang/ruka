@@ -15,7 +15,7 @@ pub struct Compiler {
     pub input: Arc<str>,
     pub output: Option<Arc<str>>,
     pub contents: Box<str>,
-    pub ast: Option<Program>,
+    pub ast: Option<Ast>,
     pub context: Vec<()>,
     pub errors: Vec<Error>
 }
@@ -101,7 +101,7 @@ impl<'a, 'b> Compiler {
     /// ```
     ///
     /// ```
-    pub fn new_using_ast(source: Arc<str>, ast: Program) -> Self {
+    pub fn new_using_ast(source: Arc<str>, ast: Ast) -> Self {
         let errors = vec![];
 
         Self{

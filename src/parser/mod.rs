@@ -42,19 +42,17 @@ impl Precedence {
 
 ///
 pub struct Parser<'a> {
-    compiler: &'a mut Compiler,
     scanner: &'a mut Scanner<'a>,
     read: Token,
     peek: Token
 }
 
 impl<'a, 'b> Parser<'a> {
-    pub fn new(compiler: &'a mut Compiler, scanner: &'a mut Scanner<'a>) -> Self {
+    pub fn new(scanner: &'a mut Scanner<'a>) -> Self {
         let read = scanner.next_token();
         let peek = scanner.next_token();
 
         Self {
-            compiler,
             scanner,
             read,
             peek
@@ -66,6 +64,13 @@ impl<'a, 'b> Parser<'a> {
             self.read = self.peek.clone();
             self.peek = self.scanner.next_token();
             count = count - 1;
+        }
+    }
+
+    fn skip_semicolon_newline(&'b mut self) {
+        match &self.peek.kind {
+            TokenType::Newline | TokenType::Semicolon => self.next_token(1),
+            _ => ()
         }
     }
 
@@ -82,19 +87,77 @@ impl<'a, 'b> Parser<'a> {
         }
     }
 
-    fn parse_expression(&'b mut self, prec: Precedence) -> Result<Expression> {
-       Err(anyhow!("Unimplemented")) 
+    fn parse_expression_id(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
     }
 
-    fn parse_binding_statement(&'b mut self) -> Result<Statement> {
+    fn parse_expression_int(&'b mut self) -> Result<Expression> {
         use TokenType::*;
+
+        if let Integer(i) = &self.read.kind {
+            Ok(Expression::Integer(i.clone()))
+        } else {
+            Err(anyhow!("Expected Integer, got something else"))
+        }
+    }
+
+    fn parse_expression_float(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_bool(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_prefix(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_group(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_block(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_if(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression_match(&'b mut self) -> Result<Expression> {
+        Err(anyhow!("Unimplemented"))
+    }
+
+    fn parse_expression(&'b mut self, prec: Precedence) -> Result<Expression> {
+        use TokenType::*;
+        use crate::prelude::Keyword::*;
+
+        match &self.read.kind {
+            Tag(id) => self.parse_expression_id(),
+            Integer(i) => self.parse_expression_int(),
+            Float(f) => self.parse_expression_float(),
+            Keyword(True) | Keyword(False) => self.parse_expression_bool(),
+            Bang | Minus | Asterisk | Ampersand => self.parse_expression_prefix(),
+            LeftParen => self.parse_expression_group(),
+            Keyword(Do) | LeftSquirly => self.parse_expression_block(),
+            Keyword(If) => self.parse_expression_if(),
+            Keyword(Match) => self.parse_expression_match(),
+            tt => Err(anyhow!("No prefix function for {:?}", tt))
+        }
+    }
+
+    fn parse_binding_statement(&'b mut self) -> Result<Node> {
+        use TokenType::*;
+
+        let kind = self.read.kind.clone();
 
         let name = self.parse_tag()?;
         self.next_token(1);
 
         let value: Expression;
 
-        match &self.read.kind {
+        match &self.peek.kind {
             Assign => {
                 self.next_token(2);
                 value = self.parse_expression(Precedence::Lowest)?; 
@@ -104,15 +167,17 @@ impl<'a, 'b> Parser<'a> {
             }
         }
 
-        Ok(Statement::Binding(Binding{
-            kind: self.read.kind.clone(),
+        self.skip_semicolon_newline();
+
+        Ok(Node::Binding(Binding{
+            kind,
             name,
             expl_type: None,
             value,
         }))
     }
 
-    fn parse_statement(&'b mut self) -> Result<Statement> {
+    fn parse_statement(&'b mut self) -> Result<Node> {
         use TokenType::Keyword;
         use crate::prelude::Keyword::{Let, Const};
 
@@ -124,26 +189,42 @@ impl<'a, 'b> Parser<'a> {
         }
     }
 
-    pub fn parse_program(&'a mut self) -> Result<Program> {
-        let mut statements = vec![];
+    pub fn parse_program(&'a mut self) -> Result<Ast> {
+        let mut nodes = vec![];
 
-        while self.read.kind != TokenType::Eof {
+        while self.peek.kind != TokenType::Eof {
             let stmt = self.parse_statement()?;
-            statements.push(stmt);
+            nodes.push(stmt);
         }
 
-        Ok(Program{statements})
+        Ok(Ast{nodes})
     }
 }
 
 mod test {
+    use anyhow::Result;
+
     use crate::prelude::*;
 
     fn check_results() {}
 
     #[test]
-    fn test_assignment() {
+    fn test_assignment_parsing() -> Result<()> {
+        let source = "let x = 12";
 
+        let mut compiler = Compiler::new_using_str(
+            "assignment parsing test".into(),
+            source.into()
+        );
+
+        let mut scanner = Scanner::new(&mut compiler);
+        let mut parser = Parser::new(&mut scanner);
+
+        let ast = parser.parse_program();
+
+        dbg!(ast);
+
+        Ok(())
     }
 
 }
