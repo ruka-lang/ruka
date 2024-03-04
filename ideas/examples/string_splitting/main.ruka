@@ -47,5 +47,5 @@ const main -> Result<unit> = () do
 
     @.assert(words.len() == 3)?
 
-    Ok(())
+    Ok <| ()
 end

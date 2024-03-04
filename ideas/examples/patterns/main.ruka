@@ -1,24 +1,24 @@
 const std = @.import("std")
 
-const Color = record {
+const Color = struct {
     r: u8,
     g: u8,
     b: u8
 }
 
-const (+)(lhs: &Color) -> Color = (rhs: &Color) {
+const (+)(lhs: &Color) -> Color = (rhs: &Color) do
     let .{rl, gl, bl} = lhs
     let .{rr, gr, br} = rhs
     Color.{
-        r: rl + rr,
-        g: gl + gr,
-        b: bl + br
+        .r = rl + rr,
+        .g = gl + gr,
+        .b = bl + br
     }
-}
+end
 
-const main -> Result(unit) = () {
-    let red = Color.{r: 255, g: 0, b: 0}
-    let blue = Color.{r: 0, g: 0, b: 255}
+const main -> Result(unit) = () do
+    let red = Color.{.r = 255, .g = 0, .b = 0}
+    let blue = Color.{.r = 0, .g = 0, .b = 255}
 
     let purple = red + blue
     let .{r, g, b} = purple
@@ -26,4 +26,4 @@ const main -> Result(unit) = () {
     @.assert(r == 255 and g == 0 and b == 255)?
 
     Ok <| ()
-}
+end

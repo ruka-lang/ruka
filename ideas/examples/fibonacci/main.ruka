@@ -3,9 +3,9 @@
  */
 
 const string = @.import("std").string
-const fib = @.import("fib.ra")
+const fib = @.import("fib.ruka")
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = () do
     let n = gets()
         |> string.parse() ~into: int
         |> (?)
@@ -15,4 +15,4 @@ const main -> Result(unit) = () {
     @.println("Fibonacci number {} is {}", {n, value})
 
     () |> Ok
-}
+end
