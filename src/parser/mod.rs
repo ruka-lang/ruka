@@ -134,9 +134,9 @@ impl<'a, 'b> Parser<'a> {
         use crate::prelude::Keyword::*;
 
         match &self.read.kind {
-            Tag(id) => self.parse_expression_id(),
-            Integer(i) => self.parse_expression_int(),
-            Float(f) => self.parse_expression_float(),
+            Tag(_) => self.parse_expression_id(),
+            Integer(_) => self.parse_expression_int(),
+            Float(_) => self.parse_expression_float(),
             Keyword(True) | Keyword(False) => self.parse_expression_bool(),
             Bang | Minus | Asterisk | Ampersand => self.parse_expression_prefix(),
             LeftParen => self.parse_expression_group(),
