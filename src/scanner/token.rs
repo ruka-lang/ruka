@@ -17,7 +17,7 @@ pub struct Token {
 
 impl Token {
     /// Creates a new Token
-    /// 
+    ///
     /// # Arguments
     /// * `kind` -
     /// * `file` -
@@ -111,7 +111,7 @@ pub enum TokenType {
 
 impl TokenType {
     /// Converts a char into it's corresponding TokenType
-    /// 
+    ///
     /// # Arguments
     /// * `ch` -
     ///
@@ -158,7 +158,7 @@ impl TokenType {
             '|'  => TokenType::Pipe,
             '^'  => TokenType::Caret,
             '~'  => TokenType::Tilde,
-            
+
             '<'  => TokenType::Lesser,
             '>'  => TokenType::Greater,
 
@@ -169,7 +169,7 @@ impl TokenType {
     }
 
     /// Tries to create a TokenType from a string representing a compound operator
-    /// 
+    ///
     /// # Arguments
     /// * `str` -
     ///
@@ -198,12 +198,12 @@ impl TokenType {
             "**"  => Some(TokenType::Power),
 
             "<<"  => Some(TokenType::LeftShift),
-            ">>"  => Some(TokenType::RightShift),  
+            ">>"  => Some(TokenType::RightShift),
 
-            "<="  => Some(TokenType::LesserEq), 
-            ">="  => Some(TokenType::GreaterEq), 
-            "=="  => Some(TokenType::NotEqual), 
-            "!="  => Some(TokenType::Equal), 
+            "<="  => Some(TokenType::LesserEq),
+            ">="  => Some(TokenType::GreaterEq),
+            "=="  => Some(TokenType::NotEqual),
+            "!="  => Some(TokenType::Equal),
 
             _     => None
         }
@@ -211,7 +211,7 @@ impl TokenType {
     }
 
     /// Tries to create a TokenType from a string representing a keyword
-    /// 
+    ///
     /// # Arguments
     /// * `str` -
     ///
@@ -235,37 +235,36 @@ impl TokenType {
             "record"  => Some(TokenType::Keyword(Record)),
             "enum"  => Some(TokenType::Keyword(Enum)),
             "use"  => Some(TokenType::Keyword(Use)),
-            "interface"  => Some(TokenType::Keyword(Interface)),  
-            "module"  => Some(TokenType::Keyword(Module)), 
-            "defer"  => Some(TokenType::Keyword(Defer)), 
-            "when"  => Some(TokenType::Keyword(When)), 
-            "true"  => Some(TokenType::Keyword(True)), 
-            "false"  => Some(TokenType::Keyword(False)), 
-            "for"  => Some(TokenType::Keyword(For)), 
-            "while"  => Some(TokenType::Keyword(While)), 
-            "break"  => Some(TokenType::Keyword(Break)), 
-            "continue"  => Some(TokenType::Keyword(Continue)), 
-            "match"  => Some(TokenType::Keyword(Match)), 
-            "if"  => Some(TokenType::Keyword(If)), 
-            "else"  => Some(TokenType::Keyword(Else)), 
-            "and"  => Some(TokenType::Keyword(And)), 
-            "or"  => Some(TokenType::Keyword(Or)), 
-            "not"  => Some(TokenType::Keyword(Not)), 
-            "comptime"  => Some(TokenType::Keyword(Comptime)), 
-            "inline"  => Some(TokenType::Keyword(Inline)), 
-            "test"  => Some(TokenType::Keyword(Test)), 
-            "as"  => Some(TokenType::Keyword(As)), 
-            "in"  => Some(TokenType::Keyword(In)), 
+            "interface"  => Some(TokenType::Keyword(Interface)),
+            "module"  => Some(TokenType::Keyword(Module)),
+            "defer"  => Some(TokenType::Keyword(Defer)),
+            "when"  => Some(TokenType::Keyword(When)),
+            "true"  => Some(TokenType::Keyword(True)),
+            "false"  => Some(TokenType::Keyword(False)),
+            "for"  => Some(TokenType::Keyword(For)),
+            "while"  => Some(TokenType::Keyword(While)),
+            "break"  => Some(TokenType::Keyword(Break)),
+            "continue"  => Some(TokenType::Keyword(Continue)),
+            "match"  => Some(TokenType::Keyword(Match)),
+            "if"  => Some(TokenType::Keyword(If)),
+            "else"  => Some(TokenType::Keyword(Else)),
+            "and"  => Some(TokenType::Keyword(And)),
+            "or"  => Some(TokenType::Keyword(Or)),
+            "not"  => Some(TokenType::Keyword(Not)),
+            "inline"  => Some(TokenType::Keyword(Inline)),
+            "test"  => Some(TokenType::Keyword(Test)),
+            "as"  => Some(TokenType::Keyword(As)),
+            "in"  => Some(TokenType::Keyword(In)),
             // Reserved
-            "private"  => Some(TokenType::Keyword(Private)), 
-            "derive"  => Some(TokenType::Keyword(Derive)),  
+            "private"  => Some(TokenType::Keyword(Private)),
+            "derive"  => Some(TokenType::Keyword(Derive)),
             "static"  => Some(TokenType::Keyword(Static)),
             "error"  => Some(TokenType::Keyword(Error)),
             "macro"  => Some(TokenType::Keyword(Macro)),
-            "from"  => Some(TokenType::Keyword(From)), 
-            "impl"  => Some(TokenType::Keyword(Impl)),  
-            "any"  => Some(TokenType::Keyword(Any)), 
-            "mod"  => Some(TokenType::Keyword(Mod)), 
+            "from"  => Some(TokenType::Keyword(From)),
+            "impl"  => Some(TokenType::Keyword(Impl)),
+            "any"  => Some(TokenType::Keyword(Any)),
+            "mod"  => Some(TokenType::Keyword(Mod)),
             "fn"  => Some(TokenType::Keyword(Fn)),
 
             _     => None
@@ -273,7 +272,7 @@ impl TokenType {
     }
 
     /// Tries to create a TokenType from a string representing a mode
-    /// 
+    ///
     /// # Arguments
     /// * `str` -
     ///
@@ -298,7 +297,7 @@ impl TokenType {
     }
 
     /// Converts a TokenType to a string slice
-    /// 
+    ///
     /// # Arguments
     ///
     /// # Returns
@@ -325,8 +324,7 @@ pub enum Keyword {
     Begin,
     End,
     Record,
-    Enum,
-    Use,
+    Variant,
     Interface,
     Module,
     Defer,
@@ -343,7 +341,6 @@ pub enum Keyword {
     And,
     Or,
     Not,
-    Comptime,
     Inline,
     Test,
     As,
@@ -352,18 +349,17 @@ pub enum Keyword {
     Private,
     Derive,
     Static,
-    Error,
     Macro,
     From,
     Impl,
     Any,
-    Mod,
+    Use,
     Fn
 }
 
 impl Keyword {
     /// Converts a Keyword to a string slice
-    /// 
+    ///
     /// # Arguments
     ///
     /// # Returns
@@ -390,7 +386,7 @@ pub enum Mode {
 
 impl Mode {
     /// Converts a Mode to a string slice
-    /// 
+    ///
     /// # Arguments
     ///
     /// # Returns
