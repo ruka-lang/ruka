@@ -233,7 +233,7 @@ impl TokenType {
             "do"  => Some(TokenType::Keyword(Do)),
             "end"  => Some(TokenType::Keyword(End)),
             "record"  => Some(TokenType::Keyword(Record)),
-            "enum"  => Some(TokenType::Keyword(Enum)),
+            "variant"  => Some(TokenType::Keyword(Variant)),
             "use"  => Some(TokenType::Keyword(Use)),
             "interface"  => Some(TokenType::Keyword(Interface)),
             "module"  => Some(TokenType::Keyword(Module)),
@@ -259,12 +259,10 @@ impl TokenType {
             "private"  => Some(TokenType::Keyword(Private)),
             "derive"  => Some(TokenType::Keyword(Derive)),
             "static"  => Some(TokenType::Keyword(Static)),
-            "error"  => Some(TokenType::Keyword(Error)),
             "macro"  => Some(TokenType::Keyword(Macro)),
             "from"  => Some(TokenType::Keyword(From)),
             "impl"  => Some(TokenType::Keyword(Impl)),
             "any"  => Some(TokenType::Keyword(Any)),
-            "mod"  => Some(TokenType::Keyword(Mod)),
             "fn"  => Some(TokenType::Keyword(Fn)),
 
             _     => None
