@@ -1,0 +1,11 @@
+{
+    "[elixir]": {
+        "files.insertFinalNewline": false
+    },
+    "[eex]": {
+        "files.insertFinalNewline": false
+    },
+    "[html-eex]": {
+        "files.insertFinalNewline": false
+    }
+}
