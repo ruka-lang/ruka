@@ -18,34 +18,35 @@ const testing = @.import("std").testing
 const strsplit -> [..]string.t = (
     str: []u8,
     ch: u8
-) do
+) {
     let mut indices = [..]uint{}
-    for {c, i} in {str, 1..} do
+    for ({c, i} in {str, 1..}) {
         if c == ch => indices.push(i)
-    end
+    }
 
     let mut words = [..]string.t{}
     let mut prev = 0
-    for idx in indices do
+    for (idx in indices) {
         let str = str[prev..idx].into(string.t)
         words.push(str)
         prev = idx + 1
-    end
+    }
 
     let str = str[prev..str.len].into(string.t)
     words.push(str)
 
     words
-end
+}
 
-const main -> Result<unit> = () do
-    let words = "| Hello, 
-                 | world!
-                 |"
+const main -> Result<unit> = () {
+    let words = 
+        "| Hello, 
+         | world!
+         |"
         |> ([..])
         |> strsplit('\n')
 
     @.assert(words.len() == 3)?
 
     Ok <| ()
-end
+}

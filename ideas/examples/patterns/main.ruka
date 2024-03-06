@@ -6,7 +6,7 @@ const Color = struct {
     b: u8
 }
 
-const (+)(lhs: &Color) -> Color = (rhs: &Color) do
+const (+)(lhs: &Color) -> Color = (rhs: &Color) {
     let .{rl, gl, bl} = lhs
     let .{rr, gr, br} = rhs
     Color.{
@@ -14,9 +14,9 @@ const (+)(lhs: &Color) -> Color = (rhs: &Color) do
         .g = gl + gr,
         .b = bl + br
     }
-end
+}
 
-const main -> Result(unit) = () do
+const main -> Result(unit) = () {
     let red = Color.{.r = 255, .g = 0, .b = 0}
     let blue = Color.{.r = 0, .g = 0, .b = 255}
 
@@ -26,4 +26,4 @@ const main -> Result(unit) = () do
     @.assert(r == 255 and g == 0 and b == 255)?
 
     Ok <| ()
-end
+}

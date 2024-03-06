@@ -2,32 +2,32 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num -> module = (@'a: type) do
-    module {
-        const t = 'a;
+const num -> type = (comptime 'a: type) {
+    const t = 'a;
 
-        pub const (+)(lhs: &t) -> t = (rhs: &t) do
-            let mut result = t.{}
+    pub const (+)(lhs: &t) -> t = (rhs: &t) {
+        let mut result = t.{}
 
-            inline for member in @.members_of(t) do
-                result.(member) = lhs.(member) + rhs.(member)
-            end
-        end
+        inline for (member in @.members_of(t)) {
+            result.(member) = lhs.(member) + rhs.(member)
+        }
     }
-end
+
+    t
+}
 
 const Vector = struct {
     x: int,
     y: int
 } |> num()
 
-const add -> Num = (x, y: Num) do
+const add -> Num = (x, y: Num) {
     x + y
-end
+}
 
-const main -> Result(unit) = () do
-    let a = Vector.t.{.x = 10, .y = 5}
-    let b = Vector.t.{.x = 5, .y = 10}
+const main -> Result(unit) = () {
+    let a = Vector.{.x = 10, .y = 5}
+    let b = Vector.{.x = 5, .y = 10}
     let c = add(a, b)
 
     @.assert(c.x == 15 and c.y == 15)?
@@ -39,4 +39,4 @@ const main -> Result(unit) = () do
     @.assert(f == 15)?
 
     Ok <| ()
-end
+}
