@@ -25,7 +25,7 @@ pub const Compiler = struct {
     errors: std.ArrayList(CompileError),
     arena: std.heap.ArenaAllocator,
 
-    /// Creates a new compiler instance, initializing it's arena with the passed in 
+    /// Creates a new compiler instance, initializing it's arena with the passed in
     /// allocator
     pub fn init(input: []const u8, output: ?[]u8, allocator: std.mem.Allocator) !Compiler {
         var file = try std.fs.cwd().openFile(input, .{});
@@ -56,7 +56,7 @@ pub const Compiler = struct {
         var t = s.next_token();
 
         while(t.kind != .Eof) {
-            std.debug.print("{s}\n", .{@tagName(t.kind)});
+            std.debug.print("{s}: {s}\n", .{@tagName(t.kind) ,t.kind.to_str()});
             t = s.next_token();
         }
 

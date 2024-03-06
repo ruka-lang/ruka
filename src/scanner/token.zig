@@ -71,7 +71,7 @@ pub const Kind = union(enum) {
     Percent,       // %
     Increment,     // ++
     Decrement,     // --
-    Power,         // **
+    Square,        // **
     // Bitwise
     Ampersand,     // &
     Pipe,          // |
@@ -186,7 +186,7 @@ pub const Kind = union(enum) {
             .Percent      => "%",
             .Increment    => "++",
             .Decrement    => "--",
-            .Power        => "**",
+            .Square       => "**",
             // Bitwise
             .Ampersand    => "&",
             .Pipe         => "|",
@@ -202,7 +202,9 @@ pub const Kind = union(enum) {
             .Equal        => "==",
             .Notequal     => "!=",
             // Miscelaneous
-            .Newline      => "\n"
+            .Newline      => "\n",
+            .Illegal      => "ILLEGAL",
+            .Eof          => "EOF"
         };
     }
 

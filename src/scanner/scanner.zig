@@ -40,12 +40,125 @@ pub const Scanner = struct {
             '=' => blk: {
                 var kind = self.try_compound_operator(.{
                     .{2, "=>", token.Kind.Widearrow},
-                    .{2, "==", token.Kind.Equal},
+                    .{2, "==", token.Kind.Equal}
                 });
 
                 if (kind == null) {
                     self.advance(1);
                     kind = token.Kind.Assign;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            ':' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, ":=", token.Kind.Assignexp}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Colon;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '>' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, ">=", token.Kind.Greatereq},
+                    .{2, ">>", token.Kind.Rshift}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Greater;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '<' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "<=", token.Kind.Lessereq},
+                    .{2, "<<", token.Kind.Lshift},
+                    .{2, "<|", token.Kind.Forapp}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Lesser;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '-' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "->", token.Kind.Arrow},
+                    .{2, "--", token.Kind.Decrement}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Minus;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '+' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "++", token.Kind.Increment}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Plus;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '*' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "**", token.Kind.Square}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Asterisk;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '.' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "..", token.Kind.Excrange},
+                    .{3, "..=", token.Kind.Incrange}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Dot;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '!' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "!=", token.Kind.Notequal}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Bang;
+                }
+
+                break :blk self.new_token(kind.?);
+            },
+            '|' => blk: {
+                var kind = self.try_compound_operator(.{
+                    .{2, "|>", token.Kind.Revapp}
+                });
+
+                if (kind == null) {
+                    self.advance(1);
+                    kind = token.Kind.Pipe;
                 }
 
                 break :blk self.new_token(kind.?);
@@ -130,13 +243,33 @@ pub const Scanner = struct {
         }
     }
 
-    // 
+    //
     fn read_identifier_keyword_mode(self: *Self) token.Token {
+        const start = self.idx;
+
+        var byte = self.read();
+        while (util.is_alphanumerical(byte)) {
+            self.advance(1);
+            byte = self.read();
+        }
+
+        const str = self.compiler.contents[start..self.idx];
+
+        var kind = token.Kind.try_keyword(str);
+
+        if (kind == null) {
+            kind = token.Kind.try_mode(str);
+
+            if (kind == null) {
+                kind = .{.Identifier = str};
+            }
+        }
+
         self.advance(1);
-        return self.new_token(.{.Identifier = ""});
+        return self.new_token(kind.?);
     }
 
-    // 
+    //
     fn read_integer_float(self: *Self) token.Token {
         self.advance(1);
         return self.new_token(.{.Integer = ""});

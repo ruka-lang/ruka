@@ -31,7 +31,7 @@ pub fn is_numeric(byte: u8) bool {
 }
 
 /// Checks if a byte is a alphabetical or numerical
-pub fn is_alphanumberical(byte: u8) bool {
+pub fn is_alphanumerical(byte: u8) bool {
     return is_alphabetical(byte) or is_integral(byte);
 }
 
