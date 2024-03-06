@@ -2,6 +2,7 @@
 // @created: 2024-03-04
 
 const rukac = @import("../root.zig");
+const compiler = rukac.compiler;
 const util = rukac.util;
 
 const std = @import("std");
@@ -14,11 +15,11 @@ pub const Scanner = struct {
 
     cur_pos: util.Position,
     tok_pos: util.Position,
-    compiler: *rukac.Compiler,
+    compiler: *compiler.Compiler,
     idx: usize,
 
     /// Creates a new scanner instance
-    pub fn init(comp: *rukac.Compiler) Self {
+    pub fn init(comp: *compiler.Compiler) Self {
         return Self{
             .cur_pos = .{.line = 1, .col = 1},
             .tok_pos = .{.line = 1, .col = 1},

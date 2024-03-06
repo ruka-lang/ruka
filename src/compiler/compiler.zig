@@ -2,6 +2,7 @@
 // @created: 2024-03-04
 
 const rukac = @import("../root.zig");
+const scanner = rukac.scanner;
 const util = rukac.util;
 
 const std = @import("std");
@@ -51,7 +52,7 @@ pub const Compiler = struct {
 
     /// Begins the compilation process for the compilation unit
     pub fn compile(self: *Compiler) !void {
-        var s = rukac.Scanner.init(self);
+        var s = scanner.Scanner.init(self);
         var t = s.next_token();
 
         while(t.kind != .Eof) {

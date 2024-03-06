@@ -5,11 +5,9 @@
 pub const cli = @import("cli/cli.zig");
 // Compiler module imports
 pub const compiler = @import("compiler/compiler.zig");
-pub const Compiler = compiler.Compiler;
 // Interpreter module imports
 // Scanner module imports
 pub const scanner = @import("scanner/scanner.zig");
-pub const Scanner = scanner.Scanner;
 // Parser module imports
 // Generator module imports
 pub const generator = @import("generator/generator.zig");
