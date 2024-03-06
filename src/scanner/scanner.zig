@@ -243,10 +243,11 @@ pub const Scanner = struct {
         }
     }
 
-    //
+    // Reads an identifier, keyword, or mode from the file
     fn read_identifier_keyword_mode(self: *Self) token.Token {
         const start = self.idx;
 
+        // Iterate until self.read() is not alphanumeric
         var byte = self.read();
         while (util.is_alphanumerical(byte)) {
             self.advance(1);
@@ -256,10 +257,11 @@ pub const Scanner = struct {
         const str = self.compiler.contents[start..self.idx];
 
         var kind = token.Kind.try_keyword(str);
-
         if (kind == null) {
             kind = token.Kind.try_mode(str);
 
+            // If str doesn't represent a keyword or mode,
+            // then kind is identifier
             if (kind == null) {
                 kind = .{.Identifier = str};
             }
@@ -269,10 +271,40 @@ pub const Scanner = struct {
         return self.new_token(kind.?);
     }
 
-    //
+    // Reads a integer or float from the file
     fn read_integer_float(self: *Self) token.Token {
+        const start = self.idx;
+        var float = false;
+
+        var byte = self.read();
+        while (util.is_numeric(byte)) {
+            if (self.read() == '.') {
+                self.read_integer();
+                float = true;
+            }
+
+            self.advance(1);
+            byte = self.read();
+        }
+
+        const str = self.compiler.contents[start..self.idx];
+        const kind: token.Kind = switch (float) {
+            false => .{.Integer = str},
+            true  => .{.Float = str}
+        };
+
+        return self.new_token(kind);
+    }
+
+    // Reads only integral numbers from the file, no decimals allowed
+    fn read_integer(self: *Self) void {
         self.advance(1);
-        return self.new_token(.{.Integer = ""});
+
+        var byte = self.read();
+        while (util.is_integral(byte)) {
+            self.advance(1);
+            byte = self.read();
+        }
     }
 
     const Match = std.meta.Tuple(&.{usize, []const u8, token.Kind});
