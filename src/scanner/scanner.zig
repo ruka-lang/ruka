@@ -247,7 +247,6 @@ pub const Scanner = struct {
     fn read_identifier_keyword_mode(self: *Self) token.Token {
         const start = self.idx;
 
-        // Iterate until self.read() is not alphanumeric
         var byte = self.read();
         while (util.is_alphanumerical(byte)) {
             self.advance(1);
@@ -276,11 +275,14 @@ pub const Scanner = struct {
         const start = self.idx;
         var float = false;
 
+        // Iterate while self.read() is numeric, if self.read() is a '.',
+        // read only integer values afterwards
         var byte = self.read();
         while (util.is_numeric(byte)) {
             if (self.read() == '.') {
                 self.read_integer();
                 float = true;
+                break;
             }
 
             self.advance(1);
