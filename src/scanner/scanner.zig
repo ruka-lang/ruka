@@ -313,13 +313,11 @@ pub const Scanner = struct {
         const contents = self.compiler.contents;
         var start: usize = undefined;
         var end: usize = undefined;
-        var match: Match = undefined;
 
         // Iterate through each passed in sub-tuple, checking if the second
         // element matches the following chars in the file, if it does
         // return the third element of the sub-tuple
-        inline for (0..matches.len) |i| {
-            match = matches[i];
+        inline for (matches) |match| {
             start = self.idx;
             end = std.math.clamp((start + match[0]), 0, contents.len);
 
