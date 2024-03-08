@@ -255,9 +255,9 @@ pub const Scanner = struct {
 
         const str = self.compiler.contents[start..self.idx];
 
-        var kind = token.Kind.try_keyword(str);
+        var kind = token.Kind.try_mode(str);
         if (kind == null) {
-            kind = token.Kind.try_mode(str);
+            kind = token.Kind.try_keyword(str);
 
             // If str doesn't represent a keyword or mode,
             // then kind is identifier

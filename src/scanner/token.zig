@@ -283,7 +283,7 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"return", .Return},
     .{"do", .Do},
     .{"end", .End},
-    .{"Record", .Record},
+    .{"record", .Record},
     .{"variant", .Variant},
     .{"interface", .Interface},
     .{"module", .Module},
@@ -317,6 +317,21 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"in", .In},
 });
 
+// Compile time assert no missing or extra entries in keywords
+comptime {
+    const keyword_fields = @typeInfo(Keyword).Enum.fields;
+
+    if (keyword_fields.len != keywords.kvs.len) {
+        var buf: [100]u8 = undefined;
+        const msg = std.fmt.bufPrint(&buf, 
+            "Keywords map has an incorrect number of elements, expected: {}, got: {}", 
+            .{keyword_fields.len, keywords.kvs.len}
+            ) catch unreachable;
+
+        @compileError(msg);
+    }
+}
+
 /// Represent various parameter modes
 const Mode = enum {
     const Self = @This();
@@ -344,6 +359,21 @@ const modes = std.ComptimeStringMap(Mode, .{
     .{"mov", .Mov},
     .{"mut", .Mut}
 });
+
+// Compile time assert no missing or extra entries in modes
+comptime {
+    const mode_fields = @typeInfo(Mode).Enum.fields;
+
+    if (mode_fields.len != modes.kvs.len) {
+        var buf: [100]u8 = undefined;
+        const msg = std.fmt.bufPrint(&buf, 
+            "Modes map has an incorrect number of elements, expected: {}, got: {}", 
+            .{mode_fields.len, keywords.kvs.len}
+            ) catch unreachable;
+
+        @compileError(msg);
+    }
+}
 
 test "mode comparision" {
     const testing = std.testing;
