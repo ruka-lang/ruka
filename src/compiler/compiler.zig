@@ -27,7 +27,11 @@ pub const Compiler = struct {
 
     /// Creates a new compiler instance, initializing it's arena with the passed in
     /// allocator
-    pub fn init(input: []const u8, output: ?[]const u8, allocator: std.mem.Allocator) !Compiler {
+    pub fn init(
+        input: []const u8,
+        output: ?[]const u8,
+        allocator: std.mem.Allocator
+    ) !Compiler {
         var file = try std.fs.cwd().openFile(input, .{});
         defer file.close();
 

@@ -323,8 +323,8 @@ comptime {
 
     if (keyword_fields.len != keywords.kvs.len) {
         var buf: [100]u8 = undefined;
-        const msg = std.fmt.bufPrint(&buf, 
-            "Keywords map has an incorrect number of elements, expected: {}, got: {}", 
+        const msg = std.fmt.bufPrint(&buf,
+            "Keywords map has an incorrect number of elements, expected: {}, got: {}",
             .{keyword_fields.len, keywords.kvs.len}
             ) catch unreachable;
 
@@ -366,8 +366,8 @@ comptime {
 
     if (mode_fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
-        const msg = std.fmt.bufPrint(&buf, 
-            "Modes map has an incorrect number of elements, expected: {}, got: {}", 
+        const msg = std.fmt.bufPrint(&buf,
+            "Modes map has an incorrect number of elements, expected: {}, got: {}",
             .{mode_fields.len, keywords.kvs.len}
             ) catch unreachable;
 

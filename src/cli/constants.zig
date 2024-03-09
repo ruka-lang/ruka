@@ -3,8 +3,8 @@
 
 const std = @import("std");
 
-///
 pub const version = "0.0.0";
+pub const version_date = "03-09-2024";
 const description = "Compiler for the Ruka Programming Language";
 const usage =
     \\usage: rukac [options] subcommand [command_options]
