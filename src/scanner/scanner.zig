@@ -11,16 +11,14 @@ pub const token = @import("token.zig");
 
 /// Scans the file it's compiler is responsible for, only scans one token at a time
 pub const Scanner = struct {
-    const Self = @This();
-
     cur_pos: util.Position,
     tok_pos: util.Position,
     compiler: *compiler.Compiler,
     idx: usize,
 
     /// Creates a new scanner instance
-    pub fn init(comp: *compiler.Compiler) Self {
-        return Self{
+    pub fn init(comp: *compiler.Compiler) Scanner {
+        return Scanner{
             .cur_pos = .{.line = 1, .col = 1},
             .tok_pos = .{.line = 1, .col = 1},
             .compiler = comp,
@@ -30,7 +28,7 @@ pub const Scanner = struct {
 
     /// Returns the next token from the files, when eof is reached,
     /// will repeatedly return eof tokens
-    pub fn next_token(self: *Self) !token.Token {
+    pub fn next_token(self: *Scanner) !token.Token {
         self.skip_whitespace();
         self.tok_pos = self.cur_pos;
 
@@ -206,7 +204,7 @@ pub const Scanner = struct {
     }
 
     // Advances the scanner count number of times
-    fn advance(self: *Self, count: usize) void {
+    fn advance(self: *Scanner, count: usize) void {
         const c = std.math.clamp(count, 0, 3);
 
         for (0..c) |_| {
@@ -221,7 +219,7 @@ pub const Scanner = struct {
     }
 
     // Returns the character at the current index
-    fn read(self: *Self) u8 {
+    fn read(self: *Scanner) u8 {
         if (self.idx >= self.compiler.contents.len) {
             return '\x00';
         }
@@ -230,7 +228,7 @@ pub const Scanner = struct {
     }
 
     // Returns the character after the current index
-    fn peek(self: *Self) u8 {
+    fn peek(self: *Scanner) u8 {
         if (self.idx + 1 >= self.compiler.contents.len) {
             return '\x00';
         }
@@ -239,7 +237,7 @@ pub const Scanner = struct {
     }
 
     // Returns the character previous to the current index
-    fn prev(self: *Self) u8 {
+    fn prev(self: *Scanner) u8 {
         if (self.idx - 1 >= self.compiler.contents.len) {
             return '\x00';
         }
@@ -248,7 +246,7 @@ pub const Scanner = struct {
     }
 
     // Creates a new token of the kind passed in
-    fn new_token(self: *Self, kind: token.Kind) token.Token {
+    fn new_token(self: *Scanner, kind: token.Kind) token.Token {
         return token.Token.init(
             kind,
             self.compiler.input,
@@ -257,7 +255,7 @@ pub const Scanner = struct {
     }
 
     // Skips characters until the current character is not a space or tab
-    fn skip_whitespace(self: *Self) void {
+    fn skip_whitespace(self: *Scanner) void {
         switch (self.read()) {
             inline ' ', '\t' => {
                 self.advance(1);
@@ -268,7 +266,7 @@ pub const Scanner = struct {
     }
 
     // Reads an identifier, keyword, or mode from the file
-    fn read_identifier_keyword_mode(self: *Self) token.Token {
+    fn read_identifier_keyword_mode(self: *Scanner) token.Token {
         const start = self.idx;
 
         var byte = self.read();
@@ -295,7 +293,7 @@ pub const Scanner = struct {
     }
 
     // Reads a integer or float from the file
-    fn read_integer_float(self: *Self) token.Token {
+    fn read_integer_float(self: *Scanner) token.Token {
         const start = self.idx;
         var float = false;
 
@@ -323,7 +321,7 @@ pub const Scanner = struct {
     }
 
     // Reads only integral numbers from the file, no decimals allowed
-    fn read_integer(self: *Self) void {
+    fn read_integer(self: *Scanner) void {
         self.advance(1);
 
         var byte = self.read();
@@ -335,7 +333,7 @@ pub const Scanner = struct {
 
     const Match = std.meta.Tuple(&.{usize, []const u8, token.Kind});
     // Tries to create a token.Kind based on the passed in tuple of tuples
-    fn try_compound_operator(self: *Self, comptime matches: anytype) ?token.Kind {
+    fn try_compound_operator(self: *Scanner, comptime matches: anytype) ?token.Kind {
         const contents = self.compiler.contents;
         var start: usize = undefined;
         var end: usize = undefined;
@@ -357,7 +355,7 @@ pub const Scanner = struct {
     }
 
     // Skips a single line comment
-    fn skip_single_comment(self: *Self) void {
+    fn skip_single_comment(self: *Scanner) void {
         switch (self.read()) {
             '\n' | '\x00' => {},
             else => {
@@ -368,7 +366,7 @@ pub const Scanner = struct {
     }
 
     // Skips a multi line comment
-    fn skip_multi_comment(self: *Self) !void {
+    fn skip_multi_comment(self: *Scanner) !void {
         var next = self.peek();
 
         while (self.read() != '\x00') {
@@ -392,7 +390,7 @@ pub const Scanner = struct {
     }
 
     // Reads a single line string
-    fn read_single_string(self: *Self) !token.Token {
+    fn read_single_string(self: *Scanner) !token.Token {
         const start = self.idx + 1;
         var end = start;
 
@@ -418,7 +416,7 @@ pub const Scanner = struct {
     }
 
     // Reads a multi line string
-    fn read_multi_string(self: *Self) !token.Token {
+    fn read_multi_string(self: *Scanner) !token.Token {
         var string = std.ArrayList(u8).init(self.compiler.arena.allocator());
 
         self.advance(1);
@@ -467,7 +465,7 @@ pub const Scanner = struct {
     }
 
     // Replaces escape characters
-    fn handle_escape_characters(self: *Self, str: [] const u8) ![]const u8 {
+    fn handle_escape_characters(self: *Scanner, str: [] const u8) ![]const u8 {
         const allocator = self.compiler.arena.allocator();
 
         var new_str = try allocator.alloc(u8, str.len);
@@ -502,7 +500,7 @@ pub const Scanner = struct {
     }
 
     // Creates an escape character compilation error
-    fn create_escape_error(self: *Self, i: usize, str: []const u8) !void {
+    fn create_escape_error(self: *Scanner, i: usize, str: []const u8) !void {
         if (i + 1 >= str.len) {
             return try self.compiler.errors.append(.{
                 .file = self.compiler.input,

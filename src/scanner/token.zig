@@ -8,14 +8,12 @@ const std = @import("std");
 
 /// Represents a lexeme: it's kind, file, and position within that file
 pub const Token = struct {
-    const Self = @This();
-
     kind: Kind,
     file: []const u8,
     pos: util.Position,
     /// Creates a new token
-    pub fn init(kind: Kind, file: []const u8, pos: util.Position) Self {
-        return Self {
+    pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
+        return Token {
             .kind = kind,
             .file = file,
             .pos = pos
@@ -25,8 +23,6 @@ pub const Token = struct {
 
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
-    const Self = @This();
-
     Identifier: []const u8,
     String: []const u8,
     Integer: []const u8,
@@ -92,7 +88,7 @@ pub const Kind = union(enum) {
     Eof,
 
     // Tries to create a Kind from a byte
-    pub fn from_byte(byte: u8) Self {
+    pub fn from_byte(byte: u8) Kind {
         return switch(byte) {
             // Assignment
             '='    => .Assign,
@@ -209,22 +205,20 @@ pub const Kind = union(enum) {
     }
 
     /// Tries to create a keyword Kind from a string slice
-    pub fn try_keyword(slice: []const u8) ?Self {
+    pub fn try_keyword(slice: []const u8) ?Kind {
         const keyword = keywords.get(slice) orelse return null;
-        return Self{.Keyword = keyword};
+        return .{.Keyword = keyword};
     }
 
     /// Tries to create a mode Kind from a string slice
-    pub fn try_mode(slice: []const u8) ?Self {
+    pub fn try_mode(slice: []const u8) ?Kind {
         const mode = modes.get(slice) orelse return null;
-        return Self{.Mode = mode};
+        return .{.Mode = mode};
     }
 };
 
 /// Represents the official keywords of Ruka, and the reserved
 const Keyword = enum {
-    const Self = @This();
-
     Const,
     Let,
     Pub,
@@ -334,8 +328,6 @@ comptime {
 
 /// Represent various parameter modes
 const Mode = enum {
-    const Self = @This();
-
     Comptime,
     Loc,
     Mov,

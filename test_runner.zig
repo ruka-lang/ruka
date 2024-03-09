@@ -41,9 +41,12 @@ pub fn main() !void {
     _ = args.skip();
     const name = args.next().?;
 
-    const printer = Printer.init();
-    printer.fmt("\r\x1b[0K", .{}); // beginning of line and clear to end of line
-    printer.status(.skip, "Running test suite: {s}\n", .{name[8..]});
+    const stdout_file = std.io.getStdOut().writer();
+    var bw = std.io.bufferedWriter(stdout_file);
+    const out = bw.writer();
+
+    fmt(out.any(), "\r\x1b[0K", .{}); // beginning of line and clear to end of line
+    wstatus(out.any(), .skip, "Running test suite: {s}\n", .{name[8..]});
 
     var pass: usize = 0;
     var fail: usize = 0;
@@ -60,13 +63,13 @@ pub fn main() !void {
             }
         }
 
-        const test_name = t.name[5..];
-        printer.fmt("Testing {s}: ", .{test_name});
+        const test_name = t.name[0..];
+        fmt(out.any(), "Testing {s}: ", .{test_name});
         const result = t.func();
 
         if (std.testing.allocator_instance.deinit() == .leak) {
             leak += 1;
-            printer.status(.fail, "\n{s}\n\"{s}\" - Memory Leak\n{s}\n", .{ BORDER, test_name, BORDER });
+            wstatus(out.any(), .fail, "\n{s}\n\"{s}\" - Memory Leak\n{s}\n", .{ BORDER, test_name, BORDER });
         }
 
         if (result) |_| {
@@ -80,7 +83,7 @@ pub fn main() !void {
                 else => {
                     status = .fail;
                     fail += 1;
-                    printer.status(.fail, "\n{s}\n\"{s}\" - {s}\n{s}\n", .{ BORDER, test_name, @errorName(err), BORDER });
+                    wstatus(out.any(), .fail, "\n{s}\n\"{s}\" - {s}\n{s}\n", .{ BORDER, test_name, @errorName(err), BORDER });
                     if (@errorReturnTrace()) |trace| {
                         std.debug.dumpStackTrace(trace.*);
                     }
@@ -91,44 +94,36 @@ pub fn main() !void {
             }
         }
 
-        printer.status(status, "[{s}]\n", .{@tagName(status)});
+        wstatus(out.any(), status, "[{s}]\n", .{@tagName(status)});
     }
 
     const total_tests = pass + fail;
     const status: Status = if (fail == 0) .pass else .fail;
-    printer.status(status, "\n{d} of {d} test{s} passed\n", .{ pass, total_tests, if (total_tests != 1) "s" else "" });
+    wstatus(out.any(), status, "{d} of {d} test{s} passed\n", .{ pass, total_tests, if (total_tests != 1) "s" else "" });
     if (skip > 0) {
-        printer.status(.skip, "{d} test{s} skipped\n", .{ skip, if (skip != 1) "s" else "" });
+        wstatus(out.any(), .skip, "{d} test{s} skipped\n", .{ skip, if (skip != 1) "s" else "" });
     }
     if (leak > 0) {
-        printer.status(.fail, "{d} test{s} leaked\n", .{ leak, if (leak != 1) "s" else "" });
+        wstatus(out.any(), .fail, "{d} test{s} leaked\n", .{ leak, if (leak != 1) "s" else "" });
     }
+
+    try bw.flush();
+
     std.os.exit(if (fail == 0) 0 else 1);
 }
 
-const Printer = struct {
-    out: std.fs.File.Writer,
+fn fmt(self: std.io.AnyWriter, comptime format: []const u8, args: anytype) void {
+    self.print(format, args) catch unreachable;
+}
 
-    fn init() Printer {
-        return .{
-            .out = std.io.getStdErr().writer(),
-        };
-    }
-
-    fn fmt(self: Printer, comptime format: []const u8, args: anytype) void {
-        std.fmt.format(self.out, format, args) catch unreachable;
-    }
-
-    fn status(self: Printer, s: Status, comptime format: []const u8, args: anytype) void {
-        const color = switch (s) {
-            .pass => "\x1b[32m",
-            .fail => "\x1b[31m",
-            .skip => "\x1b[33m",
-            else => "",
-        };
-        const out = self.out;
-        out.writeAll(color) catch @panic("writeAll failed?!");
-        std.fmt.format(out, format, args) catch @panic("std.fmt.format failed?!");
-        self.fmt("\x1b[0m", .{});
-    }
-};
+fn wstatus(self: std.io.AnyWriter, s: Status, comptime format: []const u8, args: anytype) void {
+    const color = switch (s) {
+        .pass => "\x1b[32m",
+        .fail => "\x1b[31m",
+        .skip => "\x1b[33m",
+        else => "",
+    };
+    self.writeAll(color) catch @panic("writeAll failed?!");
+    self.print(format, args) catch @panic("std.fmt.format failed?!");
+    fmt(self, "\x1b[0m", .{});
+}
