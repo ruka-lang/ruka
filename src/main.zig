@@ -2,18 +2,21 @@
 // @created: 2024-03-04
 
 const rukac = @import("root.zig");
-const compiler = rukac.compiler;
-const generator = rukac.generator;
 
 const std = @import("std");
+const clap = @import("clap");
 
 pub fn main() !void {
-    var file = "ideas/examples/hello_world/main.ruka";
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
 
-    var compilation_unit = try compiler.Compiler.init(file[0..], null, std.heap.page_allocator);
-    defer compilation_unit.deinit();
+    // Parse command line args
+    var res = try clap.parse(clap.Help, &rukac.cli.params, clap.parsers.default, .{.allocator = gpa.allocator()});
+    defer res.deinit();
 
-    _ = try compilation_unit.compile();
-
-    generator.llvm_sum();
+    if (res.args.help != 0) {
+        return rukac.cli.help();
+    } else {
+        return rukac.cli.parse_positionals(&res, gpa.allocator());
+    }
 }
