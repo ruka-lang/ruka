@@ -11,7 +11,7 @@ const std = @import("std");
 pub const CompileError = struct {
     file: []const u8,
     kind: []const u8,
-    msg: []u8,
+    msg: []const u8,
     pos: util.Position
 };
 
@@ -49,6 +49,24 @@ pub const Compiler = struct {
         };
     }
 
+    /// Creates a new compiler instance, initializing it's arena with the passed in
+    /// allocator
+    pub fn init_str(
+        input: []const u8,
+        contents: []const u8,
+        allocator: std.mem.Allocator
+    ) !Compiler {
+        var arena = std.heap.ArenaAllocator.init(allocator);
+
+        return Compiler{
+            .input = input,
+            .output = null,
+            .contents = contents,
+            .errors = std.ArrayList(CompileError).init(arena.allocator()),
+            .arena = arena
+        };
+    }
+
     /// Deinitialize the compiler, freeing it's arena
     pub fn deinit(self: *Compiler) void {
         self.arena.deinit();
@@ -57,11 +75,11 @@ pub const Compiler = struct {
     /// Begins the compilation process for the compilation unit
     pub fn compile(self: *Compiler) !void {
         var s = scanner.Scanner.init(self);
-        var t = s.next_token();
+        var t = try s.next_token();
 
         while(t.kind != .Eof) {
             std.debug.print("{s}: {s}\n", .{@tagName(t.kind) ,t.kind.to_str()});
-            t = s.next_token();
+            t = try s.next_token();
         }
 
         std.debug.print("{s}\n", .{self.contents});
