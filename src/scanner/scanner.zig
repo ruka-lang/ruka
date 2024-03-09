@@ -623,7 +623,7 @@ const tests = struct {
             Token.init(.Eof, "next token", Pos{.line = 1, .col = 25}),
         };
 
-        var c = try Compiler.init_str("next token", source, std.heap.page_allocator);
+        var c = try Compiler.init_str("next token", source, testing.allocator);
         var s = Scanner.init(&c);
 
         try check_results(&s, &expected);

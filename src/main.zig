@@ -44,7 +44,7 @@ pub fn main() !void {
                     "Invalid file extension, expected .ruka or .rk, got: .{s}\n", .{file}
                     );
 
-                try cli.compile_file(file, res.args.output, gpa.allocator());
+                try cli.compile_file(file, res.args.output);
             },
             .invalid => {
                 std.debug.print("Invalid subcommand: {s}", .{res.positionals[0]});
