@@ -9,18 +9,10 @@
             .hash = "12203896de6eedec14712f4f1eaac8b646939cfed213c56accf231a0abb05f9dbb77",
         },
         .@"llvm-zig" = .{
-            .url = "https://github.com/dwclake/llvm-zig/archive/main.tar.gz",
+            .url = "https://github.com/kassane/llvm-zig/archive/main.tar.gz",
             .hash = "12204a024ba9e42f8845d573f2338e9901d2841b2ab681a0f19c3151934439631795",
         },
     },
 
-    .paths = .{
-        "src",
-        "build.zig",
-        "build.zig.zon",
-        "copyright",
-        "license-mit",
-        "license-apache",
-        "readme.md"
-    },
+    .paths = .{ "src", "build.zig", "build.zig.zon", "copyright", "license-mit", "license-apache", "readme.md" },
 }
