@@ -314,7 +314,7 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"use", .Use},
     .{"as", .As},
     .{"fn", .Fn},
-    .{"in", .In},
+    .{"in", .In}
 });
 
 // Compile time assert no missing or extra entries in keywords
