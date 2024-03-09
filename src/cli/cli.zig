@@ -8,6 +8,8 @@ const generator = rukac.generator;
 const std = @import("std");
 const clap = @import("clap");
 
+pub const constants = @import("constants");
+
 pub const params = clap.parseParamsComptime(
     \\-h, --help           Display this help and exit.
     \\-o, --output <str>   Specify the output file     
@@ -15,19 +17,9 @@ pub const params = clap.parseParamsComptime(
     \\
 );
 
-const version = "0.0.0";
-const description = "Compiler for the Ruka Programming Language";
-const usage = 
-    \\usage: rukac command [options]
-    \\  commands:
-    \\      * compile <input_file>
-    \\  options:
-    ;
-const header = std.fmt.comptimePrint("rukac {s}\n{s}\n\n{s}", .{version, description, usage});
-
 ///
 pub fn help() !void {
-    std.debug.print(header, .{});
+    std.debug.print(constants.header, .{});
     return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
 }
 
