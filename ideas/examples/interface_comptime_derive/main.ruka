@@ -2,7 +2,7 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num -> type = (comptime 'a: type) {
+const num -> type = fn (comptime 'a: type) {
     const t = 'a;
 
     pub const (+)(lhs: &t) -> t = (rhs: &t) {
@@ -21,11 +21,11 @@ const Vector = struct {
     y: int
 } |> num()
 
-const add -> Num = (x, y: Num) {
+const add -> Num = fn (x, y: Num) {
     x + y
 }
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = fn () {
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
     let c = add(a, b)

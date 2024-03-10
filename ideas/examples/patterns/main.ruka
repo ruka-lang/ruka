@@ -6,7 +6,7 @@ const Color = struct {
     b: u8
 }
 
-const (+)(lhs: &Color) -> Color = (rhs: &Color) {
+const (+)(lhs: &Color) -> Color = fn (rhs: &Color) {
     let .{rl, gl, bl} = lhs
     let .{rr, gr, br} = rhs
     Color.{
@@ -16,7 +16,7 @@ const (+)(lhs: &Color) -> Color = (rhs: &Color) {
     }
 }
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = fn () {
     let red = Color.{.r = 255, .g = 0, .b = 0}
     let blue = Color.{.r = 0, .g = 0, .b = 255}
 

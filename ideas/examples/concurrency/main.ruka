@@ -1,6 +1,6 @@
 const std = @.import("std")
 
-const main = () {
+const main = fn () {
     let petal = std.petal.new((chan: std.channel.t) {
         const self = @.this()
 

@@ -1,4 +1,4 @@
-const List -> module = (comptime 'a: type) {
+const List -> module = fn (comptime 'a: type) {
     module {
         pub const t = struct {
             const Self = @.this()
@@ -7,14 +7,14 @@ const List -> module = (comptime 'a: type) {
             next: Option <| Self
         }
 
-        pub const new -> t = (val: 'a) {
+        pub const new -> t = fn (val: 'a) {
             t.{
                 .val,
                 .next = None
             }
         }
 
-        pub const push(mut self: &t) = (val: 'a) {
+        pub const push(mut self: &t) = fn (val: 'a) {
             if (self.next == None) {
                 self.next = Some <| t.new(val)
             } else {

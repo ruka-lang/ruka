@@ -1,4 +1,4 @@
-const Result -> type = (comptime success: type) {
+const Result -> type = fn (comptime success: type) {
     enum {
         Ok(success),
         Err(Error) // predefined interface
@@ -8,18 +8,18 @@ const Result -> type = (comptime success: type) {
 const parseError = struct {/* */}
 
 // Implement the methods required by the Error interface
-const msg(err: &parseError) -> []u8 = () {/* */}
-const location(err: &parseError) -> []u8 = () {/* */}
-const kind(err: &parseError) -> []u8 = () {/* */}
-const severity(err: &parseError) -> Severity = () {/* */}
+const msg(err: &parseError) -> []u8 = fn () {/* */}
+const location(err: &parseError) -> []u8 = fn () {/* */}
+const kind(err: &parseError) -> []u8 = fn () {/* */}
+const severity(err: &parseError) -> Severity = fn () {/* */}
 
-const parse -> Result(int) = (str: []u8) {
+const parse -> Result(int) = fn (str: []u8) {
     if (/* */) {
         return Err <| parseError.{}
     }
 }
 
-const main -> Result(unit) = () {
+const main -> Result(unit) = fn () {
     let str: []u8 = "Hello"
     let result = parse(str[..])?
     @.println("result: {d}", {result})
