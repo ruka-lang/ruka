@@ -543,7 +543,7 @@ const tests = struct {
                     .Identifier => |aide| {
                         try testing.expect(std.mem.eql(u8, eide, aide));
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             .String => |estr| {
@@ -551,7 +551,7 @@ const tests = struct {
                     .String => |astr| {
                         try testing.expect(std.mem.eql(u8, estr, astr));
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             .Integer => |eint| {
@@ -559,7 +559,7 @@ const tests = struct {
                     .Integer => |aint| {
                         try testing.expect(std.mem.eql(u8, eint, aint));
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             .Float => |eflo| {
@@ -567,7 +567,7 @@ const tests = struct {
                     .Float => |aflo| {
                         try testing.expect(std.mem.eql(u8, eflo, aflo));
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             .Keyword => |ekey| {
@@ -575,7 +575,7 @@ const tests = struct {
                     .Keyword => |akey| {
                         try testing.expectEqual(ekey, akey);
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             .Mode => |emod| {
@@ -583,11 +583,11 @@ const tests = struct {
                     .Mode => |amod| {
                         try testing.expectEqual(emod, amod);
                     },
-                    else => try testing.expect(false)
+                    else => try testing.expectEqual(et.kind, at.kind)
                 }
             },
             else => {
-                try testing.expectEqual(et.*, at.*);
+                try testing.expectEqual(et.kind, at.kind);
             }
         }
 
