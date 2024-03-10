@@ -313,17 +313,44 @@ const keywords = std.ComptimeStringMap(Keyword, .{
 
 // Compile time assert no missing or extra entries in keywords
 comptime {
-    const keyword_fields = @typeInfo(Keyword).Enum.fields;
+    //var fields: [@typeInfo(Keyword).Enum.fields.len]std.builtin.Type.EnumField = undefined;
+    //@memcpy(&fields, @typeInfo(Keyword).Enum.fields);
+    //
+    //const SortContext = struct {
+    //    fields: []std.builtin.Type.EnumField,
 
-    if (keyword_fields.len != keywords.kvs.len) {
+    //    pub fn lessThan(ctx: @This(), a: usize, b: usize) bool {
+    //        return ctx.fields[a].name.len < ctx.fields[b].name.len;
+    //    }
+
+    //    pub fn swap(ctx: @This(), a: usize, b: usize) void {
+    //        return std.mem.swap(std.builtin.Type.EnumField, &ctx.fields[a], &ctx.fields[b]);
+    //    }
+    //};
+    //std.mem.sortUnstableContext(0, fields.len, SortContext{.fields = &fields});
+
+    const fields = @typeInfo(Keyword).Enum.fields;
+    if (fields.len != keywords.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,
             "Keywords map has an incorrect number of elements, expected: {}, got: {}",
-            .{keyword_fields.len, keywords.kvs.len}
+            .{fields.len, keywords.kvs.len}
             ) catch unreachable;
 
         @compileError(msg);
     }
+
+    //for (fields, keywords.kvs) |field, pair| {
+    //    if (!std.mem.eql(u8, field.name, @tagName(pair.value))) {
+    //        var buf: [100]u8 = undefined;
+    //        const msg = std.fmt.bufPrint(&buf,
+    //            "Keywords map has an incorrect pair, expected: {s}, got: {s}",
+    //            .{field.name, @tagName(pair.value)}
+    //            ) catch unreachable;
+
+    //        @compileError(msg);
+    //    }
+    //}
 }
 
 /// Represent various parameter modes
@@ -354,17 +381,44 @@ const modes = std.ComptimeStringMap(Mode, .{
 
 // Compile time assert no missing or extra entries in modes
 comptime {
-    const mode_fields = @typeInfo(Mode).Enum.fields;
+    //var fields: [@typeInfo(Mode).Enum.fields.len]std.builtin.Type.EnumField = undefined;
+    //@memcpy(&fields, @typeInfo(Mode).Enum.fields);
+    //
+    //const SortContext = struct {
+    //    fields: []std.builtin.Type.EnumField,
 
-    if (mode_fields.len != modes.kvs.len) {
+    //    pub fn lessThan(ctx: @This(), a: usize, b: usize) bool {
+    //        return ctx.fields[a].name.len < ctx.fields[b].name.len;
+    //    }
+
+    //    pub fn swap(ctx: @This(), a: usize, b: usize) void {
+    //        return std.mem.swap(std.builtin.Type.EnumField, &ctx.fields[a], &ctx.fields[b]);
+    //    }
+    //};
+    //std.mem.sortUnstableContext(0, fields.len, SortContext{.fields = &fields});
+    
+    const fields = @typeInfo(Mode).Enum.fields;
+    if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,
             "Modes map has an incorrect number of elements, expected: {}, got: {}",
-            .{mode_fields.len, keywords.kvs.len}
+            .{fields.len, modes.kvs.len}
             ) catch unreachable;
 
         @compileError(msg);
     }
+
+    //for (fields, modes.kvs) |field, pair| {
+    //    if (!std.mem.eql(u8, field.name, @tagName(pair.value))) {
+    //        var buf: [100]u8 = undefined;
+    //        const msg = std.fmt.bufPrint(&buf,
+    //            "Modes map has an incorrect pair, expected: {s}, got: {s}",
+    //            .{field.name, @tagName(pair.value)}
+    //            ) catch unreachable;
+
+    //        @compileError(msg);
+    //    }
+    //}
 }
 
 test "mode comparision" {
