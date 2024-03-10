@@ -25,7 +25,7 @@ const main -> Result(unit) = fn () {
 
     @.assert(r == 255 and g == 0 and b == 255)?
 
-    match ("Hello, world!") {
+    match "Hello, world!" {
         "Hello, " <> world => {/* */},
         _ => {/* */}
     }

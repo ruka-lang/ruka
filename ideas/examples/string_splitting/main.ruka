@@ -20,13 +20,13 @@ const strsplit -> [..]string.t = fn (
     ch: u8
 ) {
     let mut indices = [..]uint{}
-    for ({c, i} in {str, 1..}) {
+    for c, i in str, 1.. {
         if c == ch => indices.push(i)
     }
 
     let mut words = [..]string.t{}
     let mut prev = 0
-    for (idx in indices) {
+    for idx in indices {
         let str = str[prev..idx].into(string.t)
         words.push(str)
         prev = idx + 1

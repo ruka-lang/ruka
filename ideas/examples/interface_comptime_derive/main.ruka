@@ -8,7 +8,7 @@ const num -> type = fn (comptime 'a: type) {
     pub const (+)(lhs: &t) -> t = (rhs: &t) {
         let mut result = t.{}
 
-        inline for (member in @.members_of(t)) {
+        inline for member in @.members_of(t) {
             result.(member) = lhs.(member) + rhs.(member)
         }
     }

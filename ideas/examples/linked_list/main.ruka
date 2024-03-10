@@ -15,7 +15,7 @@ const List -> module = fn (comptime 'a: type) {
         }
 
         pub const push(mut self: &t) = fn (val: 'a) {
-            if (self.next == None) {
+            if self.next == None {
                 self.next = Some <| t.new(val)
             } else {
                 let mut current = self.next

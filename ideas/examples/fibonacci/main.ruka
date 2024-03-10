@@ -6,7 +6,7 @@ const std = @.import("std")
 const string = std.string
 
 const fibonacci -> int = fn (n: int) {
-    return if (n <= 1) {
+    return if n <= 1 {
         1
     } else {
         fibonacci(n-1) + fibonacci(n-2)

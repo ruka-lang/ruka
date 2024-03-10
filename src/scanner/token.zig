@@ -247,6 +247,7 @@ const Keyword = enum {
     Inline,
     Test,
     Fn,
+    In,
     // Reserved
     Private,
     Derive,
@@ -258,7 +259,6 @@ const Keyword = enum {
     Any,
     Use,
     As,
-    In,
 
     /// Converts a Keyword into a string slice
     pub fn to_str(self: *const Keyword) []const u8 {
@@ -299,6 +299,7 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"inline", .Inline},
     .{"test", .Test},
     .{"fn", .Fn},
+    .{"in", .In},
     // Reserved
     .{"private", .Private},
     .{"derive", .Derive},
@@ -309,8 +310,7 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"when", .When},
     .{"any", .Any},
     .{"use", .Use},
-    .{"as", .As},
-    .{"in", .In}
+    .{"as", .As}
 });
 
 // Compile time assert no missing or extra entries in keywords

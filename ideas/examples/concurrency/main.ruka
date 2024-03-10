@@ -1,17 +1,17 @@
 const std = @.import("std")
 
 const main = fn () {
-    let petal = std.petal.new((chan: std.channel.t) {
+    let petal = std.petal.new() ~f: (chan: std.channel.t) {
         const self = @.this()
 
-        match (chan.next()) { // chan.next() is blocking, suspends when channel is empty
+        match chan.next() { // chan.next() is blocking, suspends when channel is empty
             | 0 => chan.send(1)
             | _ => {
                 @.println("Unsupported message")
                 self(chan)
             }
         }
-    })
+    }
 
     petal.go()
 
