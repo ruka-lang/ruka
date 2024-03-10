@@ -40,9 +40,13 @@ pub fn main() !void {
 
                 const file = res.positionals[1];
 
-                if (!cli.check_file_extension(file)) return std.debug.print(
-                    "Invalid file extension, expected .ruka or .rk, got: .{s}\n", .{file}
-                    );
+                if (!cli.check_file_extension(file)) {
+                    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
+                    const ext = path_iter.first();
+                    return std.debug.print(
+                        "Invalid file extension, expected .ruka or .rk, got: .{s}\n", .{ext}
+                        );
+                }
 
                 try cli.compile_file(file, res.args.output);
             },
