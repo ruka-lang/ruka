@@ -42,9 +42,9 @@ pub fn main() !void {
 
                 if (!cli.check_file_extension(file)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-                    const ext = path_iter.first();
                     return std.debug.print(
-                        "Invalid file extension, expected .ruka or .rk, got: .{s}\n", .{ext}
+                        "Invalid file extension, expected .ruka or .rk, got: .{s}\n", 
+                        .{path_iter.first()}
                         );
                 }
 
