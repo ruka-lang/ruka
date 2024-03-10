@@ -244,6 +244,7 @@ const Keyword = enum {
     Not,
     Inline,
     Test,
+    Fn,
     // Reserved
     Private,
     Derive,
@@ -255,7 +256,6 @@ const Keyword = enum {
     Any,
     Use,
     As,
-    Fn,
     In,
 
     /// Converts a Keyword into a string slice
@@ -296,6 +296,7 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"not", .Not},
     .{"inline", .Inline},
     .{"test", .Test},
+    .{"fn", .Fn},
     // Reserved
     .{"private", .Private},
     .{"derive", .Derive},
@@ -307,7 +308,6 @@ const keywords = std.ComptimeStringMap(Keyword, .{
     .{"any", .Any},
     .{"use", .Use},
     .{"as", .As},
-    .{"fn", .Fn},
     .{"in", .In}
 });
 
