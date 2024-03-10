@@ -101,7 +101,8 @@ pub const Scanner = struct {
                 var kind = self.try_compound_operator(.{
                     .{2, "<=", token.Kind.Lessereq},
                     .{2, "<<", token.Kind.Lshift},
-                    .{2, "<|", token.Kind.Forapp}
+                    .{2, "<|", token.Kind.Forapp},
+                    .{2, "<>", token.Kind.Concat}
                 });
 
                 if (kind == null) {

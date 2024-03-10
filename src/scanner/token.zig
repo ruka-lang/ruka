@@ -59,6 +59,7 @@ pub const Kind = union(enum) {
     Incrange,      // ..=
     Forapp,        // <|
     Revapp,        // |>
+    Concat,        // <>
     // Arithmetic
     Plus,          // +
     Minus,         // -
@@ -174,6 +175,7 @@ pub const Kind = union(enum) {
             .Incrange     => "..=",
             .Forapp       => "<|",
             .Revapp       => "|>",
+            .Concat       => "<>",
             // Arithmetic
             .Plus         => "+",
             .Minus        => "-",
