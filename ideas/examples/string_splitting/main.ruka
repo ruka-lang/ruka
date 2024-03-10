@@ -20,7 +20,7 @@ const strsplit -> [..]string.t = fn (
     ch: u8
 ) {
     let mut indices = [..]uint{}
-    for c, i in str, 1.. {
+    for {c, i} in {str, 1..} {
         if c == ch => indices.push(i)
     }
 
