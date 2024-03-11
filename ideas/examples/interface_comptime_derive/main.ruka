@@ -1,19 +1,17 @@
 const Num = interface ('a) {
-    (+): (rhs: &'a) -> 'a
+    (+)(&): (rhs: &'a) -> 'a
 }
 
 const num -> type = fn (comptime 'a: type) {
-    const t = 'a;
-
-    pub const (+)(lhs: &t) -> t = (rhs: &t) {
+    pub const (+)(lhs: &'a) -> t = (rhs: &'a) {
         let mut result = t.{}
 
-        inline for member in @.members_of(t) {
+        inline for member in @.members_of('a) {
             result.(member) = lhs.(member) + rhs.(member)
         }
     }
 
-    t
+    'a
 }
 
 const Vector = record {
