@@ -37,8 +37,15 @@ pub fn main() !void {
         const subcommand = cli.subcommands.get(res.positionals[0]) orelse .invalid;
         switch (subcommand) {
             .compile => {
-                if (res.positionals.len < 2) return std.debug.print(
-                    "Compile expects a file arg\nusage: rukac compile <file> [options]\n", .{});
+                if (res.positionals.len < 2) {
+                    try stderr.print(
+                        \\Compile expects a file arg
+                        \\usage: rukac compile <file> [options]
+                        , .{});
+
+                    try err_bw.flush();
+                    std.os.exit(1);
+                }
 
                 const file = res.positionals[1];
 
@@ -50,7 +57,7 @@ pub fn main() !void {
                         );
                 
                     try err_bw.flush();
-                    return;
+                    std.os.exit(1);
                 }
 
                 try cli.compile_file(file, res.args.output);
@@ -63,10 +70,8 @@ pub fn main() !void {
                     });
 
                 try err_bw.flush();
-                return;
+                std.os.exit(1);
             }
         }
     }
-    
-    try err_bw.flush();
 }
