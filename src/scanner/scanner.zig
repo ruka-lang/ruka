@@ -662,8 +662,8 @@ const tests = struct {
 
     test "mulit string reading" {
         const source = \\let x = "|
-                        \\        | Hello, world!
-                        \\        |"
+                       \\         | Hello, world!
+                       \\         |"
         ;
 
         const expected = [_]Token{
@@ -671,7 +671,7 @@ const tests = struct {
             Token.init(.{.Identifier = "x"}, "string reading", Pos{.line = 1, .col = 5}),
             Token.init(.Assign, "string reading", Pos{.line = 1, .col = 7}),
             Token.init(.{.String = "\n Hello, world!\n"}, "string reading", Pos{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", Pos{.line = 3, .col = 11}),
+            Token.init(.Eof, "string reading", Pos{.line = 3, .col = 12}),
         };
 
         var c = Compiler.init_str("string reading", source, testing.allocator);
