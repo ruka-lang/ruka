@@ -1,6 +1,6 @@
 const List -> module = fn (comptime 'a: type) {
     module {
-        pub const t = struct {
+        pub const t = record {
             const Self = @.this()
 
             val: 'a,
@@ -14,7 +14,7 @@ const List -> module = fn (comptime 'a: type) {
             }
         }
 
-        pub const push(mut self: &t) = fn (val: 'a) {
+        pub const push (mut self: &t) = fn (val: 'a) {
             if self.next == None {
                 self.next = Some <| t.new(val)
             } else {
@@ -29,7 +29,7 @@ const List -> module = fn (comptime 'a: type) {
     }
 }
 
-const main = () {
+const main = fn () {
     let mut list = List(int).new(12)
     list.push(16)
 

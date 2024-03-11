@@ -1,7 +1,7 @@
 const std = @.import("std")
 
 const main = fn () {
-    let petal = std.petal.new() ~f: (chan: std.channel.t) {
+    let petal = std.petal.new(fn (chan: std.channel.t) {
         const self = @.this()
 
         match chan.next() { // chan.next() is blocking, suspends when channel is empty
@@ -11,7 +11,7 @@ const main = fn () {
                 self(chan)
             }
         }
-    }
+    })
 
     petal.go()
 

@@ -1,5 +1,5 @@
 const Vector = module {
-    pub const t = struct {
+    pub const t = record {
         x: int,
         y: int
     }
@@ -8,7 +8,7 @@ const Vector = module {
         t.{.x, .y}
     }
 
-    pub const add(self: &t) -> t = fn (other: &t) {
+    pub const add (self: &t) -> t = fn (other: &t) {
         t.{
             .x = self.x + other.x,
             .y = self.y + other.y
@@ -23,6 +23,6 @@ const main = fn () {
     let b = Vector.new(3, 4)
     @.assert(@.type_of(b) == Vector.t)
 
-    let c = a.add(b)
+    let c = a.add(&b)
     @.assert(@.type_of(c) == Vector.t)
 }

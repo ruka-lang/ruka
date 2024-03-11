@@ -3,19 +3,19 @@ const Num = interface ('a) {
     add: (&'a) -> 'a
 }
 
-const Vector = struct {
+const Vector = record {
     x: int,
     y: int
 }
 
-const (+)(lhs: &Vector) -> Vector = fn (rhs: &Vector) {
+const (+) (lhs: &Vector) -> Vector = fn (rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
 end
 
-const add(lhs: &Vector) -> Vector = fn (rhs: &Vector) {
+const add (lhs: &Vector) -> Vector = fn (rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
@@ -29,7 +29,7 @@ const add -> Num = fn (x, y: Num) {
 const main -> Result(unit) = fn () {
     let a = Vector.{x: 10, y: 5}
     let b = Vector.{x: 5, y: 10}
-    let c = add(a, b)
+    let c = a + b
 
     @.assert(c.x == 15 and c.y == 15)?
 

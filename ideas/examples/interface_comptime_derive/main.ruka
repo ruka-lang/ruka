@@ -16,7 +16,7 @@ const num -> type = fn (comptime 'a: type) {
     t
 }
 
-const Vector = struct {
+const Vector = record {
     x: int,
     y: int
 } |> num()
@@ -28,7 +28,7 @@ const add -> Num = fn (x, y: Num) {
 const main -> Result(unit) = fn () {
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
-    let c = add(a, b)
+    let c = a + b
 
     @.assert(c.x == 15 and c.y == 15)?
 

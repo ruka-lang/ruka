@@ -22,6 +22,10 @@ pub fn main() !void {
 
     defer res.deinit();
 
+    const stderr_file = std.io.getStdErr().writer();
+    var err_bw = std.io.bufferedWriter(stderr_file);
+    const stderr = err_bw.writer();
+
     // Handle command line args and subcommands
     if (res.args.help != 0) {
         return cli.help();
@@ -34,27 +38,35 @@ pub fn main() !void {
         switch (subcommand) {
             .compile => {
                 if (res.positionals.len < 2) return std.debug.print(
-                    "Compile expects a file arg\nusage: rukac compile <file> [options]\n",
-                    .{}
-                    );
+                    "Compile expects a file arg\nusage: rukac compile <file> [options]\n", .{});
 
                 const file = res.positionals[1];
 
                 if (!cli.check_file_extension(file)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-                    return std.debug.print(
+                    try stderr.print(
                         "Invalid file extension, expected .ruka or .rk, got: .{s}\n", 
                         .{path_iter.first()}
                         );
+                
+                    try err_bw.flush();
+                    return;
                 }
 
                 try cli.compile_file(file, res.args.output);
             },
             .invalid => {
-                std.debug.print("Invalid subcommand: {s}", .{res.positionals[0]});
+                try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
+                    res.positionals[0], 
+                    cli.constants.usage, 
+                    cli.constants.subcommands
+                    });
 
-                return cli.help();
+                try err_bw.flush();
+                return;
             }
         }
     }
+    
+    try err_bw.flush();
 }
