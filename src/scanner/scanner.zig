@@ -419,22 +419,11 @@ pub const Scanner = struct {
     // Reads a multi line string
     fn read_multi_string(self: *Scanner) !token.Token {
         var string = std.ArrayList(u8).init(self.compiler.arena.allocator());
+        defer string.deinit();
 
         self.advance(1);
         while (self.peek() != '"' and self.peek() != '\x00') {
             switch (self.peek()) {
-                '\\' => {
-                    self.advance(1);
-
-                    switch (self.peek()) {
-                        '|' => try string.append('|'),
-                        '"' => break,
-                        else => |ch| {
-                            try string.append('\\');
-                            try string.append(ch);
-                        }
-                    }
-                },
                 '\n' => {
                     try string.append('\n');
                     self.advance(2);
@@ -447,7 +436,6 @@ pub const Scanner = struct {
                                 else => |ch| try string.append(ch)
                             }
                         },
-                        '"' => break,
                         else => try self.compiler.errors.append(.{
                             .file = self.compiler.input,
                             .kind = "scanning error",
@@ -472,7 +460,6 @@ pub const Scanner = struct {
         });
 
         const str = try self.handle_escape_characters(string.items);
-        string.deinit();
         return self.new_token(.{.String = str});
     }
 
