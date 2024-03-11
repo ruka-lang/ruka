@@ -55,10 +55,10 @@ pub const Kind = union(enum) {
     Pound,         // #
     Bang,          // !
     Question,      // ?
-    Excrange,      // ..
-    Incrange,      // ..=
-    Forapp,        // <|
-    Revapp,        // |>
+    Rangeexc,      // ..
+    Rangeinc,      // ..=
+    Forwardapp,    // <|
+    Reverseapp,    // |>
     Concat,        // <>
     // Arithmetic
     Plus,          // +
@@ -171,10 +171,10 @@ pub const Kind = union(enum) {
             .Pound        => "#",
             .Bang         => "!",
             .Question     => "?",
-            .Excrange     => "..",
-            .Incrange     => "..=",
-            .Forapp       => "<|",
-            .Revapp       => "|>",
+            .Rangeexc     => "..",
+            .Rangeinc     => "..=",
+            .Forwardapp   => "<|",
+            .Reverseapp   => "|>",
             .Concat       => "<>",
             // Arithmetic
             .Plus         => "+",
@@ -398,7 +398,7 @@ comptime {
     //    }
     //};
     //std.mem.sortUnstableContext(0, fields.len, SortContext{.fields = &fields});
-    
+
     const fields = @typeInfo(Mode).Enum.fields;
     if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;

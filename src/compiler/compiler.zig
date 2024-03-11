@@ -44,7 +44,7 @@ pub const Compiler = struct {
             .input = input,
             .output = output,
             .contents = contents,
-            .errors = std.ArrayList(CompileError).init(arena.allocator()),
+            .errors = std.ArrayList(CompileError).init(allocator),
             .arena = arena
         };
     }
@@ -55,21 +55,20 @@ pub const Compiler = struct {
         input: []const u8,
         contents: []const u8,
         allocator: std.mem.Allocator
-    ) !Compiler {
-        var arena = std.heap.ArenaAllocator.init(allocator);
-
+    ) Compiler {
         return Compiler{
             .input = input,
             .output = null,
             .contents = contents,
-            .errors = std.ArrayList(CompileError).init(arena.allocator()),
-            .arena = arena
+            .arena = std.heap.ArenaAllocator.init(allocator),
+            .errors = std.ArrayList(CompileError).init(allocator)
         };
     }
 
     /// Deinitialize the compiler, freeing it's arena
     pub fn deinit(self: *Compiler) void {
         self.arena.deinit();
+        self.errors.deinit();
     }
 
     /// Begins the compilation process for the compilation unit
