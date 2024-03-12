@@ -41,6 +41,8 @@ pub const Scanner = struct {
                     else => try self.read_single_string()
                 };
             },
+            // Characters
+            //'\'' => {},
             // Comments or '/'
             '/' => blk: {
                 switch (self.peek()) {
@@ -619,7 +621,7 @@ const tests = struct {
             Token.init(.Rangeexc, "compound operators", Pos{.line = 1, .col = 43}),
             Token.init(.Rangeinc, "compound operators", Pos{.line = 1, .col = 46}),
             Token.init(.Assignexp, "compound operators", Pos{.line = 1, .col = 50}),
-            Token.init(.Eof, "compound operators", Pos{.line = 1, .col = 52}),
+            Token.init(.Eof, "compound operators", Pos{.line = 1, .col = 52})
         };
 
         var c = Compiler.init_str("compound operators", source, testing.allocator);

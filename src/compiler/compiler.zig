@@ -77,7 +77,7 @@ pub const Compiler = struct {
         var t = try s.next_token();
 
         while(t.kind != .Eof) {
-            std.debug.print("{s}: {s}\n", .{@tagName(t.kind) ,t.kind.to_str()});
+            std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
             t = try s.next_token();
         }
 

@@ -3,7 +3,6 @@
 
 const rukac = @import("../root.zig");
 const compiler = rukac.compiler;
-const generator = rukac.generator;
 
 const std = @import("std");
 const clap = @import("clap");
@@ -62,6 +61,4 @@ pub fn compile_file(in: []const u8, out: ?[]const u8) !void {
         defer compilation_unit.deinit();
 
         _ = try compilation_unit.compile();
-
-        generator.llvm_sum();
 }

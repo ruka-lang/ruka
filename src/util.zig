@@ -37,6 +37,7 @@ pub fn is_alphanumerical(byte: u8) bool {
 
 /// Checks if a string represents an escape character, if it does return that character
 pub fn try_escape_char(str: []const u8) ?u8 {
+    // Check for \u{xxxxxx} and \x{xx}
     return escapes.get(str);
 }
 

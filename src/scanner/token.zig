@@ -25,6 +25,7 @@ pub const Token = struct {
 pub const Kind = union(enum) {
     Identifier: []const u8,
     String: []const u8,
+    Character: u8,
     Integer: []const u8,
     Float: []const u8,
     Keyword: Keyword,
@@ -136,11 +137,12 @@ pub const Kind = union(enum) {
     }
 
     // Converts a Kind into a string slice
-    pub fn to_str(self: *const Kind) []const u8 {
+    pub fn to_str(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
             .Identifier   => |id| id,
             .String       => |st| st,
+            .Character    => |ch| try self.char_to_string(ch, allocator),
             .Integer      => |in| in,
             .Float        => |fl| fl,
             .Keyword      => |ke| ke.to_str(),
@@ -204,6 +206,12 @@ pub const Kind = union(enum) {
             .Illegal      => "ILLEGAL",
             .Eof          => "EOF"
         };
+    }
+
+    fn char_to_string(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
+        var str = try allocator.alloc(u8, 1); 
+        str[0] = ch;
+        return str[0..];
     }
 
     /// Tries to create a keyword Kind from a string slice
