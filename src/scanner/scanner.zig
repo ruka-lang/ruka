@@ -42,7 +42,12 @@ pub const Scanner = struct {
                 };
             },
             // Characters
-            //'\'' => {},
+            '\'' => {
+                return self.read_character() orelse blk: {
+                    self.advance(1);
+                    break :blk self.next_token();
+                };
+            },
             // Comments or '/'
             '/' => blk: {
                 switch (self.peek()) {
@@ -208,9 +213,7 @@ pub const Scanner = struct {
 
     // Advances the scanner count number of times
     fn advance(self: *Scanner, count: usize) void {
-        const c = std.math.clamp(count, 0, 3);
-
-        for (0..c) |_| {
+        for (0..count) |_| {
             self.idx = self.idx + 1;
 
             self.current_pos.col = self.current_pos.col + 1;
@@ -268,7 +271,7 @@ pub const Scanner = struct {
         }
     }
 
-    // Reads an identifier, keyword, or mode from the file
+    // Reads an identifier, keyword, or mode literal from the file
     fn read_identifier_keyword_mode(self: *Scanner) token.Token {
         const start = self.idx;
 
@@ -295,7 +298,45 @@ pub const Scanner = struct {
         return self.new_token(kind.?);
     }
 
-    // Reads a integer or float from the file
+    // Reads a character literal from the file
+    fn read_character(self: *Scanner) ?token.Token {
+        const start = self.idx + 1;
+        var end = start;
+
+        // Iterate until the final delimiter or EOF is reached
+        while (self.peek() != '\'' and self.peek() != '\x00') {
+            end = end + 1;
+            self.advance(1);
+        }
+
+        // Check if character literal contains a escape character
+        const str = self.handle_escape_characters(self.compiler.contents[start..end]) catch unreachable;
+
+        // Create errors if str length isn't 1
+        if (str.len > 1) {
+            self.compiler.errors.append(.{
+                .file = self.compiler.input,
+                .kind = "scanning error",
+                .msg = "too many characters in charater literal",
+                .pos = self.current_pos
+            }) catch unreachable;
+
+            return null;
+        } if (str.len < 1) {
+            self.compiler.errors.append(.{
+                .file = self.compiler.input,
+                .kind = "scanning error",
+                .msg = "charater literal is empty",
+                .pos = self.current_pos
+            }) catch unreachable;
+
+            return null;
+        }
+
+        return self.new_token(.{.Character = str[0]});
+    }
+
+    // Reads a integer or float literal from the file
     fn read_integer_float(self: *Scanner) token.Token {
         const start = self.idx;
         var float = false;
@@ -473,6 +514,7 @@ pub const Scanner = struct {
         while (i < str.len) {
             switch (str[i]) {
                 '\\' => {
+                    // Adjust to check for hex and unicode escape characters
                     const esc_ch = util.try_escape_char(str[i..i+2]);
 
                     if (esc_ch) |esc| {
@@ -497,14 +539,14 @@ pub const Scanner = struct {
 
     // Creates an escape character compilation error
     fn create_escape_error(self: *Scanner, i: usize, str: []const u8) !void {
-        if (i + 1 > str.len) {
-            return try self.compiler.errors.append(.{
-                .file = self.compiler.input,
-                .kind = "scanning error",
-                .msg = "unterminated escape character",
-                .pos = self.current_pos
-            });
-        }
+        //if (i + 1 > str.len) {
+        //    return try self.compiler.errors.append(.{
+        //        .file = self.compiler.input,
+        //        .kind = "scanning error",
+        //        .msg = "unterminated escape character",
+        //        .pos = self.current_pos
+        //    });
+        //}
 
         const allocator = self.compiler.arena.allocator();
         const buf = try allocator.alloc(u8, 40);
