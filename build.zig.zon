@@ -4,13 +4,13 @@
     .minimum_zig_version = "0.12.0",
 
     .dependencies = .{
-        .clap = .{
-            .url = "https://github.com/Hejsil/zig-clap/archive/master.tar.gz",
-            .hash = "12203896de6eedec14712f4f1eaac8b646939cfed213c56accf231a0abb05f9dbb77",
-        },
         .@"llvm-zig" = .{
             .url = "https://github.com/kassane/llvm-zig/archive/main.tar.gz",
             .hash = "12204a024ba9e42f8845d573f2338e9901d2841b2ab681a0f19c3151934439631795",
+        },
+        .clap = .{
+            .url = "https://github.com/Hejsil/zig-clap/archive/master.tar.gz",
+            .hash = "12200103e7b4a0cb162f2912df4fe97914024a25b5c9fcce6ea4119744f3f2a7f24e",
         },
     },
 
