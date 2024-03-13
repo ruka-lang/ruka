@@ -333,6 +333,7 @@ pub const Scanner = struct {
             return null;
         }
 
+        self.advance(2);
         return self.new_token(.{.Character = str[0]});
     }
 
@@ -584,6 +585,10 @@ const tests = struct {
                 .String => |astr| try testing.expect(std.mem.eql(u8, estr, astr)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
+            .Character => |echr| switch (at.kind) {
+                .Character => |achr| try testing.expectEqual(echr, achr),
+                else => try testing.expectEqual(et.kind, at.kind)
+            },
             .Integer => |eint| switch (at.kind) {
                 .Integer => |aint| try testing.expect(std.mem.eql(u8, eint, aint)),
                 else => try testing.expectEqual(et.kind, at.kind)
@@ -624,15 +629,16 @@ const tests = struct {
     }
 
     test "next token" {
-        const source = "let x = 12_000 12_000.50";
+        const source = "let x = 12_000 12_000.50 '\\n'";
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "next token", Pos{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "next token", Pos{.line = 1, .col = 5}),
-            Token.init(.Assign, "next token", Pos{.line = 1, .col = 7}),
-            Token.init(.{.Integer = "12_000"}, "next token", Pos{.line = 1, .col = 9}),
-            Token.init(.{.Float = "12_000.50"}, "next token", Pos{.line = 1, .col = 16}),
-            Token.init(.Eof, "next token", Pos{.line = 1, .col = 25}),
+            Token.init(.{.Keyword = .Let}, "next token", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "next token", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "next token", .{.line = 1, .col = 7}),
+            Token.init(.{.Integer = "12_000"}, "next token", .{.line = 1, .col = 9}),
+            Token.init(.{.Float = "12_000.50"}, "next token", .{.line = 1, .col = 16}),
+            Token.init(.{.Character = '\n'}, "next token", .{.line = 1, .col = 26}),
+            Token.init(.Eof, "next token", .{.line = 1, .col = 30}),
         };
 
         var c = Compiler.init_str("next token", source, testing.allocator);
@@ -646,24 +652,24 @@ const tests = struct {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
 
         const expected = [_]Token{
-            Token.init(.Equal, "compound operators", Pos{.line = 1, .col = 1}),
-            Token.init(.Notequal, "compound operators", Pos{.line = 1, .col = 4}),
-            Token.init(.Greatereq, "compound operators", Pos{.line = 1, .col = 7}),
-            Token.init(.Lessereq, "compound operators", Pos{.line = 1, .col = 10}),
-            Token.init(.Reverseapp, "compound operators", Pos{.line = 1, .col = 13}),
-            Token.init(.Forwardapp, "compound operators", Pos{.line = 1, .col = 16}),
-            Token.init(.Lshift, "compound operators", Pos{.line = 1, .col = 19}),
-            Token.init(.Concat, "compound operators", Pos{.line = 1, .col = 22}),
-            Token.init(.Rshift, "compound operators", Pos{.line = 1, .col = 25}),
-            Token.init(.Increment, "compound operators", Pos{.line = 1, .col = 28}),
-            Token.init(.Decrement, "compound operators", Pos{.line = 1, .col = 31}),
-            Token.init(.Square, "compound operators", Pos{.line = 1, .col = 34}),
-            Token.init(.Arrow, "compound operators", Pos{.line = 1, .col = 37}),
-            Token.init(.Widearrow, "compound operators", Pos{.line = 1, .col = 40}),
-            Token.init(.Rangeexc, "compound operators", Pos{.line = 1, .col = 43}),
-            Token.init(.Rangeinc, "compound operators", Pos{.line = 1, .col = 46}),
-            Token.init(.Assignexp, "compound operators", Pos{.line = 1, .col = 50}),
-            Token.init(.Eof, "compound operators", Pos{.line = 1, .col = 52})
+            Token.init(.Equal, "compound operators", .{.line = 1, .col = 1}),
+            Token.init(.Notequal, "compound operators", .{.line = 1, .col = 4}),
+            Token.init(.Greatereq, "compound operators", .{.line = 1, .col = 7}),
+            Token.init(.Lessereq, "compound operators", .{.line = 1, .col = 10}),
+            Token.init(.Reverseapp, "compound operators", .{.line = 1, .col = 13}),
+            Token.init(.Forwardapp, "compound operators", .{.line = 1, .col = 16}),
+            Token.init(.Lshift, "compound operators", .{.line = 1, .col = 19}),
+            Token.init(.Concat, "compound operators", .{.line = 1, .col = 22}),
+            Token.init(.Rshift, "compound operators", .{.line = 1, .col = 25}),
+            Token.init(.Increment, "compound operators", .{.line = 1, .col = 28}),
+            Token.init(.Decrement, "compound operators", .{.line = 1, .col = 31}),
+            Token.init(.Square, "compound operators", .{.line = 1, .col = 34}),
+            Token.init(.Arrow, "compound operators", .{.line = 1, .col = 37}),
+            Token.init(.Widearrow, "compound operators", .{.line = 1, .col = 40}),
+            Token.init(.Rangeexc, "compound operators", .{.line = 1, .col = 43}),
+            Token.init(.Rangeinc, "compound operators", .{.line = 1, .col = 46}),
+            Token.init(.Assignexp, "compound operators", .{.line = 1, .col = 50}),
+            Token.init(.Eof, "compound operators", .{.line = 1, .col = 52})
         };
 
         var c = Compiler.init_str("compound operators", source, testing.allocator);
@@ -677,11 +683,11 @@ const tests = struct {
         const source = "let x = \"Hello, world!\"";
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", Pos{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", Pos{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", Pos{.line = 1, .col = 7}),
-            Token.init(.{.String = "Hello, world!"}, "string reading", Pos{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", Pos{.line = 1, .col = 24}),
+            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
+            Token.init(.{.String = "Hello, world!"}, "string reading", .{.line = 1, .col = 9}),
+            Token.init(.Eof, "string reading", .{.line = 1, .col = 24}),
         };
 
         var c = Compiler.init_str("string reading", source, testing.allocator);
@@ -698,11 +704,11 @@ const tests = struct {
         ;
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", Pos{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", Pos{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", Pos{.line = 1, .col = 7}),
-            Token.init(.{.String = "\n Hello, world!\n"}, "string reading", Pos{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", Pos{.line = 3, .col = 12}),
+            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
+            Token.init(.{.String = "\n Hello, world!\n"}, "string reading", .{.line = 1, .col = 9}),
+            Token.init(.Eof, "string reading", .{.line = 3, .col = 12}),
         };
 
         var c = Compiler.init_str("string reading", source, testing.allocator);
@@ -716,11 +722,11 @@ const tests = struct {
         const source = "let x = \"Hello, \\n\\sworld!\"";
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", Pos{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", Pos{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", Pos{.line = 1, .col = 7}),
-            Token.init(.{.String = "Hello, \n\\sworld!"}, "string reading", Pos{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", Pos{.line = 1, .col = 28}),
+            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
+            Token.init(.{.String = "Hello, \n\\sworld!"}, "string reading", .{.line = 1, .col = 9}),
+            Token.init(.Eof, "string reading", .{.line = 1, .col = 28}),
         };
 
         var c = Compiler.init_str("string reading", source, testing.allocator);
@@ -729,4 +735,41 @@ const tests = struct {
 
         try check_results(&s, &expected);
     }
+    
+    //test "skip single comment" {
+    //    const source = "let x = //12_000 12_000.50";
+
+    //    const expected = [_]Token{
+    //        Token.init(.{.Keyword = .Let}, "single comment", .{.line = 1, .col = 1}),
+    //        Token.init(.{.Identifier = "x"}, "single comment", .{.line = 1, .col = 5}),
+    //        Token.init(.Assign, "single comment", .{.line = 1, .col = 7}),
+    //        Token.init(.Eof, "single comment", .{.line = 1, .col = 27})
+    //    };
+
+    //    var c = Compiler.init_str("single comment", source, testing.allocator);
+    //    defer c.deinit();
+    //    var s = Scanner.init(&c);
+
+    //    try check_results(&s, &expected);
+    //}
+    
+    //test "skip multi comment" {
+    //    const source = \\let x = /*
+    //                   \\12_000 12_000.50
+    //                   \\*/ 
+    //                   ;
+
+    //    const expected = [_]Token{
+    //        Token.init(.{.Keyword = .Let}, "multi comment", Pos{.line = 1, .col = 1}),
+    //        Token.init(.{.Identifier = "x"}, "multi comment", Pos{.line = 1, .col = 5}),
+    //        Token.init(.Assign, "multi comment", Pos{.line = 1, .col = 7}),
+    //        Token.init(.Eof, "multi comment", Pos{.line = 3, .col = 3})
+    //    };
+
+    //    var c = Compiler.init_str("multi comment", source, testing.allocator);
+    //    defer c.deinit();
+    //    var s = Scanner.init(&c);
+
+    //    try check_results(&s, &expected);
+    //}
 };
