@@ -2,22 +2,24 @@ const Num = interface ('a) {
     (+)(&): (rhs: &'a) -> 'a
 }
 
-const num -> type = fn (comptime 'a: type) {
-    pub const (+)(lhs: &'a) -> t = (rhs: &'a) {
-        let mut result = t.{}
+const num -> module = fn (comptime 'a: type) {
+    module {
+        pub const t = 'a;
 
-        inline for member in @.members_of('a) {
-            result.(member) = lhs.(member) + rhs.(member)
+        pub const (+) -> t = (lhs: &t, rhs: &t) {
+            let mut result = t.{}
+
+            inline for member in @.members_of(t) {
+                result.(member) = lhs.(member) + rhs.(member)
+            }
         }
     }
-
-    'a
 }
 
 const Vector = record {
     x: int,
     y: int
-} |> num()
+} |> num().t
 
 const add -> Num = fn (x, y: Num) {
     x + y

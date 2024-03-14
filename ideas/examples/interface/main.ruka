@@ -8,14 +8,14 @@ const Vector = record {
     y: int
 }
 
-const (+) (lhs: &Vector) -> Vector = fn (rhs: &Vector) {
+const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
 end
 
-const add (lhs: &Vector) -> Vector = fn (rhs: &Vector) {
+const add -> Vector = fn (lhs: &Vector, rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y

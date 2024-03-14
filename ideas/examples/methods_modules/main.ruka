@@ -8,7 +8,7 @@ const Vector = module {
         t.{.x, .y}
     }
 
-    pub const add (self: &t) -> t = fn (other: &t) {
+    pub const add -> t = fn (self: &t, other: &t) {
         t.{
             .x = self.x + other.x,
             .y = self.y + other.y
