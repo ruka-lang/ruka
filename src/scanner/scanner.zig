@@ -402,7 +402,7 @@ pub const Scanner = struct {
     // Skips a single line comment
     fn skip_single_comment(self: *Scanner) void {
         switch (self.read()) {
-            '\n' | '\x00' => {},
+            '\n', '\x00' => {},
             else => {
                 self.advance(1);
                 self.skip_single_comment();
@@ -540,14 +540,14 @@ pub const Scanner = struct {
 
     // Creates an escape character compilation error
     fn create_escape_error(self: *Scanner, i: usize, str: []const u8) !void {
-        //if (i + 1 > str.len) {
-        //    return try self.compiler.errors.append(.{
-        //        .file = self.compiler.input,
-        //        .kind = "scanning error",
-        //        .msg = "unterminated escape character",
-        //        .pos = self.current_pos
-        //    });
-        //}
+        if (i + 1 > str.len) {
+            return try self.compiler.errors.append(.{
+                .file = self.compiler.input,
+                .kind = "scanning error",
+                .msg = "unterminated escape character",
+                .pos = self.current_pos
+            });
+        }
 
         const allocator = self.compiler.arena.allocator();
         const buf = try allocator.alloc(u8, 40);
@@ -736,40 +736,41 @@ const tests = struct {
         try check_results(&s, &expected);
     }
     
-    //test "skip single comment" {
-    //    const source = "let x = //12_000 12_000.50";
+    test "skip single comment" {
+        const source = "let x = //12_000 12_000.50";
 
-    //    const expected = [_]Token{
-    //        Token.init(.{.Keyword = .Let}, "single comment", .{.line = 1, .col = 1}),
-    //        Token.init(.{.Identifier = "x"}, "single comment", .{.line = 1, .col = 5}),
-    //        Token.init(.Assign, "single comment", .{.line = 1, .col = 7}),
-    //        Token.init(.Eof, "single comment", .{.line = 1, .col = 27})
-    //    };
+        const expected = [_]Token{
+            Token.init(.{.Keyword = .Let}, "single comment", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "single comment", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "single comment", .{.line = 1, .col = 7}),
+            Token.init(.Eof, "single comment", .{.line = 1, .col = 27})
+        };
 
-    //    var c = Compiler.init_str("single comment", source, testing.allocator);
-    //    defer c.deinit();
-    //    var s = Scanner.init(&c);
+        var c = Compiler.init_str("single comment", source, testing.allocator);
 
-    //    try check_results(&s, &expected);
-    //}
+        defer c.deinit();
+        var s = Scanner.init(&c);
+
+        try check_results(&s, &expected);
+    }
     
-    //test "skip multi comment" {
-    //    const source = \\let x = /*
-    //                   \\12_000 12_000.50
-    //                   \\*/ 
-    //                   ;
+    test "skip multi comment" {
+        const source = \\let x = /*
+                       \\12_000 12_000.50
+                       \\*/ 
+                       ;
 
-    //    const expected = [_]Token{
-    //        Token.init(.{.Keyword = .Let}, "multi comment", Pos{.line = 1, .col = 1}),
-    //        Token.init(.{.Identifier = "x"}, "multi comment", Pos{.line = 1, .col = 5}),
-    //        Token.init(.Assign, "multi comment", Pos{.line = 1, .col = 7}),
-    //        Token.init(.Eof, "multi comment", Pos{.line = 3, .col = 3})
-    //    };
+        const expected = [_]Token{
+            Token.init(.{.Keyword = .Let}, "multi comment", .{.line = 1, .col = 1}),
+            Token.init(.{.Identifier = "x"}, "multi comment", .{.line = 1, .col = 5}),
+            Token.init(.Assign, "multi comment", .{.line = 1, .col = 7}),
+            Token.init(.Eof, "multi comment", .{.line = 3, .col = 4})
+        };
 
-    //    var c = Compiler.init_str("multi comment", source, testing.allocator);
-    //    defer c.deinit();
-    //    var s = Scanner.init(&c);
+        var c = Compiler.init_str("multi comment", source, testing.allocator);
+        defer c.deinit();
+        var s = Scanner.init(&c);
 
-    //    try check_results(&s, &expected);
-    //}
+        try check_results(&s, &expected);
+    }
 };
