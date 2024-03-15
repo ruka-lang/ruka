@@ -701,7 +701,7 @@ const tests = struct {
         const source = \\let x = "|
                        \\         | Hello, world!
                        \\         |"
-        ;
+                       ;
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
