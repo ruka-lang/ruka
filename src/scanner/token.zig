@@ -32,7 +32,7 @@ pub const Kind = union(enum) {
     Mode: Mode,
     // Assignment
     Assign,        // =
-    Assignexp,     // :=
+    AssignExp,     // :=
     // Punctuation
     Dot,           // .
     Comma,         // ,
@@ -49,17 +49,17 @@ pub const Kind = union(enum) {
     Colon,         // :
     Semicolon,     // ;
     Arrow,         // ->
-    Widearrow,     // =>
+    WideArrow,     // =>
     // Operators
     Address,       // @
     Cash,          // $
     Pound,         // #
     Bang,          // !
     Question,      // ?
-    Rangeexc,      // ..
-    Rangeinc,      // ..=
-    Forwardapp,    // <|
-    Reverseapp,    // |>
+    RangeExc,      // ..
+    RangeInc,      // ..=
+    ForwardApp,    // <|
+    ReverseApp,    // |>
     Concat,        // <>
     // Arithmetic
     Plus,          // +
@@ -79,11 +79,11 @@ pub const Kind = union(enum) {
     Rshift,        // >>
     // Comparators
     Lesser,        // <
-    Lessereq,      // <=
+    LesserEq,      // <=
     Greater,       // >
-    Greatereq,     // >=
+    GreaterEq,     // >=
     Equal,         // ==
-    Notequal,      // !=
+    NotEqual,      // !=
     // Miscelaneous
     Newline,       // \n
     Illegal,
@@ -149,7 +149,7 @@ pub const Kind = union(enum) {
             .Mode         => |mo| mo.to_str(),
             // Assignment
             .Assign       => "=",
-            .Assignexp    => ":=",
+            .AssignExp    => ":=",
             // Punctuation
             .Dot          => ".",
             .Comma        => ",",
@@ -166,17 +166,17 @@ pub const Kind = union(enum) {
             .Colon        => ":",
             .Semicolon    => ";",
             .Arrow        => "->",
-            .Widearrow    => "=>",
+            .WideArrow    => "=>",
             // Operators
             .Address      => "@",
             .Cash         => "$",
             .Pound        => "#",
             .Bang         => "!",
             .Question     => "?",
-            .Rangeexc     => "..",
-            .Rangeinc     => "..=",
-            .Forwardapp   => "<|",
-            .Reverseapp   => "|>",
+            .RangeExc     => "..",
+            .RangeInc     => "..=",
+            .ForwardApp   => "<|",
+            .ReverseApp   => "|>",
             .Concat       => "<>",
             // Arithmetic
             .Plus         => "+",
@@ -196,11 +196,11 @@ pub const Kind = union(enum) {
             .Rshift       => ">>",
             // Comparators
             .Lesser       => "<",
-            .Lessereq     => "<=",
+            .LesserEq     => "<=",
             .Greater      => ">",
-            .Greatereq    => ">=",
+            .GreaterEq    => ">=",
             .Equal        => "==",
-            .Notequal     => "!=",
+            .NotEqual     => "!=",
             // Miscelaneous
             .Newline      => "\n",
             .Illegal      => "ILLEGAL",

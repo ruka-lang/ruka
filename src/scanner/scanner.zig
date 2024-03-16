@@ -68,7 +68,7 @@ pub const Scanner = struct {
             // Operators which may be multiple characters long
             '=' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, "=>", token.Kind.Widearrow},
+                    .{2, "=>", token.Kind.WideArrow},
                     .{2, "==", token.Kind.Equal}
                 });
 
@@ -81,7 +81,7 @@ pub const Scanner = struct {
             },
             ':' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, ":=", token.Kind.Assignexp}
+                    .{2, ":=", token.Kind.AssignExp}
                 });
 
                 if (kind == null) {
@@ -93,7 +93,7 @@ pub const Scanner = struct {
             },
             '>' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, ">=", token.Kind.Greatereq},
+                    .{2, ">=", token.Kind.GreaterEq},
                     .{2, ">>", token.Kind.Rshift}
                 });
 
@@ -106,9 +106,9 @@ pub const Scanner = struct {
             },
             '<' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, "<=", token.Kind.Lessereq},
+                    .{2, "<=", token.Kind.LesserEq},
                     .{2, "<<", token.Kind.Lshift},
-                    .{2, "<|", token.Kind.Forwardapp},
+                    .{2, "<|", token.Kind.ForwardApp},
                     .{2, "<>", token.Kind.Concat}
                 });
 
@@ -158,8 +158,8 @@ pub const Scanner = struct {
             },
             '.' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{3, "..=", token.Kind.Rangeinc},
-                    .{2, "..", token.Kind.Rangeexc}
+                    .{3, "..=", token.Kind.RangeInc},
+                    .{2, "..", token.Kind.RangeExc}
                 });
 
                 if (kind == null) {
@@ -171,7 +171,7 @@ pub const Scanner = struct {
             },
             '!' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, "!=", token.Kind.Notequal}
+                    .{2, "!=", token.Kind.NotEqual}
                 });
 
                 if (kind == null) {
@@ -183,7 +183,7 @@ pub const Scanner = struct {
             },
             '|' => blk: {
                 var kind = self.try_compound_operator(.{
-                    .{2, "|>", token.Kind.Reverseapp}
+                    .{2, "|>", token.Kind.ReverseApp}
                 });
 
                 if (kind == null) {
@@ -653,11 +653,11 @@ const tests = struct {
 
         const expected = [_]Token{
             Token.init(.Equal, "compound operators", .{.line = 1, .col = 1}),
-            Token.init(.Notequal, "compound operators", .{.line = 1, .col = 4}),
-            Token.init(.Greatereq, "compound operators", .{.line = 1, .col = 7}),
-            Token.init(.Lessereq, "compound operators", .{.line = 1, .col = 10}),
-            Token.init(.Reverseapp, "compound operators", .{.line = 1, .col = 13}),
-            Token.init(.Forwardapp, "compound operators", .{.line = 1, .col = 16}),
+            Token.init(.NotEqual, "compound operators", .{.line = 1, .col = 4}),
+            Token.init(.GreaterEq, "compound operators", .{.line = 1, .col = 7}),
+            Token.init(.LesserEq, "compound operators", .{.line = 1, .col = 10}),
+            Token.init(.ReverseApp, "compound operators", .{.line = 1, .col = 13}),
+            Token.init(.ForwardApp, "compound operators", .{.line = 1, .col = 16}),
             Token.init(.Lshift, "compound operators", .{.line = 1, .col = 19}),
             Token.init(.Concat, "compound operators", .{.line = 1, .col = 22}),
             Token.init(.Rshift, "compound operators", .{.line = 1, .col = 25}),
@@ -665,10 +665,10 @@ const tests = struct {
             Token.init(.Decrement, "compound operators", .{.line = 1, .col = 31}),
             Token.init(.Square, "compound operators", .{.line = 1, .col = 34}),
             Token.init(.Arrow, "compound operators", .{.line = 1, .col = 37}),
-            Token.init(.Widearrow, "compound operators", .{.line = 1, .col = 40}),
-            Token.init(.Rangeexc, "compound operators", .{.line = 1, .col = 43}),
-            Token.init(.Rangeinc, "compound operators", .{.line = 1, .col = 46}),
-            Token.init(.Assignexp, "compound operators", .{.line = 1, .col = 50}),
+            Token.init(.WideArrow, "compound operators", .{.line = 1, .col = 40}),
+            Token.init(.RangeExc, "compound operators", .{.line = 1, .col = 43}),
+            Token.init(.RangeInc, "compound operators", .{.line = 1, .col = 46}),
+            Token.init(.AssignExp, "compound operators", .{.line = 1, .col = 50}),
             Token.init(.Eof, "compound operators", .{.line = 1, .col = 52})
         };
 
