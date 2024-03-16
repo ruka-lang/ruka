@@ -1,4 +1,4 @@
-const std = @.import("std")
+const std = @import("std")
 
 const Color = record {
     r: u8,
@@ -6,7 +6,7 @@ const Color = record {
     b: u8
 }
 
-const (+)(lhs: &Color) -> Color = fn (rhs: &Color) {
+const (+) = fn -> Color (lhs, rhs: &Color) {
     let .{rl, gl, bl} = lhs
     let .{rr, gr, br} = rhs
     Color.{
@@ -16,14 +16,14 @@ const (+)(lhs: &Color) -> Color = fn (rhs: &Color) {
     }
 }
 
-const main -> Result(unit) = fn () {
+const main = fn -> Result(unit) () {
     let red = Color.{.r = 255, .g = 0, .b = 0}
     let blue = Color.{.r = 0, .g = 0, .b = 255}
 
     let purple = red + blue
     let .{r, g, b} = purple
 
-    @.assert(r == 255 and g == 0 and b == 255)?
+    @assert(r == 255 and g == 0 and b == 255)?
 
     match "Hello, world!" {
         "Hello, " <> world => {/* */},

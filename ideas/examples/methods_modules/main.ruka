@@ -4,11 +4,11 @@ const Vector = module {
         y: int
     }
 
-    pub const new -> t = fn (x, y: int) {
+    pub const new = fn -> t (x, y: int) {
         t.{.x, .y}
     }
 
-    pub const add -> t = fn (self: &t, other: &t) {
+    pub const add = fn -> t (self, other: &t) {
         t.{
             .x = self.x + other.x,
             .y = self.y + other.y
@@ -18,11 +18,11 @@ const Vector = module {
 
 const main = fn () {
     let a = Vector.new(1, 2)
-    @.assert(@.type_of(a) == Vector.t)
+    @assert(@type_of(a) == Vector.t)
 
     let b = Vector.new(3, 4)
-    @.assert(@.type_of(b) == Vector.t)
+    @assert(@type_of(b) == Vector.t)
 
     let c = a.add(&b)
-    @.assert(@.type_of(c) == Vector.t)
+    @assert(@type_of(c) == Vector.t)
 }

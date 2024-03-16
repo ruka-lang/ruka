@@ -8,25 +8,25 @@ const Vector = record {
     y: int
 }
 
-const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) {
+const (+) = fn -> Vector (lhs: &Vector, rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
 end
 
-const add -> Vector = fn (lhs: &Vector, rhs: &Vector) {
+const add = fn -> Vector (lhs: &Vector, rhs: &Vector) {
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
 }
 
-const add -> Num = fn (x, y: Num) {
+const add = fn -> Num (x, y: Num) {
     x + y // or x.add(&y)
 }
 
-const main -> Result(unit) = fn () {
+const main = fn -> Result(unit) () {
     let a = Vector.{x: 10, y: 5}
     let b = Vector.{x: 5, y: 10}
     let c = a + b

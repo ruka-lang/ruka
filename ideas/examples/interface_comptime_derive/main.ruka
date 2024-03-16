@@ -2,41 +2,40 @@ const Num = interface ('a) {
     (+)(&): (rhs: &'a) -> 'a
 }
 
-const num -> module = fn (comptime 'a: type) {
+const num = fn -> module (comptime 'a: type) {
     module {
         pub const t = 'a;
 
-        pub const (+) -> t = (lhs: &t, rhs: &t) {
+        pub const (+) = fn -> t (lhs: &t, rhs: &t) {
             let mut result = t.{}
 
-            inline for member in @.members_of(t) {
+            inline for member in @members_of(t) {
                 result.(member) = lhs.(member) + rhs.(member)
             }
         }
     }
 }
 
-const Vector = record {
-    x: int,
-    y: int
-} |> num().t
+const Vector = record {x: int, y: int} 
+    |> num() 
+    |> @member(:t)
 
-const add -> Num = fn (x, y: Num) {
+const add = fn -> Num (x, y: Num) {
     x + y
 }
 
-const main -> Result(unit) = fn () {
+const main = fn -> Result(unit) () {
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
     let c = a + b
 
-    @.assert(c.x == 15 and c.y == 15)?
+    @assert(c.x == 15 and c.y == 15)?
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    @.assert(f == 15)?
+    @assert(f == 15)?
 
     Ok <| ()
 }

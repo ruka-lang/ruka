@@ -1,20 +1,20 @@
-const List -> module = fn (comptime 'a: type) {
+const List = fn -> module (comptime 'a: type) {
     module {
         pub const t = record {
-            const Self = @.this()
+            const Self = @this()
 
             val: 'a,
             next: Option <| Self
         }
 
-        pub const new -> t = fn (val: 'a) {
+        pub const new = fn -> t (val: 'a) {
             t.{
                 .val,
                 .next = None
             }
         }
 
-        pub const push (mut self: &t) = fn (val: 'a) {
+        pub const push = fn (mut self: &t, val: 'a) {
             if self.next == None {
                 self.next = Some <| t.new(val)
             } else {
@@ -33,5 +33,5 @@ const main = fn () {
     let mut list = List(int).new(12)
     list.push(16)
 
-    @.println("List: [{}, {}]", {list.val, list.next.val})
+    @println("List: [{:?}, {:?}]", {list.val, list.next.val})
 }

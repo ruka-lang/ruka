@@ -1,4 +1,4 @@
-const Result -> type = fn (comptime success: type) {
+const Result = fn -> type (comptime success: type) {
     variant {
         Ok(success),
         Err(Error) // predefined interface
@@ -8,21 +8,21 @@ const Result -> type = fn (comptime success: type) {
 const parseError = struct {/* */}
 
 // Implement the methods required by the Error interface
-const msg (err: &parseError) -> []u8 = fn () {/* */}
-const location (err: &parseError) -> []u8 = fn () {/* */}
-const kind (err: &parseError) -> []u8 = fn () {/* */}
-const severity (err: &parseError) -> Severity = fn () {/* */}
+const msg = fn -> []u8 (err: &parseError) {/* */}
+const location = fn -> []u8 (err: &parseError) {/* */}
+const kind = fn -> []u8 (err: &parseError) {/* */}
+const severity = fn -> Severity (err: &parseError) {/* */}
 
-const parse -> Result(int) = fn (str: []u8) {
-    if (/* */) {
+const parse = fn -> Result(int) (str: []u8) {
+    if /* */ {
         return Err <| parseError.{}
     }
 }
 
-const main -> Result(unit) = fn () {
+const main = fn -> Result(unit) () {
     let str: []u8 = "Hello"
     let result = parse(str[..])?
-    @.println("result: {d}", {result})
+    @println("result: {d}", {result})
 
     Ok <| ()
 }

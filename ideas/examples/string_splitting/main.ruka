@@ -15,7 +15,7 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> [..]string.t = fn (
+const strsplit = fn -> [..]string.t (
     str: []u8,
     ch: u8
 ) {
@@ -38,7 +38,7 @@ const strsplit -> [..]string.t = fn (
     words
 }
 
-const main -> Result<unit> = fn () {
+const main = fn -> Result(unit) () {
     let words = 
         "| Hello, 
          | world!
@@ -46,7 +46,7 @@ const main -> Result<unit> = fn () {
         |> ([..])
         |> strsplit('\n')
 
-    @.assert(words.len() == 3)?
+    @assert(words.len() == 3)?
 
     Ok <| ()
 }
