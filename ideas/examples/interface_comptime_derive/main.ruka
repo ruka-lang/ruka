@@ -9,8 +9,8 @@ const num = fn -> module (comptime 'a: type) {
         pub const (+) = fn -> t (lhs: &t, rhs: &t) {
             let mut result = t.{}
 
-            inline for member in @members_of(t) {
-                result.(member) = lhs.(member) + rhs.(member)
+            inline for m in @members_of(t) {
+                @member(result, m) = @member(lhs, m) + @member(rhs, m)
             }
         }
     }
