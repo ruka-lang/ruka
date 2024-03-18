@@ -18,7 +18,7 @@ const num = fn -> module (comptime 'a: type) {
 
 const Vector = record {x: int, y: int} 
     |> num() 
-    |> @member(:t)
+    |> @field(:t)
 
 const add = fn -> Num (x, y: Num) {
     x + y
