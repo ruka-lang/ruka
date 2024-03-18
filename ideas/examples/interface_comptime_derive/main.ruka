@@ -9,8 +9,8 @@ const num = fn -> module (comptime 'a: type) {
         pub const (+) = fn -> t (lhs: &t, rhs: &t) {
             let mut result = t.{}
 
-            inline for m in @members_of(t) {
-                @member(result, m) = @member(lhs, m) + @member(rhs, m)
+            inline for f in @type_info(t).fields {
+                @field(result, f) = @field(lhs, f) + @field(rhs, f)
             }
         }
     }
