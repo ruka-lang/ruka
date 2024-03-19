@@ -1,5 +1,5 @@
 const Num = interface ('a) {
-    (+)(&): (rhs: &'a) -> 'a
+    (+): (rhs: &'a) -> 'a
 }
 
 const num = fn -> module (comptime 'a: type) {
