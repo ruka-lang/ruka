@@ -4,7 +4,7 @@ const Num = interface ('a) {
 
 const num = fn -> module (comptime 'a: type) {
     module {
-        pub const t = 'a;
+        pub const t = 'a
 
         pub const (+) = fn -> t (lhs: &t, rhs: &t) {
             let mut result = t.{}
