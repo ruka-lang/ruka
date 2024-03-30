@@ -1,14 +1,14 @@
-const Vector = module {
+const Vector = record {
     pub const t = record {
         x: int,
         y: int
     }
 
-    pub const new = fn -> t (x, y: int) {
+    pub const new -> t = fn (x, y: int) {
         t.{.x, .y}
     }
 
-    pub const add = fn -> t (self, other: &t) {
+    pub const add -> t = fn (self, other: &t) {
         t.{
             .x = self.x + other.x,
             .y = self.y + other.y

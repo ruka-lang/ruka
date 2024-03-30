@@ -2,11 +2,11 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num = fn -> module (comptime 'a: type) {
-    module {
+const num -> type = fn (comptime 'a: type) {
+    record {
         pub const t = 'a
 
-        pub const (+) = fn -> t (lhs: &t, rhs: &t) {
+        pub const (+) -> t = fn (lhs: &t, rhs: &t) {
             let mut result = t.{}
 
             inline for f in @type_info(t).fields {
@@ -16,15 +16,15 @@ const num = fn -> module (comptime 'a: type) {
     }
 }
 
-const Vector = record {x: int, y: int} 
-    |> num() 
+const Vector = record {x: int, y: int}
+    |> num()
     |> @field(:t)
 
-const add = fn -> Num (x, y: Num) {
+const add -> Num = fn (x, y: Num) {
     x + y
 }
 
-const main = fn -> Result(unit) () {
+const main -> Result(unit) = fn () {
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
     let c = a + b

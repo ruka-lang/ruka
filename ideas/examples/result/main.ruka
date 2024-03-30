@@ -1,4 +1,4 @@
-const Result = fn -> type (comptime success: type) {
+const Result -> type = fn (comptime success: type) {
     variant {
         Ok(success),
         Err(Error) // predefined interface
@@ -13,13 +13,13 @@ const location = fn -> []u8 (err: &parseError) {/* */}
 const kind = fn -> []u8 (err: &parseError) {/* */}
 const severity = fn -> Severity (err: &parseError) {/* */}
 
-const parse = fn -> Result(int) (str: []u8) {
+const parse -> Result(int) = fn (str: []u8) {
     if /* */ {
         return Err <| parseError.{}
     }
 }
 
-const main = fn -> Result(unit) () {
+const main -> Result(unit) = fn () {
     let str: []u8 = "Hello"
     let result = parse(str[..])?
     @println("result: {d}", {result})

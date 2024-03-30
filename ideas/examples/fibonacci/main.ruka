@@ -5,7 +5,7 @@
 const std = @import("std")
 const string = std.string
 
-const fibonacci = fn -> uint (n: uint) {
+const fibonacci -> uint = fn (n: uint) {
     return if n <= 1 {
         1
     } else {
@@ -13,7 +13,7 @@ const fibonacci = fn -> uint (n: uint) {
     }
 }
 
-const main = fn -> Result(unit) () {
+const main -> Result(unit) = fn () {
     let n = std.io.gets()
         |> string.parse() ~into: int
         |> (?)

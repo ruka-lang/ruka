@@ -6,7 +6,7 @@ const Color = record {
     b: u8
 }
 
-const (+) = fn -> Color (lhs, rhs: &Color) {
+const (+) -> Color = fn (lhs, rhs: &Color) {
     let .{rl, gl, bl} = lhs
     let .{rr, gr, br} = rhs
     Color.{
@@ -16,7 +16,7 @@ const (+) = fn -> Color (lhs, rhs: &Color) {
     }
 }
 
-const main = fn -> Result(unit) () {
+const main -> Result(unit) = fn () {
     let red = Color.{.r = 255, .g = 0, .b = 0}
     let blue = Color.{.r = 0, .g = 0, .b = 255}
 

@@ -1,5 +1,5 @@
-const List = fn -> module (comptime 'a: type) {
-    module {
+const List -> record = fn (comptime 'a: type) {
+    record {
         pub const t = record {
             const Self = @this()
 
@@ -7,7 +7,7 @@ const List = fn -> module (comptime 'a: type) {
             next: Option <| Self
         }
 
-        pub const new = fn -> t (val: 'a) {
+        pub const new -> t = fn (val: 'a) {
             t.{
                 .val,
                 .next = None

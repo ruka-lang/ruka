@@ -3,7 +3,7 @@
   * @author: ruka-lang
   */
 
-const string = @.import("std").string
+const String = @.import("std").String
 const testing = @.import("std").testing
 
 /** Takes a string and splits the string into substrings at each occurence of
@@ -15,7 +15,7 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit = fn -> [..]string.t (
+const strsplit -> [..]String = fn (
     str: []u8,
     ch: u8
 ) {
@@ -24,29 +24,29 @@ const strsplit = fn -> [..]string.t (
         if c == ch => indices.push(i)
     }
 
-    let mut words = [..]string.t{}
+    let mut words = [..]String{}
     let mut prev = 0
     for idx in indices {
-        let str = str[prev..idx].into(string.t)
+        let str = str[prev..idx].into(String)
         words.push(str)
         prev = idx + 1
     }
 
-    let str = str[prev..str.len].into(string.t)
+    let str = str[prev..str.len].into(String)
     words.push(str)
 
     words
 }
 
-const main = fn -> Result(unit) () {
-    let words = 
-        "| Hello, 
+const main -> Result(unit) = fn () {
+    let words =
+        "| Hello,
          | world!
          |"
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len() == 3)?
+    @assert(words.len == 3)?
 
     Ok <| ()
 }
