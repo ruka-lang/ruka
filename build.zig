@@ -1,5 +1,9 @@
 const std = @import("std");
 
+const version = "0.0.0";
+const version_date = "03-09-2024";
+const description = "Compiler for the Ruka Programming Language";
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
@@ -33,6 +37,12 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("llvm", llvm.module("llvm"));
 
     b.installArtifact(exe);
+
+    var options = b.addOptions();
+    options.addOption([]const u8, "version", version);
+    options.addOption([]const u8, "version_date", version_date);
+    options.addOption([]const u8, "description", description);
+    exe.root_module.addOptions("options", options);
 
     const run_cmd = b.addRunArtifact(exe);
 

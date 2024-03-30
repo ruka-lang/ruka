@@ -1,21 +1,15 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-// Cli module imports
-pub const cli = @import("cli/cli.zig");
-// Compiler module imports
-pub const compiler = @import("compiler/compiler.zig");
-// Interpreter module imports
-// Scanner module imports
-pub const scanner = @import("scanner/scanner.zig");
-// Parser module imports
-// Generator module imports
-pub const generator = @import("generator/generator.zig");
 pub const util = @import("util.zig");
+pub const cli = @import("cli/cli.zig");
+pub const Compiler = @import("compiler/compiler.zig");
+pub const Scanner = @import("scanner/scanner.zig");
+pub const generator = @import("generator/generator.zig");
 
 test "Test all rukac modules" {
-    _ = cli;
-    _ = compiler;
-    _ = scanner;
     _ = util;
+    _ = cli;
+    _ = Compiler;
+    _ = Scanner;
 }

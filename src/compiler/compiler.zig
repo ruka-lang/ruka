@@ -2,10 +2,12 @@
 // @created: 2024-03-04
 
 const rukac = @import("../root.zig");
-const scanner = rukac.scanner;
+const Scanner = rukac.Scanner;
 const util = rukac.util;
 
 const std = @import("std");
+
+const Compiler = @This();
 
 /// Represents an error during compilation
 pub const CompileError = struct {
@@ -16,71 +18,69 @@ pub const CompileError = struct {
 };
 
 /// Responsible for compiling a given file
-pub const Compiler = struct {
+input: []const u8,
+output: ?[]const u8,
+contents: []const u8,
+// ast: ?Ast,
+// context: std.ArrayList(...),
+errors: std.ArrayList(CompileError),
+arena: std.heap.ArenaAllocator,
+
+/// Creates a new compiler instance, initializing it's arena with the passed in
+/// allocator
+pub fn init(
     input: []const u8,
     output: ?[]const u8,
+    allocator: std.mem.Allocator
+) !Compiler {
+    var file = try std.fs.cwd().openFile(input, .{});
+    defer file.close();
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+
+    const buffer_size = 5000;
+    const contents = try file.readToEndAlloc(arena.allocator(), buffer_size);
+
+    return Compiler{
+        .input = input,
+        .output = output,
+        .contents = contents,
+        .errors = std.ArrayList(CompileError).init(allocator),
+        .arena = arena
+    };
+}
+
+/// Creates a new compiler instance, initializing it's arena with the passed in
+/// allocator
+pub fn init_str(
+    input: []const u8,
     contents: []const u8,
-    // ast: ?Ast,
-    // context: std.ArrayList(...),
-    errors: std.ArrayList(CompileError),
-    arena: std.heap.ArenaAllocator,
+    allocator: std.mem.Allocator
+) Compiler {
+    return Compiler{
+        .input = input,
+        .output = null,
+        .contents = contents,
+        .arena = std.heap.ArenaAllocator.init(allocator),
+        .errors = std.ArrayList(CompileError).init(allocator)
+    };
+}
 
-    /// Creates a new compiler instance, initializing it's arena with the passed in
-    /// allocator
-    pub fn init(
-        input: []const u8,
-        output: ?[]const u8,
-        allocator: std.mem.Allocator
-    ) !Compiler {
-        var file = try std.fs.cwd().openFile(input, .{});
-        defer file.close();
+/// Deinitialize the compiler, freeing it's arena
+pub fn deinit(self: *Compiler) void {
+    self.arena.deinit();
+    self.errors.deinit();
+}
 
-        var arena = std.heap.ArenaAllocator.init(allocator);
+/// Begins the compilation process for the compilation unit
+pub fn compile(self: *Compiler) !void {
+    var s = Scanner.init(self);
+    var t = try s.next_token();
 
-        const buffer_size = 5000;
-        const contents = try file.readToEndAlloc(arena.allocator(), buffer_size);
-
-        return Compiler{
-            .input = input,
-            .output = output,
-            .contents = contents,
-            .errors = std.ArrayList(CompileError).init(allocator),
-            .arena = arena
-        };
+    while(t.kind != .Eof) {
+        std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
+        t = try s.next_token();
     }
 
-    /// Creates a new compiler instance, initializing it's arena with the passed in
-    /// allocator
-    pub fn init_str(
-        input: []const u8,
-        contents: []const u8,
-        allocator: std.mem.Allocator
-    ) Compiler {
-        return Compiler{
-            .input = input,
-            .output = null,
-            .contents = contents,
-            .arena = std.heap.ArenaAllocator.init(allocator),
-            .errors = std.ArrayList(CompileError).init(allocator)
-        };
-    }
-
-    /// Deinitialize the compiler, freeing it's arena
-    pub fn deinit(self: *Compiler) void {
-        self.arena.deinit();
-        self.errors.deinit();
-    }
-
-    /// Begins the compilation process for the compilation unit
-    pub fn compile(self: *Compiler) !void {
-        var s = scanner.Scanner.init(self);
-        var t = try s.next_token();
-
-        while(t.kind != .Eof) {
-            std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
-            t = try s.next_token();
-        }
-
-        std.debug.print("{s}\n", .{self.contents});
-    }
-};
+    std.debug.print("{s}\n", .{self.contents});
+}

@@ -6,20 +6,20 @@ const util = rukac.util;
 
 const std = @import("std");
 
+const Token = @This();
+
 /// Represents a lexeme: it's kind, file, and position within that file
-pub const Token = struct {
-    kind: Kind,
-    file: []const u8,
-    pos: util.Position,
-    /// Creates a new token
-    pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
-        return Token {
-            .kind = kind,
-            .file = file,
-            .pos = pos
-        };
-    }
-};
+kind: Kind,
+file: []const u8,
+pos: util.Position,
+/// Creates a new token
+pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
+    return Token {
+        .kind = kind,
+        .file = file,
+        .pos = pos
+    };
+}
 
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
@@ -209,7 +209,7 @@ pub const Kind = union(enum) {
     }
 
     fn char_to_string(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
-        var str = try allocator.alloc(u8, 1); 
+        var str = try allocator.alloc(u8, 1);
         str[0] = ch;
         return str[0..];
     }

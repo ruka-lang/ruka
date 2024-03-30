@@ -2,17 +2,15 @@
 // @created: 2024-03-04
 
 const std = @import("std");
+pub const project_options = @import("options");
 
-pub const version = "0.0.0";
-pub const version_date = "03-09-2024";
-const description = "Compiler for the Ruka Programming Language";
 pub const usage = "usage: rukac [options] subcommand";
-pub const subcommands = 
+pub const subcommands =
     \\    subcommands:
     \\        compile <input_file> : Compiles the file given
 ;
 
-const options = 
+const options =
     \\    options:
     \\        -h, --help           : Displays help and usage
     \\        -v, --version        : Displays the compiler version
@@ -21,11 +19,12 @@ const options =
 ;
 
 ///
-pub const help = std.fmt.comptimePrint("rukac {s}\n{s}\n\n{s}\n{s}\n{s}", .{
-    version, 
-    description, 
-    usage, 
-    subcommands, 
+pub const help = std.fmt.comptimePrint("rukac {s} (released {s})\n{s}\n\n{s}\n{s}\n{s}", .{
+    project_options.version,
+    project_options.version_date,
+    project_options.description,
+    usage,
+    subcommands,
     options
     });
 
