@@ -60,7 +60,7 @@ pub fn main() !void {
                     std.os.exit(1);
                 }
 
-                try cli.compile_file(file, res.args.output);
+                try cli.compile_file(file, res.args.output, gpa.allocator());
             },
             .invalid => {
                 try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{

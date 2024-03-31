@@ -630,6 +630,7 @@ const tests = struct {
 
     test "next token" {
         const source = "let x = 12_000 12_000.50 '\\n'";
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "next token", .{.line = 1, .col = 1}),
@@ -641,7 +642,7 @@ const tests = struct {
             Token.init(.Eof, "next token", .{.line = 1, .col = 30}),
         };
 
-        var c = Compiler.init_str("next token", source, testing.allocator);
+        var c = try Compiler.init("next token", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 
@@ -650,6 +651,7 @@ const tests = struct {
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.Equal, "compound operators", .{.line = 1, .col = 1}),
@@ -672,7 +674,7 @@ const tests = struct {
             Token.init(.Eof, "compound operators", .{.line = 1, .col = 52})
         };
 
-        var c = Compiler.init_str("compound operators", source, testing.allocator);
+        var c = try Compiler.init("compound operators", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 
@@ -681,6 +683,7 @@ const tests = struct {
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
@@ -690,7 +693,7 @@ const tests = struct {
             Token.init(.Eof, "string reading", .{.line = 1, .col = 24}),
         };
 
-        var c = Compiler.init_str("string reading", source, testing.allocator);
+        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 
@@ -702,6 +705,7 @@ const tests = struct {
                        \\         | Hello, world!
                        \\         |"
                        ;
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
@@ -711,7 +715,7 @@ const tests = struct {
             Token.init(.Eof, "string reading", .{.line = 3, .col = 12}),
         };
 
-        var c = Compiler.init_str("string reading", source, testing.allocator);
+        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 
@@ -720,6 +724,7 @@ const tests = struct {
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
@@ -729,7 +734,7 @@ const tests = struct {
             Token.init(.Eof, "string reading", .{.line = 1, .col = 28}),
         };
 
-        var c = Compiler.init_str("string reading", source, testing.allocator);
+        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 
@@ -738,6 +743,7 @@ const tests = struct {
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "single comment", .{.line = 1, .col = 1}),
@@ -746,7 +752,7 @@ const tests = struct {
             Token.init(.Eof, "single comment", .{.line = 1, .col = 27})
         };
 
-        var c = Compiler.init_str("single comment", source, testing.allocator);
+        var c = try Compiler.init("single comment", stream.reader().any(), null, testing.allocator);
 
         defer c.deinit();
         var s = Scanner.init(&c);
@@ -759,6 +765,7 @@ const tests = struct {
                        \\12_000 12_000.50
                        \\*/
                        ;
+        var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
             Token.init(.{.Keyword = .Let}, "multi comment", .{.line = 1, .col = 1}),
@@ -767,7 +774,7 @@ const tests = struct {
             Token.init(.Eof, "multi comment", .{.line = 3, .col = 3})
         };
 
-        var c = Compiler.init_str("multi comment", source, testing.allocator);
+        var c = try Compiler.init("multi comment", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 

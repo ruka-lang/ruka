@@ -30,16 +30,22 @@ arena: std.heap.ArenaAllocator,
 /// allocator
 pub fn init(
     input: []const u8,
+    reader: ?std.io.AnyReader,
     output: ?[]const u8,
     allocator: std.mem.Allocator
 ) !Compiler {
-    var file = try std.fs.cwd().openFile(input, .{});
-    defer file.close();
-
     var arena = std.heap.ArenaAllocator.init(allocator);
-
     const buffer_size = 5000;
-    const contents = try file.readToEndAlloc(arena.allocator(), buffer_size);
+
+    var contents: []const u8 = undefined;
+    if (reader != null) {
+        contents = try reader.?.readAllAlloc(arena.allocator(), buffer_size);
+    } else {
+        var file = try std.fs.cwd().openFile(input, .{});
+        defer file.close();
+
+        contents = try file.readToEndAlloc(arena.allocator(), buffer_size);
+    }
 
     return Compiler{
         .input = input,
@@ -47,22 +53,6 @@ pub fn init(
         .contents = contents,
         .errors = std.ArrayList(CompileError).init(allocator),
         .arena = arena
-    };
-}
-
-/// Creates a new compiler instance, initializing it's arena with the passed in
-/// allocator
-pub fn init_str(
-    input: []const u8,
-    contents: []const u8,
-    allocator: std.mem.Allocator
-) Compiler {
-    return Compiler{
-        .input = input,
-        .output = null,
-        .contents = contents,
-        .arena = std.heap.ArenaAllocator.init(allocator),
-        .errors = std.ArrayList(CompileError).init(allocator)
     };
 }
 
