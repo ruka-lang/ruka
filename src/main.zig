@@ -44,7 +44,7 @@ pub fn main() !void {
                         , .{});
 
                     try err_bw.flush();
-                    std.os.exit(1);
+                    std.posix.exit(1);
                 }
 
                 const file = res.positionals[1];
@@ -57,7 +57,7 @@ pub fn main() !void {
                         );
                 
                     try err_bw.flush();
-                    std.os.exit(1);
+                    std.posix.exit(1);
                 }
 
                 try cli.compile_file(file, res.args.output, gpa.allocator());
@@ -70,7 +70,7 @@ pub fn main() !void {
                     });
 
                 try err_bw.flush();
-                std.os.exit(1);
+                std.posix.exit(1);
             }
         }
     }
