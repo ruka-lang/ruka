@@ -9,7 +9,7 @@ const num -> type = fn (comptime 'a: type) {
         pub const (+) -> t = fn (lhs: &t, rhs: &t) {
             let mut result = t.{}
 
-            inline for f in @type_info(t).fields {
+            inline for f in @type_info(t).Record.fields {
                 @field(result, f) = @field(lhs, f) + @field(rhs, f)
             }
         }
