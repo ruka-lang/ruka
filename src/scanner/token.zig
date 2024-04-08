@@ -12,6 +12,7 @@ const Token = @This();
 kind: Kind,
 file: []const u8,
 pos: util.Position,
+
 /// Creates a new token
 pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
     return Token {
@@ -391,22 +392,6 @@ const modes = std.ComptimeStringMap(Mode, .{
 
 // Compile time assert no missing or extra entries in modes
 comptime {
-    //var fields: [@typeInfo(Mode).Enum.fields.len]std.builtin.Type.EnumField = undefined;
-    //@memcpy(&fields, @typeInfo(Mode).Enum.fields);
-    //
-    //const SortContext = struct {
-    //    fields: []std.builtin.Type.EnumField,
-
-    //    pub fn lessThan(ctx: @This(), a: usize, b: usize) bool {
-    //        return ctx.fields[a].name.len < ctx.fields[b].name.len;
-    //    }
-
-    //    pub fn swap(ctx: @This(), a: usize, b: usize) void {
-    //        return std.mem.swap(std.builtin.Type.EnumField, &ctx.fields[a], &ctx.fields[b]);
-    //    }
-    //};
-    //std.mem.sortUnstableContext(0, fields.len, SortContext{.fields = &fields});
-
     const fields = @typeInfo(Mode).Enum.fields;
     if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
@@ -417,18 +402,6 @@ comptime {
 
         @compileError(msg);
     }
-
-    //for (fields, modes.kvs) |field, pair| {
-    //    if (!std.mem.eql(u8, field.name, @tagName(pair.value))) {
-    //        var buf: [100]u8 = undefined;
-    //        const msg = std.fmt.bufPrint(&buf,
-    //            "Modes map has an incorrect pair, expected: {s}, got: {s}",
-    //            .{field.name, @tagName(pair.value)}
-    //            ) catch unreachable;
-
-    //        @compileError(msg);
-    //    }
-    //}
 }
 
 test "mode comparision" {
