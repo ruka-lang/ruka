@@ -54,11 +54,10 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
-
     const lib_unit_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/root.zig" },
         .target = target,
-        .test_runner = "test_runner.zig",
+        .test_runner = std.Build.LazyPath{.path = "test_runner.zig"},
         .optimize = optimize,
     });
 
@@ -68,7 +67,7 @@ pub fn build(b: *std.Build) void {
     const exe_unit_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
-        .test_runner = "test_runner.zig",
+        .test_runner = std.Build.LazyPath{.path = "test_runner.zig"},
         .optimize = optimize,
     });
 
