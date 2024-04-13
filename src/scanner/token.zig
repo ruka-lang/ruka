@@ -229,7 +229,7 @@ pub const Kind = union(enum) {
 };
 
 /// Represents the official keywords of Ruka, and the reserved
-const Keyword = enum {
+pub const Keyword = enum {
     Const,
     Let,
     Pub,
@@ -365,7 +365,7 @@ comptime {
 }
 
 /// Represent various parameter modes
-const Mode = enum {
+pub const Mode = enum {
     Comptime,
     Loc,
     Mov,
