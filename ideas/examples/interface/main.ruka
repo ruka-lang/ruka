@@ -13,7 +13,7 @@ const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) {
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
-end
+}
 
 const add -> Vector = fn (lhs: &Vector, rhs: &Vector) {
     Vector.{
@@ -23,12 +23,12 @@ const add -> Vector = fn (lhs: &Vector, rhs: &Vector) {
 }
 
 const add -> Num = fn (x, y: Num) {
-    x + y // or x.add(&y)
+    x + y 
 }
 
 const main -> Result(unit) = fn () {
-    let a = Vector.{x: 10, y: 5}
-    let b = Vector.{x: 5, y: 10}
+    let a = Vector.{.x = 10, .y = 5}
+    let b = Vector.{.x = 5, .y = 10}
     let c = a + b
 
     @.assert(c.x == 15 and c.y == 15)?
