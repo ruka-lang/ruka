@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
 
     const lib = b.addStaticLibrary(.{
         .name = "rukac",
-        .root_source_file = .{ .path = "src/root.zig" },
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -27,7 +27,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "rukac",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -55,9 +55,9 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/root.zig" },
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
-        .test_runner = std.Build.LazyPath{.path = "test_runner.zig"},
+        .test_runner = b.path("test_runner.zig"),
         .optimize = optimize,
     });
 
@@ -65,9 +65,9 @@ pub fn build(b: *std.Build) void {
     run_lib_unit_tests.addArg("--suite Library");
 
     const exe_unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .test_runner = std.Build.LazyPath{.path = "test_runner.zig"},
+        .test_runner = b.path("test_runner.zig"),
         .optimize = optimize,
     });
 
