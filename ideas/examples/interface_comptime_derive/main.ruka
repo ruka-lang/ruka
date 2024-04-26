@@ -2,29 +2,29 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num -> type = fn (comptime 'a: type) {
+const num -> type = fn (comptime 'a: type) do
     record {
         pub const t = 'a
 
-        pub const (+) -> t = fn (lhs: &t, rhs: &t) {
+        pub const (+) -> t = fn (lhs: &t, rhs: &t) do
             let mut result = t.{}
 
-            inline for f in @type_info(t).Record.fields {
+            for f in @type_info(t).Record.fields do
                 @field(result, f) = @field(lhs, f) + @field(rhs, f)
-            }
-        }
+            end
+        end
     }
-}
+end
 
 const Vector = record {x: int, y: int}
     |> num()
     |> @field(:t)
 
-const add -> Num = fn (x, y: Num) {
+const add -> Num = fn (x, y: Num) do
     x + y
-}
+end
 
-const main -> Result(unit) = fn () {
+const main -> Result(unit) = fn () do
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
     let c = a + b
@@ -38,4 +38,4 @@ const main -> Result(unit) = fn () {
     @assert(f == 15)?
 
     Ok <| ()
-}
+end

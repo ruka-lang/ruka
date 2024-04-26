@@ -3,19 +3,19 @@
  */
 
 const std = @import("std")
-const string = std.string
+const String = std.String
 
-const fibonacci -> uint = fn (n: uint) {
-    return if n <= 1 {
+const fibonacci -> uint = fn (n: uint) do
+    return if n <= 1 do
         1
-    } else {
+    else do
         fibonacci(n-1) + fibonacci(n-2)
-    }
-}
+    end
+end
 
-const main -> Result(unit) = fn () {
+const main -> Result(unit) = fn () do
     let n = std.io.gets()
-        |> string.parse() ~into: int
+        |> String.parse() ~into: int
         |> (?)
 
     let value = fibonacci(n)
@@ -23,4 +23,4 @@ const main -> Result(unit) = fn () {
     @println("Fibonacci number {} is {}", {n, value})
 
     () |> Ok
-}
+end

@@ -8,25 +8,25 @@ const Vector = record {
     y: int
 }
 
-const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) {
+const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) do
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
-}
+end
 
-const add -> Vector = fn (lhs: &Vector, rhs: &Vector) {
+const add -> Vector = fn (lhs: &Vector, rhs: &Vector) do
     Vector.{
         .x = lhs.x + rhs.x,
         .y = lhs.y + rhs.y
     }
-}
+end
 
-const add -> Num = fn (x, y: Num) {
+const add -> Num = fn (x, y: Num) do
     x + y 
-}
+end
 
-const main -> Result(unit) = fn () {
+const main -> Result(unit) = fn () do
     let a = Vector.{.x = 10, .y = 5}
     let b = Vector.{.x = 5, .y = 10}
     let c = a + b
@@ -40,4 +40,4 @@ const main -> Result(unit) = fn () {
     @assert(f == 15)?
 
     Ok <| ()
-}
+end
