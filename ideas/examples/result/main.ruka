@@ -1,4 +1,4 @@
-const Result -> type = fn (comptime success: type) do
+const Result = (comptime success: type) -> type do
     variant {
         Ok(success),
         Err(Error) // predefined interface
@@ -8,18 +8,18 @@ end
 const parseError = struct {/* */}
 
 // Implement the methods required by the Error interface
-const msg = fn -> []u8 (err: &parseError) do/* */end
-const location = fn -> []u8 (err: &parseError) do/* */end
-const kind = fn -> []u8 (err: &parseError) do/* */end
-const severity = fn -> Severity (err: &parseError) do/* */end
+const msg = () -> []u8 (err: &parseError) do/* */end
+const location = () -> []u8 (err: &parseError) do/* */end
+const kind = () -> []u8 (err: &parseError) do/* */end
+const severity = () -> Severity (err: &parseError) do/* */end
 
-const parse -> Result(int) = fn (str: []u8) do
+const parse = (str: []u8) -> Result(int) do
     if /* */ do
         return Err <| parseError.{}
     end
 end
 
-const main -> Result(unit) = fn () do
+const main = () -> Result(unit) do
     let str: []u8 = "Hello"
     let result = parse(str[..])?
     @println("result: {d}", {result})

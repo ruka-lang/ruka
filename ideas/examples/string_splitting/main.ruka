@@ -15,7 +15,7 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> [..]String = fn (
+const strsplit -> [..]String = (
     str: []u8,
     ch: u8
 ) do
@@ -38,7 +38,7 @@ const strsplit -> [..]String = fn (
     words
 end
 
-const main -> Result(unit) = fn () do
+const main = () -> Result(unit) do
     let words =
         "| Hello,
          | world!

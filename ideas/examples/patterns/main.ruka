@@ -6,28 +6,26 @@ const Color = record {
     b: u8
 }
 
-const (+) -> Color = fn (lhs, rhs: &Color) do
+const (+) -> Color = (lhs, rhs: &Color) do
     const .{rl, gl, bl} = lhs
     const .{rr, gr, br} = rhs
-    Color.{
-        .r = rl + rr,
-        .g = gl + gr,
-        .b = bl + br
-    }
+    .{ .r = rl + rr, .g = gl + gr, .b = bl + br }
 end
 
-const main -> Result(unit) = fn () do
-    let red = Color.{.r = 255, .g = 0, .b = 0}
-    let blue = Color.{.r = 0, .g = 0, .b = 255}
+const main -> Result(unit) = () do
+    const red = Color.{ .r = 255, .g = 0, .b = 0 }
+    const blue = Color.{ .r = 0, .g = 0, .b = 255 }
 
-    let purple = red + blue
-    let .{r, g, b} = purple
+    const purple = red + blue
+    const .{r, g, b} = purple
 
     @assert(r == 255 and g == 0 and b == 255)?
 
     match "Hello, world!" with
-        | "Hello, " <> world => do/* */end,
-        | _ => do/* */end
+        | "Hello, " <> world do
+            /* */
+        end
+        | _ => /* */
     end
 
     Ok <| ()

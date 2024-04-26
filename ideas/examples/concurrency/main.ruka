@@ -1,7 +1,7 @@
 const std = @import("std")
 
-const main = fn () do
-    let petal = std.petal.new(fn (chan: std.channel.t) do
+const main = () do
+    let petal = std.petal.new((chan: std.channel.t) do
         const self = @this()
 
         match chan.next() with // chan.next() is blocking, suspends when channel is empty

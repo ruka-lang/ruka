@@ -8,27 +8,21 @@ const Vector = record {
     y: int
 }
 
-const (+) -> Vector = fn (lhs: &Vector, rhs: &Vector) do
-    Vector.{
-        .x = lhs.x + rhs.x,
-        .y = lhs.y + rhs.y
-    }
+const (+) = (lhs: &Vector, rhs: &Vector) -> Vector do
+    Vector.{ .x = lhs.x + rhs.x, .y = lhs.y + rhs.y }
 end
 
-const add -> Vector = fn (lhs: &Vector, rhs: &Vector) do
-    Vector.{
-        .x = lhs.x + rhs.x,
-        .y = lhs.y + rhs.y
-    }
+const add = (lhs: &Vector, rhs: &Vector) -> Vector do
+    Vector.{ .x = lhs.x + rhs.x, .y = lhs.y + rhs.y }
 end
 
-const add -> Num = fn (x, y: Num) do
+const add = (x, y: Num) -> Num do
     x + y 
 end
 
-const main -> Result(unit) = fn () do
-    let a = Vector.{.x = 10, .y = 5}
-    let b = Vector.{.x = 5, .y = 10}
+const main = () -> Result(unit) do
+    let a = Vector.{ .x = 10, .y = 5 }
+    let b = Vector.{ .x = 5, .y = 10 }
     let c = a + b
 
     @assert(c.x == 15 and c.y == 15)?
