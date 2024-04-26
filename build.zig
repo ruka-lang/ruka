@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = "0.0.0";
+const version = std.SemanticVersion{.major = 0, .minor = 0, .patch = 0};
 const version_date = "03-09-2024";
 const description = "Compiler for the Ruka Programming Language";
 
@@ -39,7 +39,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     var options = b.addOptions();
-    options.addOption([]const u8, "version", version);
+    options.addOption(std.SemanticVersion, "version", version);
     options.addOption([]const u8, "version_date", version_date);
     options.addOption([]const u8, "description", description);
     exe.root_module.addOptions("options", options);

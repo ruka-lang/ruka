@@ -38,7 +38,7 @@ pub fn version() !void {
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
     try stdout.print("rukac {s} (released {s})\n", .{
-                    constants.project_options.version,
+                    constants.version_str,
                     constants.project_options.version_date
                     });
     try bw.flush();

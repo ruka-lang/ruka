@@ -41,6 +41,7 @@ pub fn main() !void {
                     try stderr.print(
                         \\Compile expects a file arg
                         \\usage: rukac compile <file> [options]
+                        \\
                         , .{});
 
                     try err_bw.flush();
