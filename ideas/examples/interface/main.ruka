@@ -17,7 +17,7 @@ const add = (lhs: &Vector, rhs: &Vector) -> Vector do
 end
 
 const add = (x, y: Num) -> Num do
-    x + y 
+    x + y
 end
 
 const main = () -> Result(unit) do
@@ -25,13 +25,13 @@ const main = () -> Result(unit) do
     let b = Vector.{ .x = 5, .y = 10 }
     let c = a + b
 
-    @assert(c.x == 15 and c.y == 15)?
+    @assert(c.x == 15 and c.y == 15).?
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    @assert(f == 15)?
+    @assert(f == 15).?
 
     Ok <| ()
 end

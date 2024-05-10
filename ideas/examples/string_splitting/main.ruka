@@ -46,7 +46,7 @@ const main = () -> Result(unit) do
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len == 3)?
+    @assert(words.len == 3).?
 
     Ok <| ()
 end

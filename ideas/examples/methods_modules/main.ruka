@@ -18,11 +18,11 @@ const Vector = record {
 
 const main = () do
     let a = Vector.new(1, 2)
-    @assert(@type_of(a) == Vector.t)
+    @assert(@type_of(a) == Vector.t).?
 
     let b = Vector.new(3, 4)
-    @assert(@type_of(b) == Vector.t)
+    @assert(@type_of(b) == Vector.t).?
 
     let c = a.add(&b)
-    @assert(@type_of(c) == Vector.t)
+    @assert(@type_of(c) == Vector.t).?
 end

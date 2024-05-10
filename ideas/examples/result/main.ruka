@@ -21,7 +21,7 @@ end
 
 const main = () -> Result(unit) do
     let str: []u8 = "Hello"
-    let result = parse(str[..])?
+    let result = parse(str[..]).?
     @println("result: {d}", {result})
 
     Ok <| ()
