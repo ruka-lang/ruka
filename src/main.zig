@@ -18,7 +18,7 @@ pub fn main() !void {
     var res = try clap.parse(
         clap.Help, &cli.params,
         clap.parsers.default, .{.allocator = gpa.allocator()}
-        );
+    );
 
     defer res.deinit();
 
@@ -42,7 +42,8 @@ pub fn main() !void {
                         \\Compile expects a file arg
                         \\usage: rukac compile <file> [options]
                         \\
-                        , .{});
+                        , .{}
+                    );
 
                     try err_bw.flush();
                     std.posix.exit(1);
@@ -53,10 +54,10 @@ pub fn main() !void {
                 if (!cli.check_file_extension(file)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
                     try stderr.print(
-                        "Invalid file extension, expected .ruka or .rk, got: .{s}\n", 
+                        "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
                         .{path_iter.first()}
-                        );
-                
+                    );
+
                     try err_bw.flush();
                     std.posix.exit(1);
                 }
@@ -65,10 +66,10 @@ pub fn main() !void {
             },
             .invalid => {
                 try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
-                    res.positionals[0], 
-                    cli.constants.usage, 
+                    res.positionals[0],
+                    cli.constants.usage,
                     cli.constants.subcommands
-                    });
+                });
 
                 try err_bw.flush();
                 std.posix.exit(1);
