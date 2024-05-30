@@ -24,7 +24,6 @@ const main -> Result(unit) = () do
     match "Hello, world!" with
         | "Hello, " <> world do
             /* */
-        end
         | _ => /* */
     end
 

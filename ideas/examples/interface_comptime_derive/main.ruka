@@ -7,7 +7,7 @@ const num = (comptime 'a: type) -> type do
         pub const t = 'a
 
         pub const (+) = (lhs: &t, rhs: &t) -> t do
-            let mut result = t.{}
+            let result = mut t.{}
 
             for f in @type_info(t).Record.fields do
                 @field(result, f) = @field(lhs, f) + @field(rhs, f)

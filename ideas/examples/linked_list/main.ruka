@@ -3,8 +3,8 @@ const List -> record = (comptime 'a: type) do
         pub const t = record {
             const Self = @this()
 
-            val: 'a,
-            next: Option <| Self
+            val: mut 'a,
+            next: mut Option <| Self
         }
 
         pub const new -> t = (val: 'a) do
@@ -18,7 +18,7 @@ const List -> record = (comptime 'a: type) do
             if self.next == None do
                 self.next = Some <| t.new(val)
             else do
-                let mut current = self.next
+                let current = mut self.next
                 while (current.next != None) do
                     current = current.next
                 end
@@ -30,7 +30,7 @@ const List -> record = (comptime 'a: type) do
 end
 
 const main = () do
-    let mut list = List(int).new(12)
+    let list = mut List(int).new(12)
     list.push(16)
 
     @println("List: [{:?}, {:?}]", {list.val, list.next.val})
