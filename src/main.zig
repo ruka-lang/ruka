@@ -9,17 +9,13 @@ const clap = @import("clap");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer switch (gpa.deinit()) {
-        .leak => std.debug.print("memory leak\n", .{}),
-        else => {}
-    };
+    defer _ = gpa.deinit();
 
     // Parse command line args
     var res = try clap.parse(
         clap.Help, &cli.params,
         clap.parsers.default, .{.allocator = gpa.allocator()}
     );
-
     defer res.deinit();
 
     const stderr_file = std.io.getStdErr().writer();
