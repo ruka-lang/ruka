@@ -4,14 +4,14 @@ const Vector = record {
         y: int
     }
 
-    pub const new = (x, y: int) -> t do
-        t.{.x, .y}
+    pub const new -> t = (x, y: int) do
+        t.{x, y}
     end
 
-    pub const add = (self, other: &t) -> t do
+    pub const add -> t = (self, other: &t) do
         t.{
-            .x = self.x + other.x,
-            .y = self.y + other.y
+            x = self.x + other.x,
+            y = self.y + other.y
         }
     end
 }

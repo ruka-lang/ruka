@@ -2,12 +2,12 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num = (comptime 'a: type) -> type do
+const num -> type = (comptime 'a: type) do
     record {
         pub const t = 'a
 
-        pub const (+) = (lhs: &t, rhs: &t) -> t do
-            let result = mut t.{}
+        pub const (+) -> t = (lhs: &t, rhs: &t) do
+            let mut result = t.{}
 
             for f in @type_info(t).Record.fields do
                 @field(result, f) = @field(lhs, f) + @field(rhs, f)
@@ -20,13 +20,13 @@ const Vector = record { x: int, y: int }
     |> num()
     |> @field(:t)
 
-const add = (x, y: Num) -> Num do
+const add -> Num = (x, y: Num) do
     x + y
 end
 
-const main = () -> Result(unit) do
-    let a = Vector.{ .x = 10, .y = 5 }
-    let b = Vector.{ .x = 5, .y = 10 }
+const main -> Result(unit) = () do
+    let a = Vector.{ x = 10, y = 5 }
+    let b = Vector.{ x = 5, y = 10 }
     let c = a + b
 
     @assert(c.x == 15 and c.y == 15).?

@@ -3,8 +3,8 @@
   * @author: ruka-lang
   */
 
-const String = @.import("std").String
-const testing = @.import("std").testing
+const std = @import("std")
+const String = @import("std").String
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -15,17 +15,18 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> [..]String = (
+const strsplit -> std.ArrayList(String) = (
     str: []u8,
     ch: u8
 ) do
-    let indices = mut [..]uint{}
-    for {c, i} in {str, 1..} do
+    let mut indices = std.ArrayList(uint).new()
+    for c, i in str, 1.. do
         if c == ch => indices.push(i)
     end
 
-    let words = mut [..]String{}
-    let prev = mut 0
+    let mut words = std.ArrayList(String).new()
+    let mut prev = 0
+
     for idx in indices do
         let str = str[prev..idx].into(String)
         words.push(str)
@@ -39,10 +40,9 @@ const strsplit -> [..]String = (
 end
 
 const main = () -> Result(unit) do
-    let words =
-        "| Hello,
-         | world!
-         |"
+    let words = "| Hello,
+                 | world!
+                 |"
         |> ([..])
         |> strsplit('\n')
 

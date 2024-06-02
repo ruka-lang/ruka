@@ -1,31 +1,21 @@
-const std = @import("std")
-
-const Color = record {
-    r: u8,
-    g: u8,
-    b: u8
-}
-
-const (+) -> Color = (lhs, rhs: &Color) do
-    const .{rl, gl, bl} = lhs
-    const .{rr, gr, br} = rhs
-    .{ .r = rl + rr, .g = gl + gr, .b = bl + br }
-end
-
 const main -> Result(unit) = () do
-    const red = Color.{ .r = 255, .g = 0, .b = 0 }
-    const blue = Color.{ .r = 0, .g = 0, .b = 255 }
-
-    const purple = red + blue
-    const .{r, g, b} = purple
-
-    @assert(r == 255 and g == 0 and b == 255).?
-
     match "Hello, world!" with
         | "Hello, " <> world do
-            /* */
-        | _ => /* */
+            @println(world)
+        | _ => ()
     end
 
+    printArray(uint, &[1, 2, 3, 4, 5])
     Ok <| ()
+end
+
+const printArray = (comptime 'a: type, slice: []'a) do
+    match &data with
+        | [head, ..tail] do
+            @print("{} ", {head})
+            printArray('a, tail)
+        | _ do 
+            @print("\n")
+        end
+    end
 end
