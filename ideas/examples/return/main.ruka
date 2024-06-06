@@ -1,0 +1,3 @@
+const main = () do
+    return 2
+end
