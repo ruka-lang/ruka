@@ -5,12 +5,12 @@
 
     .dependencies = .{
         .@"llvm-zig" = .{
-            .url = "https://github.com/kassane/llvm-zig/archive/main.tar.gz",
-            .hash = "12204a024ba9e42f8845d573f2338e9901d2841b2ab681a0f19c3151934439631795",
+            .url = "https://github.com/dwclake/llvm-zig/archive/main.tar.gz",
+            .hash = "12203b7d504abd379ca74e8768f3d58bf6c2cff58dd75a5c55740b1945f2be8356f0",
         },
         .clap = .{
             .url = "https://github.com/Hejsil/zig-clap/archive/master.tar.gz",
-            .hash = "122014e73fd712190e109950837b97f6143f02d7e2b6986e1db70b6f4aadb5ba6a0d",
+            .hash = "12205eb22c644df2469045083efe9c92189d56494ebe8901b36ef1218c3717e6eb78",
         },
     },
 

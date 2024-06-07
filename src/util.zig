@@ -42,7 +42,7 @@ pub fn try_escape_char(str: []const u8) ?u8 {
 }
 
 // Map representing escape sequences and their string representation
-const escapes = std.ComptimeStringMap(u8, .{
+const escapes = std.StaticStringMap(u8).initComptime(.{
     .{"\\n", '\n'},
     .{"\\r", '\r'},
     .{"\\t", '\t'},

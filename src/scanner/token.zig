@@ -271,9 +271,9 @@ pub const Keyword = enum {
 
     /// Converts a Keyword into a string slice
     pub fn to_str(self: *const Keyword) []const u8 {
-        for (keywords.kvs) |pair| {
-            if (pair.value == self.*) {
-                return pair.key;
+        for (keywords.keys(), keywords.values()) |key, value| {
+            if (value == self.*) {
+                return key;
             }
         }
         unreachable;
@@ -281,7 +281,7 @@ pub const Keyword = enum {
 };
 
 // Map representing Keywords and their string representation
-const keywords = std.ComptimeStringMap(Keyword, .{
+const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"const", .Const},
     .{"let", .Let},
     .{"pub", .Pub},
@@ -373,9 +373,9 @@ pub const Mode = enum {
 
     /// Converts a Mode into a string slice
     pub fn to_str(self: *const Mode) []const u8 {
-        for (modes.kvs) |pair| {
-            if (pair.value == self.*) {
-                return pair.key;
+        for (modes.keys(), modes.values()) |key, value| {
+            if (value == self.*) {
+                return key;
             }
         }
         unreachable;
@@ -383,7 +383,7 @@ pub const Mode = enum {
 };
 
 // Map representing Keywords and their string representation
-const modes = std.ComptimeStringMap(Mode, .{
+const modes = std.StaticStringMap(Mode).initComptime(.{
     .{"comptime", .Comptime},
     .{"loc", .Loc},
     .{"mov", .Mov},

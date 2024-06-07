@@ -19,7 +19,7 @@ pub const params = clap.parseParamsComptime(
 
 const Subcommand = enum { compile, invalid };
 /// Subcommand supported by rukac
-pub const subcommands = std.ComptimeStringMap(Subcommand, .{
+pub const subcommands = std.StaticStringMap(Subcommand).initComptime(.{
     .{"compile", .compile}
 });
 
