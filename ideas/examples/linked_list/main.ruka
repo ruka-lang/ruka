@@ -1,4 +1,4 @@
-const List -> type = (comptime 'a: type) do
+fn List -> type = (comptime 'a: type) do
     record {
         pub const t = record {
             const Self = @this()
@@ -7,14 +7,14 @@ const List -> type = (comptime 'a: type) do
             next: Option <| Self
         }
 
-        pub const new -> t = (val: 'a) do
+        pub fn new -> t = (val: 'a) do
             t.{
                 val,
                 next = None
             }
         end
 
-        pub const push = (mut self: &t, val: 'a) do
+        pub fn push(mut self: &t) = (val: 'a) do
             if self.next == None do
                 self.next = Some <| t.new(val)
             else do
@@ -29,7 +29,7 @@ const List -> type = (comptime 'a: type) do
     }
 end
 
-const main = () do
+fn main = () do
     let mut list = List(int).new(12)
     list.push(16)
 

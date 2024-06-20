@@ -7,15 +7,15 @@ const Vector = record {
     y: int
 }
 
-pub const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
+pub fn (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
     Vector.{ x = lhs.x + rhs.x, y = lhs.y + rhs.y }
 end
 
-const add -> Num = (x, y: Num) do
+fn add -> Num = (x, y: Num) do
     x + y
 end
 
-const main -> Result(unit) = () do
+fn main -> Result(unit) = () do
     let a = Vector.{ x = 10, y = 5 }
     let b = Vector.{ x = 5, y = 10 }
     let c = a + b

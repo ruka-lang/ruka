@@ -15,7 +15,7 @@ const String = @import("std").String
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> std.ArrayList(String) = (
+fn strsplit -> std.ArrayList(String) = (
     str: []u8,
     ch: u8
 ) do
@@ -39,7 +39,7 @@ const strsplit -> std.ArrayList(String) = (
     words
 end
 
-const main = () -> Result(unit) do
+fn main = () -> Result(unit) do
     let words = 
         "| Hello,
          | world!

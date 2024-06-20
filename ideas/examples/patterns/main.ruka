@@ -1,4 +1,4 @@
-const main -> Result(unit) = () do
+fn main = () do
     match "Hello, world!" with
         | "Hello, " <> world do
             @println(world)
@@ -6,10 +6,9 @@ const main -> Result(unit) = () do
     end
 
     printArray(uint, &[1, 2, 3, 4, 5])
-    Ok <| ()
 end
 
-const printArray = (comptime 'a: type, slice: []'a) do
+fn printArray = (comptime 'a: type, slice: []'a) do
     match &data with
         | [head, ..tail] do
             @print("{} ", {head})

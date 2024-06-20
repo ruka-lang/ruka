@@ -2,11 +2,11 @@ const Num = interface ('a) {
     (+): (rhs: &'a) -> 'a
 }
 
-const num -> type = (comptime 'a: type) do
+fn num -> type = (comptime 'a: type) do
     record {
         pub const t = 'a
 
-        pub const (+)(lhs: &t) -> t = (rhs: &t) do
+        pub fn (+)(lhs: &t) -> t = (rhs: &t) do
             let mut result = t.{}
 
             for f in @type_info(t).Record.fields do
@@ -20,11 +20,11 @@ const Vector = record { x: int, y: int }
     |> num()
     |> @field(:t)
 
-const add -> Num = (x, y: Num) do
+fn add -> Num = (x, y: Num) do
     x + y
 end
 
-const main -> Result(unit) = () do
+fn main -> Result(unit) = () do
     let a = Vector.{ x = 10, y = 5 }
     let b = Vector.{ x = 5, y = 10 }
     let c = a + b

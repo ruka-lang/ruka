@@ -4,11 +4,11 @@ const Vector = record {
         y: int
     }
 
-    pub const new -> t = (x, y: int) do
+    pub fn new -> t = (x, y: int) do
         t.{x, y}
     end
 
-    pub const add(self: &t) -> t = (other: &t) do
+    pub fn add(self: &t) -> t = (other: &t) do
         t.{
             x = self.x + other.x,
             y = self.y + other.y
@@ -16,7 +16,7 @@ const Vector = record {
     end
 }
 
-const main = () do
+fn main = () do
     let a = Vector.new(1, 2)
     @assert(@type_of(a) == Vector.t).?
 
