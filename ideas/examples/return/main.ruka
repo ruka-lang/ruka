@@ -1,7 +1,7 @@
-fn main -> int = () do
+fn main -> int = () {
     return 2
-end
+}
 
-fn main -> int = () do
+fn main -> int = () {
     2
-end
+}

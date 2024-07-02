@@ -1,30 +1,30 @@
-fn Result -> type = (comptime success: type) do
+fn Result -> type = (comptime success: type) {
     variant {
         Ok(success),
         Err(Error) // predefined interface
     }
-end
+}
 
 const parseError = variant {
     invalidUTF8
 }
 
 // Implement the methods required by the Error interface
-fn msg -> []u8 = (err: &parseError) () do/* */end
-fn location -> []u8 = (err: &parseError) () do/* */end
-fn kind -> []u8 = (err: &parseError) () do/* */end
-fn severity -> Severity = (err: &parseError) () do/* */end
+fn msg -> []u8 = (err: &parseError) () {/* */}
+fn location -> []u8 = (err: &parseError) () {/* */}
+fn kind -> []u8 = (err: &parseError) () {/* */}
+fn severity -> Severity = (err: &parseError) () {/* */}
 
-fn parse -> Result(int) = (str: []u8) do
-    if /* */ do
+fn parse -> Result(int) = (str: []u8) {
+    if /* */ {
         return Err <| parseError.invalidUTF8
-    end
-end
+    }
+}
 
-fn main -> Result(unit) = () do
+fn main -> Result(unit) = () {
     let str: []u8 = "Hello"
     let result = parse(str[..]).?
     @print("result: {d}\n", {result})
 
     Ok <| ()
-end
+}

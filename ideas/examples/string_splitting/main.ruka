@@ -18,28 +18,28 @@ const String = @import("std").String
 fn strsplit -> std.ArrayList(String) = (
     str: []u8,
     ch: u8
-) do
+) {
     let mut indices = std.ArrayList(uint).new()
-    for {c, i} in {str, 1..} do
+    for c, i in str, 1.. {
         if c == ch => indices.push(i)
-    end
+    }
 
     let mut words = std.ArrayList(String).new()
     let mut prev = 0
 
-    for idx in indices do
+    for idx in indices {
         let str = str[prev..idx].into(String)
         words.push(str)
         prev = idx + 1
-    end
+    }
 
     let str = str[prev..str.len].into(String)
     words.push(str)
 
     words
-end
+}
 
-fn main = () -> Result(unit) do
+fn main -> Result(unit) = () {
     let words =
         "| Hello,
          | world!
@@ -50,4 +50,4 @@ fn main = () -> Result(unit) do
     @assert(words.len == 3).?
 
     Ok <| ()
-end
+}
