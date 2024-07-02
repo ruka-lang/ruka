@@ -20,7 +20,7 @@ fn strsplit -> std.ArrayList(String) = (
     ch: u8
 ) {
     let mut indices = std.ArrayList(uint).new()
-    for c, i in str, 1.. {
+    for c, i in str, 0.. {
         if c == ch => indices.push(i)
     }
 
