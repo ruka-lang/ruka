@@ -16,11 +16,11 @@ end
 fn main -> Result(unit) = () do
     let n = std.io.gets()
         |> string.parse() ~into: int
-        |> ?
+        |> .?
 
     let value = fibonacci(n)
 
-    @println("Fibonacci number {} is {}", {n, value})
+    @print("Fibonacci number {} is {}\n", {n, value})
 
     () |> Ok
 end

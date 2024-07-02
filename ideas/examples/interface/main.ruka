@@ -1,4 +1,4 @@
-const Num = interface ('a) {
+const Num = interface (&'a) {
     (+): (&'a) -> 'a
 }
 
@@ -7,8 +7,8 @@ const Vector = record {
     y: int
 }
 
-pub fn (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
-    Vector.{ x = lhs.x + rhs.x, y = lhs.y + rhs.y }
+pub fn (+) -> Vector = (self: &Vector) (rhs: &Vector) do
+    Vector.{ x = self.x + rhs.x, y = self.y + rhs.y }
 end
 
 fn add -> Num = (x, y: Num) do

@@ -1,3 +1,7 @@
 fn main -> int = () do
     return 2
 end
+
+fn main -> int = () do
+    2
+end

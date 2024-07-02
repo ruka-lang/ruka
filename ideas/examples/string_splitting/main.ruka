@@ -20,7 +20,7 @@ fn strsplit -> std.ArrayList(String) = (
     ch: u8
 ) do
     let mut indices = std.ArrayList(uint).new()
-    for (c, i) in (str, 1..) do
+    for {c, i} in {str, 1..} do
         if c == ch => indices.push(i)
     end
 
@@ -40,7 +40,7 @@ fn strsplit -> std.ArrayList(String) = (
 end
 
 fn main = () -> Result(unit) do
-    let words = 
+    let words =
         "| Hello,
          | world!
          |"
