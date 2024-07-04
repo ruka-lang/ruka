@@ -13,4 +13,5 @@ test "Test all rukac modules" {
     _ = cli;
     _ = Compiler;
     _ = Scanner;
+    _ = Parser;
 }

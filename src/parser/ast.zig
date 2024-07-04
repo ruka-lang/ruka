@@ -12,63 +12,111 @@ allocator: std.mem.Allocator,
 
 const Ast = @This();
 
-const Expression = union(enum) {
-    unit,
-    @"tag": []const u8,
-    integer: []const u8,
-    float: []const u8,
-    boolean: bool,
-    block: std.ArrayList(Node),
-    @"if": struct {
-        condition: Expression,
-        consequence: Expression,
-        alternative: Expression
+pub const Expression = union(enum) {
+    Unit,
+    Tag: []const u8,
+    Integer: []const u8,
+    Float: []const u8,
+    Boolean: bool,
+    Block: std.ArrayList(Node),
+    If: struct {
+        condition: *Expression,
+        consequence: *Expression,
+        alternative: *Expression
     },
-    match: struct {
-        value: Expression,
+    Match: struct {
+        value: *Expression,
         cases: std.ArrayList(struct{
-            condition: Expression,
-            consequence: Expression
+            condition: *Expression,
+            consequence: *Expression
         })
     },
-    @"fn": struct {
+    FnDef: struct {
         name: []const u8,
         params: std.ArrayList([]const u8),
-        block: Expression,
+        block: *Expression,
         arity: usize
     },
-    closure: struct {
+    Closure: struct {
         name: []const u8,
         params: std.ArrayList([]const u8),
-        block: Expression,
+        block: *Expression,
         context: std.ArrayList([]const u8),
         arity: usize
     },
-    fnCall: struct {
-        func: Expression,
+    FnCall: struct {
+        func: *Expression,
         args: std.ArrayList(Expression)
     },
-    prefix: struct {
+    Prefix: struct {
         operator: Kind,
-        value: Expression
+        value: *Expression
     },
-    infix: struct {
+    Infix: struct {
         operator: Kind,
-        lhs: Expression,
-        rhs: Expression
+        lhs: *Expression,
+        rhs: *Expression
     },
-    postfix: struct {
+    Postfix: struct {
         operator: Kind,
-        value: Expression
+        value: *Expression
+    },
+
+    pub fn deinit(self: Expression, allocator: std.mem.Allocator) void {
+        switch (self) {
+            .Block => |block| {
+                for (block.items) |s| s.deinit(allocator);
+                block.deinit();
+            },
+            .If => |i| {
+                i.condition.deinit(allocator);
+                i.consequence.deinit(allocator);
+                i.alternative.deinit(allocator);
+
+                allocator.destroy(i.condition);
+                allocator.destroy(i.consequence);
+                allocator.destroy(i.alternative);
+            },
+            .Match => |match| {
+                for (match.cases.items) |c| {
+                    c.consequence.deinit(allocator);
+                    c.condition.deinit(allocator);
+
+                    allocator.destroy(c.consequence);
+                    allocator.destroy(c.condition);
+                }
+            },
+            else => {}
+        }
     }
 };
 
 const Node = union(enum) {
-    binding: struct {
+    Binding: struct {
         kind: Keyword,
         name: []const u8,
         value: Expression
     },
-    @"return": Expression,
-    expression: Expression
+    Return: Expression,
+    Expression: Expression,
+
+    pub fn deinit(self: Node, allocator: std.mem.Allocator) void {
+        switch (self) {
+            .Binding => |binding| binding.value.deinit(allocator),
+            .Return => |ret| ret.deinit(allocator),
+            .Expression => |expression| expression.deinit(allocator)
+        }
+    }
 };
+
+pub fn init(allocator: std.mem.Allocator) Ast {
+    return Ast {
+        .nodes = std.ArrayList(Node).init(allocator),
+        .allocator = allocator
+    };
+}
+
+pub fn deinit(self: Ast) void {
+    for (self.nodes.items) |node| node.deinit(self.allocator);
+    self.nodes.deinit();
+}
