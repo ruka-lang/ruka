@@ -3,7 +3,7 @@ const string = @import("std").string
 fn Result -> type = (comptime success: type) {
     variant {
         Ok(success),
-        Err(Error) // predefined interface
+        Err(std.Error) // predefined interface
     }
 }
 
@@ -17,7 +17,7 @@ fn (err: &parseError).location -> String = () {/* */}
 fn (err: &parseError).kind     -> String = () {/* */}
 fn (err: &parseError).severity -> Severity = () {/* */}
 
-fn parse -> Result(int) = (str: String) {
+fn parse -> Result(int) = (str: string) {
     let word = /* */
     if word {
         /* */
