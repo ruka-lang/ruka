@@ -1,0 +1,33 @@
+fn div = (num, div: int) {
+    if div == 0 {
+        return error.DivideByZero
+    }
+
+    num / div
+} 
+
+test "div" {
+    const testcase = record {
+        num: int,
+        div: int,
+        want: int!
+    }
+
+    const t = %[string, testcase]{
+        "divide by zero" => .{
+            num: 10,
+            div: 0,
+            want: error.DivideByZero
+        },
+        "6 / 2" => .{
+            num: 6,
+            div: 2,
+            want: 3
+        }
+    }
+
+    for _, v in t {
+        let result = div(v.num, v.div)
+        @assert(result == v.want).!
+    }
+}

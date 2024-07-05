@@ -12,12 +12,12 @@ const parseError = variant {
 }
 
 // Implement the methods required by the Error interface
-fn (err: &parseError).msg      -> String = () {/* */}
-fn (err: &parseError).location -> String = () {/* */}
-fn (err: &parseError).kind     -> String = () {/* */}
-fn (err: &parseError).severity -> Severity = () {/* */}
+fn (err: &parseError).msg      -> string = () {/* */}
+fn (err: &parseError).location -> string = () {/* */}
+fn (err: &parseError).kind     -> string = () {/* */}
+fn (err: &parseError).severity -> severity = () {/* */}
 
-fn parse -> Result(int) = (str: string) {
+fn parse -> int! = (str: string) {
     let word = /* */
     if word {
         /* */
@@ -26,10 +26,8 @@ fn parse -> Result(int) = (str: string) {
     }
 }
 
-fn main -> Result(unit) = () {
+fn main -> unit! = () {
     let str: string = "Hello"
-    let result = parse(str[..]).?
+    let result = parse(str[..]).!
     @print("result: {d}\n", {result})
-
-    Ok <| ()
 }

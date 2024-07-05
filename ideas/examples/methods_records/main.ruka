@@ -5,7 +5,7 @@ const Vector = record {
     }
 
     pub fn new -> t = (x, y: int) {
-        t.{x, y}
+        t.{ x, y }
     }
 
     pub fn &t.add -> t = (other: &t) {
@@ -18,11 +18,11 @@ const Vector = record {
 
 fn main = () {
     let a = Vector.new(1, 2)
-    @assert(@type_of(a) == Vector.t).?
+    @assert(@typeOf(a) == Vector.t).!
 
     let b = Vector.new(3, 4)
-    @assert(@type_of(b) == Vector.t).?
+    @assert(@typeOf(b) == Vector.t).!
 
     let c = a.add(&b)
-    @assert(@type_of(c) == Vector.t).?
+    @assert(@typeOf(c) == Vector.t).!
 }

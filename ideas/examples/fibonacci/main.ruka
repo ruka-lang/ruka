@@ -13,14 +13,12 @@ fn fibonacci -> uint = (n: uint) {
     }
 }
 
-fn main -> Result(unit) = () {
+fn main -> unit! = () {
     let n = std.io.gets()
         |> string.parse() ~into: int
-        |> .?
+        |> .!
 
     let value = fibonacci(n)
 
     @print("Fibonacci number {} is {}\n", {n, value})
-
-    () |> Ok
 }

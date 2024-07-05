@@ -4,7 +4,6 @@
   */
 
 const std = @import("std")
-const string = std.string
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -39,7 +38,7 @@ fn strsplit -> std.ArrayList(string) = (
     words
 }
 
-fn main -> Result(unit) = () {
+fn main -> unit! = () {
     let words =
         "| Hello,
          | world!
@@ -47,7 +46,5 @@ fn main -> Result(unit) = () {
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len == 3).?
-
-    Ok <| ()
+    @assert(words.len == 3).!
 }

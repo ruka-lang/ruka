@@ -1,12 +1,12 @@
 fn main = () {
-    match "Hello, world!" with
+    match "Hello, world!" {
         "Hello, " <> rest {
             @println(rest)
         }
         _ => ()
-    end
+    }
 
-    printArray(uint, &[1, 2, 3, 4, 5])
+    printArray(uint, &[]{1, 2, 3, 4, 5})
 }
 
 fn printArray = (comptime 'a: type, slice: []'a) {

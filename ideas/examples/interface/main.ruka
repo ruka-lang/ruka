@@ -7,6 +7,10 @@ const Vector = record {
     y: int
 }
 
+fn new = (x, y) {
+    Vector.{ x, y }
+}
+
 pub fn (self: &Vector).(+) -> Vector = (rhs: &Vector) {
     Vector.{ x = self.x + rhs.x, y = self.y + rhs.y }
 }
@@ -15,19 +19,17 @@ fn add -> Num = (x, y: Num) {
     x + y
 }
 
-fn main -> Result(unit) = () {
-    let a = Vector.{ x = 10, y = 5 }
-    let b = Vector.{ x = 5, y = 10 }
+fn main -> unit! = () {
+    let a = new(10, 5)
+    let b = new(5, 10)
     let c = a + b
 
-    @assert(c.x == 15 and c.y == 15).?
-    @assert_neq(@type(a), @type(c)).?
+    @assert(c.x == 15 and c.y == 15).!
+    @assert_neq(@typeOf(a), @typeOf(c)).!
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    @assert(f == 15).?
-
-    Ok <| ()
+    @assert(f == 15).!
 }
