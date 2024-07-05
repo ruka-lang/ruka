@@ -27,6 +27,7 @@ fn main -> Result(unit) = () {
     let c = a + b
 
     @assert(c.x == 15 and c.y == 15).?
+    @assert(@type(a), @type(c)).?
 
     let d = 10
     let e = 5
