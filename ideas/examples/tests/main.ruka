@@ -1,4 +1,4 @@
-fn div = (num, div: int) {
+fn div -> int! = (num, div: int) {
     if div == 0 {
         return error.DivideByZero
     }
