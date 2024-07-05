@@ -4,7 +4,7 @@
   */
 
 const std = @import("std")
-const String = @import("std").String
+const string = std.string
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -15,7 +15,7 @@ const String = @import("std").String
   * ["Hello,", "world!"]
   * ```
   */
-fn strsplit -> std.ArrayList(String) = (
+fn strsplit -> std.ArrayList(string) = (
     str: []u8,
     ch: u8
 ) {
@@ -24,16 +24,16 @@ fn strsplit -> std.ArrayList(String) = (
         if c == ch => indices.push(i)
     }
 
-    let mut words = std.ArrayList(String).new()
+    let mut words = std.ArrayList(string).new()
     let mut prev = 0
 
     for idx in indices {
-        let str = str[prev..idx].into(String)
+        let str = str[prev..idx].into(string)
         words.push(str)
         prev = idx + 1
     }
 
-    let str = str[prev..str.len].into(String)
+    let str = str[prev..str.len].into(string)
     words.push(str)
 
     words

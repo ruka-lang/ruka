@@ -8,19 +8,19 @@ fn List -> type = (comptime 'a: type) {
         }
 
         pub fn new -> t = (val: 'a) {
-            t.{ val, next = .None }
+            t.{ val, next = None }
         }
 
-        pub fn push = (mut self: &t) (val: 'a) {
-            if self.next == None {
-                self.next = Some <| t.new(val)
-            } else {
+        pub fn (mut self: &t).push = (val: 'a) {
+            if self.next {
                 let mut current = self.next
-                while current.next != None {
+                while current.next {
                     current = current.next
                 }
 
                 current.next = Some <| t.new(val)
+            } else {
+                self.next = Some <| t.new(val)
             }
         }
     }
@@ -30,5 +30,5 @@ fn main = () {
     let mut list = List(int).new(12)
     list.push(16)
 
-    @print("List: [{:?}, {:?}]\n", {list.val, list.next.val})
+    @print("List: [{}, {}]\n", {list.val, list.next.!.val})
 }

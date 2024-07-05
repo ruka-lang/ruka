@@ -3,7 +3,7 @@ const Num = interface (&'a) {
 }
 
 fn num -> type = (comptime 'a: type) {
-    pub fn (+) -> 'a = (lhs: &'a) (rhs: &'a) {
+    pub fn (lhs: &'a).(+) -> 'a = (rhs: &'a) {
         let mut result = 'a.{}
 
         for f in @type_info('a).Record.fields {

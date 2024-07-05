@@ -7,7 +7,7 @@ const Vector = record {
     y: int
 }
 
-pub fn (+) -> Vector = (self: &Vector) (rhs: &Vector) {
+pub fn (self: &Vector).(+) -> Vector = (rhs: &Vector) {
     Vector.{ x = self.x + rhs.x, y = self.y + rhs.y }
 }
 
