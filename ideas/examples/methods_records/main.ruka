@@ -1,10 +1,10 @@
 const Vector = record {
     pub const t = record {
-        x: int,
-        y: int
+        x: isize,
+        y: isize
     }
 
-    pub fn new -> t = (x, y: int) {
+    pub fn new -> t = (x, y: isize) {
         t.{ x, y }
     }
 

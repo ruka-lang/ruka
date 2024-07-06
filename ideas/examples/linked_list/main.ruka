@@ -4,7 +4,7 @@ fn List -> type = (comptime 'a: type) {
             const Self = @this()
 
             val: 'a,
-            next: Self?
+            next: ?Self
         }
 
         pub fn new -> t = (val: 'a) {
@@ -27,7 +27,7 @@ fn List -> type = (comptime 'a: type) {
 }
 
 fn main = () {
-    let mut list = List(int).new(12)
+    let mut list = List(isize).new(12)
     list.push(16)
 
     @print("List: [{}, {}]\n", {list.val, list.next.?.val})

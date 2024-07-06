@@ -1,19 +1,19 @@
-fn div -> int! = (num, div: int) {
+fn div -> !int = (num, div: int) {
     if div == 0 {
         return error.DivideByZero
     }
 
     num / div
-} 
+}
 
 test "div" {
     const testcase = record {
         num: int,
         div: int,
-        want: int!
+        want: !int
     }
 
-    const t = %[string, testcase]{
+    let t = %[string, testcase]{
         "divide by zero" => .{
             num: 10,
             div: 0,

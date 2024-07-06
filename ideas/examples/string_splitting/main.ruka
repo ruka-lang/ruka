@@ -15,16 +15,16 @@ const std = @import("std")
   * ```
   */
 fn strsplit -> std.ArrayList(string) = (
-    str: []u8,
+    str: string,
     ch: u8
 ) {
-    let mut indices = std.ArrayList(uint).new()
+    var indices = std.ArrayList(uint).new()
     for c, i in str, 0.. {
         if c == ch => indices.push(i)
     }
 
-    let mut words = std.ArrayList(string).new()
-    let mut prev = 0
+    var words = std.ArrayList(string).new()
+    var prev = 0
 
     for idx in indices {
         let str = str[prev..idx].into(string)
@@ -38,7 +38,7 @@ fn strsplit -> std.ArrayList(string) = (
     words
 }
 
-fn main -> unit! = () {
+fn main -> !unit = () {
     let words =
         "| Hello,
          | world!

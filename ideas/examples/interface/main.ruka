@@ -3,8 +3,8 @@ const Num = interface (&'a) {
 }
 
 const Vector = record {
-    x: int,
-    y: int
+    x: isize,
+    y: isize
 }
 
 fn new = (x, y) {
@@ -19,7 +19,7 @@ fn add -> Num = (x, y: Num) {
     x + y
 }
 
-fn main -> unit! = () {
+fn main -> !unit = () {
     let a = new(10, 5)
     let b = new(5, 10)
     let c = a + b
