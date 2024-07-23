@@ -16,7 +16,7 @@ const Vector = record {
     }
 }
 
-fn main = () {
+fn main -> !unit = () {
     let a = Vector.new(1, 2)
     @assert(@typeOf(a) == Vector.t).!
 

@@ -11,7 +11,7 @@ fn new = (x, y) {
     Vector.{ x, y }
 }
 
-pub fn (self: &Vector).(+) -> Vector = (rhs: &Vector) {
+pub fn (self: &Vector).add -> Vector = (rhs: &Vector) {
     Vector.{ x = self.x + rhs.x, y = self.y + rhs.y }
 }
 
@@ -22,7 +22,7 @@ fn add -> Num = (x, y: Num) {
 fn main -> !unit = () {
     let a = new(10, 5)
     let b = new(5, 10)
-    let c = a + b
+    let c = a.add(b)
 
     @assert(c.x == 15 and c.y == 15).!
     @assert_neq(@typeOf(a), @typeOf(c)).!

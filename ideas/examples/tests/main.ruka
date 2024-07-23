@@ -1,4 +1,4 @@
-fn div -> !int = (num, div: int) {
+fn div -> !usize = (num, div: usize) {
     if div == 0 {
         return error.DivideByZero
     }
@@ -8,9 +8,9 @@ fn div -> !int = (num, div: int) {
 
 test "div" {
     const testcase = record {
-        num: int,
-        div: int,
-        want: !int
+        num: usize,
+        div: usize,
+        want: !usize
     }
 
     let t = %[string, testcase]{

@@ -3,7 +3,7 @@ const Num = interface (&'a) {
 }
 
 fn num -> type = (comptime 'a: type) {
-    pub fn (lhs: &'a).(+) -> 'a = (rhs: &'a) {
+    pub fn (lhs: &'a).add -> 'a = (rhs: &'a) {
         let mut result = 'a.{}
 
         for f in @type_info('a).Record.fields {
@@ -28,7 +28,7 @@ fn add -> Num = (x, y: Num) {
 fn main -> !unit = () {
     let a = new(10, 5)
     let b = new(5, 10)
-    let c = a + b
+    let c = a.add(b)
 
     @assert(c.x == 15 and c.y == 15).!
     @assert(@typeOf(a), @typeOf(c)).!
