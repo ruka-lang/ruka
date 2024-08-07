@@ -1,4 +1,4 @@
-const Num = interface (&'a) {
+const Num = interface ('a) {
     (+): (&'a) -> 'a
 }
 

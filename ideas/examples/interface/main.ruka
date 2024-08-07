@@ -1,4 +1,4 @@
-const Num = interface (&'a) {
+const Num = interface ('a) {
     (+): (&'a) -> 'a
 }
 
@@ -12,7 +12,10 @@ fn new = (x, y) {
 }
 
 pub fn (self: &Vector).add -> Vector = (rhs: &Vector) {
-    Vector.{ x = self.x + rhs.x, y = self.y + rhs.y }
+    Vector.{ 
+        x = self.x + rhs.x, 
+        y = self.y + rhs.y 
+    }
 }
 
 fn add -> Num = (x, y: Num) {
