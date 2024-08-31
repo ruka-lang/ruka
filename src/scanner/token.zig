@@ -324,23 +324,11 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
 
 // Compile time assert no missing or extra entries in keywords
 comptime {
-    //var fields: [@typeInfo(Keyword).Enum.fields.len]std.builtin.Type.EnumField = undefined;
-    //@memcpy(&fields, @typeInfo(Keyword).Enum.fields);
-    //
-    //const SortContext = struct {
-    //    fields: []std.builtin.Type.EnumField,
+    const fields = switch (@typeInfo(Keyword)) {
+        .@"enum" => |e| e.fields,
+        else => @compileError("Keyword should be a tagged union")
+    };
 
-    //    pub fn lessThan(ctx: @This(), a: usize, b: usize) bool {
-    //        return ctx.fields[a].name.len < ctx.fields[b].name.len;
-    //    }
-
-    //    pub fn swap(ctx: @This(), a: usize, b: usize) void {
-    //        return std.mem.swap(std.builtin.Type.EnumField, &ctx.fields[a], &ctx.fields[b]);
-    //    }
-    //};
-    //std.mem.sortUnstableContext(0, fields.len, SortContext{.fields = &fields});
-
-    const fields = @typeInfo(Keyword).Enum.fields;
     if (fields.len != keywords.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,
@@ -350,18 +338,6 @@ comptime {
 
         @compileError(msg);
     }
-
-    //for (fields, keywords.kvs) |field, pair| {
-    //    if (!std.mem.eql(u8, field.name, @tagName(pair.value))) {
-    //        var buf: [100]u8 = undefined;
-    //        const msg = std.fmt.bufPrint(&buf,
-    //            "Keywords map has an incorrect pair, expected: {s}, got: {s}",
-    //            .{field.name, @tagName(pair.value)}
-    //            ) catch unreachable;
-
-    //        @compileError(msg);
-    //    }
-    //}
 }
 
 /// Represent various parameter modes
@@ -392,7 +368,10 @@ const modes = std.StaticStringMap(Mode).initComptime(.{
 
 // Compile time assert no missing or extra entries in modes
 comptime {
-    const fields = @typeInfo(Mode).Enum.fields;
+    const fields = switch (@typeInfo(Mode)) {
+        .@"enum" => |e| e.fields,
+        else => @compileError("Mode should be a tagged union")
+    };
     if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,

@@ -6,7 +6,6 @@ pub const cli = @import("cli/cli.zig");
 pub const Compiler = @import("compiler/compiler.zig");
 pub const Scanner = @import("scanner/scanner.zig");
 pub const Parser = @import("parser/parser.zig");
-pub const generator = @import("generator/generator.zig");
 
 test "Test all rukac modules" {
     _ = util;

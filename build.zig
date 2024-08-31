@@ -9,7 +9,6 @@ pub fn build(b: *std.Build) void {
 
     // Dependencies
     const clap = b.dependency("clap", .{});
-    const llvm = b.dependency("llvm-zig", .{});
 
     const optimize = b.standardOptimizeOption(.{});
 
@@ -19,9 +18,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    lib.root_module.addImport("clap", clap.module("clap"));
-    lib.root_module.addImport("llvm", llvm.module("llvm"));
 
     b.installArtifact(lib);
 
@@ -34,7 +30,6 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("rukac", &lib.root_module);
     exe.root_module.addImport("clap", clap.module("clap"));
-    exe.root_module.addImport("llvm", llvm.module("llvm"));
 
     b.installArtifact(exe);
 
