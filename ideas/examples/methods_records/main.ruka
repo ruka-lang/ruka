@@ -1,0 +1,28 @@
+const Vector = record {
+    pub const t = record {
+        x: isize,
+        y: isize
+    }
+
+    pub fn new -> t = (x, y: isize) {
+        t.{ x, y }
+    }
+
+    pub fn &t.add -> t = (other: &t) {
+        t.{
+            x = self.x + other.x,
+            y = self.y + other.y
+        }
+    }
+}
+
+fn main -> !unit = () {
+    let a = Vector.new(1, 2)
+    @assert(@typeOf(a) == Vector.t).!
+
+    let b = Vector.new(3, 4)
+    @assert(@typeOf(b) == Vector.t).!
+
+    let c = a.add(&b)
+    @assert(@typeOf(c) == Vector.t).!
+}

@@ -57,16 +57,17 @@ Here is a list of `Ruka`'s primitive types:
   - `quick `skip
   - Also used for identifiers, when used for identifiers the "`" can be omitted.
   - When used for map keys, the "`" is moved to the rhs
-- `any`
-- `pointer`
-  - Non-nullable, Non-borrow checked
-- `reference`
+- `* pointer`
+  - Non-nullable but non-borrow checked, still using mutable semantics
+- `& reference`
   - Borrow checked
 
 ## Built-in complex types
 
 - `Result`
 - `Option`
+- `any`
+  - Record containing two attributes, a type, and a *unit (a type erased pointer)
 
 ## Built-in interfaces
 

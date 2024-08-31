@@ -1,42 +1,41 @@
-const Num = interface ('a) do
-    (+): (rhs: &'a) -> 'a
-end
+const Num = interface ('a) {
+    (+): (&'a) -> 'a
+}
 
-const num -> module = (@'a: type) do
-    module {
-        const t = 'a;
+fn num -> type = (comptime 'a: type) {
+    pub fn (lhs: &'a).add -> 'a = (rhs: &'a) {
+        let mut result = 'a.{}
 
-        pub const (+)(lhs: &t) -> t = (rhs: &t) do
-            let mut result = t.{}
-
-            inline for member in @.members_of(t) do
-                result.(member) = lhs.(member) + rhs.(member)
-            end
-        end
+        for f in @type_info('a).Record.fields {
+            @field(result, f) = @field(lhs, f) + @field(rhs, f)
+        }
     }
-end
 
-const Vector = record {
-    x: int,
-    y: int
-} |> num()
+    'a
+}
 
-const add -> Num = (x, y: Num) do
+const Vector = record { x: isize, y: isize }
+    |> num()
+
+fn new = (x, y) {
+    Vector.{ x, y }
+}
+
+fn add -> Num = (x, y: Num) {
     x + y
-end
+}
 
-const main -> Result(unit) = () do
-    let a = Vector.t.{x: 10, y: 5}
-    let b = Vector.t.{x: 5, y: 10}
-    let c = add(a, b)
+fn main -> !unit = () {
+    let a = new(10, 5)
+    let b = new(5, 10)
+    let c = a.add(b)
 
-    @.assert(c.x == 15 and c.y == 15)?
+    @assert(c.x == 15 and c.y == 15).!
+    @assert(@typeOf(a), @typeOf(c)).!
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    @.assert(f == 15)?
-
-    Ok <| ()
-end
+    @assert(f == 15).!
+}

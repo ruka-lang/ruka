@@ -1,0 +1,18 @@
+.{
+    .name = "ruka",
+    .version = "0.0.0",
+    .minimum_zig_version = "0.12.0",
+
+    .dependencies = .{
+        .@"llvm-zig" = .{
+            .url = "https://github.com/dwclake/llvm-zig/archive/main.tar.gz",
+            .hash = "12203b7d504abd379ca74e8768f3d58bf6c2cff58dd75a5c55740b1945f2be8356f0",
+        },
+        .clap = .{
+            .url = "https://github.com/Hejsil/zig-clap/archive/master.tar.gz",
+            .hash = "12207ee987ce045596cb992cfb15b0d6d9456e50d4721c3061c69dabc2962053644d",
+        },
+    },
+
+    .paths = .{ "src", "build.zig", "build.zig.zon", "copyright", "license-mit", "license-apache", "readme.md" },
+}

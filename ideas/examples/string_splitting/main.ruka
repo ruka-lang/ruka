@@ -1,10 +1,9 @@
 /!*
   * Program to split a string
-  * @author: dwclake
+  * @author: ruka-lang
   */
 
-const string = @.import("std").string
-const testing = @.import("std").testing
+const std = @import("std")
 
 /** Takes a string and splits the string into substrings at each occurence of
   * the passed in character
@@ -15,35 +14,37 @@ const testing = @.import("std").testing
   * ["Hello,", "world!"]
   * ```
   */
-const strsplit -> [..]string.t = (
-    str: []u8,
+fn strsplit -> std.ArrayList(string) = (
+    str: string,
     ch: u8
-) do
-    let mut indices = [..]uint{}
-    for {c, i} in {str, 1..} do
+) {
+    var indices = std.ArrayList(uint).new()
+    for c, i in str, 0.. {
         if c == ch => indices.push(i)
-    end
+    }
 
-    let mut words = [..]string.t{}
-    let mut prev = 0
-    for idx in indices do
-        let str = str[prev..idx].into(string.t)
+    var words = std.ArrayList(string).new()
+    var prev = 0
+
+    for idx in indices {
+        let str = str[prev..idx].into(string)
         words.push(str)
         prev = idx + 1
-    end
+    }
 
-    let str = str[prev..str.len].into(string.t)
+    let str = str[prev..str.len].into(string)
     words.push(str)
 
     words
-end
+}
 
-const main -> Result(unit) = () do
-    let words = "Hello, world!"
+fn main -> !unit = () {
+    let words =
+        "| Hello,
+         | world!
+         |"
         |> ([..])
-        |> strsplit(' ')
+        |> strsplit('\n')
 
-    @.assert(words.len() == 2)?
-
-    Ok(())
-end
+    @assert(words.len == 3).!
+}

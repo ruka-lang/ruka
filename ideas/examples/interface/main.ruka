@@ -1,43 +1,38 @@
 const Num = interface ('a) {
     (+): (&'a) -> 'a
-    add: (&'a) -> 'a
 }
 
 const Vector = record {
-    x: int,
-    y: int
+    x: isize,
+    y: isize
 }
 
-const (+)(lhs: &Vector) -> Vector = (rhs: &Vector) do
-    Vector.{
-        x: lhs.x + rhs.x,
-        y: lhs.y + rhs.y
+fn new = (x, y) {
+    Vector.{ x, y }
+}
+
+pub fn (self: &Vector).add -> Vector = (rhs: &Vector) {
+    Vector.{ 
+        x = self.x + rhs.x, 
+        y = self.y + rhs.y 
     }
-end
+}
 
-const add(lhs: &Vector) -> Vector = (rhs: &Vector) do
-    Vector.{
-        x: lhs.x + rhs.x,
-        y: lhs.y + rhs.y
-    }
-end
+fn add -> Num = (x, y: Num) {
+    x + y
+}
 
-const add -> Num = (x, y: Num) do
-    x + y // x.add(&y)
-end
+fn main -> !unit = () {
+    let a = new(10, 5)
+    let b = new(5, 10)
+    let c = a.add(b)
 
-const main -> Result(unit) = () {
-    let a = Vector.{x: 10, y: 5}
-    let b = Vector.{x: 5, y: 10}
-    let c = add(a, b)
-
-    @.assert(c.x == 15 and c.y == 15)?
+    @assert(c.x == 15 and c.y == 15).!
+    @assert_neq(@typeOf(a), @typeOf(c)).!
 
     let d = 10
     let e = 5
     let f = add(d, e)
 
-    @.assert(f == 15)?
-
-    Ok <| ()
+    @assert(f == 15).!
 }

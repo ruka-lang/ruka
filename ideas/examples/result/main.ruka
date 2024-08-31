@@ -1,28 +1,33 @@
-const Result -> type = (@success: type) {
-    enum {
+const string = @import("std").string
+
+fn Result -> type = (comptime success: type) {
+    variant {
         Ok(success),
-        Err(Error) // predefined interface
+        Err(std.Error) // predefined interface
     }
 }
 
-const parseError = struct {
-    ...
+const parseError = variant {
+    invalidUTF8
 }
 
-impl Error(parseError) = {
-    ...
-}
+// Implement the methods required by the Error interface
+fn (err: &parseError).msg      -> string = () {/* */}
+fn (err: &parseError).location -> string = () {/* */}
+fn (err: &parseError).kind     -> string = () {/* */}
+fn (err: &parseError).severity -> severity = () {/* */}
 
-const parse -> Result(int) = (str: []u8) {
-    if ... {
-        return Err <| parseError.{}
+fn parse -> !isize = (str: string) {
+    let word = /* */
+    if word {
+        /* */
+    } else {
+        return Err <| parseError.invalidUTF8
     }
 }
 
-const main -> Result(unit) = () {
-    let str: []u8 = "Hello"
-    let result = parse(str[..])?
-    @.println("result: {d}", {result})
-
-    Ok(())
+fn main -> !unit = () {
+    let str: string = "Hello"
+    let result = parse(str[..]).!
+    @print("result: {d}\n", {result})
 }
