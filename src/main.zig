@@ -2,7 +2,7 @@
 // @created: 2024-03-04
 
 const rukac = @import("root.zig");
-const cli = rukac.cli;
+const cli = @import("cli/cli.zig");
 
 const std = @import("std");
 const clap = @import("clap");
@@ -68,4 +68,8 @@ pub fn main() !void {
             std.posix.exit(1);
         }
     }
+}
+
+test "Test all rukac executable modules" {
+    _ = cli;
 }

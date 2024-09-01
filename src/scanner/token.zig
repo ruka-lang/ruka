@@ -334,7 +334,7 @@ comptime {
         const msg = std.fmt.bufPrint(&buf,
             "Keywords map has an incorrect number of elements, expected: {}, got: {}",
             .{fields.len, keywords.kvs.len}
-            ) catch unreachable;
+        ) catch unreachable;
 
         @compileError(msg);
     }
@@ -372,12 +372,13 @@ comptime {
         .@"enum" => |e| e.fields,
         else => @compileError("Mode should be a tagged union")
     };
+
     if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,
             "Modes map has an incorrect number of elements, expected: {}, got: {}",
             .{fields.len, modes.kvs.len}
-            ) catch unreachable;
+        ) catch unreachable;
 
         @compileError(msg);
     }
