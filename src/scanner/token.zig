@@ -372,6 +372,7 @@ comptime {
         .@"enum" => |e| e.fields,
         else => @compileError("Mode should be a tagged union")
     };
+
     if (fields.len != modes.kvs.len) {
         var buf: [100]u8 = undefined;
         const msg = std.fmt.bufPrint(&buf,
