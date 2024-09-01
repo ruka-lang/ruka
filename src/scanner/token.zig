@@ -326,7 +326,7 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
 comptime {
     const fields = switch (@typeInfo(Keyword)) {
         .@"enum" => |e| e.fields,
-        else => @compileError("Keyword should be a tagged union")
+        else => unreachable
     };
 
     if (fields.len != keywords.kvs.len) {
@@ -370,7 +370,7 @@ const modes = std.StaticStringMap(Mode).initComptime(.{
 comptime {
     const fields = switch (@typeInfo(Mode)) {
         .@"enum" => |e| e.fields,
-        else => @compileError("Mode should be a tagged union")
+        else => unreachable
     };
 
     if (fields.len != modes.kvs.len) {
