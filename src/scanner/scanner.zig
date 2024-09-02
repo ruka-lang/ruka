@@ -561,10 +561,10 @@ fn create_escape_error(self: *Scanner, i: usize, str: []const u8) !void {
         .msg = try std.fmt.bufPrint(buf,
             "unrecognized escape character: //{}",
             .{str[i + 1]}
-            ),
+        ),
         .pos = self.current_pos
     });
-    }
+}
 
 test "test all scanner modules" {
     _ = Token;

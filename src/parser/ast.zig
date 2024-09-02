@@ -12,9 +12,13 @@ allocator: std.mem.Allocator,
 const Ast = @This();
 
 pub const Node2EB = struct {
-    tag: enum {
+    tag: Identifier,
+    main_token: Token,
+    data: Data,
+
+    pub const Identifier = enum {
         Unit,
-        Tag,
+        Identifier,
         Integer,
         Float,
         Boolean,
@@ -31,24 +35,23 @@ pub const Node2EB = struct {
         Postfix,
         Binding,
         Return
-    },
-    main_token: *Token,
-    data: struct {
-        lhs: *Node2EB,
-        rhs: *Node2EB
-    },
+    };
 
-    pub fn init() Node2EB {
+    pub const Data = struct {
+        lhs: ?*Node2EB = null,
+        rhs: ?*Node2EB = null
+    };
+
+    pub fn init(tag: Identifier, token: Token, data: Data) Node2EB {
         return Node2EB {
-            .tag = undefined,
-            .main_token = undefined,
-            .data = undefined
+            .tag = tag,
+            .main_token = token,
+            .data = data
         };
     }
 
-    pub fn deinit(self: Node2EB, allocator: std.mem.Allocator) void {
+    pub fn deinit(self: Node2EB) void {
         _ = self;
-        _ = allocator;
     }
 };
 
@@ -60,6 +63,41 @@ pub fn init(allocator: std.mem.Allocator) Ast {
 }
 
 pub fn deinit(self: Ast) void {
-    for (self.nodes.items) |*node| node.deinit(self.allocator);
+    for (self.nodes.items) |*node| node.deinit();
     self.nodes.deinit();
 }
+
+pub fn new_node(self: *Ast, tag: Node2EB.Identifier, token: Token, data: Node2EB.Data) !*Node2EB {
+    try self.nodes.ensureUnusedCapacity(1);
+
+    const node = Node2EB {
+        .tag = tag,
+        .main_token = token,
+        .data = data
+    };
+
+    self.nodes.appendAssumeCapacity(node);
+    return &self.nodes.items[self.nodes.items.len - 1];
+}
+
+test "test all ast modules" {
+    _ = tests;
+}
+
+const tests = struct {
+    const testing = std.testing;
+
+    test "ast initialization and deinitialization" {
+        var ast = Ast.init(std.testing.allocator);
+        defer ast.deinit();
+
+        const node = try ast.new_node(.Binding, Token.init(.{ .Keyword = .Let }, "", .{}),
+            .{
+                .lhs = try ast.new_node(.Identifier, Token.init(.{ .Identifier = "x"}, "", .{}), .{}),
+                .rhs = try ast.new_node(.Integer, Token.init(.{ .Integer = "12" }, "", .{}), .{})
+            }
+        );
+
+        try testing.expect(node.data.lhs.?.main_token.kind == .Identifier);
+    }
+};

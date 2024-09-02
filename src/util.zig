@@ -5,8 +5,8 @@ const std = @import("std");
 
 /// Represents a 2d position in a file
 pub const Position = struct {
-    line: usize,
-    col: usize
+    line: usize = 0, 
+    col: usize = 0
 };
 
 /// Checks if a byte is a alphabetical character
