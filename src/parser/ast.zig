@@ -38,8 +38,13 @@ pub const Node2EB = struct {
     };
 
     pub const Data = struct {
-        lhs: ?*Node2EB = null,
-        rhs: ?*Node2EB = null
+        lhs: ?*Node2EB,
+        rhs: ?*Node2EB,
+
+        pub const default: Data = .{
+            .lhs = null,
+            .rhs = null
+        };
     };
 
     pub fn init(tag: Identifier, token: Token, data: Data) Node2EB {
@@ -93,8 +98,8 @@ const tests = struct {
 
         const node = try ast.new_node(.Binding, Token.init(.{ .Keyword = .Let }, "", .{}),
             .{
-                .lhs = try ast.new_node(.Identifier, Token.init(.{ .Identifier = "x"}, "", .{}), .{}),
-                .rhs = try ast.new_node(.Integer, Token.init(.{ .Integer = "12" }, "", .{}), .{})
+                .lhs = try ast.new_node(.Identifier, Token.init(.{ .Identifier = "x"}, "", .{}), .default),
+                .rhs = try ast.new_node(.Integer, Token.init(.{ .Integer = "12" }, "", .{}), .default)
             }
         );
 

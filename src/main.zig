@@ -7,8 +7,10 @@ const cli = @import("cli/cli.zig");
 const std = @import("std");
 const clap = @import("clap");
 
+const GPA = std.heap.GeneralPurposeAllocator(.{});
+
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: GPA = .init;
     defer _ = gpa.deinit();
 
     // Parse command line args
