@@ -460,7 +460,7 @@ fn read_single_string(self: *Scanner) !Token {
 
     const str = try self.handle_escape_characters(self.compiler.contents[start..end]);
 
-    return self.new_token(.{.string = str});
+    return self.new_token(.{ .string = str });
 }
 
 // Reads a multi line string
@@ -507,7 +507,7 @@ fn read_multi_string(self: *Scanner) !Token {
     });
 
     const str = try self.handle_escape_characters(string.items);
-    return self.new_token(.{.string = str});
+    return self.new_token(.{ .string = str });
 }
 
 // Replaces escape characters

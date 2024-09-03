@@ -44,7 +44,7 @@ pub const Kind = union(enum) {
     lsquirly,      // {
     rsquirly,      // }
     quote,         // '
-    dblquote,      // "
+    double_quote,      // "
     backtick,      // `
     backslash,     // \
     colon,         // :
@@ -105,7 +105,7 @@ pub const Kind = union(enum) {
             '{'    => .lsquirly,
             '}'    => .rsquirly,
             '\''   => .quote,
-            '"'    => .dblquote,
+            '"'    => .double_quote,
             '`'    => .backtick,
             '\\'   => .backslash,
             ':'    => .colon,
@@ -161,7 +161,7 @@ pub const Kind = union(enum) {
             .lsquirly     => "{",
             .rsquirly     => "}",
             .quote        => "'",
-            .dblquote     => "\"",
+            .double_quote => "\"",
             .backtick     => "`",
             .backslash    => "\\",
             .colon        => ":",
