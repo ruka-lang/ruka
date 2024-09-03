@@ -1,21 +1,25 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
+///
+
 const rukac = @import("../root.zig");
 const Token = rukac.Scanner.Token;
 
 const std = @import("std");
 
-nodes: std.ArrayList(Node2EB),
+root: ?*Node2EB,
 allocator: std.mem.Allocator,
 
 const Ast = @This();
 
+///
 pub const Node2EB = struct {
     tag: identifier,
     main_token: Token,
     data: Data,
 
+    ///
     pub const identifier = enum {
         unit,
         identifier,
@@ -37,16 +41,19 @@ pub const Node2EB = struct {
         @"return"
     };
 
+    ///
     pub const Data = struct {
         lhs: ?*Node2EB,
         rhs: ?*Node2EB,
 
+        ///
         pub const default: Data = .{
             .lhs = null,
             .rhs = null
         };
     };
 
+    ///
     pub fn init(tag: identifier, token: Token, data: Data) Node2EB {
         return Node2EB {
             .tag = tag,
@@ -55,34 +62,45 @@ pub const Node2EB = struct {
         };
     }
 
+    ///
+    pub fn initAlloc(allocator: std.mem.Allocator, tag: identifier, token: Token, data: Data) !*Node2EB {
+        var node = try allocator.create(Node2EB);
+
+        node.tag = tag;
+        node.main_token = token;
+        node.data = data;
+
+        return node;
+    }
+
+    ///
     pub fn deinit(self: Node2EB) void {
         _ = self;
     }
 };
 
+///
 pub fn init(allocator: std.mem.Allocator) Ast {
     return Ast {
-        .nodes = std.ArrayList(Node2EB).init(allocator),
-        .allocator = allocator
+        .allocator = allocator,
+        .root = null
     };
 }
 
+///
 pub fn deinit(self: Ast) void {
-    for (self.nodes.items) |*node| node.deinit();
-    self.nodes.deinit();
+    const root = self.root;
+    self.deinit_internal(root);
 }
 
-pub fn new_node(self: *Ast, tag: Node2EB.identifier, token: Token, data: Node2EB.Data) !*Node2EB {
-    try self.nodes.ensureUnusedCapacity(1);
+//
+fn deinit_internal(self: Ast, node: ?*Node2EB) void {
+    if (node) |n| {
+        defer self.allocator.destroy(n);
 
-    const node = Node2EB {
-        .tag = tag,
-        .main_token = token,
-        .data = data
-    };
-
-    self.nodes.appendAssumeCapacity(node);
-    return &self.nodes.items[self.nodes.items.len - 1];
+        self.deinit_internal(n.data.lhs);
+        self.deinit_internal(n.data.rhs);
+    }
 }
 
 test "test all ast modules" {
@@ -93,16 +111,17 @@ const tests = struct {
     const testing = std.testing;
 
     test "ast initialization and deinitialization" {
-        var ast = Ast.init(std.testing.allocator);
+        const alloc = std.testing.allocator;
+        var ast = Ast.init(alloc);
         defer ast.deinit();
 
-        const node = try ast.new_node(.binding, Token.init(.{ .keyword = .let }, "", .{}),
+        ast.root = try Node2EB.initAlloc(ast.allocator, .binding, Token.init(.{ .keyword = .let }, "", .{}),
             .{
-                .lhs = try ast.new_node(.identifier, Token.init(.{ .identifier = "x"}, "", .{}), .default),
-                .rhs = try ast.new_node(.integer, Token.init(.{ .integer = "12" }, "", .{}), .default)
+                .lhs = try Node2EB.initAlloc(ast.allocator, .identifier, Token.init(.{ .identifier = "x"}, "", .{}), .default),
+                .rhs = try Node2EB.initAlloc(ast.allocator, .integer, Token.init(.{ .integer = "12" }, "", .{}), .default)
             }
         );
 
-        try testing.expect(node.data.lhs.?.main_token.kind == .identifier);
+        try testing.expect(ast.root.?.data.lhs.?.main_token.kind == .identifier);
     }
 };
