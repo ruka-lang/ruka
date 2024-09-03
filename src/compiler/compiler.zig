@@ -67,7 +67,7 @@ pub fn compile(self: *Compiler) !void {
     var s = Scanner.init(self);
     var t = try s.next_token();
 
-    while(t.kind != .Eof) {
+    while(t.kind != .eof) {
         std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
         t = try s.next_token();
     }

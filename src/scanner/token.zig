@@ -24,116 +24,116 @@ pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
 
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
-    Identifier: []const u8,
-    String: []const u8,
-    Character: u8,
-    Integer: []const u8,
-    Float: []const u8,
-    Keyword: Keyword,
-    Mode: Mode,
+    identifier: []const u8,
+    string: []const u8,
+    character: u8,
+    integer: []const u8,
+    float: []const u8,
+    keyword: Keyword,
+    mode: Mode,
     // Assignment
-    Assign,        // =
-    AssignExp,     // :=
+    assign,        // =
+    assign_exp,    // :=
     // Punctuation
-    Dot,           // .
-    Comma,         // ,
-    Lparen,        // (
-    Rparen,        // )
-    Lbracket,      // [
-    Rbracket,      // ]
-    Lsquirly,      // {
-    Rsquirly,      // }
-    Quote,         // '
-    Dblquote,      // "
-    Backtick,      // `
-    Backslash,     // \
-    Colon,         // :
-    Semicolon,     // ;
-    Arrow,         // ->
-    WideArrow,     // =>
+    dot,           // .
+    comma,         // ,
+    lparen,        // (
+    rparen,        // )
+    lbracket,      // [
+    rbracket,      // ]
+    lsquirly,      // {
+    rsquirly,      // }
+    quote,         // '
+    dblquote,      // "
+    backtick,      // `
+    backslash,     // \
+    colon,         // :
+    semicolon,     // ;
+    arrow,         // ->
+    wide_arrow,    // =>
     // Operators
-    Address,       // @
-    Cash,          // $
-    Pound,         // #
-    Bang,          // !
-    Question,      // ?
-    RangeExc,      // ..
-    RangeInc,      // ..=
-    ForwardApp,    // <|
-    ReverseApp,    // |>
-    Concat,        // <>
+    address,       // @
+    cash,          // $
+    pound,         // #
+    bang,          // !
+    question,      // ?
+    range_exc,     // ..
+    range_inc,     // ..=
+    forward_app,   // <|
+    reverse_app,   // |>
+    concat,        // <>
     // Arithmetic
-    Plus,          // +
-    Minus,         // -
-    Asterisk,      // *
-    Slash,         // /
-    Percent,       // %
-    Increment,     // ++
-    Decrement,     // --
-    Square,        // **
+    plus,          // +
+    minus,         // -
+    asterisk,      // *
+    slash,         // /
+    percent,       // %
+    increment,     // ++
+    decrement,     // --
+    square,        // **
     // Bitwise
-    Ampersand,     // &
-    Pipe,          // |
-    Caret,         // ^
-    Tilde,         // ~
-    Lshift,        // <<
-    Rshift,        // >>
+    ampersand,     // &
+    pipe,          // |
+    caret,         // ^
+    tilde,         // ~
+    lshift,        // <<
+    rshift,        // >>
     // Comparators
-    Lesser,        // <
-    LesserEq,      // <=
-    Greater,       // >
-    GreaterEq,     // >=
-    Equal,         // ==
-    NotEqual,      // !=
+    lesser,        // <
+    lesser_eq,     // <=
+    greater,       // >
+    greater_eq,    // >=
+    equal,         // ==
+    not_equal,     // !=
     // Miscelaneous
-    Newline,       // \n
-    Illegal,
-    Eof,
+    newline,       // \n
+    illegal,
+    eof,           // \x00
 
     // Tries to create a Kind from a byte
     pub fn from_byte(byte: u8) Kind {
         return switch(byte) {
             // Assignment
-            '='    => .Assign,
+            '='    => .assign,
             // Punctuation
-            '.'    => .Dot,
-            ','    => .Comma,
-            '('    => .Lparen,
-            ')'    => .Rparen,
-            '['    => .Lbracket,
-            ']'    => .Rbracket,
-            '{'    => .Lsquirly,
-            '}'    => .Rsquirly,
-            '\''   => .Quote,
-            '"'    => .Dblquote,
-            '`'    => .Backtick,
-            '\\'   => .Backslash,
-            ':'    => .Colon,
-            ';'    => .Semicolon,
+            '.'    => .dot,
+            ','    => .comma,
+            '('    => .lparen,
+            ')'    => .rparen,
+            '['    => .lbracket,
+            ']'    => .rbracket,
+            '{'    => .lsquirly,
+            '}'    => .rsquirly,
+            '\''   => .quote,
+            '"'    => .dblquote,
+            '`'    => .backtick,
+            '\\'   => .backslash,
+            ':'    => .colon,
+            ';'    => .semicolon,
             // Operators
-            '@'    => .Address,
-            '$'    => .Cash,
-            '#'    => .Pound,
-            '!'    => .Bang,
-            '?'    => .Question,
+            '@'    => .address,
+            '$'    => .cash,
+            '#'    => .pound,
+            '!'    => .bang,
+            '?'    => .question,
             // Arithmetic
-            '+'    => .Plus,
-            '-'    => .Minus,
-            '*'    => .Asterisk,
-            '/'    => .Slash,
-            '%'    => .Percent,
+            '+'    => .plus,
+            '-'    => .minus,
+            '*'    => .asterisk,
+            '/'    => .slash,
+            '%'    => .percent,
             // Bitwise
-            '&'    => .Ampersand,
-            '|'    => .Pipe,
-            '^'    => .Caret,
-            '~'    => .Tilde,
+            '&'    => .ampersand,
+            '|'    => .pipe,
+            '^'    => .caret,
+            '~'    => .tilde,
             // Comparators
-            '<'    => .Lesser,
-            '>'    => .Greater,
+            '<'    => .lesser,
+            '>'    => .greater,
             // Miscelaneous
-            '\n'   => .Newline,
-            '\x00' => .Eof,
-            else   => .Illegal
+            '\n'   => .newline,
+            '\x00' => .eof,
+            else   => .illegal
         };
     }
 
@@ -141,71 +141,71 @@ pub const Kind = union(enum) {
     pub fn to_str(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
-            .Identifier   => |id| id,
-            .String       => |st| st,
-            .Character    => |ch| try self.char_to_string(ch, allocator),
-            .Integer      => |in| in,
-            .Float        => |fl| fl,
-            .Keyword      => |ke| ke.to_str(),
-            .Mode         => |mo| mo.to_str(),
+            .identifier   => |id| id,
+            .string       => |st| st,
+            .character    => |ch| try self.char_to_string(ch, allocator),
+            .integer      => |in| in,
+            .float        => |fl| fl,
+            .keyword      => |ke| ke.to_str(),
+            .mode         => |mo| mo.to_str(),
             // Assignment
-            .Assign       => "=",
-            .AssignExp    => ":=",
+            .assign       => "=",
+            .assign_exp   => ":=",
             // Punctuation
-            .Dot          => ".",
-            .Comma        => ",",
-            .Lparen       => "(",
-            .Rparen       => ")",
-            .Lbracket     => "[",
-            .Rbracket     => "]",
-            .Lsquirly     => "{",
-            .Rsquirly     => "}",
-            .Quote        => "'",
-            .Dblquote     => "\"",
-            .Backtick     => "`",
-            .Backslash    => "\\",
-            .Colon        => ":",
-            .Semicolon    => ";",
-            .Arrow        => "->",
-            .WideArrow    => "=>",
+            .dot          => ".",
+            .comma        => ",",
+            .lparen       => "(",
+            .rparen       => ")",
+            .lbracket     => "[",
+            .rbracket     => "]",
+            .lsquirly     => "{",
+            .rsquirly     => "}",
+            .quote        => "'",
+            .dblquote     => "\"",
+            .backtick     => "`",
+            .backslash    => "\\",
+            .colon        => ":",
+            .semicolon    => ";",
+            .arrow        => "->",
+            .wide_arrow   => "=>",
             // Operators
-            .Address      => "@",
-            .Cash         => "$",
-            .Pound        => "#",
-            .Bang         => "!",
-            .Question     => "?",
-            .RangeExc     => "..",
-            .RangeInc     => "..=",
-            .ForwardApp   => "<|",
-            .ReverseApp   => "|>",
-            .Concat       => "<>",
+            .address      => "@",
+            .cash         => "$",
+            .pound        => "#",
+            .bang         => "!",
+            .question     => "?",
+            .range_exc    => "..",
+            .range_inc    => "..=",
+            .forward_app  => "<|",
+            .reverse_app  => "|>",
+            .concat       => "<>",
             // Arithmetic
-            .Plus         => "+",
-            .Minus        => "-",
-            .Asterisk     => "*",
-            .Slash        => "/",
-            .Percent      => "%",
-            .Increment    => "++",
-            .Decrement    => "--",
-            .Square       => "**",
+            .plus         => "+",
+            .minus        => "-",
+            .asterisk     => "*",
+            .slash        => "/",
+            .percent      => "%",
+            .increment    => "++",
+            .decrement    => "--",
+            .square       => "**",
             // Bitwise
-            .Ampersand    => "&",
-            .Pipe         => "|",
-            .Caret        => "^",
-            .Tilde        => "~",
-            .Lshift       => "<<",
-            .Rshift       => ">>",
+            .ampersand    => "&",
+            .pipe         => "|",
+            .caret        => "^",
+            .tilde        => "~",
+            .lshift       => "<<",
+            .rshift       => ">>",
             // Comparators
-            .Lesser       => "<",
-            .LesserEq     => "<=",
-            .Greater      => ">",
-            .GreaterEq    => ">=",
-            .Equal        => "==",
-            .NotEqual     => "!=",
+            .lesser       => "<",
+            .lesser_eq    => "<=",
+            .greater      => ">",
+            .greater_eq   => ">=",
+            .equal        => "==",
+            .not_equal    => "!=",
             // Miscelaneous
-            .Newline      => "\n",
-            .Illegal      => "ILLEGAL",
-            .Eof          => "EOF"
+            .newline      => "\n",
+            .illegal      => "ILLEGAL",
+            .eof          => "EOF"
         };
     }
 
@@ -218,58 +218,58 @@ pub const Kind = union(enum) {
     /// Tries to create a keyword Kind from a string slice
     pub fn try_keyword(slice: []const u8) ?Kind {
         const keyword = keywords.get(slice) orelse return null;
-        return .{.Keyword = keyword};
+        return .{ .keyword = keyword };
     }
 
     /// Tries to create a mode Kind from a string slice
     pub fn try_mode(slice: []const u8) ?Kind {
         const mode = modes.get(slice) orelse return null;
-        return .{.Mode = mode};
+        return .{ .mode = mode };
     }
 };
 
 /// Represents the official keywords of Ruka, and the reserved
 pub const Keyword = enum {
-    Const,
-    Let,
-    Pub,
-    Return,
-    Do,
-    End,
-    Record,
-    Variant,
-    Interface,
-    Module,
-    Defer,
-    True,
-    False,
-    For,
-    While,
-    Break,
-    Continue,
-    Match,
-    If,
-    Else,
-    And,
-    Or,
-    Not,
-    Inline,
-    Test,
-    Fn,
-    In,
+    @"const",
+    let,
+    @"pub",
+    @"return",
+    do,
+    end,
+    record,
+    variant,
+    interface,
+    module,
+    @"defer",
+    true,
+    false,
+    @"for",
+    @"while",
+    @"break",
+    @"continue",
+    match,
+    @"if",
+    @"else",
+    @"and",
+    @"or",
+    not,
+    @"inline",
+    @"test",
+    @"fn",
+    in,
     // Reserved
-    Private,
-    Derive,
-    Static,
-    Macro,
-    From,
-    Impl,
-    When,
-    Any,
-    Use,
-    As,
+    private,
+    derive,
+    static,
+    macro,
+    from,
+    impl,
+    when,
+    any,
+    use,
+    as,
 
-    /// Converts a Keyword into a string slice
+    /// Converts a keyword into a string slice
     pub fn to_str(self: *const Keyword) []const u8 {
         for (keywords.keys(), keywords.values()) |key, value| {
             if (value == self.*) {
@@ -282,44 +282,44 @@ pub const Keyword = enum {
 
 // Map representing Keywords and their string representation
 const keywords = std.StaticStringMap(Keyword).initComptime(.{
-    .{"const", .Const},
-    .{"let", .Let},
-    .{"pub", .Pub},
-    .{"return", .Return},
-    .{"do", .Do},
-    .{"end", .End},
-    .{"record", .Record},
-    .{"variant", .Variant},
-    .{"interface", .Interface},
-    .{"module", .Module},
-    .{"defer", .Defer},
-    .{"true", .True},
-    .{"false", .False},
-    .{"for", .For},
-    .{"while", .While},
-    .{"break", .Break},
-    .{"continue", .Continue},
-    .{"match", .Match},
-    .{"if", .If},
-    .{"else", .Else},
-    .{"and", .And},
-    .{"or", .Or},
-    .{"not", .Not},
-    .{"inline", .Inline},
-    .{"test", .Test},
-    .{"fn", .Fn},
-    .{"in", .In},
+    .{"const", .@"const"},
+    .{"let", .let},
+    .{"pub", .@"pub"},
+    .{"return", .@"return"},
+    .{"do", .do},
+    .{"end", .end},
+    .{"record", .record},
+    .{"variant", .variant},
+    .{"interface", .interface},
+    .{"module", .module},
+    .{"defer", .@"defer"},
+    .{"true", .true},
+    .{"false", .false},
+    .{"for", .@"for"},
+    .{"while", .@"while"},
+    .{"break", .@"break"},
+    .{"continue", .@"continue"},
+    .{"match", .match},
+    .{"if", .@"if"},
+    .{"else", .@"else"},
+    .{"and", .@"and"},
+    .{"or", .@"or"},
+    .{"not", .not},
+    .{"inline", .@"inline"},
+    .{"test", .@"test"},
+    .{"fn", .@"fn"},
+    .{"in", .in},
     // Reserved
-    .{"private", .Private},
-    .{"derive", .Derive},
-    .{"static", .Static},
-    .{"macro", .Macro},
-    .{"from", .From},
-    .{"impl", .Impl},
-    .{"when", .When},
-    .{"any", .Any},
-    .{"use", .Use},
-    .{"as", .As}
+    .{"private", .private},
+    .{"derive", .derive},
+    .{"static", .static},
+    .{"macro", .macro},
+    .{"from", .from},
+    .{"impl", .impl},
+    .{"when", .when},
+    .{"any", .any},
+    .{"use", .use},
+    .{"as", .as}
 });
 
 // Compile time assert no missing or extra entries in keywords
@@ -342,12 +342,12 @@ comptime {
 
 /// Represent various parameter modes
 pub const Mode = enum {
-    Comptime,
-    Loc,
-    Mov,
-    Mut,
+    @"comptime",
+    loc,
+    mov,
+    mut,
 
-    /// Converts a Mode into a string slice
+    /// Converts a mode into a string slice
     pub fn to_str(self: *const Mode) []const u8 {
         for (modes.keys(), modes.values()) |key, value| {
             if (value == self.*) {
@@ -360,10 +360,10 @@ pub const Mode = enum {
 
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
-    .{"comptime", .Comptime},
-    .{"loc", .Loc},
-    .{"mov", .Mov},
-    .{"mut", .Mut}
+    .{"comptime", .@"comptime"},
+    .{"loc", .loc},
+    .{"mov", .mov},
+    .{"mut", .mut}
 });
 
 // Compile time assert no missing or extra entries in modes
@@ -387,8 +387,8 @@ comptime {
 test "mode comparision" {
     const testing = std.testing;
 
-    const mode: Kind = .{.Mode = .Mut};
+    const mode: Kind = .{ .mode = .mut };
     const mode2 = Kind.try_mode("mut").?;
 
-    try testing.expect(mode.Mode == mode2.Mode);
+    try testing.expect(mode.mode == mode2.mode);
 }

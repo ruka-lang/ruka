@@ -64,139 +64,139 @@ pub fn next_token(self: *Scanner) !Token {
                 },
                 else => {
                     self.advance(1);
-                    break :blk self.new_token(.Slash);
+                    break :blk self.new_token(.slash);
                 }
             }
         },
         // Operators which may be multiple characters long
         '=' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "=>", Token.Kind.WideArrow},
-                .{2, "==", Token.Kind.Equal}
+                .{2, "=>", Token.Kind.wide_arrow},
+                .{2, "==", Token.Kind.equal}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Assign;
+                kind = Token.Kind.assign;
             }
 
             break :blk self.new_token(kind.?);
         },
         ':' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, ":=", Token.Kind.AssignExp}
+                .{2, ":=", Token.Kind.assign_exp}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Colon;
+                kind = Token.Kind.colon;
             }
 
             break :blk self.new_token(kind.?);
         },
         '>' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, ">=", Token.Kind.GreaterEq},
-                .{2, ">>", Token.Kind.Rshift}
+                .{2, ">=", Token.Kind.greater_eq},
+                .{2, ">>", Token.Kind.rshift}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Greater;
+                kind = Token.Kind.greater;
             }
 
             break :blk self.new_token(kind.?);
         },
         '<' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "<=", Token.Kind.LesserEq},
-                .{2, "<<", Token.Kind.Lshift},
-                .{2, "<|", Token.Kind.ForwardApp},
-                .{2, "<>", Token.Kind.Concat}
+                .{2, "<=", Token.Kind.lesser_eq},
+                .{2, "<<", Token.Kind.lshift},
+                .{2, "<|", Token.Kind.forward_app},
+                .{2, "<>", Token.Kind.concat}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Lesser;
+                kind = Token.Kind.lesser;
             }
 
             break :blk self.new_token(kind.?);
         },
         '-' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "->", Token.Kind.Arrow},
-                .{2, "--", Token.Kind.Decrement}
+                .{2, "->", Token.Kind.arrow},
+                .{2, "--", Token.Kind.decrement}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Minus;
+                kind = Token.Kind.minus;
             }
 
             break :blk self.new_token(kind.?);
         },
         '+' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "++", Token.Kind.Increment}
+                .{2, "++", Token.Kind.increment}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Plus;
+                kind = Token.Kind.plus;
             }
 
             break :blk self.new_token(kind.?);
         },
         '*' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "**", Token.Kind.Square}
+                .{2, "**", Token.Kind.square}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Asterisk;
+                kind = Token.Kind.asterisk;
             }
 
             break :blk self.new_token(kind.?);
         },
         '.' => blk: {
             var kind = self.try_compound_operator(.{
-                .{3, "..=", Token.Kind.RangeInc},
-                .{2, "..", Token.Kind.RangeExc}
+                .{3, "..=", Token.Kind.range_inc},
+                .{2, "..", Token.Kind.range_exc}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Dot;
+                kind = Token.Kind.dot;
             }
 
             break :blk self.new_token(kind.?);
         },
         '!' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "!=", Token.Kind.NotEqual}
+                .{2, "!=", Token.Kind.not_equal}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Bang;
+                kind = Token.Kind.bang;
             }
 
             break :blk self.new_token(kind.?);
         },
         '|' => blk: {
             var kind = self.try_compound_operator(.{
-                .{2, "|>", Token.Kind.ReverseApp}
+                .{2, "|>", Token.Kind.reverse_app}
             });
 
             if (kind == null) {
                 self.advance(1);
-                kind = Token.Kind.Pipe;
+                kind = Token.Kind.pipe;
             }
 
             break :blk self.new_token(kind.?);
         },
-        '\x00' => self.new_token(Token.Kind.Eof),
+        '\x00' => self.new_token(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => blk: {
             if (util.is_alphabetical(byte)) {
@@ -293,7 +293,7 @@ fn read_identifier_keyword_mode(self: *Scanner) Token {
         // If str doesn't represent a keyword or mode,
         // then kind is identifier
         if (kind == null) {
-            kind = .{.Identifier = str};
+            kind = .{ .identifier = str };
         }
     }
 
@@ -337,7 +337,7 @@ fn read_character(self: *Scanner) ?Token {
     }
 
     self.advance(2);
-    return self.new_token(.{.Character = str[0]});
+    return self.new_token(.{ .character = str[0] });
 }
 
 // Reads a integer or float literal from the file
@@ -361,8 +361,8 @@ fn read_integer_float(self: *Scanner) Token {
 
     const str = self.compiler.contents[start..self.idx];
     const kind: Token.Kind = switch (float) {
-        false => .{.Integer = str},
-        true  => .{.Float = str}
+        false => .{ .integer = str },
+        true  => .{ .float = str }
     };
 
     return self.new_token(kind);
@@ -460,7 +460,7 @@ fn read_single_string(self: *Scanner) !Token {
 
     const str = try self.handle_escape_characters(self.compiler.contents[start..end]);
 
-    return self.new_token(.{.String = str});
+    return self.new_token(.{.string = str});
 }
 
 // Reads a multi line string
@@ -507,7 +507,7 @@ fn read_multi_string(self: *Scanner) !Token {
     });
 
     const str = try self.handle_escape_characters(string.items);
-    return self.new_token(.{.String = str});
+    return self.new_token(.{.string = str});
 }
 
 // Replaces escape characters
@@ -577,32 +577,32 @@ const tests = struct {
 
     fn compare_tokens(et: *const Token, at: *const Token) !void {
         switch (et.kind) {
-            .Identifier => |eide| switch (at.kind) {
-                .Identifier => |aide| try testing.expect(std.mem.eql(u8, eide, aide)),
+            .identifier => |eide| switch (at.kind) {
+                .identifier => |aide| try testing.expect(std.mem.eql(u8, eide, aide)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .String => |estr| switch (at.kind) {
-                .String => |astr| try testing.expect(std.mem.eql(u8, estr, astr)),
+            .string => |estr| switch (at.kind) {
+                .string => |astr| try testing.expect(std.mem.eql(u8, estr, astr)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .Character => |echr| switch (at.kind) {
-                .Character => |achr| try testing.expectEqual(echr, achr),
+            .character => |echr| switch (at.kind) {
+                .character => |achr| try testing.expectEqual(echr, achr),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .Integer => |eint| switch (at.kind) {
-                .Integer => |aint| try testing.expect(std.mem.eql(u8, eint, aint)),
+            .integer => |eint| switch (at.kind) {
+                .integer => |aint| try testing.expect(std.mem.eql(u8, eint, aint)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .Float => |eflo| switch (at.kind) {
-                .Float => |aflo| try testing.expect(std.mem.eql(u8, eflo, aflo)),
+            .float => |eflo| switch (at.kind) {
+                .float => |aflo| try testing.expect(std.mem.eql(u8, eflo, aflo)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .Keyword => |ekey| switch (at.kind) {
-                .Keyword => |akey| try testing.expectEqual(ekey, akey),
+            .keyword => |ekey| switch (at.kind) {
+                .keyword => |akey| try testing.expectEqual(ekey, akey),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
-            .Mode => |emod| switch (at.kind) {
-                .Mode => |amod| try testing.expectEqual(emod, amod),
+            .mode => |emod| switch (at.kind) {
+                .mode => |amod| try testing.expectEqual(emod, amod),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             else => {
@@ -618,7 +618,7 @@ const tests = struct {
         var i: usize = 0;
         var tok = try s.next_token();
 
-        while (tok.kind != .Eof) {
+        while (tok.kind != .eof) {
             try compare_tokens(&e[i], &tok);
             i = i + 1;
             tok = try s.next_token();
@@ -633,13 +633,13 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "next token", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "next token", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "next token", .{.line = 1, .col = 7}),
-            Token.init(.{.Integer = "12_000"}, "next token", .{.line = 1, .col = 9}),
-            Token.init(.{.Float = "12_000.50"}, "next token", .{.line = 1, .col = 16}),
-            Token.init(.{.Character = '\n'}, "next token", .{.line = 1, .col = 26}),
-            Token.init(.Eof, "next token", .{.line = 1, .col = 30}),
+            Token.init(.{ .keyword = .let }, "next token", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "next token", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "next token", .{ .line = 1, .col = 7 }),
+            Token.init(.{ .integer = "12_000" }, "next token", .{ .line = 1, .col = 9 }),
+            Token.init(.{ .float = "12_000.50" }, "next token", .{ .line = 1, .col = 16 }),
+            Token.init(.{ .character = '\n' }, "next token", .{ .line = 1, .col = 26 }),
+            Token.init(.eof, "next token", .{ .line = 1, .col = 30 }),
         };
 
         var c = try Compiler.init("next token", stream.reader().any(), null, testing.allocator);
@@ -654,24 +654,24 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.Equal, "compound operators", .{.line = 1, .col = 1}),
-            Token.init(.NotEqual, "compound operators", .{.line = 1, .col = 4}),
-            Token.init(.GreaterEq, "compound operators", .{.line = 1, .col = 7}),
-            Token.init(.LesserEq, "compound operators", .{.line = 1, .col = 10}),
-            Token.init(.ReverseApp, "compound operators", .{.line = 1, .col = 13}),
-            Token.init(.ForwardApp, "compound operators", .{.line = 1, .col = 16}),
-            Token.init(.Lshift, "compound operators", .{.line = 1, .col = 19}),
-            Token.init(.Concat, "compound operators", .{.line = 1, .col = 22}),
-            Token.init(.Rshift, "compound operators", .{.line = 1, .col = 25}),
-            Token.init(.Increment, "compound operators", .{.line = 1, .col = 28}),
-            Token.init(.Decrement, "compound operators", .{.line = 1, .col = 31}),
-            Token.init(.Square, "compound operators", .{.line = 1, .col = 34}),
-            Token.init(.Arrow, "compound operators", .{.line = 1, .col = 37}),
-            Token.init(.WideArrow, "compound operators", .{.line = 1, .col = 40}),
-            Token.init(.RangeExc, "compound operators", .{.line = 1, .col = 43}),
-            Token.init(.RangeInc, "compound operators", .{.line = 1, .col = 46}),
-            Token.init(.AssignExp, "compound operators", .{.line = 1, .col = 50}),
-            Token.init(.Eof, "compound operators", .{.line = 1, .col = 52})
+            Token.init(.equal, "compound operators", .{ .line = 1, .col = 1 }),
+            Token.init(.not_equal, "compound operators", .{ .line = 1, .col = 4 }),
+            Token.init(.greater_eq, "compound operators", .{ .line = 1, .col = 7 }),
+            Token.init(.lesser_eq, "compound operators", .{ .line = 1, .col = 10 }),
+            Token.init(.reverse_app, "compound operators", .{ .line = 1, .col = 13 }),
+            Token.init(.forward_app, "compound operators", .{ .line = 1, .col = 16 }),
+            Token.init(.lshift, "compound operators", .{ .line = 1, .col = 19 }),
+            Token.init(.concat, "compound operators", .{ .line = 1, .col = 22 }),
+            Token.init(.rshift, "compound operators", .{ .line = 1, .col = 25 }),
+            Token.init(.increment, "compound operators", .{ .line = 1, .col = 28 }),
+            Token.init(.decrement, "compound operators", .{ .line = 1, .col = 31 }),
+            Token.init(.square, "compound operators", .{ .line = 1, .col = 34 }),
+            Token.init(.arrow, "compound operators", .{ .line = 1, .col = 37 }),
+            Token.init(.wide_arrow, "compound operators", .{ .line = 1, .col = 40 }),
+            Token.init(.range_exc, "compound operators", .{ .line = 1, .col = 43 }),
+            Token.init(.range_inc, "compound operators", .{ .line = 1, .col = 46 }),
+            Token.init(.assign_exp, "compound operators", .{ .line = 1, .col = 50 }),
+            Token.init(.eof, "compound operators", .{ .line = 1, .col = 52 })
         };
 
         var c = try Compiler.init("compound operators", stream.reader().any(), null, testing.allocator);
@@ -686,11 +686,11 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
-            Token.init(.{.String = "Hello, world!"}, "string reading", .{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", .{.line = 1, .col = 24}),
+            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
+            Token.init(.{ .string = "Hello, world!" }, "string reading", .{ .line = 1, .col = 9 }),
+            Token.init(.eof, "string reading", .{ .line = 1, .col = 24 }),
         };
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
@@ -708,11 +708,11 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
-            Token.init(.{.String = "\n Hello, world!\n"}, "string reading", .{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", .{.line = 3, .col = 12}),
+            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
+            Token.init(.{ .string = "\n Hello, world!\n" }, "string reading", .{ .line = 1, .col = 9 }),
+            Token.init(.eof, "string reading", .{ .line = 3, .col = 12 }),
         };
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
@@ -727,11 +727,11 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "string reading", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "string reading", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "string reading", .{.line = 1, .col = 7}),
-            Token.init(.{.String = "Hello, \n\\sworld!"}, "string reading", .{.line = 1, .col = 9}),
-            Token.init(.Eof, "string reading", .{.line = 1, .col = 28}),
+            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
+            Token.init(.{ .string = "Hello, \n\\sworld!" }, "string reading", .{ .line = 1, .col = 9 }),
+            Token.init(.eof, "string reading", .{ .line = 1, .col = 28 }),
         };
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
@@ -746,10 +746,10 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "single comment", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "single comment", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "single comment", .{.line = 1, .col = 7}),
-            Token.init(.Eof, "single comment", .{.line = 1, .col = 27})
+            Token.init(.{ .keyword = .let }, "single comment", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "single comment", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "single comment", .{ .line = 1, .col = 7 }),
+            Token.init(.eof, "single comment", .{ .line = 1, .col = 27 })
         };
 
         var c = try Compiler.init("single comment", stream.reader().any(), null, testing.allocator);
@@ -768,10 +768,10 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(source);
 
         const expected = [_]Token{
-            Token.init(.{.Keyword = .Let}, "multi comment", .{.line = 1, .col = 1}),
-            Token.init(.{.Identifier = "x"}, "multi comment", .{.line = 1, .col = 5}),
-            Token.init(.Assign, "multi comment", .{.line = 1, .col = 7}),
-            Token.init(.Eof, "multi comment", .{.line = 3, .col = 3})
+            Token.init(.{ .keyword = .let}, "multi comment", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "multi comment", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "multi comment", .{ .line = 1, .col = 7 }),
+            Token.init(.eof, "multi comment", .{ .line = 3, .col = 3 })
         };
 
         var c = try Compiler.init("multi comment", stream.reader().any(), null, testing.allocator);
