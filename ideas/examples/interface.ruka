@@ -7,22 +7,22 @@ const Vector = record {
     y: isize
 }
 
-fn new = (x, y) {
+fn new = (x, y) do
     Vector.{ x, y }
-}
+end
 
-pub fn (self: &Vector).add -> Vector = (rhs: &Vector) {
+pub fn (self: &Vector).add -> Vector = (rhs: &Vector) do
     Vector.{ 
         x = self.x + rhs.x, 
         y = self.y + rhs.y 
     }
-}
+end
 
-fn add -> Num = (x, y: Num) {
+fn add -> Num = (x, y: Num) do
     x + y
-}
+end
 
-fn main -> !unit = () {
+fn main -> @result(unit) = () do
     let a = new(10, 5)
     let b = new(5, 10)
     let c = a.add(b)
@@ -35,4 +35,4 @@ fn main -> !unit = () {
     let f = add(d, e)
 
     @assert(f == 15).!
-}
+end

@@ -5,20 +5,20 @@
 const std = @import("std")
 const string = std.string
 
-fn fibonacci -> usize = (n: usize) {
-    if n <= 1 {
+fn fibonacci -> usize = (n: usize) do
+    if n <= 1 do
         1
-    } else {
+    else do
         fibonacci(n-1) + fibonacci(n-2)
-    }
-}
+    end
+end
 
-fn main -> !unit = () {
+fn main -> @result(unit) = () do
     let n = std.io.gets()
-        |> string.parse() ~into: isize
+        |> string.parse() ~into: usize
         |> .!
 
     let value = fibonacci(n)
 
     @print("Fibonacci number {} is {}\n", {n, value})
-}
+end

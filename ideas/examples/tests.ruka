@@ -1,19 +1,19 @@
-fn div -> !usize = (num, div: usize) {
-    if div == 0 {
+fn div -> @result(usize) = (num, div: usize) do
+    if div == 0 do
         return error.DivideByZero
-    }
+    end
 
     num / div
-}
+end
 
 test "div" {
     const testcase = record {
         num: usize,
         div: usize,
-        want: !usize
+        want: @result(usize)
     }
 
-    let t = %[string, testcase]{
+    let t: @map(string, testcase) = %[string, testcase]{
         "divide by zero" => .{
             num: 10,
             div: 0,
@@ -26,8 +26,8 @@ test "div" {
         }
     }
 
-    for _, v in t {
+    for _, v in t do
         let result = div(v.num, v.div)
         @assert(result == v.want).!
-    }
+    end
 }
