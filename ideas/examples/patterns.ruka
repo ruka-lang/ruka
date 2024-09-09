@@ -1,4 +1,4 @@
-fn main = () do
+const main = () do
     match "Hello, world!" with
         | "Hello, " <> rest do
             @println(rest)
@@ -8,8 +8,8 @@ fn main = () do
     print_array(uint, &.{1, 2, 3, 4, 5})
 end
 
-fn print_array = (comptime 'a: type, slice: []'a) do
-    match &slice with
+const print_array = (comptime 'a: type, slice: []'a) do
+    match slice with
         | [head, ..tail] do
             @print("#{head}, ")
             print_array('a, tail)

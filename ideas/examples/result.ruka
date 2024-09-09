@@ -1,6 +1,6 @@
 const string = @import("std").string
 
-fn @result -> type = (comptime success: type) do
+const @result -> type = (comptime success: type) do
     enum {
         Ok(success),
         Err(Error) // predefined interface
@@ -12,12 +12,12 @@ const parseError = enum {
 }
 
 // Implement the methods required by the Error interface
-fn (err: &parseError).msg      -> string = () do/* */end
-fn (err: &parseError).location -> string = () do/* */end
-fn (err: &parseError).kind     -> string = () do/* */end
-fn (err: &parseError).severity -> severity = () do/* */end
+const (err: parseError).msg      -> string   = () do/* */end
+const (err: parseError).location -> string   = () do/* */end
+const (err: parseError).kind     -> string   = () do/* */end
+const (err: parseError).severity -> severity = () do/* */end
 
-fn parse -> @result(isize) = (str: []u8) do
+const parse -> @result(isize) = (str: []u8) do
     let word = /* */
     if word do
         /* */
@@ -26,7 +26,7 @@ fn parse -> @result(isize) = (str: []u8) do
     end
 end
 
-fn main -> @result(unit) = () do
+const main -> @result(unit) = () do
     let str: string = "Hello"
     let result = parse(str[..]).!
     @print("result: #{result}\n")

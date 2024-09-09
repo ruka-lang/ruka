@@ -4,11 +4,11 @@ const Vector = record {
         y: isize
     }
 
-    pub fn new -> t = (x, y: isize) do
+    pub const new -> t = (x, y: isize) do
         t.{ x, y }
     end
 
-    pub fn (&t).add -> t = (other: &t) do
+    pub const (t).add -> t = (other: t) do
         t.{
             x = self.x + other.x,
             y = self.y + other.y
@@ -16,8 +16,8 @@ const Vector = record {
     end
 }
 
-fn main -> @result(unit) = () do
+const main -> @result(unit) = () do
     let a = Vector.new(1, 2)
     let b = Vector.new(3, 4)
-    let c = a.add(&b)
+    let c = a.add(b)
 end

@@ -1,5 +1,5 @@
 const Num = interface ('a) {
-    add: (&'a) -> 'a
+    add: ('a) -> 'a
 }
 
 const Vector = record {
@@ -7,32 +7,32 @@ const Vector = record {
     y: isize
 }
 
-fn new = (x, y) do
+const new = (x, y) do
     Vector.{ x, y }
 end
 
-pub fn (&self: Vector).add -> Vector = (&rhs: Vector) do
+pub const Vector.add -> Vector = (rhs: Vector) do
     Vector.{ 
         x = self.x + rhs.x, 
         y = self.y + rhs.y 
     }
 end
 
-fn add -> Num = (mov x, mov y: Num) do
+const add -> Num = (mov x, mov y: Num) do
     x + y
 end
 
-fn main -> @result(unit) = () do
+const main -> @result(unit) = () do
     let a = new(10, 5)
     let b = new(5, 10)
-    let c = a.add(&b)
+    let c = a.add(b)
 
     @assert(c.x == 15 and c.y == 15).!
     @assert_neq(@typeOf(a), @typeOf(c)).!
 
     let d = 10
     let e = 5
-    let f = add(d, e)
+    let f = add(mov d, mov e)
 
     @assert(f == 15).!
 end

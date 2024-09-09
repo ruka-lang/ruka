@@ -14,7 +14,7 @@ const std = @import("std")
   * ["Hello,", "world!"]
   * ```
   */
-fn strsplit -> @arrayList(string) = (
+const strsplit -> @arrayList(string) = (
     str: []u8,
     ch: u8
 ) do
@@ -38,7 +38,7 @@ fn strsplit -> @arrayList(string) = (
     words
 end
 
-fn main -> @result(unit) = () do
+const main -> @result(unit) = () do
     let words =
         "| Hello,
          | world!

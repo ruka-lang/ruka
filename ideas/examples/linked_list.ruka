@@ -1,4 +1,4 @@
-fn List -> type = (comptime 'a: type) do
+const List -> type = (comptime 'a: type) do
     record {
         pub const t = record {
             const Self = @this()
@@ -11,9 +11,9 @@ fn List -> type = (comptime 'a: type) do
             t.{ val, next = none }
         end
 
-        pub fn (mut self: t).push = (val: 'a) do
+        pub fn (mut t).push = (val: 'a) do
             if self.next do
-                let mut current = self.next
+                var current = self.next
                 while current.next do
                     current = current.next
                 end
@@ -26,8 +26,8 @@ fn List -> type = (comptime 'a: type) do
     }
 end
 
-fn main = () do
-    let mut list = List(isize).new(12)
+const main = () do
+    var list = List(isize).new(12)
     list.push(16)
 
     @printf("List: [{}, {}]\n", {list.val, list.next.?.val})

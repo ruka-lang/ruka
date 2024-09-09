@@ -5,7 +5,7 @@
 const std = @import("std")
 const string = std.string
 
-fn fibonacci -> usize = (n: usize) do
+const fibonacci -> usize = (n: usize) do
     if n <= 1 do
         1
     else do
@@ -13,7 +13,7 @@ fn fibonacci -> usize = (n: usize) do
     end
 end
 
-fn main -> @result(unit) = () do
+const main -> @result(unit) = () do
     let n = std.io.stdin().gets()
         |> string.parse ~into: usize
         |> .!
