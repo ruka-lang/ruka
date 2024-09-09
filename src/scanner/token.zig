@@ -345,6 +345,7 @@ comptime {
 /// Represent various parameter modes
 pub const Mode = enum {
     @"comptime",
+    @"&",
     loc,
     mov,
     mut,
@@ -363,6 +364,7 @@ pub const Mode = enum {
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
     .{"comptime", .@"comptime"},
+    .{"&", .@"&"},
     .{"loc", .loc},
     .{"mov", .mov},
     .{"mut", .mut}

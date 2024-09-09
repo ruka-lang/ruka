@@ -15,7 +15,7 @@ const std = @import("std")
   * ```
   */
 fn strsplit -> @arrayList(string) = (
-    str: string,
+    str: []u8,
     ch: u8
 ) do
     var indices = @arrayList(uint).new()
@@ -46,5 +46,5 @@ fn main -> @result(unit) = () do
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len == 3).!
+    @assert(words.len == 2).!
 end

@@ -13,13 +13,14 @@ test "div" {
         want: @result(usize)
     }
 
-    let t: @map(string, testcase) = %[string, testcase]{
-        "divide by zero" => .{
+    //let t: @map(string, testcase) = .{
+    let t = [string, testcase]{
+        "divide by zero": .{
             num: 10,
             div: 0,
             want: error.DivideByZero
         },
-        "6 / 2" => .{
+        "6 / 2": .{
             num: 6,
             div: 2,
             want: 3

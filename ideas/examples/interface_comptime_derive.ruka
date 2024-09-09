@@ -1,13 +1,13 @@
 const Num = interface ('a) {
-    (+): (&'a) -> 'a
+    add: (&'a) -> 'a
 }
 
 fn num -> type = (comptime 'a: type) do
-    pub fn (lhs: &'a).add -> 'a = (rhs: &'a) do
+    pub fn (&lhs: 'a).add -> 'a = (&rhs: 'a) do
         let mut result = 'a.{}
 
         for f in @type_info('a).Record.fields do
-            @field(result, f) = @field(lhs, f) + @field(rhs, f)
+            @field(&result, f) = @field(&lhs, f) + @field(&rhs, f)
         end
     end
 
@@ -28,7 +28,7 @@ end
 fn main -> @result(unit) = () do
     let a = new(10, 5)
     let b = new(5, 10)
-    let c = a.add(b)
+    let c = a.add(&b)
 
     @assert(c.x == 15 and c.y == 15).!
     @assert(@typeOf(a), @typeOf(c)).!

@@ -14,11 +14,11 @@ fn fibonacci -> usize = (n: usize) do
 end
 
 fn main -> @result(unit) = () do
-    let n = std.io.gets()
-        |> string.parse() ~into: usize
+    let n = std.io.stdin().gets()
+        |> string.parse ~into: usize
         |> .!
 
     let value = fibonacci(n)
 
-    @print("Fibonacci number {} is {}\n", {n, value})
+    @printf("Fibonacci number {} is {}\n", {n, value})
 end

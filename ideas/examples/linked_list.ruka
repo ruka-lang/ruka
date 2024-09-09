@@ -11,7 +11,7 @@ fn List -> type = (comptime 'a: type) do
             t.{ val, next = none }
         end
 
-        pub fn (mut self: &t).push = (val: 'a) do
+        pub fn (mut self: t).push = (val: 'a) do
             if self.next do
                 let mut current = self.next
                 while current.next do
@@ -30,5 +30,5 @@ fn main = () do
     let mut list = List(isize).new(12)
     list.push(16)
 
-    @print("List: [{}, {}]\n", {list.val, list.next.?.val})
+    @printf("List: [{}, {}]\n", {list.val, list.next.?.val})
 end

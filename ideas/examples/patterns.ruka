@@ -1,20 +1,18 @@
 fn main = () do
     match "Hello, world!" with
-        "Hello, " <> rest do
+        | "Hello, " <> rest do
             @println(rest)
-        end
-        _ => ()
+        | _ => ()
     end
 
-    printArray(uint, &[]{1, 2, 3, 4, 5})
+    print_array(uint, &.{1, 2, 3, 4, 5})
 end
 
-fn printArray = (comptime 'a: type, slice: []'a) do
+fn print_array = (comptime 'a: type, slice: []'a) do
     match &slice with
-        [head, ..tail] do
-            @print("{} ", {head})
-            printArray('a, tail)
-        end
-        _ => @println("")
+        | [head, ..tail] do
+            @print("#{head}, ")
+            print_array('a, tail)
+        | _ => @println("")
     end
 end
