@@ -19,7 +19,7 @@ pub const Vector.add -> Vector = (rhs: Vector) do
 end
 
 const add -> Num = (mov x, mov y: Num) do
-    x + y
+    x.add(y)
 end
 
 const main -> @result(unit) = () do

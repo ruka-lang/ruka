@@ -22,7 +22,7 @@ const new = (x, y) do
 end
 
 const add -> Num = (x, y: Num) do
-    x + y
+    x.add(y)
 end
 
 const main -> @result(unit) = () do

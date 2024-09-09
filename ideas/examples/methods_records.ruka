@@ -8,7 +8,7 @@ const Vector = record {
         t.{ x, y }
     end
 
-    pub const (t).add -> t = (other: t) do
+    pub const t.add -> t = (other: t) do
         t.{
             x = self.x + other.x,
             y = self.y + other.y
