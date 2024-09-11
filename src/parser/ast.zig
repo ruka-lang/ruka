@@ -44,11 +44,13 @@ pub const Node2EB = struct {
     ///
     pub const Data = struct {
         lhs: ?*Node2EB,
+        mhs: ?*Node2EB,
         rhs: ?*Node2EB,
 
         ///
         pub const default: Data = .{
             .lhs = null,
+            .mhs = null,
             .rhs = null
         };
     };
@@ -118,6 +120,7 @@ const tests = struct {
         ast.root = try Node2EB.initAlloc(ast.allocator, .binding, Token.init(.{ .keyword = .let }, "", .{}),
             .{
                 .lhs = try Node2EB.initAlloc(ast.allocator, .identifier, Token.init(.{ .identifier = "x"}, "", .{}), .default),
+                .mhs = null,
                 .rhs = try Node2EB.initAlloc(ast.allocator, .integer, Token.init(.{ .integer = "12" }, "", .{}), .default)
             }
         );
