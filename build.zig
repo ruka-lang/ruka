@@ -56,7 +56,7 @@ pub fn build(b: *std.Build) void {
     const lib_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
-        .test_runner = b.path("util/test_runner.zig"),
+        .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
 
@@ -66,7 +66,7 @@ pub fn build(b: *std.Build) void {
     const exe_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .test_runner = b.path("util/test_runner.zig"),
+        .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
 

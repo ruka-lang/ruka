@@ -6,7 +6,7 @@
 
 const rukac = @import("../root.zig");
 const Compiler = rukac.Compiler;
-const util = rukac.util;
+const utilities = rukac.utilities;
 
 const std = @import("std");
 
@@ -14,8 +14,8 @@ pub const Token = @import("token.zig");
 
 const Scanner = @This();
 
-current_pos: util.Position,
-token_pos: util.Position,
+current_pos: utilities.Position,
+token_pos: utilities.Position,
 compiler: *Compiler,
 idx: usize,
 
@@ -199,9 +199,9 @@ pub fn next_token(self: *Scanner) !Token {
         '\x00' => self.new_token(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => blk: {
-            if (util.is_alphabetical(byte)) {
+            if (utilities.is_alphabetical(byte)) {
                 break :blk self.read_identifier_keyword_mode();
-            } else if (util.is_integral(byte)) {
+            } else if (utilities.is_integral(byte)) {
                 break :blk self.read_integer_float();
             }
 
@@ -279,7 +279,7 @@ fn read_identifier_keyword_mode(self: *Scanner) Token {
     const start = self.idx;
 
     var byte = self.read();
-    while (util.is_alphanumerical(byte)) {
+    while (utilities.is_alphanumerical(byte)) {
         self.advance(1);
         byte = self.read();
     }
@@ -348,7 +348,7 @@ fn read_integer_float(self: *Scanner) Token {
     // Iterate while self.read() is numeric, if self.read() is a '.',
     // read only integer values afterwards
     var byte = self.read();
-    while (util.is_numeric(byte)) {
+    while (utilities.is_numeric(byte)) {
         if (self.read() == '.') {
             self.read_integer();
             float = true;
@@ -373,7 +373,7 @@ fn read_integer(self: *Scanner) void {
     self.advance(1);
 
     var byte = self.read();
-    while (util.is_integral(byte)) {
+    while (utilities.is_integral(byte)) {
         self.advance(1);
         byte = self.read();
     }
@@ -519,7 +519,7 @@ fn handle_escape_characters(self: *Scanner, str: [] const u8) ![]const u8 {
         switch (str[i]) {
             '\\' => {
                 // Adjust to check for hex and unicode escape characters
-                const esc_ch = util.try_escape_char(str[i..i+2]);
+                const esc_ch = utilities.try_escape_char(str[i..i+2]);
 
                 if (esc_ch) |esc| {
                     i = i + 2;
@@ -573,7 +573,7 @@ test "test all scanner modules" {
 
 const tests = struct {
     const testing = std.testing;
-    const Pos = util.Position;
+    const Pos = utilities.Position;
 
     fn compare_tokens(et: *const Token, at: *const Token) !void {
         switch (et.kind) {

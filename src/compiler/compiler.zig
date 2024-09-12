@@ -3,7 +3,7 @@
 
 const rukac = @import("../root.zig");
 const Scanner = rukac.Scanner;
-const util = rukac.util;
+const utilities = rukac.utilities;
 
 const std = @import("std");
 
@@ -14,7 +14,7 @@ pub const CompileError = struct {
     file: []const u8,
     kind: []const u8,
     msg: []const u8,
-    pos: util.Position
+    pos: utilities.Position
 };
 
 /// Responsible for compiling a given file
