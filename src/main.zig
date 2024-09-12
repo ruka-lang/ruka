@@ -2,6 +2,7 @@
 // @created: 2024-03-04
 
 const rukac = @import("root.zig");
+const logging = rukac.logging;
 const cli = @import("cli/cli.zig");
 
 const std = @import("std");
@@ -13,7 +14,7 @@ pub const std_options: std.Options = .{
         .Debug => .debug,
         else => .info
     },
-    .logFn = rukac.util.log
+    .logFn = logging.log
 };
 
 const GPA = std.heap.GeneralPurposeAllocator(.{});
@@ -22,7 +23,7 @@ pub fn main() !void {
     var gpa: GPA = .init;
     defer _ = gpa.deinit();
 
-    try rukac.util.setup_logs(gpa.allocator());
+    try logging.setup_logs(gpa.allocator());
 
     log.debug("compiler started", .{});
 
