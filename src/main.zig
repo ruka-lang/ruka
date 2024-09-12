@@ -3,18 +3,17 @@
 
 const rukac = @import("rukac");
 const interface = @import("interface/interface.zig");
-const logging = rukac.logging;
 
 const std = @import("std");
 
+pub const std_options = rukac.logging.options;
 const log = std.log.scoped(.exe);
-pub const std_options = logging.options;
 
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
     defer _ = gpa.deinit();
 
-    try logging.setup_logs(gpa.allocator());
+    try rukac.logging.setup_logs(gpa.allocator());
 
     log.debug("compiler started", .{});
 
