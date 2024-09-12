@@ -166,6 +166,7 @@ pub fn log(
         std.debug.print("Failed to format timestamp: {}\n", .{err});
         return;
     };
+    defer allocator.free(timestamp);
 
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
@@ -175,6 +176,7 @@ pub fn log(
         std.debug.print("Failed to format timestamp: {}\n", .{err});
         return;
     };
+    defer allocator.free(header);
 
     var buffer: [4096]u8 = undefined;
     const message = std.fmt.bufPrint(buffer[0..], " " ++ format ++ "\n", args) catch |err| {
@@ -186,6 +188,7 @@ pub fn log(
         std.debug.print("Failed to format log message with args: {}\n", .{err});
         return;
     };
+    defer allocator.free(entry);
 
     file.writeAll(entry) catch |err| {
         std.debug.print("Failed to write to log file: {}\n", .{err});
