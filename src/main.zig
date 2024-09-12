@@ -24,6 +24,8 @@ pub fn main() !void {
 
     try rukac.util.setup_logs(gpa.allocator());
 
+    log.debug("compiler started", .{});
+
     try cli.handle_args(gpa.allocator());
 }
 

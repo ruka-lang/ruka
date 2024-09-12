@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
 
     // Dependencies
     const clap = b.dependency("clap", .{});
+    const chrono = b.dependency("chrono", .{});
 
     const optimize = b.standardOptimizeOption(.{});
 
@@ -30,6 +31,7 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("rukac", &lib.root_module);
     exe.root_module.addImport("clap", clap.module("clap"));
+    exe.root_module.addImport("chrono", chrono.module("chrono"));
 
     b.installArtifact(exe);
 
