@@ -1,9 +1,9 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("root.zig");
+const rukac = @import("rukac");
 const logging = rukac.logging;
-const cli = @import("cli/cli.zig");
+const interface = @import("interface/interface.zig");
 
 const std = @import("std");
 
@@ -27,9 +27,9 @@ pub fn main() !void {
 
     log.debug("compiler started", .{});
 
-    try cli.handle_args(gpa.allocator());
+    try interface.handle_args(gpa.allocator());
 }
 
 test "Test all rukac executable modules" {
-    _ = cli;
+    _ = interface;
 }

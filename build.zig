@@ -20,6 +20,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    lib.root_module.addImport("chrono", chrono.module("chrono"));
+
     b.installArtifact(lib);
 
     const exe = b.addExecutable(.{
@@ -31,7 +33,6 @@ pub fn build(b: *std.Build) void {
 
     exe.root_module.addImport("rukac", &lib.root_module);
     exe.root_module.addImport("clap", clap.module("clap"));
-    exe.root_module.addImport("chrono", chrono.module("chrono"));
 
     b.installArtifact(exe);
 
