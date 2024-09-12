@@ -4,6 +4,14 @@
 const std = @import("std");
 const chrono = @import("chrono");
 
+pub const options: std.Options = .{
+    .log_level = switch (@import("builtin").mode) {
+        .Debug => .debug,
+        else => .info
+    },
+    .logFn = log
+};
+
 var created_date: chrono.date.YearMonthDay = undefined;
 var created_time: chrono.Time = undefined;
 var current_date: chrono.date.YearMonthDay = undefined;
