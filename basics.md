@@ -9,6 +9,7 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
     - Meta-programming by Compile time execution of Ruka code
     - Mutable semantics
     - Named arguments
+    - Garbage collected with ability to stack allocate and create traditional allocators
     - Borrow by default
     - Named parameters
     - Type inference, Result location semantics
