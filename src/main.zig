@@ -13,7 +13,8 @@ pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
     defer _ = gpa.deinit();
 
-    try rukac.logging.setup_logs(gpa.allocator());
+    try rukac.logging.init(gpa.allocator());
+    defer rukac.logging.deinit(gpa.allocator());
 
     log.debug("compiler started", .{});
 

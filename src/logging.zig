@@ -12,10 +12,7 @@ pub const options: std.Options = .{
     .logFn = log
 };
 
-var created_date: chrono.date.YearMonthDay = undefined;
-var created_time: chrono.Time = undefined;
-var current_date: chrono.date.YearMonthDay = undefined;
-var current_time: chrono.Time = undefined;
+var log_file: []const u8 = undefined;
 
 pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
     chrono.date.YearMonthDay, 
@@ -42,7 +39,7 @@ pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
     return .{date, time, designation};
 }
 
-pub fn setup_logs(allocator: std.mem.Allocator) !void {
+pub fn init(allocator: std.mem.Allocator) !void {
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
@@ -50,27 +47,33 @@ pub fn setup_logs(allocator: std.mem.Allocator) !void {
     var homedir = try std.fs.openDirAbsolute(home, .{});
     defer homedir.close();
 
-    const logspath = ".local/state/ruka/rukac/logs";
+    const logspath = ".local/state/ruka/logs";
     try homedir.makePath(logspath);
 
     var logs = try homedir.openDir(logspath, .{});
     defer logs.close();
 
-    created_date, created_time, _ = try get_date_time_des(allocator);
+    const created_date, const created_time, _ = try get_date_time_des(allocator);
 
-    const filename = std.fmt.allocPrint(allocator, "{}_{}.log", .{
-        created_date, created_time
+    log_file = std.fmt.allocPrint(allocator, "rukac-{}-{}{}{}.log", .{
+        created_date, 
+        chrono.Time.hour(created_time), 
+        chrono.Time.minute(created_time), 
+        chrono.Time.second(created_time)
     }) catch |err| {
         std.debug.print("Failed to format log filename: {}\n", .{err});
         return error.FormatFailed;
     };
-    defer allocator.free(filename);
 
-    const file = logs.createFile(filename, .{}) catch |err| {
+    const file = logs.createFile(log_file, .{}) catch |err| {
         std.debug.print("Failed to create log file: {}\n", .{err});
         return error.FileCreationFailed;
     };
     file.close();
+}
+
+pub fn deinit(allocator: std.mem.Allocator) void {
+    allocator.free(log_file);
 }
 
 pub fn log(
@@ -91,8 +94,8 @@ pub fn log(
     };
     defer homedir.close();
 
-    const path = std.fmt.allocPrint(allocator, "{s}/{}_{}.log",
-        .{".local/state/ruka/rukac/logs", created_date, created_time}
+    const path = std.fmt.allocPrint(allocator, "{s}/{s}",
+        .{".local/state/ruka/logs", log_file}
     ) catch |err| {
         std.debug.print("Failed to format log file path: {}\n", .{err});
         return;
@@ -114,7 +117,7 @@ pub fn log(
         return;
     };
 
-    _, current_time, _ = get_date_time_des(allocator) catch |err| {
+    _, const current_time, _ = get_date_time_des(allocator) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
