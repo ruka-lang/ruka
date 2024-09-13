@@ -22,6 +22,8 @@ pub fn main() !void {
     try cli.run(gpa.allocator());
 
     log.debug("shutting down compiler", .{});
+
+    // TODO! incorporate multithreading
 }
 
 test "Test all rukac executable modules" {
