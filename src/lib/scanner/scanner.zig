@@ -297,7 +297,7 @@ fn read_identifier_keyword_mode(self: *Scanner) Token {
         }
     }
 
-    self.advance(1);
+    //self.advance(1);
     return self.new_token(kind.?);
 }
 
@@ -735,6 +735,27 @@ const tests = struct {
         };
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
+        defer c.deinit();
+        var s = Scanner.init(&c);
+
+        try check_results(&s, &expected);
+    }
+
+    test "read function identifier" {
+        const source = "let x = hello()";
+        var stream = std.io.fixedBufferStream(source);
+
+        const expected = [_]Token{
+            Token.init(.{ .keyword = .let}, "read function identifier", .{ .line = 1, .col = 1 }),
+            Token.init(.{ .identifier = "x" }, "read function identifier", .{ .line = 1, .col = 5 }),
+            Token.init(.assign, "read function identifier", .{ .line = 1, .col = 7 }),
+            Token.init(.{ .identifier = "hello" }, "read function identifier", .{ .line = 1, .col = 9 }),
+            Token.init(.lparen, "read function identifier", .{ .line = 1, .col = 14 }),
+            Token.init(.rparen, "read function identifier", .{ .line = 1, .col = 15 }),
+            Token.init(.eof, "read function identifier", .{ .line = 1, .col = 16 })
+        };
+
+        var c = try Compiler.init("read function identifier", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
         var s = Scanner.init(&c);
 

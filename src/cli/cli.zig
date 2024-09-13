@@ -21,7 +21,7 @@ pub const params = clap.parseParamsComptime(
 
 const Subcommand = enum { compile, invalid };
 /// Subcommand supported by rukac
-pub const subcommands = std.StaticStringMap(Subcommand).initComptime(.{
+pub const commands = std.StaticStringMap(Subcommand).initComptime(.{
     .{"compile", .compile}
 });
 
@@ -81,12 +81,12 @@ pub fn run(allocator: std.mem.Allocator) !void {
     var err_bw = std.io.bufferedWriter(stderr_file);
     const stderr = err_bw.writer();
 
-    // Handle command line args and subcommands
+    // Handle command line args and commands
     if (res.args.help != 0) return help();
     if (res.args.version != 0) return version();
     if (res.positionals.len < 1) return help();
 
-    const subcommand = subcommands.get(res.positionals[0]) orelse .invalid;
+    const subcommand = commands.get(res.positionals[0]) orelse .invalid;
     switch (subcommand) {
         .compile => {
             if (res.positionals.len < 2) {
@@ -120,7 +120,7 @@ pub fn run(allocator: std.mem.Allocator) !void {
             try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
                 res.positionals[0],
                 constants.usage,
-                constants.subcommands
+                constants.commands
             });
 
             try err_bw.flush();

@@ -5,9 +5,9 @@ const std = @import("std");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
-pub const usage = "usage: rukac [options] subcommand";
-pub const subcommands =
-    \\    subcommands:
+pub const usage = "usage: rukac [options] [command]";
+pub const commands =
+    \\    commands:
     \\        compile <input_file> : Compiles the file given
 ;
 
@@ -31,7 +31,7 @@ pub const help = std.fmt.comptimePrint("rukac {s} (released {s})\n{s}\n\n{s}\n{s
     project_options.version_date,
     project_options.description,
     usage,
-    subcommands,
+    commands,
     options
 });
 
