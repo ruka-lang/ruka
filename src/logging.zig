@@ -4,6 +4,7 @@
 const std = @import("std");
 const chrono = @import("chrono");
 
+///
 pub const options: std.Options = .{
     .log_level = switch (@import("builtin").mode) {
         .Debug => .debug,
@@ -14,6 +15,7 @@ pub const options: std.Options = .{
 
 var log_file: []const u8 = undefined;
 
+///
 pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
     chrono.date.YearMonthDay, 
     chrono.Time, 
@@ -39,6 +41,7 @@ pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
     return .{date, time, designation};
 }
 
+///
 pub fn init(allocator: std.mem.Allocator) !void {
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
@@ -55,8 +58,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
 
     const created_date, const created_time, _ = try get_date_time_des(allocator);
 
-    log_file = std.fmt.allocPrint(allocator, 
-        "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+    log_file = std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
         @as(u13, @intCast(created_date.year)), 
         created_date.month.number(), 
         created_date.day, 
@@ -75,17 +77,21 @@ pub fn init(allocator: std.mem.Allocator) !void {
     file.close();
 }
 
+///
 pub fn deinit(allocator: std.mem.Allocator) void {
     allocator.free(log_file);
 }
 
+///
 pub fn log(
     comptime level: std.log.Level,
     comptime scope: @TypeOf(.EnumLiteral),
     comptime format: []const u8,
     args: anytype
 ) void {
-    const allocator = std.heap.page_allocator;
+    var buffer: [4096]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return;
@@ -97,13 +103,12 @@ pub fn log(
     };
     defer homedir.close();
 
-    const path = std.fmt.allocPrint(allocator, "{s}/{s}",
+    const path = std.fmt.bufPrint(buffer[0..], "{s}/{s}",
         .{".local/state/ruka/logs", log_file}
     ) catch |err| {
         std.debug.print("Failed to format log file path: {}\n", .{err});
         return;
     };
-    defer allocator.free(path);
 
     const file = homedir.openFile(path, .{ .mode = .read_write }) catch |err| {
         std.debug.print("Failed to open log file: {}\n", .{err});
@@ -120,38 +125,34 @@ pub fn log(
         return;
     };
 
-    _, const current_time, _ = get_date_time_des(allocator) catch |err| {
+    _, const current_time, _ = get_date_time_des(fba.allocator()) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
 
-    const timestamp = std.fmt.allocPrint(allocator, "{}", .{current_time}) catch |err| {
+    const timestamp = std.fmt.bufPrint(buffer[4088..], "{}", .{current_time}) catch |err| {
         std.debug.print("Failed to format timestamp: {}\n", .{err});
         return;
     };
-    defer allocator.free(timestamp);
 
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
-    const header = std.fmt.allocPrint(allocator, "{s} {s}:", 
+    const header = std.fmt.bufPrint(buffer[0..], "{s} {s}:", 
         .{timestamp, prefix}
     ) catch |err| {
         std.debug.print("Failed to format timestamp: {}\n", .{err});
         return;
     };
-    defer allocator.free(header);
 
-    var buffer: [4096]u8 = undefined;
-    const message = std.fmt.bufPrint(buffer[0..], " " ++ format ++ "\n", args) catch |err| {
+    const message = std.fmt.bufPrint(buffer[header.len..], " " ++ format ++ "\n", args) catch |err| {
         std.debug.print("Failed to format log message with args: {}\n", .{err});
         return;
     };
 
-    const entry = std.fmt.allocPrint(allocator, "{s}{s}", .{header, message}) catch |err| {
+    const entry = std.fmt.bufPrint(buffer[header.len + message.len..], "{s}{s}", .{header, message}) catch |err| {
         std.debug.print("Failed to format log message with args: {}\n", .{err});
         return;
     };
-    defer allocator.free(entry);
 
     file.writeAll(entry) catch |err| {
         std.debug.print("Failed to write to log file: {}\n", .{err});
