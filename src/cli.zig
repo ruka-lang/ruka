@@ -7,6 +7,7 @@ const Compiler = rukac.Compiler;
 const std = @import("std");
 const clap = @import("clap");
 
+pub const Parser = @import("parser.zig");
 pub const constants = @import("constants.zig");
 pub const logging = @import("logging.zig");
 
@@ -29,6 +30,7 @@ pub fn help() !void {
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
+
     try stdout.print(constants.help, .{});
     try bw.flush();
 }
@@ -38,10 +40,11 @@ pub fn version() !void {
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
+
     try stdout.print("rukac {s} (released {s})\n", .{
-                    constants.version_str,
-                    constants.project_options.version_date
-                    });
+        constants.version_str,
+        constants.project_options.version_date
+    });
     try bw.flush();
 }
 
@@ -59,10 +62,10 @@ pub fn check_file_extension(file: []const u8) bool {
 
 // Creates the compilation unit and begins compilation
 pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
-        var compilation_unit = try Compiler.init(in, null, out, allocator);
-        defer compilation_unit.deinit();
+    var compilation_unit = try Compiler.init(in, null, out, allocator);
+    defer compilation_unit.deinit();
 
-        _ = try compilation_unit.compile();
+    _ = try compilation_unit.compile();
 }
 
 /// Parse and handles command line args
