@@ -19,15 +19,15 @@ var log_path: []const u8 = undefined;
 
 ///
 pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
-    chrono.date.YearMonthDay, 
-    chrono.Time, 
+    chrono.date.YearMonthDay,
+    chrono.Time,
     ?[]const u8
 } {
     var tzdb = try chrono.tz.DataBase.init(allocator);
     defer tzdb.deinit();
 
     const timezone = try tzdb.getLocalTimeZone();
-    
+
     const timestamp_utc = std.time.timestamp();
     const local_offset = timezone.offsetAtTimestamp(timestamp_utc) orelse {
         std.debug.print("Could not convert current time to local time", .{});
@@ -45,7 +45,6 @@ pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
 
 ///
 pub fn init(allocator: std.mem.Allocator) !void {
-    // Get $HOME from enviroment and create path for logs
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
@@ -61,20 +60,18 @@ pub fn init(allocator: std.mem.Allocator) !void {
     var logs = try homedir.openDir(logs_path, .{});
     defer logs.close();
 
-    // Get current date and time and use to create the log file name
     const created_date, const created_time, _ = try get_date_time_des(allocator);
 
     const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
-        @as(u13, @intCast(created_date.year)), 
-        created_date.month.number(), 
-        created_date.day, 
-        chrono.Time.hour(created_time), 
-        chrono.Time.minute(created_time), 
+        @as(u13, @intCast(created_date.year)),
+        created_date.month.number(),
+        created_date.day,
+        chrono.Time.hour(created_time),
+        chrono.Time.minute(created_time),
         chrono.Time.second(created_time)
     });
     defer allocator.free(log_file);
 
-    // Create the file and cache the path for use when logging
     const file = try logs.createFile(log_file, .{});
     file.close();
 
@@ -96,7 +93,6 @@ pub fn log(
     var buffer: [4096]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
-    // Open file and seek to file size
     const file = std.fs.openFileAbsolute(log_path, .{ .mode = .read_write }) catch |err| {
         std.debug.print("Failed to open log file: {}\n", .{err});
         return;
@@ -113,13 +109,11 @@ pub fn log(
         return;
     };
 
-    // Get current time
     _, const current_time, _ = get_date_time_des(fba.allocator()) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
 
-    // Format log entry
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
     const message = std.fmt.bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
@@ -127,7 +121,7 @@ pub fn log(
         return;
     };
 
-    const entry = std.fmt.bufPrint(buffer[message.len..], "{} {s}: {s}", 
+    const entry = std.fmt.bufPrint(buffer[message.len..], "{} {s}: {s}",
         .{current_time, prefix, message}
     ) catch |err| {
         std.debug.print("Failed to format log entry: {}\n", .{err});
