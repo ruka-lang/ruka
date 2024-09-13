@@ -2,7 +2,7 @@
 // @created: 2024-03-04
 
 const rukac = @import("rukac");
-const cli = @import("cli.zig");
+const cli = @import("cli/cli.zig");
 const logging = cli.logging;
 
 const std = @import("std");
