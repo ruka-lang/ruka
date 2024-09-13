@@ -2,8 +2,9 @@
 // @created: 2024-03-04
 
 const std = @import("std");
-const chrono = @import("chrono");
 const clap = @import("clap");
+
+pub const chrono = @import("chrono");
 
 /// Represents a 2d position in a file
 pub const Position = struct {

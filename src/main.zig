@@ -2,19 +2,20 @@
 // @created: 2024-03-04
 
 const rukac = @import("rukac");
-const interface = @import("interface/interface.zig");
+const interface = @import("interface.zig");
+const logging = interface.logging;
 
 const std = @import("std");
 
-pub const std_options = rukac.logging.options;
+pub const std_options = logging.options;
 const log = std.log.scoped(.exe);
 
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
     defer _ = gpa.deinit();
 
-    try rukac.logging.init(gpa.allocator());
-    defer rukac.logging.deinit(gpa.allocator());
+    try logging.init(gpa.allocator());
+    defer logging.deinit(gpa.allocator());
 
     log.debug("starting compiler", .{});
 

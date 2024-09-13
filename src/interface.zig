@@ -8,6 +8,7 @@ const std = @import("std");
 const clap = @import("clap");
 
 pub const constants = @import("constants.zig");
+pub const logging = @import("logging.zig");
 
 pub const params = clap.parseParamsComptime(
     \\-h, --help           Display the help and usage
