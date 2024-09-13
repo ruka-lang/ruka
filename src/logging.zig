@@ -13,7 +13,7 @@ pub const options: std.Options = .{
     .logFn = log
 };
 
-var log_file: []const u8 = undefined;
+var log_path: []const u8 = undefined;
 
 ///
 pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
@@ -43,43 +43,45 @@ pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
 
 ///
 pub fn init(allocator: std.mem.Allocator) !void {
+    // Get $HOME from enviroment and create path for logs
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
     };
+
+    const logs_path = ".local/state/ruka/logs";
+
     var homedir = try std.fs.openDirAbsolute(home, .{});
     defer homedir.close();
 
-    const logspath = ".local/state/ruka/logs";
-    try homedir.makePath(logspath);
+    try homedir.makePath(logs_path);
 
-    var logs = try homedir.openDir(logspath, .{});
+    var logs = try homedir.openDir(logs_path, .{});
     defer logs.close();
 
+    // Get current date and time and use to create the log file name
     const created_date, const created_time, _ = try get_date_time_des(allocator);
 
-    log_file = std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+    const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
         @as(u13, @intCast(created_date.year)), 
         created_date.month.number(), 
         created_date.day, 
         chrono.Time.hour(created_time), 
         chrono.Time.minute(created_time), 
         chrono.Time.second(created_time)
-    }) catch |err| {
-        std.debug.print("Failed to format log filename: {}\n", .{err});
-        return error.FormatFailed;
-    };
+    });
+    defer allocator.free(log_file);
 
-    const file = logs.createFile(log_file, .{}) catch |err| {
-        std.debug.print("Failed to create log file: {}\n", .{err});
-        return error.FileCreationFailed;
-    };
+    // Create the file and cache the path for use when logging
+    const file = try logs.createFile(log_file, .{});
     file.close();
+
+    log_path = try std.fmt.allocPrint(allocator, "{s}/.local/state/ruka/logs/{s}", .{home, log_file});
 }
 
 ///
 pub fn deinit(allocator: std.mem.Allocator) void {
-    allocator.free(log_file);
+    allocator.free(log_path);
 }
 
 ///
@@ -92,25 +94,8 @@ pub fn log(
     var buffer: [4096]u8 = undefined;
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
-    const home = std.posix.getenv("HOME") orelse {
-        std.debug.print("Failed to read $HOME.\n", .{});
-        return;
-    };
-
-    var homedir = std.fs.openDirAbsolute(home, .{}) catch |err| {
-        std.debug.print("Failed to open log file path: {}\n", .{err});
-        return;
-    };
-    defer homedir.close();
-
-    const path = std.fmt.bufPrint(buffer[0..], "{s}/{s}",
-        .{".local/state/ruka/logs", log_file}
-    ) catch |err| {
-        std.debug.print("Failed to format log file path: {}\n", .{err});
-        return;
-    };
-
-    const file = homedir.openFile(path, .{ .mode = .read_write }) catch |err| {
+    // Open file and seek to file size
+    const file = std.fs.openFileAbsolute(log_path, .{ .mode = .read_write }) catch |err| {
         std.debug.print("Failed to open log file: {}\n", .{err});
         return;
     };
@@ -120,37 +105,30 @@ pub fn log(
         std.debug.print("Failed to get stat of log file: {}\n", .{err});
         return;
     };
+
     file.seekTo(stat.size) catch |err| {
         std.debug.print("Failed to seek log file: {}\n", .{err});
         return;
     };
 
+    // Get current time
     _, const current_time, _ = get_date_time_des(fba.allocator()) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
 
-    const timestamp = std.fmt.bufPrint(buffer[4088..], "{}", .{current_time}) catch |err| {
-        std.debug.print("Failed to format timestamp: {}\n", .{err});
-        return;
-    };
-
+    // Format log entry
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
-    const header = std.fmt.bufPrint(buffer[0..], "{s} {s}:", 
-        .{timestamp, prefix}
+    const message = std.fmt.bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
+        std.debug.print("Failed to format log message with args: {}\n", .{err});
+        return;
+    };
+
+    const entry = std.fmt.bufPrint(buffer[message.len..], "{} {s}: {s}", 
+        .{current_time, prefix, message}
     ) catch |err| {
-        std.debug.print("Failed to format timestamp: {}\n", .{err});
-        return;
-    };
-
-    const message = std.fmt.bufPrint(buffer[header.len..], " " ++ format ++ "\n", args) catch |err| {
-        std.debug.print("Failed to format log message with args: {}\n", .{err});
-        return;
-    };
-
-    const entry = std.fmt.bufPrint(buffer[header.len + message.len..], "{s}{s}", .{header, message}) catch |err| {
-        std.debug.print("Failed to format log message with args: {}\n", .{err});
+        std.debug.print("Failed to format log entry: {}\n", .{err});
         return;
     };
 
