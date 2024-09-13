@@ -16,9 +16,11 @@ pub fn main() !void {
     try rukac.logging.init(gpa.allocator());
     defer rukac.logging.deinit(gpa.allocator());
 
-    log.debug("compiler started", .{});
+    log.debug("starting compiler", .{});
 
     try interface.handle_args(gpa.allocator());
+
+    log.debug("shutting down compiler", .{});
 }
 
 test "Test all rukac executable modules" {

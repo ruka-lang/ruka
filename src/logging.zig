@@ -55,8 +55,11 @@ pub fn init(allocator: std.mem.Allocator) !void {
 
     const created_date, const created_time, _ = try get_date_time_des(allocator);
 
-    log_file = std.fmt.allocPrint(allocator, "rukac-{}-{}{}{}.log", .{
-        created_date, 
+    log_file = std.fmt.allocPrint(allocator, 
+        "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+        @as(u13, @intCast(created_date.year)), 
+        created_date.month.number(), 
+        created_date.day, 
         chrono.Time.hour(created_time), 
         chrono.Time.minute(created_time), 
         chrono.Time.second(created_time)
