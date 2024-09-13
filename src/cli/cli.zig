@@ -69,7 +69,7 @@ pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocat
 }
 
 /// Parse and handles command line args
-pub fn handle_args(allocator: std.mem.Allocator) !void {
+pub fn run(allocator: std.mem.Allocator) !void {
     // Parse command line args
     var res = try clap.parse(
         clap.Help, &params,

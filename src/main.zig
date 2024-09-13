@@ -19,7 +19,7 @@ pub fn main() !void {
 
     log.debug("starting compiler", .{});
 
-    try cli.handle_args(gpa.allocator());
+    try cli.run(gpa.allocator());
 
     log.debug("shutting down compiler", .{});
 }
