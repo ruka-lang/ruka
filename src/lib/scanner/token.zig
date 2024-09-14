@@ -1,7 +1,7 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("../root.zig");
+const rukac = @import("../../root.zig");
 const utilities = rukac.utilities;
 
 const std = @import("std");

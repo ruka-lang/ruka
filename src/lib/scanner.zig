@@ -10,7 +10,7 @@ const utilities = rukac.utilities;
 
 const std = @import("std");
 
-pub const Token = @import("token.zig");
+pub const Token = @import("scanner/token.zig");
 
 const Scanner = @This();
 

@@ -5,7 +5,6 @@ const std = @import("std");
 const clap = @import("clap");
 
 pub const chrono = @import("chrono");
-pub const chrono2 = @import("chrono.zig");
 
 /// Represents a 2d position in a file
 pub const Position = struct {
@@ -56,7 +55,3 @@ const escapes = std.StaticStringMap(u8).initComptime(.{
     .{"\\\"", '"'},
     .{"\\0", '\x00'}
 });
-
-test "test all utilities modules" {
-    _ = chrono2;
-}

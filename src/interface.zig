@@ -3,13 +3,11 @@
 
 const rukac = @import("rukac");
 const Compiler = rukac.Compiler;
+const constants = @import("constants.zig");
 
 const std = @import("std");
 const clap = @import("clap");
 
-pub const Parser = @import("parser.zig");
-pub const constants = @import("constants.zig");
-pub const logging = @import("logging.zig");
 
 pub const params = clap.parseParamsComptime(
     \\-h, --help           Display the help and usage
@@ -69,7 +67,7 @@ pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocat
 }
 
 /// Parse and handles command line args
-pub fn run(allocator: std.mem.Allocator) !void {
+pub fn start(allocator: std.mem.Allocator) !void {
     // Parse command line args
     var res = try clap.parse(
         clap.Help, &params,

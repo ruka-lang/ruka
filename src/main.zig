@@ -2,8 +2,8 @@
 // @created: 2024-03-04
 
 const rukac = @import("rukac");
-const cli = @import("cli/cli.zig");
-const logging = cli.logging;
+const interface = @import("interface.zig");
+const logging = @import("logging.zig");
 
 const std = @import("std");
 
@@ -19,7 +19,7 @@ pub fn main() !void {
 
     log.debug("starting compiler", .{});
 
-    try cli.run(gpa.allocator());
+    try interface.start(gpa.allocator());
 
     log.debug("shutting down compiler", .{});
 
@@ -27,5 +27,5 @@ pub fn main() !void {
 }
 
 test "Test all rukac executable modules" {
-    _ = cli;
+    _ = interface;
 }

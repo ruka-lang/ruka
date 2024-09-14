@@ -5,5 +5,5 @@ const std = @import("std");
 
 allocator: std.mem.Allocator,
 
-const Parser = @This();
+const CommandParser = @This();
 

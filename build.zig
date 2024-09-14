@@ -13,16 +13,16 @@ pub fn build(b: *std.Build) void {
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
+    const root = b.addStaticLibrary(.{
         .name = "rukac",
-        .root_source_file = b.path("src/lib/root.zig"),
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    lib.root_module.addImport("chrono", chrono.module("chrono"));
+    root.root_module.addImport("chrono", chrono.module("chrono"));
 
-    b.installArtifact(lib);
+    b.installArtifact(root);
 
     const exe = b.addExecutable(.{
         .name = "rukac",
@@ -31,7 +31,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.root_module.addImport("rukac", &lib.root_module);
+    exe.root_module.addImport("rukac", &root.root_module);
     exe.root_module.addImport("clap", clap.module("clap"));
 
     b.installArtifact(exe);
@@ -54,7 +54,7 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/lib/root.zig"),
+        .root_source_file = b.path("src/root.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
