@@ -8,7 +8,6 @@ const constants = @import("constants.zig");
 const std = @import("std");
 const clap = @import("clap");
 
-
 pub const params = clap.parseParamsComptime(
     \\-h, --help           Display the help and usage
     \\-v, --version        Display the compile version
@@ -58,7 +57,7 @@ pub fn check_file_extension(file: []const u8) bool {
     return false;
 }
 
-// Creates the compilation unit and begins compilation
+/// Creates the compilation unit and begins compilation
 pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
     var compilation_unit = try Compiler.init(in, null, out, allocator);
     defer compilation_unit.deinit();
@@ -68,7 +67,6 @@ pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocat
 
 /// Parse and handles command line args
 pub fn start(allocator: std.mem.Allocator) !void {
-    // Parse command line args
     var res = try clap.parse(
         clap.Help, &params,
         clap.parsers.default, .{.allocator = allocator}
@@ -79,7 +77,6 @@ pub fn start(allocator: std.mem.Allocator) !void {
     var err_bw = std.io.bufferedWriter(stderr_file);
     const stderr = err_bw.writer();
 
-    // Handle command line args and commands
     if (res.args.help != 0) return help();
     if (res.args.version != 0) return version();
     if (res.positionals.len < 1) return help();

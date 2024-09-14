@@ -41,6 +41,14 @@ pub fn initEpoch() Chrono {
     return epoch_unix;
 }
 
+pub fn init() Chrono {
+    var time = epoch_unix;
+
+    time.ms = std.time.milliTimestamp();
+
+    return time;
+}
+
 pub fn deinit(self: Chrono) void {
     _ = self;
 }

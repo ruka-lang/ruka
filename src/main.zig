@@ -1,7 +1,6 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("rukac");
 const interface = @import("interface.zig");
 const logging = @import("logging.zig");
 
@@ -22,8 +21,6 @@ pub fn main() !void {
     try interface.start(gpa.allocator());
 
     log.debug("shutting down compiler", .{});
-
-    // TODO! incorporate multithreading
 }
 
 test "Test all rukac executable modules" {
