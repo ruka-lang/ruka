@@ -1,8 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const interface = @import("interface.zig");
-const logging = @import("logging.zig");
+const interface = @import("bin/interface.zig");
+const logging = @import("bin/logging.zig");
 
 const std = @import("std");
 
