@@ -18,10 +18,9 @@ pub const options: std.Options = .{
 var log_path: []const u8 = undefined;
 
 ///
-pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
+pub fn get_date_time(allocator: std.mem.Allocator) !struct {
     chrono.date.YearMonthDay,
-    chrono.Time,
-    ?[]const u8
+    chrono.Time
 } {
     var tzdb = try chrono.tz.DataBase.init(allocator);
     defer tzdb.deinit();
@@ -35,12 +34,10 @@ pub fn get_date_time_des(allocator: std.mem.Allocator) !struct {
     };
     const timestamp_local = timestamp_utc + local_offset;
 
-    const designation = timezone.designationAtTimestamp(timestamp_utc);
-
     const date = chrono.date.YearMonthDay.fromDaysSinceUnixEpoch(@intCast(@divFloor(timestamp_local, std.time.s_per_day)));
     const time = chrono.Time{ .secs = @intCast(@mod(timestamp_local, std.time.s_per_day)), .frac = 0 };
 
-    return .{date, time, designation};
+    return .{date, time};
 }
 
 ///
@@ -60,7 +57,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
     var logs = try homedir.openDir(logs_path, .{});
     defer logs.close();
 
-    const created_date, const created_time, _ = try get_date_time_des(allocator);
+    const created_date, const created_time = try get_date_time(allocator);
 
     const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
         @as(u13, @intCast(created_date.year)),
@@ -109,7 +106,7 @@ pub fn log(
         return;
     };
 
-    _, const current_time, _ = get_date_time_des(fba.allocator()) catch |err| {
+    _, const current_time = get_date_time(fba.allocator()) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
