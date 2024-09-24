@@ -55,6 +55,14 @@ pub fn deinit(self: Chrono) void {
 
 ///
 pub const Weekday = enum {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+
     pub fn toString(self: Weekday) []const u8 {
         return @tagName(self);
     }
@@ -62,6 +70,19 @@ pub const Weekday = enum {
 
 ///
 pub const Month = enum {
+    January,
+    February,
+    March,
+    April,
+    May,
+    June, 
+    July,
+    August,
+    September,
+    October,
+    November,
+    December,
+
     pub fn toString(self: Month) []const u8 {
         return @tagName(self);
     }
