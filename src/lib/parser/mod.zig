@@ -1,7 +1,7 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
-///
+//
 
 const rukac = @import("../../root.zig");
 const Scanner = rukac.Scanner;

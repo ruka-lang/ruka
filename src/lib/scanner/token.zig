@@ -1,8 +1,9 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("../../root.zig");
-const utilities = rukac.utilities;
+//
+
+const rukac = @import("../../root.zig").prelude;
 
 const std = @import("std");
 
@@ -11,10 +12,10 @@ const Token = @This();
 /// Represents a lexeme: it's kind, file, and position within that file
 kind: Kind,
 file: []const u8,
-pos: utilities.Position,
+pos: rukac.Position,
 
 /// Creates a new token
-pub fn init(kind: Kind, file: []const u8, pos: utilities.Position) Token {
+pub fn init(kind: Kind, file: []const u8, pos: rukac.Position) Token {
     return Token {
         .kind = kind,
         .file = file,

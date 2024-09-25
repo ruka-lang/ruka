@@ -1,8 +1,9 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("rukac");
-const Compiler = rukac.Compiler;
+//
+
+const rukac = @import("rukac").prelude;
 const constants = @import("constants.zig");
 
 const std = @import("std");
@@ -59,7 +60,7 @@ pub fn check_file_extension(file: []const u8) bool {
 
 /// Creates the compilation unit and begins compilation
 pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
-    var compilation_unit = try Compiler.init(in, null, out, allocator);
+    var compilation_unit = try rukac.Compiler.init(in, null, out, allocator);
     defer compilation_unit.deinit();
 
     _ = try compilation_unit.compile();

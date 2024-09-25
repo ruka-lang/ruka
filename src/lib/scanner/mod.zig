@@ -1,12 +1,11 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-/// Responsible for scanning the source file contained in the compiler which
-/// owns this scanner
+// Responsible for scanning the source file contained in the compiler which
+// owns this scanner
 
-const rukac = @import("../../root.zig");
+const rukac = @import("../../root.zig").prelude;
 const Compiler = rukac.Compiler;
-const utilities = rukac.utilities;
 
 const std = @import("std");
 
@@ -14,8 +13,8 @@ pub const Token = @import("token.zig");
 
 const Scanner = @This();
 
-current_pos: utilities.Position,
-token_pos: utilities.Position,
+current_pos: rukac.Position,
+token_pos: rukac.Position,
 compiler: *Compiler,
 idx: usize,
 
@@ -199,9 +198,9 @@ pub fn next_token(self: *Scanner) !Token {
         '\x00' => self.new_token(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => blk: {
-            if (utilities.is_alphabetical(byte)) {
+            if (rukac.is_alphabetical(byte)) {
                 break :blk self.read_identifier_keyword_mode();
-            } else if (utilities.is_integral(byte)) {
+            } else if (rukac.is_integral(byte)) {
                 break :blk self.read_integer_float();
             }
 
@@ -279,7 +278,7 @@ fn read_identifier_keyword_mode(self: *Scanner) Token {
     const start = self.idx;
 
     var byte = self.read();
-    while (utilities.is_alphanumerical(byte)) {
+    while (rukac.is_alphanumerical(byte)) {
         self.advance(1);
         byte = self.read();
     }
@@ -348,7 +347,7 @@ fn read_integer_float(self: *Scanner) Token {
     // Iterate while self.read() is numeric, if self.read() is a '.',
     // read only integer values afterwards
     var byte = self.read();
-    while (utilities.is_numeric(byte)) {
+    while (rukac.is_numeric(byte)) {
         if (self.read() == '.') {
             self.read_integer();
             float = true;
@@ -373,7 +372,7 @@ fn read_integer(self: *Scanner) void {
     self.advance(1);
 
     var byte = self.read();
-    while (utilities.is_integral(byte)) {
+    while (rukac.is_integral(byte)) {
         self.advance(1);
         byte = self.read();
     }
@@ -519,7 +518,7 @@ fn handle_escape_characters(self: *Scanner, str: [] const u8) ![]const u8 {
         switch (str[i]) {
             '\\' => {
                 // Adjust to check for hex and unicode escape characters
-                const esc_ch = utilities.try_escape_char(str[i..i+2]);
+                const esc_ch = rukac.try_escape_char(str[i..i+2]);
 
                 if (esc_ch) |esc| {
                     i = i + 2;
@@ -573,7 +572,7 @@ test "test all scanner modules" {
 
 const tests = struct {
     const testing = std.testing;
-    const Pos = utilities.Position;
+    const Pos = rukac.Position;
 
     fn compare_tokens(et: *const Token, at: *const Token) !void {
         switch (et.kind) {
@@ -644,7 +643,7 @@ const tests = struct {
 
         var c = try Compiler.init("next token", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -676,7 +675,7 @@ const tests = struct {
 
         var c = try Compiler.init("compound operators", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -695,7 +694,7 @@ const tests = struct {
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -717,7 +716,7 @@ const tests = struct {
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -736,7 +735,7 @@ const tests = struct {
 
         var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -757,7 +756,7 @@ const tests = struct {
 
         var c = try Compiler.init("read function identifier", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -776,7 +775,7 @@ const tests = struct {
         var c = try Compiler.init("single comment", stream.reader().any(), null, testing.allocator);
 
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
@@ -797,7 +796,7 @@ const tests = struct {
 
         var c = try Compiler.init("multi comment", stream.reader().any(), null, testing.allocator);
         defer c.deinit();
-        var s = Scanner.init(&c);
+        var s = Scanner.init(c);
 
         try check_results(&s, &expected);
     }
