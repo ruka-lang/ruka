@@ -21,8 +21,8 @@ pub const Error = struct {
     pos: utilities.Position
 };
 
-input: ?[]const u8,
-output: ?[]const u8,
+input: []const u8,
+output: []const u8,
 transport: rukac.Transport,
 // ast: ?Ast,
 // context: std.ArrayList(...),
@@ -39,17 +39,17 @@ job_queue: std.fifo.LinearFifo(Job, .Dynamic),
 
 pub const CompilerOptions = struct {
     input: []const u8,
-    output: ?[]const u8,
-    reader: ?std.io.AnyReader,
-    writer: ?std.io.AnyWriter,
+    output: []const u8,
+    reader: std.io.AnyReader,
+    writer: std.io.AnyWriter,
     allocator: std.mem.Allocator,
 
-    pub fn testing(reader: std.io.AnyReader) CompilerOptions {
+    pub fn testing(reader: std.io.AnyReader, writer: std.io.AnyWriter) CompilerOptions {
         return CompilerOptions {
             .input = "test source",
-            .output = null,
+            .output = "test buffer",
             .reader = reader,
-            .writer = null,
+            .writer = writer,
             .allocator = std.testing.allocator
         };
     }
@@ -63,7 +63,7 @@ pub fn init(opts: CompilerOptions) !*Compiler {
     compiler.* = .{
         .input = opts.input,
         .output = opts.output,
-        .transport = try rukac.Transport.init(opts.input, opts.reader, opts.output, opts.writer),
+        .transport = try rukac.Transport.init(opts.reader, opts.writer),
         .errors = std.ArrayList(Error).init(opts.allocator),
 
         .allocator = opts.allocator,
@@ -88,11 +88,10 @@ pub fn init(opts: CompilerOptions) !*Compiler {
 pub fn deinit(self: *Compiler) void {
     self.wait_group.wait();
     self.pool.deinit();
-    self.transport.deinit();
     while (self.job_queue.readItem()) |job| job.deinit();
     self.job_queue.deinit();
-    self.arena.deinit();
     self.errors.deinit();
+    self.arena.deinit();
     self.allocator.destroy(self);
 }
 
@@ -102,7 +101,7 @@ pub fn createError(self: *Compiler, scanner: *Scanner, kind: []const u8, msg: []
     defer self.mutex.unlock();
 
     try self.errors.append(.{
-        .file = self.input.?,
+        .file = self.input,
         .kind = kind,
         .msg = msg,
         .pos = scanner.current_pos

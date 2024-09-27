@@ -272,7 +272,7 @@ fn prev(self: *Scanner) u8 {
 fn newToken(self: *Scanner, kind: Token.Kind) Token {
     return Token.init(
         kind,
-        self.compiler.input.?,
+        self.compiler.input,
         self.token_pos
     );
 }
@@ -628,9 +628,12 @@ const tests = struct {
 
     test "next token" {
         const source = "let x = 12_000 12_000.50 '\\n'";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -651,9 +654,12 @@ const tests = struct {
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -683,9 +689,12 @@ const tests = struct {
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -707,9 +716,12 @@ const tests = struct {
                        \\         | Hello, world!
                        \\         |"
                        ;
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -728,9 +740,12 @@ const tests = struct {
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -749,9 +764,12 @@ const tests = struct {
 
     test "read function identifier" {
         const source = "let x = hello()";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -772,9 +790,12 @@ const tests = struct {
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 
@@ -795,9 +816,12 @@ const tests = struct {
                        \\12_000 12_000.50
                        \\*/
                        ;
-        var stream = std.io.fixedBufferStream(source);
+        var input = std.io.fixedBufferStream(source);
 
-        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var compiler = try Compiler.init(.testing(input.reader().any(), output.writer().any()));
         defer compiler.deinit();
         var scanner = Scanner.init(compiler);
 

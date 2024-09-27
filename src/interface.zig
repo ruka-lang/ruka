@@ -66,24 +66,19 @@ pub fn compileFile(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocato
     const input = try std.fs.cwd().openFile(in, .{});
     defer input.close();
 
-    var output: ?std.fs.File = undefined;
-    defer if (output) |o| o.close();
-    var writer: ?std.io.AnyWriter = null;
-    if (out) |o| {
-        output = try std.fs.cwd().createFile(o, .{});
-        writer = output.?.writer().any();
-    }
+    var buf: [10]u8 = undefined;
+    var output = std.io.fixedBufferStream(&buf);
 
-    var compilation_unit = try rukac.Compiler.init(.{
+    var compiler = try rukac.Compiler.init(.{
         .input = in, 
-        .output = out, 
+        .output = out orelse "no output", 
         .reader = input.reader().any(),
-        .writer = writer,
+        .writer = output.writer().any(),
         .allocator = allocator
     });
-    defer compilation_unit.deinit();
+    defer compiler.deinit();
 
-    try compilation_unit.compile();
+    try compiler.compile();
 }
 
 /// Parse and handles command line args
