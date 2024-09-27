@@ -3,7 +3,7 @@
 
 // Responsible for compiling an entire project
 
-const rukac = @import("root.zig");
+const rukac = @import("root.zig").prelude;
 const Scanner = rukac.Scanner;
 const utilities = rukac.utilities;
 

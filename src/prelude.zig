@@ -3,7 +3,7 @@
 
 const rukac = @import("root.zig");
 
-const utilities = rukac.utilities;
+pub const utilities = rukac.utilities;
 //pub const Chrono = rukac.utilities.Chrono;
 pub const Chrono = utilities.chrono;
 pub const Compiler = rukac.Compiler;

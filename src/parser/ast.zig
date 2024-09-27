@@ -3,8 +3,8 @@
 
 //
 
-const rukac = @import("../root.zig");
-const Token = rukac.Scanner.Token;
+const rukac = @import("../root.zig").prelude;
+const Token = rukac.Token;
 
 const std = @import("std");
 

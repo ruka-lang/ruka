@@ -3,7 +3,7 @@
 
 // Responsible for compiling a given file
 
-const rukac = @import("../root.zig");
+const rukac = @import("../root.zig").prelude;
 const Compiler = rukac.Compiler;
 const Scanner = rukac.Scanner;
 const utilities = rukac.utilities;
