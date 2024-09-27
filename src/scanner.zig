@@ -28,7 +28,7 @@ allocator: std.mem.Allocator,
 
 /// Creates a new scanner instance
 pub fn init(compiler: *Compiler) Scanner {
-    return Scanner{
+    return Scanner {
         .current_pos = .{.line = 1, .col = 1},
         .token_pos = .{.line = 1, .col = 1},
         .index = 0,
