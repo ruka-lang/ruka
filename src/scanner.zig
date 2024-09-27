@@ -317,7 +317,11 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
         // then kind is identifier
         if (kind == null) {
             kind = .{ .identifier = string };
+        } else {
+            string.deinit();
         }
+    } else {
+        string.deinit();
     }
 
     return self.newToken(kind.?);
@@ -326,6 +330,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
 // Reads a character literal from the file
 fn readCharacter(self: *Scanner) !?Token {
     var string = std.ArrayList(u8).init(self.allocator);
+    defer string.deinit();
 
     // Iterate until the final delimiter or EOF is reached
     while (self.peek() != '\'' and self.peek() != '\x00') {
@@ -334,7 +339,7 @@ fn readCharacter(self: *Scanner) !?Token {
     }
 
     // Check if character literal contains a escape character
-    string = self.handleEscapeCharacters(string.items) catch unreachable;
+    string = try self.handleEscapeCharacters(string.items);
 
     // Create errors if string length isn't 1
     if (string.items.len > 1) {
@@ -398,6 +403,7 @@ const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
 // Tries to create a token.Kind based on the passed in tuple of tuples
 fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
     var string = std.ArrayList(u8).init(self.allocator);
+    defer string.deinit();
     try string.append(self.read());
     try string.append(self.peek());
 
@@ -469,7 +475,6 @@ fn readSingleString(self: *Scanner) !Token {
 // Reads a multi line string
 fn readMultiString(self: *Scanner) !Token {
     var string = std.ArrayList(u8).init(self.allocator);
-    defer string.deinit();
 
     self.advance(1);
     while (self.peek() != '"' and self.peek() != '\x00') {
@@ -500,9 +505,7 @@ fn readMultiString(self: *Scanner) !Token {
     if (self.prev() != '"') try self.createError("unterminated string literal");
 
     string = try self.handleEscapeCharacters(string.items);
-    return self.newToken(try .initString(string.items, self.allocator));
-    // TODO why tf does this not work here but does work above in readString
-    //return self.newToken(.{ .string = string });
+    return self.newToken(.{ .string = string });
 }
 
 /// Checks if a string represents an escape character, if it does return that character
