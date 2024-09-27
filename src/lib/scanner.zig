@@ -4,12 +4,12 @@
 // Responsible for scanning the source file contained in the compiler which
 // owns this scanner
 
-const rukac = @import("../../root.zig").prelude;
+const rukac = @import("../root.zig").prelude;
 const Compiler = rukac.Compiler;
 
 const std = @import("std");
 
-pub const Token = @import("token.zig");
+pub const Token = @import("scanner/token.zig");
 
 const Scanner = @This();
 

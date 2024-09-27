@@ -4,9 +4,9 @@
 pub const prelude = @import("lib/prelude.zig");
 pub const utilities = @import("lib/utilities.zig");
 pub const Chrono = @import("lib/chrono.zig");
-pub const Compiler = @import("lib/compiler/mod.zig");
-pub const Scanner = @import("lib/scanner/mod.zig");
-pub const Parser = @import("lib/parser/mod.zig");
+pub const Compiler = @import("lib/compiler.zig");
+pub const Scanner = @import("lib/scanner.zig");
+pub const Parser = @import("lib/parser.zig");
 
 test "Test all rukac library modules" {
     _ = utilities;

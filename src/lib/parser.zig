@@ -3,7 +3,7 @@
 
 //
 
-const rukac = @import("../../root.zig");
+const rukac = @import("../root.zig");
 const Scanner = rukac.Scanner;
 
 const std = @import("std");
@@ -13,7 +13,7 @@ allocator: std.mem.Allocator,
 
 const Parser = @This();
 
-pub const Ast = @import("ast.zig");
+pub const Ast = @import("parser/ast.zig");
 
 ///
 pub fn init(allocator: std.mem.Allocator) Parser {

@@ -3,7 +3,7 @@
 
 // Responsible for compiling an entire project
 
-const rukac = @import("../../root.zig");
+const rukac = @import("../root.zig");
 const Scanner = rukac.Scanner;
 const utilities = rukac.utilities;
 
@@ -11,7 +11,7 @@ const std = @import("std");
 
 const Compiler = @This();
 
-pub const Unit = @import("unit.zig");
+pub const Unit = @import("compiler/unit.zig");
 
 /// Represents an error during compilation
 pub const Error = struct {

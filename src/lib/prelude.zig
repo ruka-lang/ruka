@@ -1,12 +1,14 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-const utilities = @import("utilities.zig");
-//pub const Chrono = @import("chrono.zig");
+const rukac = @import("../root.zig");
+
+const utilities = rukac.utilities;
+//pub const Chrono = rukac.utilities.Chrono;
 pub const Chrono = utilities.chrono;
-pub const Compiler = @import("compiler/mod.zig");
-pub const Scanner = @import("scanner/mod.zig");
-pub const Parser = @import("parser/mod.zig");
+pub const Compiler = rukac.Compiler;
+pub const Scanner = rukac.Scanner;
+pub const Parser = rukac.Parser;
 
 pub const Position = utilities.Position;
 pub const is_numeric = utilities.is_numeric;
