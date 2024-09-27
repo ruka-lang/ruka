@@ -22,12 +22,7 @@ read_char: u8,
 peek_char: u8,
 peep_char: ?u8,
 
-input: []const u8,
-output: ?[]const u8,
-reader: *std.io.AnyReader,
-
-mutex: *std.Thread.Mutex,
-errors: *std.ArrayList(Compiler.Error),
+compiler: *Compiler,
 
 allocator: std.mem.Allocator,
 
@@ -39,16 +34,11 @@ pub fn init(compiler: *Compiler) Scanner {
         .index = 0,
 
         .prev_char = undefined,
-        .read_char = compiler.reader.readByte() catch '\x00',
-        .peek_char = compiler.reader.readByte() catch '\x00',
+        .read_char = compiler.transport.readByte() catch '\x00',
+        .peek_char = compiler.transport.readByte() catch '\x00',
         .peep_char = null,
 
-        .input = compiler.input,
-        .output = compiler.output,
-        .reader = &compiler.reader,
-
-        .mutex = &compiler.mutex,
-        .errors = &compiler.errors,
+        .compiler = compiler,
 
         .allocator = compiler.arena.allocator()
     };
@@ -250,7 +240,7 @@ fn advance(self: *Scanner, count: usize) void {
         } else {
             self.prev_char = self.read_char;
             self.read_char = self.peek_char;
-            self.peek_char = self.reader.readByte() catch '\x00';
+            self.peek_char = self.compiler.transport.readByte() catch '\x00';
         }
 
         self.index = self.index + 1;
@@ -282,7 +272,7 @@ fn prev(self: *Scanner) u8 {
 fn newToken(self: *Scanner, kind: Token.Kind) Token {
     return Token.init(
         kind,
-        self.input,
+        self.compiler.input.?,
         self.token_pos
     );
 }
@@ -309,6 +299,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
         byte = self.read();
     }
 
+    var is_identifier = false;
     var kind = Token.Kind.tryMode(string.items);
     if (kind == null) {
         kind = Token.Kind.tryKeyword(string.items);
@@ -317,12 +308,11 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
         // then kind is identifier
         if (kind == null) {
             kind = .{ .identifier = string };
-        } else {
-            string.deinit();
-        }
-    } else {
-        string.deinit();
+            is_identifier = true;
+        }    
     }
+    
+    if (!is_identifier) string.deinit();
 
     return self.newToken(kind.?);
 }
@@ -412,7 +402,7 @@ fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
     // return the third element of the sub-tuple
     inline for (matches) |match| {
         if (match[0] == 3) {
-            self.peep_char = try self.reader.readByte(); 
+            self.peep_char = try self.compiler.transport.readByte(); 
             try string.append(self.peep_char.?);
         }
 
@@ -559,15 +549,7 @@ fn handleEscapeCharacters(self: *Scanner, str: [] const u8) !std.ArrayList(u8) {
 }
 
 fn createError(self: *Scanner, msg: []const u8) !void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
-    return try self.errors.append(.{
-        .file = self.input,
-        .kind = "scanning error",
-        .msg = msg,
-        .pos = self.current_pos
-    });
+    try self.compiler.createError(self, "scanner error", msg);
 }
 
 // Creates an escape character compilation error

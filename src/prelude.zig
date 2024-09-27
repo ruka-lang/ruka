@@ -4,11 +4,14 @@
 const rukac = @import("root.zig");
 
 pub const utilities = rukac.utilities;
-//pub const Chrono = rukac.utilities.Chrono;
+//pub const Chrono = utilities.Chrono;
 pub const Chrono = utilities.chrono;
+
 pub const Compiler = rukac.Compiler;
 pub const Scanner = rukac.Scanner;
 pub const Parser = rukac.Parser;
+
+pub const Transport = rukac.Transport;
 
 pub const Position = utilities.Position;
 pub const isNumeric = utilities.isNumeric;

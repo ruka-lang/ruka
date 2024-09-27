@@ -21,10 +21,9 @@ pub const Error = struct {
     pos: utilities.Position
 };
 
-input: []const u8,
+input: ?[]const u8,
 output: ?[]const u8,
-reader: std.io.AnyReader,
-writer: ?std.io.AnyWriter,
+transport: rukac.Transport,
 // ast: ?Ast,
 // context: std.ArrayList(...),
 errors: std.ArrayList(Error),
@@ -41,7 +40,7 @@ job_queue: std.fifo.LinearFifo(Job, .Dynamic),
 pub const CompilerOptions = struct {
     input: []const u8,
     output: ?[]const u8,
-    reader: std.io.AnyReader,
+    reader: ?std.io.AnyReader,
     writer: ?std.io.AnyWriter,
     allocator: std.mem.Allocator,
 
@@ -64,8 +63,7 @@ pub fn init(opts: CompilerOptions) !*Compiler {
     compiler.* = .{
         .input = opts.input,
         .output = opts.output,
-        .reader = opts.reader,
-        .writer = opts.writer,
+        .transport = try rukac.Transport.init(opts.input, opts.reader, opts.output, opts.writer),
         .errors = std.ArrayList(Error).init(opts.allocator),
 
         .allocator = opts.allocator,
@@ -90,11 +88,25 @@ pub fn init(opts: CompilerOptions) !*Compiler {
 pub fn deinit(self: *Compiler) void {
     self.wait_group.wait();
     self.pool.deinit();
+    self.transport.deinit();
     while (self.job_queue.readItem()) |job| job.deinit();
     self.job_queue.deinit();
     self.arena.deinit();
     self.errors.deinit();
     self.allocator.destroy(self);
+}
+
+///
+pub fn createError(self: *Compiler, scanner: *Scanner, kind: []const u8, msg: []const u8) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    try self.errors.append(.{
+        .file = self.input.?,
+        .kind = kind,
+        .msg = msg,
+        .pos = scanner.current_pos
+    });
 }
 
 /// Begins the compilation process for the compilation unit

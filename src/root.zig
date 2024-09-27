@@ -3,10 +3,13 @@
 
 pub const prelude = @import("prelude.zig");
 pub const utilities = @import("utilities.zig");
+
 pub const Chrono = @import("chrono.zig");
 pub const Compiler = @import("compiler.zig");
 pub const Scanner = @import("scanner.zig");
 pub const Parser = @import("parser.zig");
+
+pub const Transport = @import("transport.zig");
 
 test "Test all rukac library modules" {
     _ = utilities;
