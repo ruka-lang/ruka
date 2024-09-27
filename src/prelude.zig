@@ -11,11 +11,10 @@ pub const Scanner = rukac.Scanner;
 pub const Parser = rukac.Parser;
 
 pub const Position = utilities.Position;
-pub const is_numeric = utilities.is_numeric;
-pub const is_integral = utilities.is_integral;
-pub const is_alphabetical = utilities.is_alphabetical;
-pub const is_alphanumerical = utilities.is_alphanumerical;
-pub const try_escape_char = utilities.try_escape_char;
+pub const isNumeric = utilities.isNumeric;
+pub const isIntegral = utilities.isIntegral;
+pub const isAlphabetical = utilities.isAlphabetical;
+pub const isAlphanumerical = utilities.isAlphanumerical;
 
 pub const Job = Compiler.Job;
 pub const Unit = Compiler.Unit;

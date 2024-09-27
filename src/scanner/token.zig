@@ -23,13 +23,18 @@ pub fn init(kind: Kind, file: []const u8, pos: rukac.Position) Token {
     };
 }
 
+///
+pub fn deinit(self: Token) void {
+    self.kind.deinit();
+}
+
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
-    identifier: []const u8,
-    string: []const u8,
+    identifier: std.ArrayList(u8),
+    string: std.ArrayList(u8),
     character: u8,
-    integer: []const u8,
-    float: []const u8,
+    integer: std.ArrayList(u8),
+    float: std.ArrayList(u8),
     keyword: Keyword,
     mode: Mode,
     // Assignment
@@ -91,8 +96,44 @@ pub const Kind = union(enum) {
     illegal,
     eof,           // \x00
 
+    pub fn initIdentifier(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var identifier = std.ArrayList(u8).init(allocator);
+        try identifier.appendSlice(source);
+
+        return Kind {
+            .identifier = identifier
+        };
+    }
+
+    pub fn initString(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var string = std.ArrayList(u8).init(allocator);
+        try string.appendSlice(source);
+
+        return Kind {
+            .string = string
+        };
+    }
+
+    pub fn initInteger(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var integer = std.ArrayList(u8).init(allocator);
+        try integer.appendSlice(source);
+
+        return Kind {
+            .integer = integer
+        };
+    }
+
+    pub fn initFloat(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var float = std.ArrayList(u8).init(allocator);
+        try float.appendSlice(source);
+
+        return Kind {
+            .float = float
+        };
+    }
+
     // Tries to create a Kind from a byte
-    pub fn from_byte(byte: u8) Kind {
+    pub fn fromByte(byte: u8) Kind {
         return switch(byte) {
             // Assignment
             '='    => .assign,
@@ -138,17 +179,27 @@ pub const Kind = union(enum) {
         };
     }
 
+    pub fn deinit(self: Kind) void {
+        switch (self) {
+            .identifier   => |id| id.deinit(),
+            .string       => |st| st.deinit(),
+            .integer      => |in| in.deinit(),
+            .float        => |fl| fl.deinit(),
+            else => {}
+        }
+    }
+
     // Converts a Kind into a string slice
-    pub fn to_str(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
+    pub fn toStr(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
-            .identifier   => |id| id,
-            .string       => |st| st,
-            .character    => |ch| try self.char_to_string(ch, allocator),
-            .integer      => |in| in,
-            .float        => |fl| fl,
-            .keyword      => |ke| ke.to_str(),
-            .mode         => |mo| mo.to_str(),
+            .identifier   => |id| id.items,
+            .string       => |st| st.items,
+            .character    => |ch| try self.charToString(ch, allocator),
+            .integer      => |in| in.items,
+            .float        => |fl| fl.items,
+            .keyword      => |ke| ke.toStr(),
+            .mode         => |mo| mo.toStr(),
             // Assignment
             .assign       => "=",
             .assign_exp   => ":=",
@@ -210,20 +261,20 @@ pub const Kind = union(enum) {
         };
     }
 
-    fn char_to_string(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
+    fn charToString(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
         var str = try allocator.alloc(u8, 1);
         str[0] = ch;
         return str[0..];
     }
 
     /// Tries to create a keyword Kind from a string slice
-    pub fn try_keyword(slice: []const u8) ?Kind {
+    pub fn tryKeyword(slice: []const u8) ?Kind {
         const keyword = keywords.get(slice) orelse return null;
         return .{ .keyword = keyword };
     }
 
     /// Tries to create a mode Kind from a string slice
-    pub fn try_mode(slice: []const u8) ?Kind {
+    pub fn tryMode(slice: []const u8) ?Kind {
         const mode = modes.get(slice) orelse return null;
         return .{ .mode = mode };
     }
@@ -274,7 +325,7 @@ pub const Keyword = enum {
     as,
 
     /// Converts a keyword into a string slice
-    pub fn to_str(self: *const Keyword) []const u8 {
+    pub fn toStr(self: *const Keyword) []const u8 {
         for (keywords.keys(), keywords.values()) |key, value| {
             if (value == self.*) {
                 return key;
@@ -356,7 +407,7 @@ pub const Mode = enum {
     mut,
 
     /// Converts a mode into a string slice
-    pub fn to_str(self: *const Mode) []const u8 {
+    pub fn toStr(self: *const Mode) []const u8 {
         for (modes.keys(), modes.values()) |key, value| {
             if (value == self.*) {
                 return key;
@@ -397,7 +448,7 @@ test "mode comparision" {
     const testing = std.testing;
 
     const mode: Kind = .{ .mode = .mut };
-    const mode2 = Kind.try_mode("mut").?;
+    const mode2 = Kind.tryMode("mut").?;
 
     try testing.expect(mode.mode == mode2.mode);
 }

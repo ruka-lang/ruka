@@ -50,7 +50,7 @@ pub fn version() !void {
 }
 
 /// Checks if the file path ends in the one of the proper file extensions
-pub fn check_file_extension(file: []const u8) bool {
+pub fn checkFileExtension(file: []const u8) bool {
     var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
     const extension = path_iter.first();
 
@@ -62,11 +62,28 @@ pub fn check_file_extension(file: []const u8) bool {
 }
 
 /// Creates the compilation unit and begins compilation
-pub fn compile_file(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
-    var compilation_unit = try rukac.Compiler.init(in, null, out, allocator);
+pub fn compileFile(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
+    const input = try std.fs.cwd().openFile(in, .{});
+    defer input.close();
+
+    var output: ?std.fs.File = undefined;
+    defer if (output) |o| o.close();
+    var writer: ?std.io.AnyWriter = null;
+    if (out) |o| {
+        output = try std.fs.cwd().createFile(o, .{});
+        writer = output.?.writer().any();
+    }
+
+    var compilation_unit = try rukac.Compiler.init(.{
+        .input = in, 
+        .output = out, 
+        .reader = input.reader().any(),
+        .writer = writer,
+        .allocator = allocator
+    });
     defer compilation_unit.deinit();
 
-    _ = try compilation_unit.compile();
+    try compilation_unit.compile();
 }
 
 /// Parse and handles command line args
@@ -102,7 +119,7 @@ pub fn start(allocator: std.mem.Allocator) !void {
 
             const file = res.positionals[1];
 
-            if (!check_file_extension(file)) {
+            if (!checkFileExtension(file)) {
                 var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
                 try stderr.print(
                     "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
@@ -113,7 +130,7 @@ pub fn start(allocator: std.mem.Allocator) !void {
                 std.posix.exit(1);
             }
 
-            try compile_file(file, res.args.output, allocator);
+            try compileFile(file, res.args.output, allocator);
         },
         .invalid => {
             try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{

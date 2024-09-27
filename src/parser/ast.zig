@@ -77,7 +77,7 @@ pub const Node2EB = struct {
 
     ///
     pub fn deinit(self: Node2EB) void {
-        _ = self;
+        self.main_token.deinit();
     }
 };
 
@@ -99,6 +99,7 @@ pub fn deinit(self: Ast) void {
 fn deinit_internal(self: Ast, node: ?*Node2EB) void {
     if (node) |n| {
         defer self.allocator.destroy(n);
+        n.deinit();
 
         self.deinit_internal(n.data.lhs);
         self.deinit_internal(n.data.rhs);
@@ -119,9 +120,9 @@ const tests = struct {
 
         ast.root = try Node2EB.initAlloc(ast.allocator, .binding, Token.init(.{ .keyword = .let }, "", .{}),
             .{
-                .lhs = try Node2EB.initAlloc(ast.allocator, .identifier, Token.init(.{ .identifier = "x"}, "", .{}), .default),
+                .lhs = try Node2EB.initAlloc(ast.allocator, .identifier, Token.init(try .initIdentifier("x", alloc), "", .{}), .default),
                 .mhs = null,
-                .rhs = try Node2EB.initAlloc(ast.allocator, .integer, Token.init(.{ .integer = "12" }, "", .{}), .default)
+                .rhs = try Node2EB.initAlloc(ast.allocator, .integer, Token.init(try .initInteger("12", alloc), "", .{}), .default)
             }
         );
 

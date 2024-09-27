@@ -23,7 +23,8 @@ pub const Error = struct {
 
 input: []const u8,
 output: ?[]const u8,
-contents: []const u8,
+reader: std.io.AnyReader,
+writer: ?std.io.AnyWriter,
 // ast: ?Ast,
 // context: std.ArrayList(...),
 errors: std.ArrayList(Error),
@@ -37,45 +38,48 @@ wait_group: std.Thread.WaitGroup,
 mutex: std.Thread.Mutex,
 job_queue: std.fifo.LinearFifo(Job, .Dynamic),
 
+pub const CompilerOptions = struct {
+    input: []const u8,
+    output: ?[]const u8,
+    reader: std.io.AnyReader,
+    writer: ?std.io.AnyWriter,
+    allocator: std.mem.Allocator,
+
+    pub fn testing(reader: std.io.AnyReader) CompilerOptions {
+        return CompilerOptions {
+            .input = "test source",
+            .output = null,
+            .reader = reader,
+            .writer = null,
+            .allocator = std.testing.allocator
+        };
+    }
+};
+
 /// Creates a new compiler instance, initializing it's arena with the passed in
 /// allocator
-pub fn init(
-    input: []const u8,
-    reader: ?std.io.AnyReader,
-    output: ?[]const u8,
-    allocator: std.mem.Allocator
-) !*Compiler {
-    const buffer_size = 5000;
-    const compiler = try allocator.create(Compiler);
-
-    var contents: []const u8 = undefined;
-    if (reader != null) {
-        contents = try reader.?.readAllAlloc(allocator, buffer_size);
-    } else {
-        var file = try std.fs.cwd().openFile(input, .{});
-        defer file.close();
-
-        contents = try file.readToEndAlloc(allocator, buffer_size);
-    }
+pub fn init(opts: CompilerOptions) !*Compiler {
+    const compiler = try opts.allocator.create(Compiler);
 
     compiler.* = .{
-        .input = input,
-        .output = output,
-        .contents = contents,
-        .errors = std.ArrayList(Error).init(allocator),
+        .input = opts.input,
+        .output = opts.output,
+        .reader = opts.reader,
+        .writer = opts.writer,
+        .errors = std.ArrayList(Error).init(opts.allocator),
 
-        .allocator = allocator,
-        .arena = std.heap.ArenaAllocator.init(allocator),
+        .allocator = opts.allocator,
+        .arena = std.heap.ArenaAllocator.init(opts.allocator),
 
         .pool = undefined,
         .wait_group = .{},
 
         .mutex = .{},
-        .job_queue = std.fifo.LinearFifo(Job, .Dynamic).init(allocator)
+        .job_queue = std.fifo.LinearFifo(Job, .Dynamic).init(opts.allocator)
     };
 
     try compiler.pool.init(.{
-        .allocator = allocator,
+        .allocator = opts.allocator,
         .n_jobs = 4
     });
 
@@ -90,21 +94,18 @@ pub fn deinit(self: *Compiler) void {
     self.job_queue.deinit();
     self.arena.deinit();
     self.errors.deinit();
-    self.allocator.free(self.contents);
     self.allocator.destroy(self);
 }
 
 /// Begins the compilation process for the compilation unit
 pub fn compile(self: *Compiler) !void {
     var s = Scanner.init(self);
-    var t = try s.next_token();
+    var t = try s.nextToken();
 
     while(t.kind != .eof) {
-        std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
-        t = try s.next_token();
+        std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.toStr(self.arena.allocator())});
+        t = try s.nextToken();
     }
-
-    std.debug.print("{s}\n", .{self.contents});
 }
 
 pub const Job = union(enum) {

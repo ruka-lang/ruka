@@ -15,61 +15,87 @@ const Scanner = @This();
 
 current_pos: rukac.Position,
 token_pos: rukac.Position,
-compiler: *Compiler,
-idx: usize,
+index: usize,
+
+prev_char: u8,
+read_char: u8,
+peek_char: u8,
+peep_char: ?u8,
+
+input: []const u8,
+output: ?[]const u8,
+reader: *std.io.AnyReader,
+
+mutex: *std.Thread.Mutex,
+errors: *std.ArrayList(Compiler.Error),
+
+allocator: std.mem.Allocator,
 
 /// Creates a new scanner instance
-pub fn init(comp: *Compiler) Scanner {
+pub fn init(compiler: *Compiler) Scanner {
     return Scanner{
         .current_pos = .{.line = 1, .col = 1},
         .token_pos = .{.line = 1, .col = 1},
-        .compiler = comp,
-        .idx = 0
+        .index = 0,
+
+        .prev_char = undefined,
+        .read_char = compiler.reader.readByte() catch '\x00',
+        .peek_char = compiler.reader.readByte() catch '\x00',
+        .peep_char = null,
+
+        .input = compiler.input,
+        .output = compiler.output,
+        .reader = &compiler.reader,
+
+        .mutex = &compiler.mutex,
+        .errors = &compiler.errors,
+
+        .allocator = compiler.arena.allocator()
     };
 }
 
 /// Returns the next token from the files, when eof is reached,
 /// will repeatedly return eof tokens
-pub fn next_token(self: *Scanner) !Token {
-    self.skip_whitespace();
+pub fn nextToken(self: *Scanner) !Token {
+    self.skipWhitespace();
     self.token_pos = self.current_pos;
 
     const byte = self.read();
-    const tok = switch(byte) {
+    const token = switch(byte) {
         // Strings
         '"' => blk: {
             break :blk switch (self.peek()) {
-                '|' => try self.read_multi_string(),
-                else => try self.read_single_string()
+                '|' => try self.readMultiString(),
+                else => try self.readSingleString()
             };
         },
         // Characters
         '\'' => {
-            return self.read_character() orelse blk: {
+            return try self.readCharacter() orelse blk: {
                 self.advance(1);
-                break :blk self.next_token();
+                break :blk self.nextToken();
             };
         },
         // Comments or '/'
         '/' => blk: {
             switch (self.peek()) {
                 '/' => {
-                    self.skip_single_comment();
-                    break :blk self.next_token();
+                    self.skipSingleComment();
+                    break :blk self.nextToken();
                 },
                 '*' => {
-                    try self.skip_multi_comment();
-                    break :blk self.next_token();
+                    try self.skipMultiComment();
+                    break :blk self.nextToken();
                 },
                 else => {
                     self.advance(1);
-                    break :blk self.new_token(.slash);
+                    break :blk self.newToken(.slash);
                 }
             }
         },
         // Operators which may be multiple characters long
         '=' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "=>", Token.Kind.wide_arrow},
                 .{2, "==", Token.Kind.equal}
             });
@@ -79,10 +105,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.assign;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         ':' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, ":=", Token.Kind.assign_exp}
             });
 
@@ -91,10 +117,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.colon;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '>' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, ">=", Token.Kind.greater_eq},
                 .{2, ">>", Token.Kind.rshift}
             });
@@ -104,10 +130,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.greater;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '<' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "<=", Token.Kind.lesser_eq},
                 .{2, "<<", Token.Kind.lshift},
                 .{2, "<|", Token.Kind.forward_app},
@@ -119,10 +145,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.lesser;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '-' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "->", Token.Kind.arrow},
                 .{2, "--", Token.Kind.decrement}
             });
@@ -132,10 +158,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.minus;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '+' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "++", Token.Kind.increment}
             });
 
@@ -144,10 +170,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.plus;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '*' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "**", Token.Kind.square}
             });
 
@@ -156,10 +182,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.asterisk;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '.' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{3, "..=", Token.Kind.range_inc},
                 .{2, "..", Token.Kind.range_exc}
             });
@@ -169,10 +195,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.dot;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '!' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "!=", Token.Kind.not_equal}
             });
 
@@ -181,10 +207,10 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.bang;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
         '|' => blk: {
-            var kind = self.try_compound_operator(.{
+            var kind = try self.tryCompoundOperator(.{
                 .{2, "|>", Token.Kind.reverse_app}
             });
 
@@ -193,30 +219,41 @@ pub fn next_token(self: *Scanner) !Token {
                 kind = Token.Kind.pipe;
             }
 
-            break :blk self.new_token(kind.?);
+            break :blk self.newToken(kind.?);
         },
-        '\x00' => self.new_token(Token.Kind.eof),
+        '\x00' => self.newToken(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => blk: {
-            if (rukac.is_alphabetical(byte)) {
-                break :blk self.read_identifier_keyword_mode();
-            } else if (rukac.is_integral(byte)) {
-                break :blk self.read_integer_float();
+            if (rukac.isAlphabetical(byte)) {
+                break :blk try self.readIdentifierKeywordMode();
+            } else if (rukac.isIntegral(byte)) {
+                break :blk try self.readIntegerFloat();
             }
 
             // Single character
             self.advance(1);
-            break :blk self.new_token(Token.Kind.from_byte(byte));
+            break :blk self.newToken(Token.Kind.fromByte(byte));
         }
     };
 
-    return tok;
+    return token;
 }
 
 // Advances the scanner count number of times
 fn advance(self: *Scanner, count: usize) void {
     for (0..count) |_| {
-        self.idx = self.idx + 1;
+        if (self.peep_char) |peep| {
+            self.prev_char = self.read_char;
+            self.read_char = self.peek_char;
+            self.peek_char = peep;
+            self.peep_char = null;
+        } else {
+            self.prev_char = self.read_char;
+            self.read_char = self.peek_char;
+            self.peek_char = self.reader.readByte() catch '\x00';
+        }
+
+        self.index = self.index + 1;
 
         self.current_pos.col = self.current_pos.col + 1;
         if (self.prev() == '\n') {
@@ -228,151 +265,130 @@ fn advance(self: *Scanner, count: usize) void {
 
 // Returns the character at the current index
 fn read(self: *Scanner) u8 {
-    if (self.idx >= self.compiler.contents.len) {
-        return '\x00';
-    }
-
-    return self.compiler.contents[self.idx];
+    return self.read_char;
 }
 
 // Returns the character after the current index
 fn peek(self: *Scanner) u8 {
-    if (self.idx + 1 >= self.compiler.contents.len) {
-        return '\x00';
-    }
-
-    return self.compiler.contents[self.idx + 1];
+    return self.peek_char;
 }
 
 // Returns the character previous to the current index
 fn prev(self: *Scanner) u8 {
-    if (self.idx - 1 >= self.compiler.contents.len) {
-        return '\x00';
-    }
-
-    return self.compiler.contents[self.idx - 1];
+    return self.prev_char;
 }
 
 // Creates a new token of the kind passed in
-fn new_token(self: *Scanner, kind: Token.Kind) Token {
+fn newToken(self: *Scanner, kind: Token.Kind) Token {
     return Token.init(
         kind,
-        self.compiler.input,
+        self.input,
         self.token_pos
     );
 }
 
 // Skips characters until the current character is not a space or tab
-fn skip_whitespace(self: *Scanner) void {
+fn skipWhitespace(self: *Scanner) void {
     switch (self.read()) {
         inline ' ', '\t' => {
             self.advance(1);
-            self.skip_whitespace();
+            self.skipWhitespace();
         },
         else => {}
     }
 }
 
 // Reads an identifier, keyword, or mode literal from the file
-fn read_identifier_keyword_mode(self: *Scanner) Token {
-    const start = self.idx;
+fn readIdentifierKeywordMode(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.allocator);
 
     var byte = self.read();
-    while (rukac.is_alphanumerical(byte)) {
+    while (rukac.isAlphanumerical(byte)) {
+        try string.append(byte);
         self.advance(1);
         byte = self.read();
     }
 
-    const str = self.compiler.contents[start..self.idx];
-
-    var kind = Token.Kind.try_mode(str);
+    var kind = Token.Kind.tryMode(string.items);
     if (kind == null) {
-        kind = Token.Kind.try_keyword(str);
+        kind = Token.Kind.tryKeyword(string.items);
 
-        // If str doesn't represent a keyword or mode,
+        // If string doesn't represent a keyword or mode,
         // then kind is identifier
         if (kind == null) {
-            kind = .{ .identifier = str };
+            kind = .{ .identifier = string };
         }
     }
 
-    //self.advance(1);
-    return self.new_token(kind.?);
+    return self.newToken(kind.?);
 }
 
 // Reads a character literal from the file
-fn read_character(self: *Scanner) ?Token {
-    const start = self.idx + 1;
-    var end = start;
+fn readCharacter(self: *Scanner) !?Token {
+    var string = std.ArrayList(u8).init(self.allocator);
 
     // Iterate until the final delimiter or EOF is reached
     while (self.peek() != '\'' and self.peek() != '\x00') {
-        end = end + 1;
+        try string.append(self.peek());
         self.advance(1);
     }
 
     // Check if character literal contains a escape character
-    const str = self.handle_escape_characters(self.compiler.contents[start..end]) catch unreachable;
+    string = self.handleEscapeCharacters(string.items) catch unreachable;
 
-    // Create errors if str length isn't 1
-    if (str.len > 1) {
-        self.compiler.errors.append(.{
-            .file = self.compiler.input,
-            .kind = "scanning error",
-            .msg = "too many characters in charater literal",
-            .pos = self.current_pos
-        }) catch unreachable;
-
-        return null;
-    } if (str.len < 1) {
-        self.compiler.errors.append(.{
-            .file = self.compiler.input,
-            .kind = "scanning error",
-            .msg = "charater literal is empty",
-            .pos = self.current_pos
-        }) catch unreachable;
-
-        return null;
+    // Create errors if string length isn't 1
+    if (string.items.len > 1) {
+        try self.createError("too many characters in character literal");
+    } else if (string.items.len < 1) {
+        try self.createError("character literal is empty");
     }
 
     self.advance(2);
-    return self.new_token(.{ .character = str[0] });
+    return self.newToken(.{ .character = string.items[0] });
 }
 
 // Reads a integer or float literal from the file
-fn read_integer_float(self: *Scanner) Token {
-    const start = self.idx;
+fn readIntegerFloat(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.allocator);
     var float = false;
 
     // Iterate while self.read() is numeric, if self.read() is a '.',
     // read only integer values afterwards
     var byte = self.read();
-    while (rukac.is_numeric(byte)) {
-        if (self.read() == '.') {
-            self.read_integer();
+    while (rukac.isNumeric(byte)) {
+        if (byte == '.') {
+            try string.append(byte);
+            try self.readMantissa(&string);
             float = true;
             break;
         }
 
+        try string.append(byte);
         self.advance(1);
         byte = self.read();
     }
 
-    const str = self.compiler.contents[start..self.idx];
     const kind: Token.Kind = switch (float) {
-        false => .{ .integer = str },
-        true  => .{ .float = str }
+        false => .{ .integer = string },
+        true  => .{ .float = string }
     };
 
-    return self.new_token(kind);
+    return self.newToken(kind);
 }
 
 // Reads only integral numbers from the file, no decimals allowed
-fn read_integer(self: *Scanner) void {
+fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
     self.advance(1);
 
     var byte = self.read();
-    while (rukac.is_integral(byte)) {
+
+    if (!rukac.isIntegral(byte)) {
+        try string.append('0');
+        return;
+    }
+
+    while (rukac.isIntegral(byte)) {
+        try string.append(byte);
         self.advance(1);
         byte = self.read();
     }
@@ -380,19 +396,21 @@ fn read_integer(self: *Scanner) void {
 
 const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
 // Tries to create a token.Kind based on the passed in tuple of tuples
-fn try_compound_operator(self: *Scanner, comptime matches: anytype) ?Token.Kind {
-    const contents = self.compiler.contents;
-    var start: usize = undefined;
-    var end: usize = undefined;
+fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
+    var string = std.ArrayList(u8).init(self.allocator);
+    try string.append(self.read());
+    try string.append(self.peek());
 
     // Iterate through each passed in sub-tuple, checking if the second
     // element matches the following chars in the file, if it does
     // return the third element of the sub-tuple
     inline for (matches) |match| {
-        start = self.idx;
-        end = std.math.clamp((start + match[0]), 0, contents.len);
+        if (match[0] == 3) {
+            self.peep_char = try self.reader.readByte(); 
+            try string.append(self.peep_char.?);
+        }
 
-        if (std.mem.eql(u8, contents[start..end], match[1])) {
+        if (std.mem.eql(u8, string.items[0..match[1].len], match[1])) {
             self.advance(match[0]);
             return match[2];
         }
@@ -402,18 +420,18 @@ fn try_compound_operator(self: *Scanner, comptime matches: anytype) ?Token.Kind 
 }
 
 // Skips a single line comment
-fn skip_single_comment(self: *Scanner) void {
+fn skipSingleComment(self: *Scanner) void {
     switch (self.read()) {
         '\n', '\x00' => {},
         else => {
             self.advance(1);
-            self.skip_single_comment();
+            self.skipSingleComment();
         }
     }
 }
 
 // Skips a multi line comment
-fn skip_multi_comment(self: *Scanner) !void {
+fn skipMultiComment(self: *Scanner) !void {
     var next = self.peek();
 
     while (self.read() != '\x00') {
@@ -427,44 +445,30 @@ fn skip_multi_comment(self: *Scanner) !void {
     }
 
     if (next != '/') {
-        try self.compiler.errors.append(.{
-            .file = self.compiler.input,
-            .kind = "scanning error",
-            .msg = "unterminated multiline comment",
-            .pos = self.current_pos
-        });
+        try self.createError("unterminated multiline comment");
     }
 }
 
 // Reads a single line string
-fn read_single_string(self: *Scanner) !Token {
-    const start = self.idx + 1;
-    var end = start;
+fn readSingleString(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.allocator);
 
     while (self.peek() != '"' and self.peek() != '\x00') {
-        end = end + 1;
+        try string.append(self.peek());
         self.advance(1);
     }
 
     self.advance(2);
 
-    if (self.prev() != '"') {
-        try self.compiler.errors.append(.{
-            .file = self.compiler.input,
-            .kind = "scanning error",
-            .msg = "unterminated string literal",
-            .pos = self.current_pos
-        });
-    }
+    if (self.prev() != '"') try self.createError("unterminated string literal");
 
-    const str = try self.handle_escape_characters(self.compiler.contents[start..end]);
-
-    return self.new_token(.{ .string = str });
+    string = try self.handleEscapeCharacters(string.items);
+    return self.newToken(.{ .string = string });
 }
 
 // Reads a multi line string
-fn read_multi_string(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.compiler.arena.allocator());
+fn readMultiString(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.allocator);
     defer string.deinit();
 
     self.advance(1);
@@ -473,7 +477,7 @@ fn read_multi_string(self: *Scanner) !Token {
             '\n' => {
                 try string.append('\n');
                 self.advance(2);
-                self.skip_whitespace();
+                self.skipWhitespace();
 
                 switch (self.read()) {
                     '|' => {
@@ -482,12 +486,7 @@ fn read_multi_string(self: *Scanner) !Token {
                             else => |ch| try string.append(ch)
                         }
                     },
-                    else => try self.compiler.errors.append(.{
-                        .file = self.compiler.input,
-                        .kind = "scanning error",
-                        .msg = "missing start of line delimiter '|'",
-                        .pos = self.current_pos
-                    })
+                    else => try self.createError("missing start of line delimiter '|'")
                 }
             },
             else => |ch| try string.append(ch)
@@ -498,33 +497,49 @@ fn read_multi_string(self: *Scanner) !Token {
 
     self.advance(2);
 
-    if (self.prev() != '"') try self.compiler.errors.append(.{
-        .file = self.compiler.input,
-        .kind = "scanning error",
-        .msg = "unterminated string literal",
-        .pos = self.current_pos
-    });
+    if (self.prev() != '"') try self.createError("unterminated string literal");
 
-    const str = try self.handle_escape_characters(string.items);
-    return self.new_token(.{ .string = str });
+    string = try self.handleEscapeCharacters(string.items);
+    return self.newToken(try .initString(string.items, self.allocator));
+    // TODO why tf does this not work here but does work above in readString
+    //return self.newToken(.{ .string = string });
 }
 
+/// Checks if a string represents an escape character, if it does return that character
+fn tryEscapeChar(str: []const u8) ?u8 {
+    // Check for \u{xxxxxx} and \x{xx}
+    return escapes.get(str);
+}
+
+// Map representing escape sequences and their string representation
+const escapes = std.StaticStringMap(u8).initComptime(.{
+    .{"\\n", '\n'},
+    .{"\\r", '\r'},
+    .{"\\t", '\t'},
+    .{"\\\\", '\\'},
+    .{"\\|", '|'},
+    .{"\\'", '\''},
+    .{"\\\"", '"'},
+    .{"\\0", '\x00'}
+});
+
 // Replaces escape characters
-fn handle_escape_characters(self: *Scanner, str: [] const u8) ![]const u8 {
-    var string = std.ArrayList(u8).init(self.compiler.arena.allocator());
+// TODO make this more efficient
+fn handleEscapeCharacters(self: *Scanner, str: [] const u8) !std.ArrayList(u8) {
+    var string = std.ArrayList(u8).init(self.allocator);
 
     var i: usize = 0;
     while (i < str.len) {
         switch (str[i]) {
             '\\' => {
                 // Adjust to check for hex and unicode escape characters
-                const esc_ch = rukac.try_escape_char(str[i..i+2]);
+                const esc_ch = tryEscapeChar(str[i..i+2]);
 
                 if (esc_ch) |esc| {
                     i = i + 2;
                     try string.append(esc);
                 } else {
-                    try self.create_escape_error(i, str);
+                    try self.createEscapeError(i, string.items);
 
                     i = i + 1;
                     try string.append('\\');
@@ -537,32 +552,32 @@ fn handle_escape_characters(self: *Scanner, str: [] const u8) ![]const u8 {
         }
     }
 
-    return string.items;
+    return string;
+}
+
+fn createError(self: *Scanner, msg: []const u8) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    return try self.errors.append(.{
+        .file = self.input,
+        .kind = "scanning error",
+        .msg = msg,
+        .pos = self.current_pos
+    });
 }
 
 // Creates an escape character compilation error
-fn create_escape_error(self: *Scanner, i: usize, str: []const u8) !void {
-    if (i + 1 > str.len) {
-        return try self.compiler.errors.append(.{
-            .file = self.compiler.input,
-            .kind = "scanning error",
-            .msg = "unterminated escape character",
-            .pos = self.current_pos
-        });
+fn createEscapeError(self: *Scanner, i: usize, string: []const u8) !void {
+    if (i + 1 > string.len) {
+        return try self.createError("unterminated escape character");
     }
 
-    const allocator = self.compiler.arena.allocator();
-    const buf = try allocator.alloc(u8, 40);
-
-    try self.compiler.errors.append(.{
-        .file = self.compiler.input,
-        .kind = "scanning error",
-        .msg = try std.fmt.bufPrint(buf,
-            "unrecognized escape character: //{}",
-            .{str[i + 1]}
-        ),
-        .pos = self.current_pos
-    });
+    var buf = [_]u8{0} ** 40;
+    try self.createError(try std.fmt.bufPrint(&buf,
+        "unrecognized escape character: //{}",
+        .{string[i + 1]}
+    ));
 }
 
 test "test all scanner modules" {
@@ -572,16 +587,15 @@ test "test all scanner modules" {
 
 const tests = struct {
     const testing = std.testing;
-    const Pos = rukac.Position;
 
-    fn compare_tokens(et: *const Token, at: *const Token) !void {
+    fn compareTokens(et: *const Token, at: *const Token) !void {
         switch (et.kind) {
             .identifier => |eide| switch (at.kind) {
-                .identifier => |aide| try testing.expect(std.mem.eql(u8, eide, aide)),
+                .identifier => |aide| try testing.expect(std.mem.eql(u8, eide.items, aide.items)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             .string => |estr| switch (at.kind) {
-                .string => |astr| try testing.expect(std.mem.eql(u8, estr, astr)),
+                .string => |astr| try testing.expect(std.mem.eql(u8, estr.items, astr.items)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             .character => |echr| switch (at.kind) {
@@ -589,11 +603,11 @@ const tests = struct {
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             .integer => |eint| switch (at.kind) {
-                .integer => |aint| try testing.expect(std.mem.eql(u8, eint, aint)),
+                .integer => |aint| try testing.expect(std.mem.eql(u8, eint.items, aint.items)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             .float => |eflo| switch (at.kind) {
-                .float => |aflo| try testing.expect(std.mem.eql(u8, eflo, aflo)),
+                .float => |aflo| try testing.expect(std.mem.eql(u8, eflo.items, aflo.items)),
                 else => try testing.expectEqual(et.kind, at.kind)
             },
             .keyword => |ekey| switch (at.kind) {
@@ -613,17 +627,17 @@ const tests = struct {
         try testing.expectEqual(et.pos, at.pos);
     }
 
-    fn check_results(s: *Scanner, e: []const Token) !void {
+    fn checkResults(scanner: *Scanner, e: []const Token) !void {
         var i: usize = 0;
-        var tok = try s.next_token();
+        var token = try scanner.nextToken();
 
-        while (tok.kind != .eof) {
-            try compare_tokens(&e[i], &tok);
+        while (token.kind != .eof) {
+            try compareTokens(&e[i], &token);
             i = i + 1;
-            tok = try s.next_token();
+            token = try scanner.nextToken();
         }
 
-        try compare_tokens(&e[i], &tok);
+        try compareTokens(&e[i], &token);
         try testing.expectEqual(e.len, i + 1);
     }
 
@@ -631,153 +645,164 @@ const tests = struct {
         const source = "let x = 12_000 12_000.50 '\\n'";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let }, "next token", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "next token", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "next token", .{ .line = 1, .col = 7 }),
-            Token.init(.{ .integer = "12_000" }, "next token", .{ .line = 1, .col = 9 }),
-            Token.init(.{ .float = "12_000.50" }, "next token", .{ .line = 1, .col = 16 }),
-            Token.init(.{ .character = '\n' }, "next token", .{ .line = 1, .col = 26 }),
-            Token.init(.eof, "next token", .{ .line = 1, .col = 30 }),
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(try .initInteger("12_000", allocator), "test source", .init(1, 9)),
+            .init(try .initFloat("12_000.50", allocator), "test source", .init(1, 16)),
+            .init(.{ .character = '\n' }, "test source", .init(1, 26)),
+            .init(.eof, "test source", .init(1, 30)),
         };
 
-        var c = try Compiler.init("next token", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
         const expected = [_]Token{
-            Token.init(.equal, "compound operators", .{ .line = 1, .col = 1 }),
-            Token.init(.not_equal, "compound operators", .{ .line = 1, .col = 4 }),
-            Token.init(.greater_eq, "compound operators", .{ .line = 1, .col = 7 }),
-            Token.init(.lesser_eq, "compound operators", .{ .line = 1, .col = 10 }),
-            Token.init(.reverse_app, "compound operators", .{ .line = 1, .col = 13 }),
-            Token.init(.forward_app, "compound operators", .{ .line = 1, .col = 16 }),
-            Token.init(.lshift, "compound operators", .{ .line = 1, .col = 19 }),
-            Token.init(.concat, "compound operators", .{ .line = 1, .col = 22 }),
-            Token.init(.rshift, "compound operators", .{ .line = 1, .col = 25 }),
-            Token.init(.increment, "compound operators", .{ .line = 1, .col = 28 }),
-            Token.init(.decrement, "compound operators", .{ .line = 1, .col = 31 }),
-            Token.init(.square, "compound operators", .{ .line = 1, .col = 34 }),
-            Token.init(.arrow, "compound operators", .{ .line = 1, .col = 37 }),
-            Token.init(.wide_arrow, "compound operators", .{ .line = 1, .col = 40 }),
-            Token.init(.range_exc, "compound operators", .{ .line = 1, .col = 43 }),
-            Token.init(.range_inc, "compound operators", .{ .line = 1, .col = 46 }),
-            Token.init(.assign_exp, "compound operators", .{ .line = 1, .col = 50 }),
-            Token.init(.eof, "compound operators", .{ .line = 1, .col = 52 })
+            .init(.equal, "test source", .init(1, 1)),
+            .init(.not_equal, "test source", .init(1, 4)),
+            .init(.greater_eq, "test source", .init(1, 7)),
+            .init(.lesser_eq, "test source", .init(1, 10)),
+            .init(.reverse_app, "test source", .init(1, 13)),
+            .init(.forward_app, "test source", .init(1, 16)),
+            .init(.lshift, "test source", .init(1, 19)),
+            .init(.concat, "test source", .init(1, 22)),
+            .init(.rshift, "test source", .init(1, 25)),
+            .init(.increment, "test source", .init(1, 28)),
+            .init(.decrement, "test source", .init(1, 31)),
+            .init(.square, "test source", .init(1, 34)),
+            .init(.arrow, "test source", .init(1, 37)),
+            .init(.wide_arrow, "test source", .init(1, 40)),
+            .init(.range_exc, "test source", .init(1, 43)),
+            .init(.range_inc, "test source", .init(1, 46)),
+            .init(.assign_exp, "test source", .init(1, 50)),
+            .init(.eof, "test source", .init(1, 52))
         };
 
-        var c = try Compiler.init("compound operators", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
-            Token.init(.{ .string = "Hello, world!" }, "string reading", .{ .line = 1, .col = 9 }),
-            Token.init(.eof, "string reading", .{ .line = 1, .col = 24 }),
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(try .initString("Hello, world!", allocator), "test source", .init(1, 9)),
+            .init(.eof, "test source", .init(1, 24)),
         };
 
-        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
-    test "mulit string reading" {
+    test "multi string reading" {
         const source = \\let x = "|
                        \\         | Hello, world!
                        \\         |"
                        ;
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
-            Token.init(.{ .string = "\n Hello, world!\n" }, "string reading", .{ .line = 1, .col = 9 }),
-            Token.init(.eof, "string reading", .{ .line = 3, .col = 12 }),
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(try .initString("\n Hello, world!\n", allocator), "test source", .init(1, 9)),
+            .init(.eof, "test source", .init(3, 12)),
         };
 
-        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let }, "string reading", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "string reading", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "string reading", .{ .line = 1, .col = 7 }),
-            Token.init(.{ .string = "Hello, \n\\sworld!" }, "string reading", .{ .line = 1, .col = 9 }),
-            Token.init(.eof, "string reading", .{ .line = 1, .col = 28 }),
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(try .initString("Hello, \n\\sworld!", allocator), "test source", .init(1, 9)),
+            .init(.eof, "test source", .init(1, 28)),
         };
 
-        var c = try Compiler.init("string reading", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "read function identifier" {
         const source = "let x = hello()";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let}, "read function identifier", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "read function identifier", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "read function identifier", .{ .line = 1, .col = 7 }),
-            Token.init(.{ .identifier = "hello" }, "read function identifier", .{ .line = 1, .col = 9 }),
-            Token.init(.lparen, "read function identifier", .{ .line = 1, .col = 14 }),
-            Token.init(.rparen, "read function identifier", .{ .line = 1, .col = 15 }),
-            Token.init(.eof, "read function identifier", .{ .line = 1, .col = 16 })
+            .init(.{ .keyword = .let}, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(try .initIdentifier("hello", allocator), "test source", .init(1, 9)),
+            .init(.lparen, "test source", .init(1, 14)),
+            .init(.rparen, "test source", .init(1, 15)),
+            .init(.eof, "test source", .init(1, 16))
         };
 
-        var c = try Compiler.init("read function identifier", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let }, "single comment", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "single comment", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "single comment", .{ .line = 1, .col = 7 }),
-            Token.init(.eof, "single comment", .{ .line = 1, .col = 27 })
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(.eof, "test source", .init(1, 27))
         };
 
-        var c = try Compiler.init("single comment", stream.reader().any(), null, testing.allocator);
-
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 
     test "skip multi comment" {
@@ -787,17 +812,19 @@ const tests = struct {
                        ;
         var stream = std.io.fixedBufferStream(source);
 
+        var compiler = try Compiler.init(.testing(stream.reader().any()));
+        defer compiler.deinit();
+        var scanner = Scanner.init(compiler);
+
+        const allocator = compiler.arena.allocator();
+
         const expected = [_]Token{
-            Token.init(.{ .keyword = .let}, "multi comment", .{ .line = 1, .col = 1 }),
-            Token.init(.{ .identifier = "x" }, "multi comment", .{ .line = 1, .col = 5 }),
-            Token.init(.assign, "multi comment", .{ .line = 1, .col = 7 }),
-            Token.init(.eof, "multi comment", .{ .line = 3, .col = 3 })
+            .init(.{ .keyword = .let}, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7 )),
+            .init(.eof, "test source", .init(3, 3))
         };
 
-        var c = try Compiler.init("multi comment", stream.reader().any(), null, testing.allocator);
-        defer c.deinit();
-        var s = Scanner.init(c);
-
-        try check_results(&s, &expected);
+        try checkResults(&scanner, &expected);
     }
 };

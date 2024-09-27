@@ -20,7 +20,7 @@ pub const options: std.Options = .{
 var log_path: []const u8 = undefined;
 
 ///
-pub fn get_date_time(allocator: std.mem.Allocator) !struct {
+fn getDateTime(allocator: std.mem.Allocator) !struct {
     chrono.date.YearMonthDay,
     chrono.Time
 } {
@@ -59,7 +59,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
     var logs = try homedir.openDir(logs_path, .{});
     defer logs.close();
 
-    const created_date, const created_time = try get_date_time(allocator);
+    const created_date, const created_time = try getDateTime(allocator);
 
     const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
         @as(u13, @intCast(created_date.year)),
@@ -108,7 +108,7 @@ pub fn log(
         return;
     };
 
-    _, const current_time = get_date_time(fba.allocator()) catch |err| {
+    _, const current_time = getDateTime(fba.allocator()) catch |err| {
         std.debug.print("Failed to get current date and time: {}\n", .{err});
         return;
     };
