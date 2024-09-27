@@ -3,7 +3,7 @@
 
 //
 
-const rukac = @import("../../root.zig").prelude;
+const rukac = @import("../root.zig").prelude;
 
 const std = @import("std");
 

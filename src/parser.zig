@@ -3,7 +3,7 @@
 
 //
 
-const rukac = @import("../root.zig");
+const rukac = @import("root.zig");
 const Scanner = rukac.Scanner;
 
 const std = @import("std");

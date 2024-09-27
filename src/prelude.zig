@@ -1,7 +1,7 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-const rukac = @import("../root.zig");
+const rukac = @import("root.zig");
 
 const utilities = rukac.utilities;
 //pub const Chrono = rukac.utilities.Chrono;

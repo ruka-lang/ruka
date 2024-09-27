@@ -1,52 +1,37 @@
 // @author: ruka-lang
-// @created: 2024-03-04
+// @created: 2024-09-25
 
-// Responsible for compiling an entire project
+// Responsible for compiling a given file
 
 const rukac = @import("../root.zig");
+const Compiler = rukac.Compiler;
 const Scanner = rukac.Scanner;
 const utilities = rukac.utilities;
 
 const std = @import("std");
 
-const Compiler = @This();
-
-pub const Unit = @import("compiler/unit.zig");
-
-/// Represents an error during compilation
-pub const Error = struct {
-    file: []const u8,
-    kind: []const u8,
-    msg: []const u8,
-    pos: utilities.Position
-};
+const Unit = @This();
 
 input: []const u8,
 output: ?[]const u8,
 contents: []const u8,
 // ast: ?Ast,
 // context: std.ArrayList(...),
-errors: std.ArrayList(Error),
+errors: std.ArrayList(Compiler.Error),
 
 allocator: std.mem.Allocator,
 arena: std.heap.ArenaAllocator,
 
-pool: std.Thread.Pool,
-wait_group: std.Thread.WaitGroup,
-
-mutex: std.Thread.Mutex,
-job_queue: std.fifo.LinearFifo(Job, .Dynamic),
-
-/// Creates a new compiler instance, initializing it's arena with the passed in
+/// Creates a new unit instance, initializing it's arena with the passed in
 /// allocator
 pub fn init(
     input: []const u8,
     reader: ?std.io.AnyReader,
     output: ?[]const u8,
     allocator: std.mem.Allocator
-) !*Compiler {
+) !*Unit {
     const buffer_size = 5000;
-    const compiler = try allocator.create(Compiler);
+    const unit = try allocator.create(Unit);
 
     var contents: []const u8 = undefined;
     if (reader != null) {
@@ -58,36 +43,21 @@ pub fn init(
         contents = try file.readToEndAlloc(allocator, buffer_size);
     }
 
-    compiler.* = .{
+    unit.* = .{
         .input = input,
         .output = output,
         .contents = contents,
-        .errors = std.ArrayList(Error).init(allocator),
+        .errors = std.ArrayList(Compiler.Error).init(allocator),
 
         .allocator = allocator,
-        .arena = std.heap.ArenaAllocator.init(allocator),
-
-        .pool = undefined,
-        .wait_group = .{},
-
-        .mutex = .{},
-        .job_queue = std.fifo.LinearFifo(Job, .Dynamic).init(allocator)
+        .arena = std.heap.ArenaAllocator.init(allocator)
     };
 
-    try compiler.pool.init(.{
-        .allocator = allocator,
-        .n_jobs = 4
-    });
-
-    return compiler;
+    return unit;
 }
 
-/// Deinitialize the compiler
-pub fn deinit(self: *Compiler) void {
-    self.wait_group.wait();
-    self.pool.deinit();
-    while (self.job_queue.readItem()) |job| job.deinit();
-    self.job_queue.deinit();
+/// Deinitialize the unit
+pub fn deinit(self: *Unit) void {
     self.arena.deinit();
     self.errors.deinit();
     self.allocator.free(self.contents);
@@ -95,7 +65,7 @@ pub fn deinit(self: *Compiler) void {
 }
 
 /// Begins the compilation process for the compilation unit
-pub fn compile(self: *Compiler) !void {
+pub fn compile(self: *Unit) !void {
     var s = Scanner.init(self);
     var t = try s.next_token();
 
@@ -106,9 +76,3 @@ pub fn compile(self: *Compiler) !void {
 
     std.debug.print("{s}\n", .{self.contents});
 }
-
-pub const Job = union(enum) {
-    pub fn deinit(self: Job) void {
-        _ = self;
-    }  
-};

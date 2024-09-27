@@ -4,10 +4,13 @@
 //
 
 const rukac = @import("rukac").prelude;
-const constants = @import("constants.zig");
 
 const std = @import("std");
 const clap = @import("clap");
+
+pub const constants = @import("interface/constants.zig");
+pub const logging = @import("interface/logging.zig");
+const CommandParser = @import("interface/commandParser.zig");
 
 pub const params = clap.parseParamsComptime(
     \\-h, --help           Display the help and usage
