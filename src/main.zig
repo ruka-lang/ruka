@@ -6,7 +6,6 @@ const interface = @import("interface.zig");
 const std = @import("std");
 
 pub const std_options = interface.logging.options;
-const log = std.log.scoped(.bin);
 
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;

@@ -115,6 +115,7 @@ pub fn compile(self: *Compiler) !void {
 
     while(t.kind != .eof) {
         std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.toStr(self.arena.allocator())});
+        t.deinit();
         t = try s.nextToken();
     }
 }
@@ -122,5 +123,5 @@ pub fn compile(self: *Compiler) !void {
 pub const Job = union(enum) {
     pub fn deinit(self: Job) void {
         _ = self;
-    }  
+    }
 };

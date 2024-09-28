@@ -255,7 +255,7 @@ pub const Kind = union(enum) {
             .equal        => "==",
             .not_equal    => "!=",
             // Miscelaneous
-            .newline      => "\n",
+            .newline      => "\\n",
             .illegal      => "ILLEGAL",
             .eof          => "EOF"
         };
