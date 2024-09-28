@@ -50,6 +50,7 @@ pub const epoch_unix = Chrono {
     .millisecond = 0,
     .second = 0,
     .minute = 0,
+    .hour = 0,
     .day = 1,
     .weekday = .thursday,
     .month = .january,
