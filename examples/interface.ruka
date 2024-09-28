@@ -11,14 +11,14 @@ const new = (x, y) do
     Vector.{ x, y }
 end
 
-pub const Vector.add -> Vector = (rhs: Vector) do
-    Vector.{ 
-        x = self.x + rhs.x, 
-        y = self.y + rhs.y 
+pub const Vector.add = (rhs: Vector) do
+    Vector.{
+        x = self.x + rhs.x,
+        y = self.y + rhs.y
     }
 end
 
-const add -> Num = (mov x, mov y: Num) do
+const add = (mov x, mov y: Num) do
     x.add(y)
 end
 

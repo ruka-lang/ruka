@@ -450,5 +450,5 @@ test "mode comparision" {
     const mode: Kind = .{ .mode = .mut };
     const mode2 = Kind.tryMode("mut").?;
 
-    try testing.expect(mode.mode == mode2.mode);
+    try testing.expectEqual(mode.mode, mode2.mode);
 }

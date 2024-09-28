@@ -62,7 +62,11 @@ pub fn checkFileExtension(file: []const u8) bool {
 }
 
 /// Creates the compilation unit and begins compilation
-pub fn compileFile(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocator) !void {
+pub fn compileFile(
+    in: []const u8,
+    out: ?[]const u8,
+    allocator: std.mem.Allocator
+) !void {
     const input = try std.fs.cwd().openFile(in, .{});
     defer input.close();
 
@@ -70,8 +74,8 @@ pub fn compileFile(in: []const u8, out: ?[]const u8, allocator: std.mem.Allocato
     var output = std.io.fixedBufferStream(&buf);
 
     var compiler = try rukac.Compiler.init(.{
-        .input = in, 
-        .output = out orelse "no output", 
+        .input = in,
+        .output = out orelse "no output",
         .reader = input.reader().any(),
         .writer = output.writer().any(),
         .allocator = allocator

@@ -1,0 +1,29 @@
+/*
+ *
+ */
+let project = .{
+    .name = "idk",
+    .version = 0.0.1,
+    .required_ruka_version = 0.0.0
+}
+
+/*
+ *
+ */
+let executable = .{
+    .path_to_main = "src/main.ruka"
+}
+
+/*
+ *
+ */
+let library = .{
+    .path_to_lib = "src/lib.ruka"
+}
+
+/*
+ *
+ */
+let dependencies = .{
+    .std = { .version = project.required_ruka_version, .features = [] }
+}

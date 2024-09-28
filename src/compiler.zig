@@ -110,13 +110,12 @@ pub fn createError(self: *Compiler, scanner: *Scanner, kind: []const u8, msg: []
 
 /// Begins the compilation process for the compilation unit
 pub fn compile(self: *Compiler) !void {
-    var s = Scanner.init(self);
-    var t = try s.nextToken();
+    var scanner = Scanner.init(self);
+    var token = try scanner.nextToken();
 
-    while(t.kind != .eof) {
-        std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.toStr(self.arena.allocator())});
-        t.deinit();
-        t = try s.nextToken();
+    while(token.kind != .eof): (token = try scanner.nextToken()) {
+        std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
+        token.deinit();
     }
 }
 

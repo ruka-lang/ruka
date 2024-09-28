@@ -1,0 +1,19 @@
+/*
+ *
+ */
+
+pub const t = record {
+    x: isize,
+    y: isize
+}
+
+pub const new -> t = (x, y: isize) do
+    t.{ x, y }
+end
+
+pub const t.add -> t = (other: t) do
+    t.{
+        x = self.x + other.x,
+        y = self.y + other.y
+    }
+end
