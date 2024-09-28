@@ -5,6 +5,7 @@
 
 const std = @import("std");
 
+// These first attributes should be removed, as these are only useful in calculating the current time/date
 milliseconds: u16,
 seconds: u8,
 minutes: u8,
@@ -12,6 +13,17 @@ hours: u8,
 days: u8,
 months: u8,
 years: u16,
+
+// Current time
+millisecond: u16,
+second: u8,
+minute: u8,
+hour: u8,
+day: u8,
+weekday: Weekday,
+month: Month,
+year: isize,
+
 timezone: enum {
     CST,
     EST,
@@ -34,12 +46,14 @@ pub const epoch_unix = Chrono {
     .days = 0,
     .months = 0,
     .years = 0,
-    //.millisecond = ,
-    //.second = ,
-    //.minute = ,
-    //.day = ,
-    //.month = ,
-    //.year = 1970,
+
+    .millisecond = 0,
+    .second = 0,
+    .minute = 0,
+    .day = 1,
+    .weekday = .thursday,
+    .month = .january,
+    .year = 1970,
     .timezone = .UTC
 };
 
@@ -102,7 +116,7 @@ pub const Month = enum {
     }
 
     pub const daysPerMonth = std.StaticStringMap(usize).initComptime(.{
-        .{"janurary", 31},
+        .{"january", 31},
         .{"february", 28}, //29 on a leap year
         .{"march", 31},
         .{"april", 30},
