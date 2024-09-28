@@ -20,7 +20,7 @@ index: usize,
 prev_char: u8,
 read_char: u8,
 peek_char: u8,
-peep_char: ?u8,
+peep_char: u8,
 
 compiler: *Compiler,
 
@@ -34,7 +34,7 @@ pub fn init(compiler: *Compiler) Scanner {
         .prev_char = undefined,
         .read_char = compiler.transport.readByte() catch '\x00',
         .peek_char = compiler.transport.readByte() catch '\x00',
-        .peep_char = null,
+        .peep_char = compiler.transport.readByte() catch '\x00',
 
         .compiler = compiler,
     };
@@ -75,7 +75,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 },
                 else => {
                     self.advance(1);
-                    break :block self.newToken(.slash);
+                    break :block self.createToken(.slash);
                 }
             }
         },
@@ -91,7 +91,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.assign;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         ':' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -103,7 +103,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.colon;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '>' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -116,7 +116,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.greater;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '<' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -131,7 +131,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.lesser;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '-' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -144,7 +144,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.minus;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '+' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -156,7 +156,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.plus;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '*' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -168,7 +168,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.asterisk;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '.' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -181,7 +181,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.dot;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '!' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -193,7 +193,7 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.bang;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
         '|' => block: {
             var kind = try self.tryCompoundOperator(.{
@@ -205,9 +205,9 @@ pub fn nextToken(self: *Scanner) !Token {
                 kind = Token.Kind.pipe;
             }
 
-            break :block self.newToken(kind.?);
+            break :block self.createToken(kind.?);
         },
-        '\x00' => self.newToken(Token.Kind.eof),
+        '\x00' => self.createToken(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => block: {
             if (rukac.isAlphabetical(byte)) {
@@ -218,35 +218,11 @@ pub fn nextToken(self: *Scanner) !Token {
 
             // Single character
             self.advance(1);
-            break :block self.newToken(Token.Kind.fromByte(byte));
+            break :block self.createToken(Token.Kind.fromByte(byte));
         }
     };
 
     return token;
-}
-
-// Advances the scanner count number of times
-fn advance(self: *Scanner, count: usize) void {
-    for (0..count) |_| {
-        if (self.peep_char) |peep| {
-            self.prev_char = self.read_char;
-            self.read_char = self.peek_char;
-            self.peek_char = peep;
-            self.peep_char = null;
-        } else {
-            self.prev_char = self.read_char;
-            self.read_char = self.peek_char;
-            self.peek_char = self.compiler.transport.readByte() catch '\x00';
-        }
-
-        self.index = self.index + 1;
-
-        self.current_pos.col = self.current_pos.col + 1;
-        if (self.prev() == '\n') {
-            self.current_pos.line = self.current_pos.line + 1;
-            self.current_pos.col = 1;
-        }
-    }
 }
 
 // Returns the character actual_token the current index
@@ -264,13 +240,49 @@ fn prev(self: *Scanner) u8 {
     return self.prev_char;
 }
 
+// Advances the scanner count number of times
+fn advance(self: *Scanner, count: usize) void {
+    for (0..count) |_| {
+        self.prev_char = self.read_char;
+        self.read_char = self.peek_char;
+        self.peek_char = self.peep_char;
+        self.peep_char = self.compiler.transport.readByte() catch '\x00';
+
+        self.index = self.index + 1;
+
+        self.current_pos.col = self.current_pos.col + 1;
+        if (self.prev() == '\n') {
+            self.current_pos.line = self.current_pos.line + 1;
+            self.current_pos.col = 1;
+        }
+    }
+}
+
+
 // Creates a new token of the kind passed in
-fn newToken(self: *Scanner, kind: Token.Kind) Token {
+fn createToken(self: *Scanner, kind: Token.Kind) Token {
     return Token.init(
         kind,
         self.compiler.input,
         self.token_pos
     );
+}
+
+fn createError(self: *Scanner, msg: []const u8) !void {
+    try self.compiler.createError(self, "scanner error", msg);
+}
+
+// Creates an escape character compilation error
+fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
+    if (i + 1 > slice.len) {
+        return try self.createError("unterminated escape character");
+    }
+
+    var buf = [_]u8{0} ** 40;
+    try self.createError(try std.fmt.bufPrint(&buf,
+        "unrecognized escape character: //{}",
+        .{slice[i + 1]}
+    ));
 }
 
 // Skips characters until the current character is not a space or tab
@@ -282,136 +294,6 @@ fn skipWhitespace(self: *Scanner) void {
         },
         else => {}
     }
-}
-
-// Reads an identifier, keyword, or mode literal from the file
-fn readIdentifierKeywordMode(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.compiler.allocator);
-    errdefer string.deinit();
-
-    var byte = self.read();
-    while (rukac.isAlphanumerical(byte)) {
-        try string.append(byte);
-        self.advance(1);
-        byte = self.read();
-    }
-
-    var is_identifier = false;
-    var kind = Token.Kind.tryMode(string.items);
-    if (kind == null) {
-        kind = Token.Kind.tryKeyword(string.items);
-
-        // If string doesn't represent a keyword or mode,
-        // then kind is identifier
-        if (kind == null) {
-            kind = .{ .identifier = string };
-            is_identifier = true;
-        }
-    }
-
-    if (!is_identifier) string.deinit();
-
-    return self.newToken(kind.?);
-}
-
-// Reads a character literal from the file
-fn readCharacter(self: *Scanner) !?Token {
-    var string = std.ArrayList(u8).init(self.compiler.allocator);
-    defer string.deinit();
-
-    // Iterate until the final delimiter or EOF is reached
-    while (self.peek() != '\'' and self.peek() != '\x00') {
-        try string.append(self.peek());
-        self.advance(1);
-    }
-
-    // Check if character literal contains a escape character
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.arena.allocator());
-
-    // Create errors if string length isn't 1
-    if (string.items.len > 1) {
-        try self.createError("too many characters in character literal");
-    } else if (string.items.len < 1) {
-        try self.createError("character literal is empty");
-    }
-
-    self.advance(2);
-    return self.newToken(.{ .character = string.items[0] });
-}
-
-// Reads a integer or float literal from the file
-fn readIntegerFloat(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.compiler.allocator);
-    errdefer string.deinit();
-
-    // Iterate while self.read() is numeric, if self.read() is a '.',
-    // read only integer values afterwards
-    var float = false;
-    var byte = self.read();
-    while (rukac.isNumeric(byte)) {
-        if (byte == '.') {
-            try string.append(byte);
-            try self.readMantissa(&string);
-            float = true;
-            break;
-        }
-
-        try string.append(byte);
-        self.advance(1);
-        byte = self.read();
-    }
-
-    const kind: Token.Kind = switch (float) {
-        false => .{ .integer = string },
-        true  => .{ .float = string }
-    };
-
-    return self.newToken(kind);
-}
-
-// Reads only integral numbers from the file, no decimals allowed
-fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
-    self.advance(1);
-
-    var byte = self.read();
-
-    if (!rukac.isIntegral(byte)) {
-        try string.append('0');
-        return;
-    }
-
-    while (rukac.isIntegral(byte)) {
-        try string.append(byte);
-        self.advance(1);
-        byte = self.read();
-    }
-}
-
-const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
-// Tries to create a token.Kind based on the passed in tuple of tuples
-fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
-    var string = std.ArrayList(u8).init(self.compiler.allocator);
-    defer string.deinit();
-
-    try string.append(self.read());
-    try string.append(self.peek());
-
-    // Iterate through each passed in sub-tuple, checking if the second
-    // element matches the following chars in the file, if it does
-    // return the third element of the sub-tuple
-    inline for (matches) |match| {
-        if (match[0] == 3) {
-            self.peep_char = try self.compiler.transport.readByte();
-            try string.append(self.peep_char.?);
-        }
-
-        if (std.mem.eql(u8, string.items[0..match[1].len], match[1])) {
-            self.advance(match[0]);
-            return match[2];
-        }
-    }
-
-    return null;
 }
 
 // Skips a single line comment
@@ -443,63 +325,55 @@ fn skipMultiComment(self: *Scanner) !void {
     }
 }
 
-// Reads a single line string
-fn readSingleString(self: *Scanner) !Token {
+// Reads a character literal from the file
+fn readCharacter(self: *Scanner) !?Token {
     var string = std.ArrayList(u8).init(self.compiler.allocator);
-    errdefer string.deinit();
+    defer string.deinit();
 
-    while (self.peek() != '"' and self.peek() != '\x00') {
+    // Iterate until the final delimiter or EOF is reached
+    while (self.peek() != '\'' and self.peek() != '\x00') {
         try string.append(self.peek());
         self.advance(1);
     }
 
-    self.advance(2);
+    // Check if character literal contains a escape character
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.arena.allocator());
 
-    if (self.prev() != '"') {
-        try self.createError("unterminated string literal");
+    // Create errors if string length isn't 1
+    if (string.items.len > 1) {
+        try self.createError("too many characters in character literal");
+    } else if (string.items.len < 1) {
+        try self.createError("character literal is empty");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
-    return self.newToken(.{ .string = string });
+    self.advance(2);
+    return self.createToken(.{ .character = string.items[0] });
 }
 
-// Reads a multi line string
-fn readMultiString(self: *Scanner) !Token {
+const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
+// Tries to create a token.Kind based on the passed in tuple of tuples
+fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
     var string = std.ArrayList(u8).init(self.compiler.allocator);
-    errdefer string.deinit();
+    defer string.deinit();
 
-    self.advance(1);
-    while (self.peek() != '"' and self.peek() != '\x00') {
-        switch (self.peek()) {
-            '\n' => {
-                try string.append('\n');
-                self.advance(2);
-                self.skipWhitespace();
+    try string.append(self.read());
+    try string.append(self.peek());
 
-                switch (self.read()) {
-                    '|' => {
-                        switch (self.peek()) {
-                            '"' => break,
-                            else => |ch| try string.append(ch)
-                        }
-                    },
-                    else => try self.createError("missing start of line delimiter '|'")
-                }
-            },
-            else => |ch| try string.append(ch)
+    // Iterate through each passed in sub-tuple, checking if the second
+    // element matches the following chars in the file, if it does
+    // return the third element of the sub-tuple
+    inline for (matches) |match| {
+        if (match[0] == 3) {
+            try string.append(self.peep_char);
         }
 
-        self.advance(1);
+        if (std.mem.eql(u8, string.items[0..match[1].len], match[1])) {
+            self.advance(match[0]);
+            return match[2];
+        }
     }
 
-    self.advance(2);
-
-    if (self.prev() != '"') {
-        try self.createError("unterminated string literal");
-    }
-
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
-    return self.newToken(.{ .string = string });
+    return null;
 }
 
 /// Checks if a string represents an escape character, if it does return that character
@@ -554,21 +428,141 @@ fn handleEscapeCharacters(self: *Scanner, slice: [] const u8, allocator: std.mem
     return string;
 }
 
-fn createError(self: *Scanner, msg: []const u8) !void {
-    try self.compiler.createError(self, "scanner error", msg);
-}
+// Reads an identifier, keyword, or mode literal from the file
+fn readIdentifierKeywordMode(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.compiler.allocator);
+    errdefer string.deinit();
 
-// Creates an escape character compilation error
-fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
-    if (i + 1 > slice.len) {
-        return try self.createError("unterminated escape character");
+    var byte = self.read();
+    while (rukac.isAlphanumerical(byte)) {
+        try string.append(byte);
+        self.advance(1);
+        byte = self.read();
     }
 
-    var buf = [_]u8{0} ** 40;
-    try self.createError(try std.fmt.bufPrint(&buf,
-        "unrecognized escape character: //{}",
-        .{slice[i + 1]}
-    ));
+    var is_identifier = false;
+    var kind = Token.Kind.tryMode(string.items);
+    if (kind == null) {
+        kind = Token.Kind.tryKeyword(string.items);
+
+        // If string doesn't represent a keyword or mode,
+        // then kind is identifier
+        if (kind == null) {
+            kind = .{ .identifier = string };
+            is_identifier = true;
+        }
+    }
+
+    if (!is_identifier) string.deinit();
+
+    return self.createToken(kind.?);
+}
+
+// Reads a integer or float literal from the file
+fn readIntegerFloat(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.compiler.allocator);
+    errdefer string.deinit();
+
+    // Iterate while self.read() is numeric, if self.read() is a '.',
+    // read only integer values afterwards
+    var float = false;
+    var byte = self.read();
+    while (rukac.isNumeric(byte)) {
+        if (byte == '.') {
+            try string.append(byte);
+            try self.readMantissa(&string);
+            float = true;
+            break;
+        }
+
+        try string.append(byte);
+        self.advance(1);
+        byte = self.read();
+    }
+
+    const kind: Token.Kind = switch (float) {
+        false => .{ .integer = string },
+        true  => .{ .float = string }
+    };
+
+    return self.createToken(kind);
+}
+
+// Reads only integral numbers from the file, no decimals allowed
+fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
+    self.advance(1);
+
+    var byte = self.read();
+
+    if (!rukac.isIntegral(byte)) {
+        try string.append('0');
+        return;
+    }
+
+    while (rukac.isIntegral(byte)) {
+        try string.append(byte);
+        self.advance(1);
+        byte = self.read();
+    }
+}
+
+// Reads a single line string
+fn readSingleString(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.compiler.allocator);
+    errdefer string.deinit();
+
+    while (self.peek() != '"' and self.peek() != '\x00') {
+        try string.append(self.peek());
+        self.advance(1);
+    }
+
+    self.advance(2);
+
+    if (self.prev() != '"') {
+        try self.createError("unterminated string literal");
+    }
+
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
+    return self.createToken(.{ .string = string });
+}
+
+// Reads a multi line string
+fn readMultiString(self: *Scanner) !Token {
+    var string = std.ArrayList(u8).init(self.compiler.allocator);
+    errdefer string.deinit();
+
+    self.advance(1);
+    while (self.peek() != '"' and self.peek() != '\x00') {
+        switch (self.peek()) {
+            '\n' => {
+                try string.append('\n');
+                self.advance(2);
+                self.skipWhitespace();
+
+                switch (self.read()) {
+                    '|' => {
+                        switch (self.peek()) {
+                            '"' => break,
+                            else => |ch| try string.append(ch)
+                        }
+                    },
+                    else => try self.createError("missing start of line delimiter '|'")
+                }
+            },
+            else => |ch| try string.append(ch)
+        }
+
+        self.advance(1);
+    }
+
+    self.advance(2);
+
+    if (self.prev() != '"') {
+        try self.createError("unterminated string literal");
+    }
+
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
+    return self.createToken(.{ .string = string });
 }
 
 test "test all scanner modules" {
