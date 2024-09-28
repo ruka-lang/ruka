@@ -1,8 +1,9 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("../root.zig");
-const util = rukac.util;
+//
+
+const rukac = @import("../root.zig").prelude;
 
 const std = @import("std");
 
@@ -11,10 +12,10 @@ const Token = @This();
 /// Represents a lexeme: it's kind, file, and position within that file
 kind: Kind,
 file: []const u8,
-pos: util.Position,
+pos: rukac.Position,
 
 /// Creates a new token
-pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
+pub fn init(kind: Kind, file: []const u8, pos: rukac.Position) Token {
     return Token {
         .kind = kind,
         .file = file,
@@ -22,255 +23,309 @@ pub fn init(kind: Kind, file: []const u8, pos: util.Position) Token {
     };
 }
 
+///
+pub fn deinit(self: Token) void {
+    self.kind.deinit();
+}
+
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
-    Identifier: []const u8,
-    String: []const u8,
-    Character: u8,
-    Integer: []const u8,
-    Float: []const u8,
-    Keyword: Keyword,
-    Mode: Mode,
+    identifier: std.ArrayList(u8),
+    string: std.ArrayList(u8),
+    character: u8,
+    integer: std.ArrayList(u8),
+    float: std.ArrayList(u8),
+    keyword: Keyword,
+    mode: Mode,
     // Assignment
-    Assign,        // =
-    AssignExp,     // :=
+    assign,        // =
+    assign_exp,    // :=
     // Punctuation
-    Dot,           // .
-    Comma,         // ,
-    Lparen,        // (
-    Rparen,        // )
-    Lbracket,      // [
-    Rbracket,      // ]
-    Lsquirly,      // {
-    Rsquirly,      // }
-    Quote,         // '
-    Dblquote,      // "
-    Backtick,      // `
-    Backslash,     // \
-    Colon,         // :
-    Semicolon,     // ;
-    Arrow,         // ->
-    WideArrow,     // =>
+    dot,           // .
+    comma,         // ,
+    lparen,        // (
+    rparen,        // )
+    lbracket,      // [
+    rbracket,      // ]
+    lsquirly,      // {
+    rsquirly,      // }
+    quote,         // '
+    double_quote,      // "
+    backtick,      // `
+    backslash,     // \
+    colon,         // :
+    semicolon,     // ;
+    arrow,         // ->
+    wide_arrow,    // =>
     // Operators
-    Address,       // @
-    Cash,          // $
-    Pound,         // #
-    Bang,          // !
-    Question,      // ?
-    RangeExc,      // ..
-    RangeInc,      // ..=
-    ForwardApp,    // <|
-    ReverseApp,    // |>
-    Concat,        // <>
+    address,       // @
+    cash,          // $
+    pound,         // #
+    bang,          // !
+    question,      // ?
+    range_exc,     // ..
+    range_inc,     // ..=
+    forward_app,   // <|
+    reverse_app,   // |>
+    concat,        // <>
     // Arithmetic
-    Plus,          // +
-    Minus,         // -
-    Asterisk,      // *
-    Slash,         // /
-    Percent,       // %
-    Increment,     // ++
-    Decrement,     // --
-    Square,        // **
+    plus,          // +
+    minus,         // -
+    asterisk,      // *
+    slash,         // /
+    percent,       // %
+    increment,     // ++
+    decrement,     // --
+    square,        // **
     // Bitwise
-    Ampersand,     // &
-    Pipe,          // |
-    Caret,         // ^
-    Tilde,         // ~
-    Lshift,        // <<
-    Rshift,        // >>
+    ampersand,     // &
+    pipe,          // |
+    caret,         // ^
+    tilde,         // ~
+    lshift,        // <<
+    rshift,        // >>
     // Comparators
-    Lesser,        // <
-    LesserEq,      // <=
-    Greater,       // >
-    GreaterEq,     // >=
-    Equal,         // ==
-    NotEqual,      // !=
+    lesser,        // <
+    lesser_eq,     // <=
+    greater,       // >
+    greater_eq,    // >=
+    equal,         // ==
+    not_equal,     // !=
     // Miscelaneous
-    Newline,       // \n
-    Illegal,
-    Eof,
+    newline,       // \n
+    illegal,
+    eof,           // \x00
+
+    pub fn initIdentifier(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var identifier = std.ArrayList(u8).init(allocator);
+        try identifier.appendSlice(source);
+
+        return Kind {
+            .identifier = identifier
+        };
+    }
+
+    pub fn initString(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var string = std.ArrayList(u8).init(allocator);
+        try string.appendSlice(source);
+
+        return Kind {
+            .string = string
+        };
+    }
+
+    pub fn initInteger(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var integer = std.ArrayList(u8).init(allocator);
+        try integer.appendSlice(source);
+
+        return Kind {
+            .integer = integer
+        };
+    }
+
+    pub fn initFloat(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var float = std.ArrayList(u8).init(allocator);
+        try float.appendSlice(source);
+
+        return Kind {
+            .float = float
+        };
+    }
 
     // Tries to create a Kind from a byte
-    pub fn from_byte(byte: u8) Kind {
+    pub fn fromByte(byte: u8) Kind {
         return switch(byte) {
             // Assignment
-            '='    => .Assign,
+            '='    => .assign,
             // Punctuation
-            '.'    => .Dot,
-            ','    => .Comma,
-            '('    => .Lparen,
-            ')'    => .Rparen,
-            '['    => .Lbracket,
-            ']'    => .Rbracket,
-            '{'    => .Lsquirly,
-            '}'    => .Rsquirly,
-            '\''   => .Quote,
-            '"'    => .Dblquote,
-            '`'    => .Backtick,
-            '\\'   => .Backslash,
-            ':'    => .Colon,
-            ';'    => .Semicolon,
+            '.'    => .dot,
+            ','    => .comma,
+            '('    => .lparen,
+            ')'    => .rparen,
+            '['    => .lbracket,
+            ']'    => .rbracket,
+            '{'    => .lsquirly,
+            '}'    => .rsquirly,
+            '\''   => .quote,
+            '"'    => .double_quote,
+            '`'    => .backtick,
+            '\\'   => .backslash,
+            ':'    => .colon,
+            ';'    => .semicolon,
             // Operators
-            '@'    => .Address,
-            '$'    => .Cash,
-            '#'    => .Pound,
-            '!'    => .Bang,
-            '?'    => .Question,
+            '@'    => .address,
+            '$'    => .cash,
+            '#'    => .pound,
+            '!'    => .bang,
+            '?'    => .question,
             // Arithmetic
-            '+'    => .Plus,
-            '-'    => .Minus,
-            '*'    => .Asterisk,
-            '/'    => .Slash,
-            '%'    => .Percent,
+            '+'    => .plus,
+            '-'    => .minus,
+            '*'    => .asterisk,
+            '/'    => .slash,
+            '%'    => .percent,
             // Bitwise
-            '&'    => .Ampersand,
-            '|'    => .Pipe,
-            '^'    => .Caret,
-            '~'    => .Tilde,
+            '&'    => .ampersand,
+            '|'    => .pipe,
+            '^'    => .caret,
+            '~'    => .tilde,
             // Comparators
-            '<'    => .Lesser,
-            '>'    => .Greater,
+            '<'    => .lesser,
+            '>'    => .greater,
             // Miscelaneous
-            '\n'   => .Newline,
-            '\x00' => .Eof,
-            else   => .Illegal
+            '\n'   => .newline,
+            '\x00' => .eof,
+            else   => .illegal
         };
+    }
+
+    pub fn deinit(self: Kind) void {
+        switch (self) {
+            .identifier   => |id| id.deinit(),
+            .string       => |st| st.deinit(),
+            .integer      => |in| in.deinit(),
+            .float        => |fl| fl.deinit(),
+            else => {}
+        }
     }
 
     // Converts a Kind into a string slice
-    pub fn to_str(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
+    pub fn toStr(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
-            .Identifier   => |id| id,
-            .String       => |st| st,
-            .Character    => |ch| try self.char_to_string(ch, allocator),
-            .Integer      => |in| in,
-            .Float        => |fl| fl,
-            .Keyword      => |ke| ke.to_str(),
-            .Mode         => |mo| mo.to_str(),
+            .identifier   => |id| id.items,
+            .string       => |st| st.items,
+            .character    => |ch| try self.charToString(ch, allocator),
+            .integer      => |in| in.items,
+            .float        => |fl| fl.items,
+            .keyword      => |ke| ke.toStr(),
+            .mode         => |mo| mo.toStr(),
             // Assignment
-            .Assign       => "=",
-            .AssignExp    => ":=",
+            .assign       => "=",
+            .assign_exp   => ":=",
             // Punctuation
-            .Dot          => ".",
-            .Comma        => ",",
-            .Lparen       => "(",
-            .Rparen       => ")",
-            .Lbracket     => "[",
-            .Rbracket     => "]",
-            .Lsquirly     => "{",
-            .Rsquirly     => "}",
-            .Quote        => "'",
-            .Dblquote     => "\"",
-            .Backtick     => "`",
-            .Backslash    => "\\",
-            .Colon        => ":",
-            .Semicolon    => ";",
-            .Arrow        => "->",
-            .WideArrow    => "=>",
+            .dot          => ".",
+            .comma        => ",",
+            .lparen       => "(",
+            .rparen       => ")",
+            .lbracket     => "[",
+            .rbracket     => "]",
+            .lsquirly     => "{",
+            .rsquirly     => "}",
+            .quote        => "'",
+            .double_quote => "\"",
+            .backtick     => "`",
+            .backslash    => "\\",
+            .colon        => ":",
+            .semicolon    => ";",
+            .arrow        => "->",
+            .wide_arrow   => "=>",
             // Operators
-            .Address      => "@",
-            .Cash         => "$",
-            .Pound        => "#",
-            .Bang         => "!",
-            .Question     => "?",
-            .RangeExc     => "..",
-            .RangeInc     => "..=",
-            .ForwardApp   => "<|",
-            .ReverseApp   => "|>",
-            .Concat       => "<>",
+            .address      => "@",
+            .cash         => "$",
+            .pound        => "#",
+            .bang         => "!",
+            .question     => "?",
+            .range_exc    => "..",
+            .range_inc    => "..=",
+            .forward_app  => "<|",
+            .reverse_app  => "|>",
+            .concat       => "<>",
             // Arithmetic
-            .Plus         => "+",
-            .Minus        => "-",
-            .Asterisk     => "*",
-            .Slash        => "/",
-            .Percent      => "%",
-            .Increment    => "++",
-            .Decrement    => "--",
-            .Square       => "**",
+            .plus         => "+",
+            .minus        => "-",
+            .asterisk     => "*",
+            .slash        => "/",
+            .percent      => "%",
+            .increment    => "++",
+            .decrement    => "--",
+            .square       => "**",
             // Bitwise
-            .Ampersand    => "&",
-            .Pipe         => "|",
-            .Caret        => "^",
-            .Tilde        => "~",
-            .Lshift       => "<<",
-            .Rshift       => ">>",
+            .ampersand    => "&",
+            .pipe         => "|",
+            .caret        => "^",
+            .tilde        => "~",
+            .lshift       => "<<",
+            .rshift       => ">>",
             // Comparators
-            .Lesser       => "<",
-            .LesserEq     => "<=",
-            .Greater      => ">",
-            .GreaterEq    => ">=",
-            .Equal        => "==",
-            .NotEqual     => "!=",
+            .lesser       => "<",
+            .lesser_eq    => "<=",
+            .greater      => ">",
+            .greater_eq   => ">=",
+            .equal        => "==",
+            .not_equal    => "!=",
             // Miscelaneous
-            .Newline      => "\n",
-            .Illegal      => "ILLEGAL",
-            .Eof          => "EOF"
+            .newline      => "\\n",
+            .illegal      => "ILLEGAL",
+            .eof          => "EOF"
         };
     }
 
-    fn char_to_string(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
+    fn charToString(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
         var str = try allocator.alloc(u8, 1);
         str[0] = ch;
         return str[0..];
     }
 
     /// Tries to create a keyword Kind from a string slice
-    pub fn try_keyword(slice: []const u8) ?Kind {
+    pub fn tryKeyword(slice: []const u8) ?Kind {
         const keyword = keywords.get(slice) orelse return null;
-        return .{.Keyword = keyword};
+        return .{ .keyword = keyword };
     }
 
     /// Tries to create a mode Kind from a string slice
-    pub fn try_mode(slice: []const u8) ?Kind {
+    pub fn tryMode(slice: []const u8) ?Kind {
         const mode = modes.get(slice) orelse return null;
-        return .{.Mode = mode};
+        return .{ .mode = mode };
     }
 };
 
 /// Represents the official keywords of Ruka, and the reserved
 pub const Keyword = enum {
-    Const,
-    Let,
-    Pub,
-    Return,
-    Do,
-    End,
-    Record,
-    Variant,
-    Interface,
-    Module,
-    Defer,
-    True,
-    False,
-    For,
-    While,
-    Break,
-    Continue,
-    Match,
-    If,
-    Else,
-    And,
-    Or,
-    Not,
-    Inline,
-    Test,
-    Fn,
-    In,
+    @"const",
+    let,
+    @"var",
+    @"pub",
+    @"return",
+    do,
+    end,
+    record,
+    @"enum",
+    interface,
+    @"error",
+    @"defer",
+    true,
+    false,
+    @"for",
+    @"while",
+    @"break",
+    @"continue",
+    match,
+    with,
+    @"if",
+    @"else",
+    @"and",
+    @"or",
+    not,
+    @"test",
+    @"fn",
+    in,
     // Reserved
-    Private,
-    Derive,
-    Static,
-    Macro,
-    From,
-    Impl,
-    When,
-    Any,
-    Use,
-    As,
+    @"inline",
+    private,
+    derive,
+    module,
+    static,
+    macro,
+    from,
+    impl,
+    when,
+    any,
+    use,
+    as,
 
-    /// Converts a Keyword into a string slice
-    pub fn to_str(self: *const Keyword) []const u8 {
+    /// Converts a keyword into a string slice
+    pub fn toStr(self: *const Keyword) []const u8 {
         for (keywords.keys(), keywords.values()) |key, value| {
             if (value == self.*) {
                 return key;
@@ -282,51 +337,54 @@ pub const Keyword = enum {
 
 // Map representing Keywords and their string representation
 const keywords = std.StaticStringMap(Keyword).initComptime(.{
-    .{"const", .Const},
-    .{"let", .Let},
-    .{"pub", .Pub},
-    .{"return", .Return},
-    .{"do", .Do},
-    .{"end", .End},
-    .{"record", .Record},
-    .{"variant", .Variant},
-    .{"interface", .Interface},
-    .{"module", .Module},
-    .{"defer", .Defer},
-    .{"true", .True},
-    .{"false", .False},
-    .{"for", .For},
-    .{"while", .While},
-    .{"break", .Break},
-    .{"continue", .Continue},
-    .{"match", .Match},
-    .{"if", .If},
-    .{"else", .Else},
-    .{"and", .And},
-    .{"or", .Or},
-    .{"not", .Not},
-    .{"inline", .Inline},
-    .{"test", .Test},
-    .{"fn", .Fn},
-    .{"in", .In},
+    .{"const", .@"const"},
+    .{"let", .let},
+    .{"var", .@"var"},
+    .{"pub", .@"pub"},
+    .{"return", .@"return"},
+    .{"do", .do},
+    .{"end", .end},
+    .{"record", .record},
+    .{"enum", .@"enum"},
+    .{"interface", .interface},
+    .{"error", .@"error"},
+    .{"defer", .@"defer"},
+    .{"true", .true},
+    .{"false", .false},
+    .{"for", .@"for"},
+    .{"while", .@"while"},
+    .{"break", .@"break"},
+    .{"continue", .@"continue"},
+    .{"match", .match},
+    .{"with", .with},
+    .{"if", .@"if"},
+    .{"else", .@"else"},
+    .{"and", .@"and"},
+    .{"or", .@"or"},
+    .{"not", .not},
+    .{"test", .@"test"},
+    .{"fn", .@"fn"},
+    .{"in", .in},
     // Reserved
-    .{"private", .Private},
-    .{"derive", .Derive},
-    .{"static", .Static},
-    .{"macro", .Macro},
-    .{"from", .From},
-    .{"impl", .Impl},
-    .{"when", .When},
-    .{"any", .Any},
-    .{"use", .Use},
-    .{"as", .As}
+    .{"inline", .@"inline"},
+    .{"private", .private},
+    .{"derive", .derive},
+    .{"module", .module},
+    .{"static", .static},
+    .{"macro", .macro},
+    .{"from", .from},
+    .{"impl", .impl},
+    .{"when", .when},
+    .{"any", .any},
+    .{"use", .use},
+    .{"as", .as}
 });
 
 // Compile time assert no missing or extra entries in keywords
 comptime {
     const fields = switch (@typeInfo(Keyword)) {
         .@"enum" => |e| e.fields,
-        else => @compileError("Keyword should be a tagged union")
+        else => unreachable
     };
 
     if (fields.len != keywords.kvs.len) {
@@ -342,13 +400,14 @@ comptime {
 
 /// Represent various parameter modes
 pub const Mode = enum {
-    Comptime,
-    Loc,
-    Mov,
-    Mut,
+    @"comptime",
+    @"&",
+    loc,
+    mov,
+    mut,
 
-    /// Converts a Mode into a string slice
-    pub fn to_str(self: *const Mode) []const u8 {
+    /// Converts a mode into a string slice
+    pub fn toStr(self: *const Mode) []const u8 {
         for (modes.keys(), modes.values()) |key, value| {
             if (value == self.*) {
                 return key;
@@ -360,17 +419,18 @@ pub const Mode = enum {
 
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
-    .{"comptime", .Comptime},
-    .{"loc", .Loc},
-    .{"mov", .Mov},
-    .{"mut", .Mut}
+    .{"comptime", .@"comptime"},
+    .{"&", .@"&"},
+    .{"loc", .loc},
+    .{"mov", .mov},
+    .{"mut", .mut}
 });
 
 // Compile time assert no missing or extra entries in modes
 comptime {
     const fields = switch (@typeInfo(Mode)) {
         .@"enum" => |e| e.fields,
-        else => @compileError("Mode should be a tagged union")
+        else => unreachable
     };
 
     if (fields.len != modes.kvs.len) {
@@ -387,8 +447,8 @@ comptime {
 test "mode comparision" {
     const testing = std.testing;
 
-    const mode: Kind = .{.Mode = .Mut};
-    const mode2 = Kind.try_mode("mut").?;
+    const mode: Kind = .{ .mode = .mut };
+    const mode2 = Kind.tryMode("mut").?;
 
-    try testing.expect(mode.Mode == mode2.Mode);
+    try testing.expect(mode.mode == mode2.mode);
 }

@@ -1,7 +1,0 @@
-fn main -> isize = () {
-    return 2
-}
-
-fn main -> isize = () {
-    2
-}

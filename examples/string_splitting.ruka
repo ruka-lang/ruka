@@ -14,31 +14,31 @@ const std = @import("std")
   * ["Hello,", "world!"]
   * ```
   */
-fn strsplit -> std.ArrayList(string) = (
-    str: string,
+const strsplit -> @arrayList(string) = (
+    str: []u8,
     ch: u8
-) {
-    var indices = std.ArrayList(uint).new()
-    for c, i in str, 0.. {
+) do
+    var indices = @arrayList(uint).new()
+    for c, i in str, 0.. do
         if c == ch => indices.push(i)
-    }
+    end
 
-    var words = std.ArrayList(string).new()
+    var words = @arrayList(string).new()
     var prev = 0
 
-    for idx in indices {
+    for idx in indices do
         let str = str[prev..idx].into(string)
         words.push(str)
         prev = idx + 1
-    }
+    end
 
     let str = str[prev..str.len].into(string)
     words.push(str)
 
     words
-}
+end
 
-fn main -> !unit = () {
+const main -> @result(unit) = () do
     let words =
         "| Hello,
          | world!
@@ -46,5 +46,5 @@ fn main -> !unit = () {
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len == 3).!
-}
+    @assert(words.len == 2).!
+end

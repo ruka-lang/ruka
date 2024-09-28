@@ -1,12 +1,16 @@
 .{
     .name = "ruka",
     .version = "0.0.0",
-    .minimum_zig_version = "0.12.0",
+    .minimum_zig_version = "0.14.0",
 
     .dependencies = .{
         .clap = .{
             .url = "git+https://github.com/Hejsil/zig-clap#2d9db156ae928860a9acf2f1260750d3b44a4c98",
             .hash = "122005e589ab3b6bff8e589b45f5b12cd27ce79f266bdac17e9f33ebfe2fbaff7fe3",
+        },
+        .chrono = .{
+            .url = "git+https://github.com/dwclake/chrono-zig#afe8c71cce3d0579f2535f57daabb1ec9f404834",
+            .hash = "1220c4e80e479bdd3ce92b524919b511da384ec1a35c02c70e876fd7d9923a16536b",
         },
     },
 

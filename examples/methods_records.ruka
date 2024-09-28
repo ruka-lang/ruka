@@ -4,25 +4,20 @@ const Vector = record {
         y: isize
     }
 
-    pub fn new -> t = (x, y: isize) {
+    pub const new -> t = (x, y: isize) do
         t.{ x, y }
-    }
+    end
 
-    pub fn &t.add -> t = (other: &t) {
+    pub const t.add -> t = (other: t) do
         t.{
             x = self.x + other.x,
             y = self.y + other.y
         }
-    }
+    end
 }
 
-fn main -> !unit = () {
+const main -> @result(unit) = () do
     let a = Vector.new(1, 2)
-    @assert(@typeOf(a) == Vector.t).!
-
     let b = Vector.new(3, 4)
-    @assert(@typeOf(b) == Vector.t).!
-
-    let c = a.add(&b)
-    @assert(@typeOf(c) == Vector.t).!
-}
+    let c = a.add(b)
+end

@@ -1,31 +1,31 @@
 const Num = interface ('a) {
-    (+): (&'a) -> 'a
+    add: ('a) -> 'a
 }
 
-fn num -> type = (comptime 'a: type) {
-    pub fn (lhs: &'a).add -> 'a = (rhs: &'a) {
-        let mut result = 'a.{}
+const num -> type = (comptime 'a: type) do
+    pub const (lhs: 'a).add -> 'a = (rhs: 'a) do
+        mut result = 'a.{}
 
-        for f in @type_info('a).Record.fields {
+        for f in @type_info('a).Record.fields do
             @field(result, f) = @field(lhs, f) + @field(rhs, f)
-        }
-    }
+        end
+    end
 
     'a
-}
+end
 
 const Vector = record { x: isize, y: isize }
     |> num()
 
-fn new = (x, y) {
+const new = (x, y) do
     Vector.{ x, y }
-}
+end
 
-fn add -> Num = (x, y: Num) {
-    x + y
-}
+const add -> Num = (x, y: Num) do
+    x.add(y)
+end
 
-fn main -> !unit = () {
+const main -> @result(unit) = () do
     let a = new(10, 5)
     let b = new(5, 10)
     let c = a.add(b)
@@ -38,4 +38,4 @@ fn main -> !unit = () {
     let f = add(d, e)
 
     @assert(f == 15).!
-}
+end
