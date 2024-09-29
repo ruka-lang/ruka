@@ -117,6 +117,8 @@ pub fn compile(self: *Compiler) !void {
         std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
         token.deinit();
     }
+
+    std.debug.print("eof: \\x00\n", .{});
 }
 
 pub const Job = union(enum) {
