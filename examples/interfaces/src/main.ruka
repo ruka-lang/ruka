@@ -2,11 +2,11 @@
  *
  */
 
-const {Buffer, t} = @use("idk");
+const {Buffer, Vector} = @use("idk");
 
 const main -> @result(unit) = () do
     var buffer = Buffer.init()
-    t.new(1, 2)
+    Vector.new(1, 2)
         |> .add(.new(3, 4))
         |> .write(buffer.writer())
 
