@@ -16,7 +16,7 @@ end
 const main -> @result(unit) = () do
     let n = std.io.stdin().gets()
         |> string.parse ~into: usize
-        |> .!
+        |> .?
 
     let value = fibonacci(n)
 

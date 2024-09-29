@@ -30,7 +30,7 @@ const tests = record {
 
         for _, v in t do
             let result = div(v.num, v.div)
-            @assert(result == v.want).!
+            @assert(result == v.want).?
         end
     }
 }

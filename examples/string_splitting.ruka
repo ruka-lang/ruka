@@ -46,5 +46,5 @@ const main -> @result(unit) = () do
         |> ([..])
         |> strsplit('\n')
 
-    @assert(words.len == 2).!
+    @assert(words.len == 2).?
 end

@@ -1,0 +1,101 @@
+/*
+ *
+ */
+
+const std = @import("std");
+const {Reader, Writer} = @use("io");
+
+pub const t = record {
+    x: u8,
+    y: u8
+}
+
+pub const t.add = (other: t) do
+    t.{
+        x = self.x + other.x,
+        y = self.y + other.y
+    }
+end
+
+pub const t::new = (x, y) do
+    t.{ x, y }
+end
+
+pub const t.write = (writer: Writer) do
+    writer.writeStruct(self).?
+end
+
+pub const Buffer = record {
+    buf: [4096]u8,
+    front: usize,
+    back: usize,
+
+    mtx: std.sync.Mutex,
+    add: std.sync.CV,
+    rem: std.sync.CV,
+
+    pub const init = () do
+        Buffer.{
+            buf = [10]{},
+            front = 0,
+            back = 0
+        }
+    end
+
+    const writer = record {
+        buf: mut Buffer
+    }
+
+    pub const Buffer.writer = () do
+        writer.{
+            buf: mut self.buf
+        }
+    end
+
+    pub const (mut writer).writeStruct = (val: t) do
+        self.buf.put(val.x)
+        self.buf.put(val.y)
+    end
+
+    const reader = record {
+        buf: mut Buffer
+    }
+
+    pub const Buffer.reader = () do
+        reader.{
+            buf: mut self.buf
+        }
+    end
+
+    pub const (mut reader).readByte = () do
+        self.buf.get()
+    end
+
+    pub const (mut Buffer).put = (value) do
+        self.mtx.lock()
+        defer self.mtx.unlock()
+
+        while self.front -| self.back == 10 do
+            self.rem.wait(mut self.mtx)
+        end
+
+        self.buf[self.front % 10] = value
+        self.front += 1;
+
+        self.add.signal()
+    end
+
+    pub const (mut Buffer).get = () do
+        self.mtx.lock()
+        defer self.mtx.unlock()
+
+        while self.back == self.front do
+            self.add.wait(mut mtx)
+        end
+
+        self.back += 1
+        self.removed.signal()
+
+        self.buf[self.back % 10];
+    end
+}
