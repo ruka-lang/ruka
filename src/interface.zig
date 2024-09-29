@@ -67,6 +67,7 @@ pub fn compileFile(
     out: ?[]const u8,
     allocator: std.mem.Allocator
 ) !void {
+    // check if file exists
     const input = try std.fs.cwd().openFile(in, .{});
     defer input.close();
 
