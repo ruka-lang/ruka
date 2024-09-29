@@ -1,7 +1,7 @@
 pub const Reader = interface {
-    readByte: (mut) () -> @result(u8)
+    readByte: (*) () -> @result(u8)
 }
 
 pub const Writer = interface {
-    writeRecord: (mut) (any) -> @result(())
+    writeRecord: (*) (any) -> @result(())
 }

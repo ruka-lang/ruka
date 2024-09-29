@@ -43,35 +43,35 @@ pub const Buffer = record {
     end
 
     const writer = record {
-        buf: mut Buffer
+        buf: *Buffer
     }
 
     pub const Buffer.writer = () do
         writer.{
-            buf: mut self.buf
+            buf: &self.buf
         }
     end
 
-    pub const (mut writer).writeStruct = (val: t) do
+    pub const *writer.writeStruct = (val: t) do
         self.buf.put(val.x)
         self.buf.put(val.y)
     end
 
     const reader = record {
-        buf: mut Buffer
+        buf: *Buffer
     }
 
     pub const Buffer.reader = () do
         reader.{
-            buf: mut self.buf
+            buf: &self.buf
         }
     end
 
-    pub const (mut reader).readByte = () do
+    pub const *reader.readByte = () do
         self.buf.get()
     end
 
-    pub const (mut Buffer).put = (value) do
+    pub const *Buffer.put = (value) do
         self.mtx.lock()
         defer self.mtx.unlock()
 
@@ -85,7 +85,7 @@ pub const Buffer = record {
         self.add.signal()
     end
 
-    pub const (mut Buffer).get = () do
+    pub const *Buffer.get = () do
         self.mtx.lock()
         defer self.mtx.unlock()
 
