@@ -2,7 +2,7 @@
  *
  */
 const project = {
-    name = "idk",
+    name = "basics",
     version = 0.0.1,
     required_ruka_version = 0.0.0
 }

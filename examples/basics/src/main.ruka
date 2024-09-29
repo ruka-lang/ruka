@@ -1,0 +1,25 @@
+/*
+ *
+ */
+
+const {Buffer, Vector} = @import("basics")
+
+const main = () do
+    var buffer = Buffer.init()
+
+    Vector.new(1, 2)
+        |> .add(.new(3, 4))
+        |> .write ~writer: buffer.writer()
+        |> .?
+
+    let values = []{
+        buffer.get(),
+        buffer.get()
+    }
+
+    @expectEq(values[0], 4).?
+    @expectEq(values[1], 5).?
+
+    let string: @arrayList(u8) = @sprintf("x: #{values[0]}, y: #{values[1]}")
+    @println(string)
+end

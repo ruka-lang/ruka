@@ -1,0 +1,77 @@
+const std = @import("std")
+const Vector = @import("basics").Vector
+
+pub const t = record {
+    buf: [4096]u8,
+    front: usize,
+    back: usize,
+
+    mtx: std.sync.Mutex,
+    add: std.sync.CV,
+    rem: std.sync.CV
+}
+
+pub const init = () do
+    t.{
+        buf = []{},
+        front = 0,
+        back = 0
+    }
+end
+
+const writer = record {
+    buf: *t
+}
+
+pub const writeRecord = (self: *writer, val: Vector.t) do
+    self.buf.put(val.x)
+    self.buf.put(val.y)
+end
+
+const reader = record {
+    buf: *t
+}
+
+pub const Reader.readByte = (self: *reader) do
+    self.buf.get()
+end
+
+pub const writer = (self: t) do
+    writer.{
+        buf: &self.buf
+    }
+end
+
+pub const reader = (self: Reader) do
+    reader.{
+        buf: &self.buf
+    }
+end
+
+pub const put = (self: *t, value) do
+    self.mtx.lock()
+    defer self.mtx.unlock()
+
+    while self.front -| self.back == 10 do
+        self.rem.wait(&self.mtx)
+    end
+
+    self.buf[self.front % 10] = value
+    self.front += 1;
+
+    self.add.signal()
+end
+
+pub const get = (self: *t) do
+    self.mtx.lock()
+    defer self.mtx.unlock()
+
+    while self.back == self.front do
+        self.add.wait(&self.mtx)
+    end
+
+    self.back += 1
+    self.removed.signal()
+
+    self.buf[self.back % 10];
+end
