@@ -2,7 +2,7 @@
  *
  */
 
-const {Buffer, Vector} = @import("basics")
+const Buffer, Vector = @import("basics")
 
 fn main = () do
     var buffer = Buffer.init()
