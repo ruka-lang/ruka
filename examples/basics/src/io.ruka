@@ -1,0 +1,7 @@
+pub const Reader = interface {
+    readByte: (*) () -> @result(u8)
+}
+
+pub const Writer = interface {
+    writeRecord: (*) (any) -> @result(())
+}

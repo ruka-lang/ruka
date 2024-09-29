@@ -289,7 +289,9 @@ pub const Keyword = enum {
     @"return",
     do,
     end,
+    module,
     record,
+    tuple,
     @"enum",
     interface,
     @"error",
@@ -314,7 +316,6 @@ pub const Keyword = enum {
     @"inline",
     private,
     derive,
-    module,
     static,
     macro,
     from,
@@ -344,7 +345,9 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
+    .{"module", .module},
     .{"record", .record},
+    .{"tuple", .tuple},
     .{"enum", .@"enum"},
     .{"interface", .interface},
     .{"error", .@"error"},
@@ -369,7 +372,6 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"inline", .@"inline"},
     .{"private", .private},
     .{"derive", .derive},
-    .{"module", .module},
     .{"static", .static},
     .{"macro", .macro},
     .{"from", .from},
@@ -450,5 +452,5 @@ test "mode comparision" {
     const mode: Kind = .{ .mode = .mut };
     const mode2 = Kind.tryMode("mut").?;
 
-    try testing.expect(mode.mode == mode2.mode);
+    try testing.expectEqual(mode.mode, mode2.mode);
 }

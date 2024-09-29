@@ -7,6 +7,7 @@ const std = @import("std");
 
 pub const std_options = interface.logging.options;
 
+// Refactor to compile project directories instead on individual files
 pub fn main() !void {
     var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
     defer _ = gpa.deinit();

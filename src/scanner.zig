@@ -337,7 +337,8 @@ fn readCharacter(self: *Scanner) !?Token {
     }
 
     // Check if character literal contains a escape character
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.arena.allocator());
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
+                                             self.compiler.arena.allocator());
 
     // Create errors if string length isn't 1
     if (string.items.len > 1) {
@@ -395,11 +396,14 @@ const escapes = std.StaticStringMap(u8).initComptime(.{
 });
 
 // Replaces escape characters
-// TODO make this more efficient
-fn handleEscapeCharacters(self: *Scanner, slice: [] const u8, allocator: std.mem.Allocator) !std.ArrayList(u8) {
+fn handleEscapeCharacters(
+    self: *Scanner,
+    slice: [] const u8,
+    allocator: std.mem.Allocator
+) !std.ArrayList(u8) {
+    defer self.compiler.allocator.free(slice);
     var string = std.ArrayList(u8).init(allocator);
     errdefer string.deinit();
-    defer self.compiler.allocator.free(slice);
 
     var i: usize = 0;
     while (i < slice.len) {
@@ -440,20 +444,19 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
         byte = self.read();
     }
 
-    var is_identifier = false;
     var kind = Token.Kind.tryMode(string.items);
-    if (kind == null) {
-        kind = Token.Kind.tryKeyword(string.items);
-
-        // If string doesn't represent a keyword or mode,
-        // then kind is identifier
-        if (kind == null) {
-            kind = .{ .identifier = string };
-            is_identifier = true;
-        }
+    if (kind) |k| {
+        string.deinit();
+        return self.createToken(k);
     }
 
-    if (!is_identifier) string.deinit();
+    kind = Token.Kind.tryKeyword(string.items);
+    if (kind) |k| {
+        string.deinit();
+        return self.createToken(k);
+    }
+
+    kind = .{ .identifier = string };
 
     return self.createToken(kind.?);
 }
@@ -522,7 +525,8 @@ fn readSingleString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
+                                             self.compiler.allocator);
     return self.createToken(.{ .string = string });
 }
 
@@ -561,7 +565,8 @@ fn readMultiString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(), self.compiler.allocator);
+    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
+                                             self.compiler.allocator);
     return self.createToken(.{ .string = string });
 }
 
@@ -572,18 +577,18 @@ test "test all scanner modules" {
 
 const tests = struct {
     const testing = std.testing;
-    const expect = testing.expect;
+    const expectEqualStrings = testing.expectEqualStrings;
     const expectEqual = testing.expectEqual;
     const eql = std.mem.eql;
 
     fn compareTokens(expected_token: *const Token, actual_token: *const Token) !void {
         switch (expected_token.kind) {
             .identifier => |e_identifier| switch (actual_token.kind) {
-                .identifier => |a_identifier| try expect(eql(u8, e_identifier.items, a_identifier.items)),
+                .identifier => |a_identifier| try expectEqualStrings(e_identifier.items, a_identifier.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .string => |e_string| switch (actual_token.kind) {
-                .string => |a_string| try expect(eql(u8, e_string.items, a_string.items)),
+                .string => |a_string| try expectEqualStrings(e_string.items, a_string.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .character => |e_character| switch (actual_token.kind) {
@@ -591,11 +596,11 @@ const tests = struct {
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .integer => |e_integer| switch (actual_token.kind) {
-                .integer => |a_integer| try expect(eql(u8, e_integer.items, a_integer.items)),
+                .integer => |a_integer| try expectEqualStrings(e_integer.items, a_integer.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .float => |e_float| switch (actual_token.kind) {
-                .float => |a_float| try expect(eql(u8, e_float.items, a_float.items)),
+                .float => |a_float| try expectEqualStrings(e_float.items, a_float.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .keyword => |e_keyword| switch (actual_token.kind) {
@@ -611,7 +616,7 @@ const tests = struct {
             }
         }
 
-        try expect(eql(u8, expected_token.file, actual_token.file));
+        try expectEqualStrings(expected_token.file, actual_token.file);
         try expectEqual(expected_token.pos, actual_token.pos);
     }
 
