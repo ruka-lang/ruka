@@ -11,18 +11,18 @@ pub const Vector = module {
         y: u8
     }
 
-    pub const new = (x, y) do
+    pub fn new = (x, y) do
         t.{ x, y }
     end
 
-    pub const add = (self: t, other: t) do
+    pub fn add = (self: t, other: t) do
         t.{
             x = self.x + other.x,
             y = self.y + other.y
         }
     end
 
-    pub const write = (self: t, writer: any io.Writer) do
+    pub fn write = (self: t, writer: any io.Writer) do
         writer.writeRecord(self).?
     end
 
