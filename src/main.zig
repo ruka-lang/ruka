@@ -1,23 +1,19 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const interface = @import("interface.zig");
+const Interface = @import("interface.zig");
 
 const std = @import("std");
 
-pub const std_options = interface.logging.options;
+pub const std_options = Interface.logging.options;
 
-// Refactor to compile project directories instead on individual files
 pub fn main() !void {
-    var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
-    defer _ = gpa.deinit();
+    var interface = Interface.init();
+    defer interface.deinit();
 
-    try interface.logging.init(gpa.allocator());
-    defer interface.logging.deinit(gpa.allocator());
-
-    try interface.start(gpa.allocator());
+    try interface.begin();
 }
 
 test "Test all rukac executable modules" {
-    _ = interface;
+    _ = Interface;
 }

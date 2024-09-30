@@ -20,6 +20,6 @@ fn main = () do
     @expectEq(values[0], 4).?
     @expectEq(values[1], 5).?
 
-    let string: @arrayList(u8) = @sprintf("x: #{values[0]}, y: #{values[1]}")
+    let string: @arrayList(u8) = @fmtToString("x: #{values[0]}, y: #{values[1]}")
     @println(string)
 end

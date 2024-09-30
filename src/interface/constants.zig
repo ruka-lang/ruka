@@ -4,13 +4,17 @@
 //
 
 const std = @import("std");
+const clap = @import("clap");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
 pub const usage = "usage: rukac [options] [command]";
 pub const commands =
     \\    commands:
-    \\        compile <input_file> : Compiles the file given
+    \\        new : Creates a new project in the current directory
+    \\        build : Builds the project in the current directory
+    \\        test : Tests the project in the current directory
+    \\        run : Runs the project in the current directory
 ;
 
 const options =
@@ -20,6 +24,29 @@ const options =
     \\        -o, --output         : Path of the output file
     \\
 ;
+
+pub const params = clap.parseParamsComptime(
+    \\-h, --help           Display the help and usage
+    \\-v, --version        Display the compile version
+    \\<str>                Subcommand
+    \\
+);
+
+const Subcommand = enum { 
+    new,
+    build,
+    @"test",
+    run, 
+    invalid 
+};
+
+/// Subcommand supported by rukac
+pub const subcommands = std.StaticStringMap(Subcommand).initComptime(.{
+    .{"new", .new},
+    .{"build", .build},
+    .{"test", .@"test"},
+    .{"run", .run}
+});
 
 pub const version_str = std.fmt.comptimePrint("{d}.{d}.{d}", .{
     project_options.version.major,
@@ -37,8 +64,5 @@ pub const help = std.fmt.comptimePrint("rukac {s} (released {s})\n{s}\n\n{s}\n{s
     options
 });
 
-/// File extensions supported by rukac
-pub const exts = [2][]const u8{
-    "ruka",
-    "rk"
-};
+/// File extension used by ruka files
+pub const ext = "ruka";

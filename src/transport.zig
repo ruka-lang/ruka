@@ -38,6 +38,14 @@ pub fn write(self: *Transport, msg: []const u8) !void {
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    try self.bw.writer().write(msg);
+    _ = try self.bw.writer().write(msg);
+    try self.bw.flush();
+}
+
+pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    try self.bw.writer().print(msg, args);
     try self.bw.flush();
 }
