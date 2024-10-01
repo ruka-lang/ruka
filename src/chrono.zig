@@ -1,8 +1,6 @@
 // @author: ruka-lang
 // @created: 2024-09-13
 
-//
-
 const std = @import("std");
 
 // These first attributes should be removed, as these are only useful in calculating the current time/date
@@ -104,7 +102,7 @@ pub const Month = enum {
     march,
     april,
     may,
-    june, 
+    june,
     july,
     august,
     september,

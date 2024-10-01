@@ -1,8 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const rukac = @import("rukac").prelude;
-const Transport = rukac.Transport;
+const ruka = @import("libruka").prelude;
+const Transport = ruka.Transport;
 
 const std = @import("std");
 
@@ -116,7 +116,7 @@ fn compileFile(
     var buf: [10]u8 = undefined;
     var output = std.io.fixedBufferStream(&buf);
 
-    var compiler = try rukac.Compiler.init(.{
+    var compiler = try ruka.Compiler.init(.{
         .input = in,
         .output = out orelse "no output",
         .reader = input.reader().any(),

@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const version = std.SemanticVersion{ .major = 0, .minor = 0, .patch = 0 };
-const version_date = "03-09-2024";
+const version_date = "09-30-2024";
 const description = "Compiler for the Ruka Programming Language";
 
 pub fn build(b: *std.Build) void {
@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const root = b.addStaticLibrary(.{
-        .name = "rukac",
+        .name = "libruka",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -30,7 +30,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.root_module.addImport("rukac", &root.root_module);
+    exe.root_module.addImport("libruka", &root.root_module);
 
     b.installArtifact(exe);
 

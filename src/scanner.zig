@@ -4,8 +4,8 @@
 // Responsible for scanning the source file contained in the compiler which
 // owns this scanner
 
-const rukac = @import("root.zig").prelude;
-const Compiler = rukac.Compiler;
+const ruka = @import("root.zig").prelude;
+const Compiler = ruka.Compiler;
 
 const std = @import("std");
 
@@ -13,8 +13,8 @@ pub const Token = @import("scanner/token.zig");
 
 const Scanner = @This();
 
-current_pos: rukac.Position,
-token_pos: rukac.Position,
+current_pos: ruka.Position,
+token_pos: ruka.Position,
 index: usize,
 
 prev_char: u8,
@@ -210,9 +210,9 @@ pub fn nextToken(self: *Scanner) !Token {
         '\x00' => self.createToken(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => block: {
-            if (rukac.isAlphabetical(byte)) {
+            if (ruka.isAlphabetical(byte)) {
                 break :block try self.readIdentifierKeywordMode();
-            } else if (rukac.isIntegral(byte)) {
+            } else if (ruka.isIntegral(byte)) {
                 break :block try self.readIntegerFloat();
             }
 
@@ -438,7 +438,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
     errdefer string.deinit();
 
     var byte = self.read();
-    while (rukac.isAlphanumerical(byte)) {
+    while (ruka.isAlphanumerical(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -470,7 +470,7 @@ fn readIntegerFloat(self: *Scanner) !Token {
     // read only integer values afterwards
     var float = false;
     var byte = self.read();
-    while (rukac.isNumeric(byte)) {
+    while (ruka.isNumeric(byte)) {
         if (byte == '.') {
             try string.append(byte);
             try self.readMantissa(&string);
@@ -497,12 +497,12 @@ fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
 
     var byte = self.read();
 
-    if (!rukac.isIntegral(byte)) {
+    if (!ruka.isIntegral(byte)) {
         try string.append('0');
         return;
     }
 
-    while (rukac.isIntegral(byte)) {
+    while (ruka.isIntegral(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();

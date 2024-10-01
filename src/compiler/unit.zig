@@ -3,10 +3,10 @@
 
 // Responsible for compiling a given file
 
-const rukac = @import("../root.zig").prelude;
-const Compiler = rukac.Compiler;
-const Scanner = rukac.Scanner;
-const utilities = rukac.utilities;
+const ruka = @import("../root.zig").prelude;
+const Compiler = ruka.Compiler;
+const Scanner = ruka.Scanner;
+const utilities = ruka.utilities;
 
 const std = @import("std");
 

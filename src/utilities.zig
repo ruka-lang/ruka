@@ -4,13 +4,12 @@
 //
 
 const std = @import("std");
-const clap = @import("clap");
 
 pub const chrono = @import("chrono");
 
 /// Represents a 2d position in a file
 pub const Position = struct {
-    line: usize = 0, 
+    line: usize = 0,
     col: usize = 0,
 
     pub fn init(line: usize, col: usize) Position {
