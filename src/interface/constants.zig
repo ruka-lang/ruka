@@ -4,40 +4,33 @@
 //
 
 const std = @import("std");
-const clap = @import("clap");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
 pub const usage = "usage: rukac [options] [command]";
 pub const commands =
     \\    commands:
-    \\        new : Creates a new project in the current directory
-    \\        build : Builds the project in the current directory
-    \\        test : Tests the project in the current directory
-    \\        run : Runs the project in the current directory
+    \\        new     : Creates a new project in the current directory
+    \\        build   : Builds the project in the current directory
+    \\        test    : Tests the project in the current directory
+    \\        run     : Runs the project in the current directory
+    \\        version : Displays the current rukac version installed
+    \\        help    : Displays the help menu
 ;
 
 const options =
     \\    options:
-    \\        -h, --help           : Displays help and usage
-    \\        -v, --version        : Displays the compiler version
-    \\        -o, --output         : Path of the output file
     \\
 ;
 
-pub const params = clap.parseParamsComptime(
-    \\-h, --help           Display the help and usage
-    \\-v, --version        Display the compile version
-    \\<str>                Subcommand
-    \\
-);
-
-const Subcommand = enum { 
+const Subcommand = enum {
     new,
     build,
     @"test",
-    run, 
-    invalid 
+    run,
+    version,
+    help,
+    invalid
 };
 
 /// Subcommand supported by rukac
@@ -45,7 +38,9 @@ pub const subcommands = std.StaticStringMap(Subcommand).initComptime(.{
     .{"new", .new},
     .{"build", .build},
     .{"test", .@"test"},
-    .{"run", .run}
+    .{"run", .run},
+    .{"version", .version},
+    .{"help", .help}
 });
 
 pub const version_str = std.fmt.comptimePrint("{d}.{d}.{d}", .{

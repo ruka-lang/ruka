@@ -8,7 +8,6 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
     // Dependencies
-    const clap = b.dependency("clap", .{});
     const chrono = b.dependency("chrono", .{});
 
     const optimize = b.standardOptimizeOption(.{});
@@ -25,14 +24,13 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(root);
 
     const exe = b.addExecutable(.{
-        .name = "rukac",
+        .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     exe.root_module.addImport("rukac", &root.root_module);
-    exe.root_module.addImport("clap", clap.module("clap"));
 
     b.installArtifact(exe);
 
