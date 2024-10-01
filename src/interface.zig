@@ -89,6 +89,7 @@ fn isProperProject(self: Interface) void {
     _ = self;
 }
 
+// Create compiler here
 fn buildProject(self: *Interface) !void {
     const filepath = "examples/basics/src/main.ruka";
 
@@ -105,6 +106,7 @@ fn buildProject(self: *Interface) !void {
     try self.compileFile(filepath, null);
 }
 
+// This will be inside compiler, generating a unit
 fn compileFile(
     self: *Interface,
     in: []const u8,
