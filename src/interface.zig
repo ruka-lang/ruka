@@ -3,10 +3,10 @@
 
 const ruka = @import("libruka").prelude;
 const Transport = ruka.Transport;
+const Compiler = ruka.Compiler;
 
 const std = @import("std");
 
-cwd: std.fs.Dir,
 transport: Transport,
 gpa: std.heap.GeneralPurposeAllocator(.{}),
 
@@ -14,7 +14,7 @@ const Interface = @This();
 
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
-pub const CommandParser = @import("interface/commandParser.zig");
+pub const ArgumentParser = @import("interface/argumentParser.zig");
 
 pub fn init() Interface {
     const stdin = std.io.getStdIn().reader();
@@ -28,7 +28,6 @@ pub fn init() Interface {
     };
 
     return .{
-        .cwd = std.fs.cwd(),
         .transport = transport,
         .gpa = gpa
     };
@@ -40,10 +39,16 @@ pub fn deinit(self: *Interface) void {
 }
 
 pub fn begin(self: *Interface) !void {
-    const args = std.os.argv;
-    if (args.len < 2) return self.displayHelp();
+    // Instead here we would instanciate a ArgumentParser and it will return us subcommands and optionals
+    var args = try std.process.argsWithAllocator(self.gpa.allocator());
+    defer args.deinit();
 
-    const subcommand = constants.subcommands.get(std.mem.span(args[1])) orelse .invalid;
+    if (!args.skip()) {
+        return self.displayHelp();
+    }
+
+    const subcommand_arg = args.next() orelse return self.displayHelp();
+    const subcommand = constants.subcommands.get(subcommand_arg) orelse .invalid;
     switch (subcommand) {
         .new => try self.newProject(),
         .build => try self.buildProject(),
@@ -53,7 +58,7 @@ pub fn begin(self: *Interface) !void {
         .help => try self.displayHelp(),
         .invalid => {
             try self.transport.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
-                args[1],
+                subcommand_arg,
                 constants.usage,
                 constants.commands
             });
@@ -78,55 +83,18 @@ fn newProject(self: *Interface) !void {
     _ = self;
 }
 
-fn isProperExtension(file: []const u8) bool {
-    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-    const extension = path_iter.first();
-
-    return std.mem.eql(u8, constants.ext, extension);
-}
-
 fn isProperProject(self: Interface) void {
     _ = self;
 }
 
+// Create compiler here
 fn buildProject(self: *Interface) !void {
-    const filepath = "examples/basics/src/main.ruka";
-
-    if (!isProperExtension(filepath)) {
-        var path_iter = std.mem.splitBackwardsSequence(u8, filepath, ".");
-        try self.transport.print(
-            "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
-            .{path_iter.first()}
-        );
-
-        std.posix.exit(1);
-    }
-
-    try self.compileFile(filepath, null);
-}
-
-fn compileFile(
-    self: *Interface,
-    in: []const u8,
-    out: ?[]const u8
-) !void {
-    const input = try self.cwd.openFile(in, .{});
-    defer input.close();
-
-    var buf: [10]u8 = undefined;
-    var output = std.io.fixedBufferStream(&buf);
-
-    var compiler = try ruka.Compiler.init(.{
-        .input = in,
-        .output = out orelse "no output",
-        .reader = input.reader().any(),
-        .writer = output.writer().any(),
-        .allocator = self.gpa.allocator()
-    });
+    var compiler = try Compiler.init(self.gpa.allocator());
     defer compiler.deinit();
 
-    try compiler.compile();
+    try compiler.buildProject();
 }
+
 
 fn testProject(self: *Interface) !void {
     _ = self;

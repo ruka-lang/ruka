@@ -13,8 +13,8 @@ const std = @import("std");
 const Unit = @This();
 
 input: []const u8,
-output: ?[]const u8,
-contents: []const u8,
+output: []const u8,
+transport: ruka.Transport,
 // ast: ?Ast,
 // context: std.ArrayList(...),
 errors: std.ArrayList(Compiler.Error),
@@ -22,57 +22,70 @@ errors: std.ArrayList(Compiler.Error),
 allocator: std.mem.Allocator,
 arena: std.heap.ArenaAllocator,
 
-/// Creates a new unit instance, initializing it's arena with the passed in
-/// allocator
-pub fn init(
+mutex: std.Thread.Mutex,
+
+pub const UnitOptions = struct {
     input: []const u8,
-    reader: ?std.io.AnyReader,
-    output: ?[]const u8,
-    allocator: std.mem.Allocator
-) !*Unit {
-    const buffer_size = 5000;
-    const unit = try allocator.create(Unit);
+    output: []const u8,
+    reader: std.io.AnyReader,
+    writer: std.io.AnyWriter,
+    allocator: std.mem.Allocator,
 
-    var contents: []const u8 = undefined;
-    if (reader != null) {
-        contents = try reader.?.readAllAlloc(allocator, buffer_size);
-    } else {
-        var file = try std.fs.cwd().openFile(input, .{});
-        defer file.close();
-
-        contents = try file.readToEndAlloc(allocator, buffer_size);
+    pub fn testing(reader: std.io.AnyReader, writer: std.io.AnyWriter) UnitOptions {
+        return UnitOptions {
+            .input = "test source",
+            .output = "test buffer",
+            .reader = reader,
+            .writer = writer,
+            .allocator = std.testing.allocator
+        };
     }
+};
+
+pub fn init(opts: UnitOptions) !*Unit {
+    const unit = try opts.allocator.create(Unit);
 
     unit.* = .{
-        .input = input,
-        .output = output,
-        .contents = contents,
-        .errors = std.ArrayList(Compiler.Error).init(allocator),
+        .input = opts.input,
+        .output = opts.output,
+        .transport = try ruka.Transport.init(opts.reader, opts.writer),
+        .errors = std.ArrayList(Compiler.Error).init(opts.allocator),
 
-        .allocator = allocator,
-        .arena = std.heap.ArenaAllocator.init(allocator)
+        .allocator = opts.allocator,
+        .arena = std.heap.ArenaAllocator.init(opts.allocator),
+
+        .mutex = .{}
     };
 
     return unit;
 }
 
-/// Deinitialize the unit
 pub fn deinit(self: *Unit) void {
-    self.arena.deinit();
     self.errors.deinit();
-    self.allocator.free(self.contents);
+    self.arena.deinit();
     self.allocator.destroy(self);
 }
 
-/// Begins the compilation process for the compilation unit
-pub fn compile(self: *Unit) !void {
-    var s = Scanner.init(self);
-    var t = try s.next_token();
+pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []const u8) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
 
-    while(t.kind != .eof) {
-        std.debug.print("{s}: {s}\n", .{@tagName(t.kind) , try t.kind.to_str(self.arena.allocator())});
-        t = try s.next_token();
+    try self.errors.append(.{
+        .file = self.input,
+        .kind = kind,
+        .msg = msg,
+        .pos = scanner.current_pos
+    });
+}
+
+pub fn compile(self: *Unit) !void {
+    var scanner = Scanner.init(self);
+    var token = try scanner.nextToken();
+
+    while(token.kind != .eof): (token = try scanner.nextToken()) {
+        std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
+        token.deinit();
     }
 
-    std.debug.print("{s}\n", .{self.contents});
+    std.debug.print("eof: \\x00\n", .{});
 }

@@ -56,6 +56,3 @@ pub const help = std.fmt.comptimePrint("ruka {s} (released {s})\n{s}\n\n{s}\n{s}
     commands,
     options
 });
-
-/// File extension used by ruka files
-pub const ext = "ruka";
