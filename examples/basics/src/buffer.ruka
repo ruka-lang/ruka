@@ -11,7 +11,7 @@ pub const t = record {
     rem: std.sync.CV
 }
 
-pub const init = () do
+pub fn init = () do
     t.{
         buf = []{},
         front = 0,
@@ -23,7 +23,7 @@ const writer = record {
     buf: *t
 }
 
-pub const writeRecord = (self: *writer, val: Vector.t) do
+pub fn writeRecord = (self: *writer, val: Vector.t) do
     self.buf.put(val.x)
     self.buf.put(val.y)
 end
@@ -32,23 +32,23 @@ const reader = record {
     buf: *t
 }
 
-pub const Reader.readByte = (self: *reader) do
+pub fn Reader.readByte = (self: *reader) do
     self.buf.get()
 end
 
-pub const writer = (self: t) do
+pub fn writer = (self: t) do
     writer.{
         buf: &self.buf
     }
 end
 
-pub const reader = (self: Reader) do
+pub fn reader = (self: Reader) do
     reader.{
         buf: &self.buf
     }
 end
 
-pub const put = (self: *t, value) do
+pub fn put = (self: *t, value) do
     self.mtx.lock()
     defer self.mtx.unlock()
 
@@ -62,7 +62,7 @@ pub const put = (self: *t, value) do
     self.add.signal()
 end
 
-pub const get = (self: *t) do
+pub fn get = (self: *t) do
     self.mtx.lock()
     defer self.mtx.unlock()
 

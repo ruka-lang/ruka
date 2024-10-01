@@ -3,9 +3,9 @@
 
 // Responsible for compiling an entire project
 
-const rukac = @import("root.zig").prelude;
-const Scanner = rukac.Scanner;
-const utilities = rukac.utilities;
+const ruka = @import("root.zig").prelude;
+const Scanner = ruka.Scanner;
+const utilities = ruka.utilities;
 
 const std = @import("std");
 
@@ -23,7 +23,7 @@ pub const Error = struct {
 
 input: []const u8,
 output: []const u8,
-transport: rukac.Transport,
+transport: ruka.Transport,
 // ast: ?Ast,
 // context: std.ArrayList(...),
 errors: std.ArrayList(Error),
@@ -63,7 +63,7 @@ pub fn init(opts: CompilerOptions) !*Compiler {
     compiler.* = .{
         .input = opts.input,
         .output = opts.output,
-        .transport = try rukac.Transport.init(opts.reader, opts.writer),
+        .transport = try ruka.Transport.init(opts.reader, opts.writer),
         .errors = std.ArrayList(Error).init(opts.allocator),
 
         .allocator = opts.allocator,
@@ -117,6 +117,8 @@ pub fn compile(self: *Compiler) !void {
         std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
         token.deinit();
     }
+
+    std.debug.print("eof: \\x00\n", .{});
 }
 
 pub const Job = union(enum) {

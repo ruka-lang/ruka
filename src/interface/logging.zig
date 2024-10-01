@@ -1,10 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-//
-
-const rukac = @import("rukac").prelude;
-const chrono = rukac.Chrono;
+const ruka = @import("libruka").prelude;
+const chrono = ruka.Chrono;
 
 const std = @import("std");
 

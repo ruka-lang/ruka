@@ -1,145 +1,137 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-//
-
-const rukac = @import("rukac").prelude;
+const ruka = @import("libruka").prelude;
+const Transport = ruka.Transport;
 
 const std = @import("std");
-const clap = @import("clap");
+
+cwd: std.fs.Dir,
+transport: Transport,
+gpa: std.heap.GeneralPurposeAllocator(.{}),
+
+const Interface = @This();
 
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
 pub const CommandParser = @import("interface/commandParser.zig");
 
-pub const params = clap.parseParamsComptime(
-    \\-h, --help           Display the help and usage
-    \\-v, --version        Display the compile version
-    \\-o, --output <str>   Specify the output file
-    \\<str>                Subcommand
-    \\
-);
+pub fn init() Interface {
+    const stdin = std.io.getStdIn().reader();
+    const stderr = std.io.getStdErr().writer();
+    var transport = try Transport.init(stdin.any(), stderr.any());
 
-const Subcommand = enum { compile, invalid };
-/// Subcommand supported by rukac
-pub const commands = std.StaticStringMap(Subcommand).initComptime(.{
-    .{"compile", .compile}
-});
+    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
 
-/// Displays the help to stdout
-pub fn help() !void {
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    logging.init(gpa.allocator()) catch |err| {
+        transport.print("Error when initialize logs: {}", .{err}) catch unreachable;
+    };
 
-    try stdout.print(constants.help, .{});
-    try bw.flush();
+    return .{
+        .cwd = std.fs.cwd(),
+        .transport = transport,
+        .gpa = gpa
+    };
 }
 
-/// Displays the help to stdout
-pub fn version() !void {
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+pub fn deinit(self: *Interface) void {
+    logging.deinit(self.gpa.allocator());
+    _ = self.gpa.deinit();
+}
 
-    try stdout.print("rukac {s} (released {s})\n", .{
+pub fn begin(self: *Interface) !void {
+    const args = std.os.argv;
+    if (args.len < 2) return self.displayHelp();
+
+    const subcommand = constants.subcommands.get(std.mem.span(args[1])) orelse .invalid;
+    switch (subcommand) {
+        .new => try self.newProject(),
+        .build => try self.buildProject(),
+        .@"test" => try self.testProject(),
+        .run => try self.runProject(),
+        .version => try self.displayVersion(),
+        .help => try self.displayHelp(),
+        .invalid => {
+            try self.transport.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
+                args[1],
+                constants.usage,
+                constants.commands
+            });
+
+            std.posix.exit(1);
+        }
+    }
+}
+
+fn displayHelp(self: *Interface) !void {
+    try self.transport.write(constants.help);
+}
+
+fn displayVersion(self: *Interface) !void {
+    try self.transport.print("rukac {s} (released {s})\n", .{
         constants.version_str,
         constants.project_options.version_date
     });
-    try bw.flush();
 }
 
-/// Checks if the file path ends in the one of the proper file extensions
-pub fn checkFileExtension(file: []const u8) bool {
+fn newProject(self: *Interface) !void {
+    _ = self;
+}
+
+fn isProperExtension(file: []const u8) bool {
     var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
     const extension = path_iter.first();
 
-    for (constants.exts) |ext| {
-        if (std.mem.eql(u8, ext, extension)) return true;
-    }
-
-    return false;
+    return std.mem.eql(u8, constants.ext, extension);
 }
 
-/// Creates the compilation unit and begins compilation
-pub fn compileFile(
+fn isProperProject(self: Interface) void {
+    _ = self;
+}
+
+fn buildProject(self: *Interface) !void {
+    const filepath = "examples/basics/src/main.ruka";
+
+    if (!isProperExtension(filepath)) {
+        var path_iter = std.mem.splitBackwardsSequence(u8, filepath, ".");
+        try self.transport.print(
+            "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
+            .{path_iter.first()}
+        );
+
+        std.posix.exit(1);
+    }
+
+    try self.compileFile(filepath, null);
+}
+
+fn compileFile(
+    self: *Interface,
     in: []const u8,
-    out: ?[]const u8,
-    allocator: std.mem.Allocator
+    out: ?[]const u8
 ) !void {
-    const input = try std.fs.cwd().openFile(in, .{});
+    const input = try self.cwd.openFile(in, .{});
     defer input.close();
 
     var buf: [10]u8 = undefined;
     var output = std.io.fixedBufferStream(&buf);
 
-    var compiler = try rukac.Compiler.init(.{
+    var compiler = try ruka.Compiler.init(.{
         .input = in,
         .output = out orelse "no output",
         .reader = input.reader().any(),
         .writer = output.writer().any(),
-        .allocator = allocator
+        .allocator = self.gpa.allocator()
     });
     defer compiler.deinit();
 
     try compiler.compile();
 }
 
-/// Parse and handles command line args
-pub fn start(allocator: std.mem.Allocator) !void {
-    var res = try clap.parse(
-        clap.Help, &params,
-        clap.parsers.default, .{.allocator = allocator}
-    );
-    defer res.deinit();
+fn testProject(self: *Interface) !void {
+    _ = self;
+}
 
-    const stderr_file = std.io.getStdErr().writer();
-    var err_bw = std.io.bufferedWriter(stderr_file);
-    const stderr = err_bw.writer();
-
-    if (res.args.help != 0) return help();
-    if (res.args.version != 0) return version();
-    if (res.positionals.len < 1) return help();
-
-    const subcommand = commands.get(res.positionals[0]) orelse .invalid;
-    switch (subcommand) {
-        .compile => {
-            if (res.positionals.len < 2) {
-                try stderr.print(
-                    \\Compile expects a file arg
-                    \\usage: rukac compile <file> [options]
-                    \\
-                    , .{}
-                );
-
-                try err_bw.flush();
-                std.posix.exit(1);
-            }
-
-            const file = res.positionals[1];
-
-            if (!checkFileExtension(file)) {
-                var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-                try stderr.print(
-                    "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
-                    .{path_iter.first()}
-                );
-
-                try err_bw.flush();
-                std.posix.exit(1);
-            }
-
-            try compileFile(file, res.args.output, allocator);
-        },
-        .invalid => {
-            try stderr.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
-                res.positionals[0],
-                constants.usage,
-                constants.commands
-            });
-
-            try err_bw.flush();
-            std.posix.exit(1);
-        }
-    }
+fn runProject(self: *Interface) !void {
+    _ = self;
 }

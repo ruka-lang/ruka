@@ -1,10 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
-//
-
-const rukac = @import("root.zig").prelude;
-const Scanner = rukac.Scanner;
+const ruka = @import("root.zig").prelude;
+const Scanner = ruka.Scanner;
 
 const std = @import("std");
 
@@ -26,9 +24,4 @@ pub fn init(allocator: std.mem.Allocator) Parser {
 ///
 pub fn deinit(self: Parser) void {
     self.ast.deinit();
-}
-
-test "idk" {
-    var parser = Parser.init(std.testing.allocator);
-    defer parser.deinit();
 }
