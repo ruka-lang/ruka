@@ -21,6 +21,7 @@ pub fn init() Interface {
     const stderr = std.io.getStdErr().writer();
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    // TODO handle gracefullier
     logging.init(gpa.allocator()) catch unreachable;
 
     return .{
