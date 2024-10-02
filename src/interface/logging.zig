@@ -48,7 +48,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
     const file = try logs.createFile(log_file, .{});
     file.close();
 
-    log_path = try std.fmt.allocPrint(allocator, "{s}/.local/state/ruka/logs/{s}", .{home, log_file});
+    log_path = try std.fmt.allocPrint(allocator, "{s}/{s}/{s}", .{home, logs_path, log_file});
 }
 
 pub fn deinit(allocator: std.mem.Allocator) void {

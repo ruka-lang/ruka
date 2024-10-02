@@ -19,16 +19,12 @@ pub const ArgumentParser = @import("interface/argumentParser.zig");
 pub fn init() Interface {
     const stdin = std.io.getStdIn().reader();
     const stderr = std.io.getStdErr().writer();
-    var transport = try Transport.init(stdin.any(), stderr.any());
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-
-    logging.init(gpa.allocator()) catch |err| {
-        transport.print("Error when initialize logs: {}", .{err}) catch unreachable;
-    };
+    logging.init(gpa.allocator()) catch unreachable;
 
     return .{
-        .transport = transport,
+        .transport = try Transport.init(stdin.any(), stderr.any()),
         .gpa = gpa
     };
 }
@@ -44,7 +40,12 @@ pub fn begin(self: *Interface) !void {
     defer args.deinit();
 
     if (!args.skip()) {
-        return self.displayHelp();
+        try self.transport.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
+            constants.usage,
+            constants.commands
+        });
+
+        std.posix.exit(1);
     }
 
     const subcommand_arg = args.next() orelse return self.displayHelp();
@@ -57,10 +58,10 @@ pub fn begin(self: *Interface) !void {
         .version => try self.displayVersion(),
         .help => try self.displayHelp(),
         .invalid => {
-            try self.transport.print("Invalid subcommand: {s}\n\n{s}\n{s}\n", .{
-                subcommand_arg,
+            try self.transport.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
                 constants.usage,
-                constants.commands
+                constants.commands,
+                subcommand_arg
             });
 
             std.posix.exit(1);
