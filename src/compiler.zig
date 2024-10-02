@@ -2,34 +2,37 @@
 // @created: 2024-03-04
 
 const ruka = @import("root.zig").prelude;
+const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
+const Error = ruka.Error;
 
 const std = @import("std");
+const Dir = std.fs.Dir;
+const Pool = std.Thread.Pool;
+const Mutex = std.Thread.Mutex;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+const WaitGroup = std.Thread.WaitGroup;
+const LinearFifo = std.fifo.LinearFifo;
+const ArenaAllocator = std.heap.ArenaAllocator;
 
-cwd: std.fs.Dir,
-errors: std.ArrayList(Error),
+cwd: Dir,
+errors: ArrayList(Error),
 
 transport: Transport,
 
-allocator: std.mem.Allocator,
-arena: std.heap.ArenaAllocator,
+allocator: Allocator,
+arena: ArenaAllocator,
 
-pool: std.Thread.Pool,
-wait_group: std.Thread.WaitGroup,
+pool: Pool,
+wait_group: WaitGroup,
 
-mutex: std.Thread.Mutex,
-job_queue: std.fifo.LinearFifo(Job, .Dynamic),
+mutex: Mutex,
+job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
 
 pub const Unit = @import("compiler/unit.zig");
-
-pub const Error = struct {
-    file: []const u8,
-    kind: []const u8,
-    msg: []const u8,
-    pos: ruka.Position
-};
 
 pub const Job = union(enum) {
     pub fn deinit(self: Job) void {
@@ -37,7 +40,7 @@ pub const Job = union(enum) {
     }
 };
 
-pub fn init(allocator: std.mem.Allocator) !*Compiler {
+pub fn init(allocator: Allocator) !*Compiler {
     const compiler = try allocator.create(Compiler);
 
     const stdin = std.io.getStdIn().reader();
@@ -45,17 +48,17 @@ pub fn init(allocator: std.mem.Allocator) !*Compiler {
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
-        .errors = std.ArrayList(Error).init(allocator),
+        .errors = ArrayList(Error).init(allocator),
         .transport = try Transport.init(stdin.any(), stderr.any()),
 
         .allocator = allocator,
-        .arena = std.heap.ArenaAllocator.init(allocator),
+        .arena = ArenaAllocator.init(allocator),
 
         .pool = undefined,
         .wait_group = .{},
 
         .mutex = .{},
-        .job_queue = std.fifo.LinearFifo(Job, .Dynamic).init(allocator)
+        .job_queue = LinearFifo(Job, .Dynamic).init(allocator)
     };
 
     try compiler.pool.init(.{

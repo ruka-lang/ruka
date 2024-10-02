@@ -7,6 +7,8 @@ pub const utilities = ruka.utilities;
 //pub const Chrono = utilities.Chrono;
 pub const Chrono = utilities.chrono;
 
+pub const Error = ruka.Error;
+
 pub const Compiler = ruka.Compiler;
 pub const Scanner = ruka.Scanner;
 pub const Parser = ruka.Parser;

@@ -61,7 +61,7 @@ pub fn initEpoch() Chrono {
 }
 
 pub fn init(timezone: @TypeOf(Chrono.timezone)) Chrono {
-    const time =std.time.milliTimestamp();
+    const time = std.time.milliTimestamp();
 
     var chrono = undefined;
     chrono.milliseconds = time;

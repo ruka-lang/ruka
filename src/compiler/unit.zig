@@ -1,37 +1,40 @@
 // @author: ruka-lang
 // @created: 2024-09-25
 
-// Responsible for compiling a given file
-
 const ruka = @import("../root.zig").prelude;
 const Compiler = ruka.Compiler;
 const Scanner = ruka.Scanner;
-const utilities = ruka.utilities;
+const Transport = ruka.Transport;
+const Error = ruka.Error;
 
 const std = @import("std");
-
-const Unit = @This();
+const Mutex = std.Thread.Mutex;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+const AnyReader = std.io.AnyReader;
+const AnyWriter = std.io.AnyWriter;
+const ArenaAllocator = std.heap.ArenaAllocator;
 
 input: []const u8,
 output: []const u8,
-transport: ruka.Transport,
-// ast: ?Ast,
-// context: std.ArrayList(...),
-errors: std.ArrayList(Compiler.Error),
+transport: Transport,
+errors: ArrayList(Error),
 
-allocator: std.mem.Allocator,
-arena: std.heap.ArenaAllocator,
+allocator: Allocator,
+arena: ArenaAllocator,
 
-mutex: std.Thread.Mutex,
+mutex: Mutex,
+
+const Unit = @This();
 
 pub const UnitOptions = struct {
     input: []const u8,
     output: []const u8,
-    reader: std.io.AnyReader,
-    writer: std.io.AnyWriter,
-    allocator: std.mem.Allocator,
+    reader: AnyReader,
+    writer: AnyWriter,
+    allocator: Allocator,
 
-    pub fn testing(reader: std.io.AnyReader, writer: std.io.AnyWriter) UnitOptions {
+    pub fn testing(reader: AnyReader, writer: AnyWriter) UnitOptions {
         return UnitOptions {
             .input = "test source",
             .output = "test buffer",
@@ -48,11 +51,11 @@ pub fn init(opts: UnitOptions) !*Unit {
     unit.* = .{
         .input = opts.input,
         .output = opts.output,
-        .transport = try ruka.Transport.init(opts.reader, opts.writer),
-        .errors = std.ArrayList(Compiler.Error).init(opts.allocator),
+        .transport = try Transport.init(opts.reader, opts.writer),
+        .errors = ArrayList(Error).init(opts.allocator),
 
         .allocator = opts.allocator,
-        .arena = std.heap.ArenaAllocator.init(opts.allocator),
+        .arena = ArenaAllocator.init(opts.allocator),
 
         .mutex = .{}
     };
