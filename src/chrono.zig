@@ -44,7 +44,7 @@ pub fn initEpoch() Chrono {
     return epoch_unix;
 }
 
-// TODO fix calculations
+// TODO fix calculations and include timezone adjustments
 pub fn init(timezone: Timezone) Chrono {
     const time = std.time.milliTimestamp();
 
@@ -63,6 +63,8 @@ pub fn init(timezone: Timezone) Chrono {
     chrono.second = @truncate(std.math.clamp(seconds - @as(u16, chrono.minute) * 60, 0, 59));
     chrono.millisecond = @truncate(std.math.clamp(milliseconds - @as(u32, chrono.second) * 1000, 0, 99));
 
+    std.debug.print("{} {}, {}\n", .{chrono.month, chrono.day, chrono.year});
+
     return chrono;
 }
 
@@ -71,25 +73,35 @@ pub fn deinit(self: Chrono) void {
 }
 
 fn calculateMonthAndDayAndYear(days: u64) std.meta.Tuple(&.{Month, u8, isize}) {
+    const daysPerMonth = &Month.daysPerMonth;
     var daysSinceUnixJanuary: u64 = @intCast(days);
     var month = epoch_unix.month;
     var year = epoch_unix.year;
+    var leap = isLeapYear(year);
 
-    while (daysSinceUnixJanuary > 28) {
+    while (moreDaysThanInMonth(daysSinceUnixJanuary, month, year)) {
         if (isLeapYear(year) and month == .february) {
-            daysSinceUnixJanuary -= Month.daysPerMonth.kvs.values[@intFromEnum(month)] + 1;
+            daysSinceUnixJanuary -= daysPerMonth.get(month.toString()).? + 1;
         } else {
-            daysSinceUnixJanuary -= Month.daysPerMonth.kvs.values[@intFromEnum(month)];
+            daysSinceUnixJanuary -= daysPerMonth.get(month.toString()).?;
         }
 
         month = month.next();
 
         if (month == .january) {
             year += 1;
+            leap = isLeapYear(year);
         }
     }
 
     return .{month, @truncate(daysSinceUnixJanuary), year};
+}
+
+fn moreDaysThanInMonth(days: u64, month: Month, year: i64) bool {
+    const daysPerMonth = &Month.daysPerMonth;
+
+    return  (isLeapYear(year) and month == .february and days > daysPerMonth.get(month.toString()).? + 1) or 
+            days > daysPerMonth.get(month.toString()).?;
 }
 
 fn isLeapYear(year: i64) bool {
