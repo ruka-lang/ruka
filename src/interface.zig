@@ -16,13 +16,12 @@ pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
 pub const ArgumentParser = @import("interface/argumentParser.zig");
 
-pub fn init() Interface {
+pub fn init() !Interface {
     const stdin = std.io.getStdIn().reader();
     const stderr = std.io.getStdErr().writer();
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-    // TODO handle gracefullier
-    logging.init(gpa.allocator()) catch unreachable;
+    try logging.init(gpa.allocator());
 
     return .{
         .transport = try Transport.init(stdin.any(), stderr.any()),

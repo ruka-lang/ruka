@@ -8,7 +8,7 @@ const std = @import("std");
 pub const std_options = Interface.logging.options;
 
 pub fn main() !void {
-    var interface = Interface.init();
+    var interface = try Interface.init();
     defer interface.deinit();
 
     std.log.scoped(.bin).info("starting ruka", .{});

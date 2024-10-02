@@ -35,7 +35,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
     // Update to check local timezone
     const current_time = Chrono.init(.UTC);
 
-    const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+    const log_file = try std.fmt.allocPrint(allocator, "ruka-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
         @as(u13, @intCast(current_time.year)),
         @intFromEnum(current_time.month),
         current_time.day,
