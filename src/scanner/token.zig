@@ -299,6 +299,7 @@ pub const Keyword = enum {
     let,
     @"var",
     @"pub",
+    private,
     @"return",
     do,
     end,
@@ -327,7 +328,6 @@ pub const Keyword = enum {
     in,
     // Reserved
     @"inline",
-    private,
     derive,
     static,
     macro,
@@ -355,6 +355,7 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"let", .let},
     .{"var", .@"var"},
     .{"pub", .@"pub"},
+    .{"private", .private},
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
@@ -383,7 +384,6 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"in", .in},
     // Reserved
     .{"inline", .@"inline"},
-    .{"private", .private},
     .{"derive", .derive},
     .{"static", .static},
     .{"macro", .macro},
