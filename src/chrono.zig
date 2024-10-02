@@ -63,8 +63,6 @@ pub fn init(timezone: Timezone) Chrono {
     chrono.second = @truncate(std.math.clamp(seconds - @as(u16, chrono.minute) * 60, 0, 59));
     chrono.millisecond = @truncate(std.math.clamp(milliseconds - @as(u32, chrono.second) * 1000, 0, 99));
 
-    std.debug.print("{} {}, {}\n", .{chrono.month, chrono.day, chrono.year});
-
     return chrono;
 }
 
