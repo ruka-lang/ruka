@@ -4,6 +4,12 @@
 
 const Buffer, Vector = @import("basics")
 
+// enum literals begin with a apostrophe which do not belong to a specific type
+// and types specified with enum literals are generic
+const genFunc = (a: 't, b: 't) do
+ @expect(@typeOf(a) == @typeOf(b))
+end
+
 fn main = () do
     var buffer = Buffer.init()
 

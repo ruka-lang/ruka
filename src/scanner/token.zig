@@ -30,7 +30,9 @@ pub fn deinit(self: Token) void {
 
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
+    // Literals
     identifier: std.ArrayList(u8),
+    @"enum": std.ArrayList(u8),
     string: std.ArrayList(u8),
     character: u8,
     integer: std.ArrayList(u8),
@@ -102,6 +104,15 @@ pub const Kind = union(enum) {
 
         return Kind {
             .identifier = identifier
+        };
+    }
+
+    pub fn initEnum(source: []const u8, allocator: std.mem.Allocator) !Kind {
+        var enum_literal = std.ArrayList(u8).init(allocator);
+        try enum_literal.appendSlice(source);
+
+        return Kind {
+            .@"enum" = enum_literal
         };
     }
 
@@ -182,6 +193,7 @@ pub const Kind = union(enum) {
     pub fn deinit(self: Kind) void {
         switch (self) {
             .identifier   => |id| id.deinit(),
+            .@"enum"      => |en| en.deinit(),
             .string       => |st| st.deinit(),
             .integer      => |in| in.deinit(),
             .float        => |fl| fl.deinit(),
@@ -194,6 +206,7 @@ pub const Kind = union(enum) {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
+            .@"enum"      => |en| en.items,
             .string       => |st| st.items,
             .character    => |ch| try self.charToString(ch, allocator),
             .integer      => |in| in.items,
