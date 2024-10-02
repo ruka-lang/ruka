@@ -6,14 +6,14 @@ const Compiler = ruka.Compiler;
 
 const std = @import("std");
 
-current_pos: ruka.Position,
-token_pos: ruka.Position,
-index: usize,
-
 prev_char: u8,
 read_char: u8,
 peek_char: u8,
 peep_char: u8,
+
+current_pos: ruka.Position,
+token_pos: ruka.Position,
+index: usize,
 
 unit: *Compiler.Unit,
 
@@ -23,14 +23,14 @@ const Scanner = @This();
 
 pub fn init(unit: *Compiler.Unit) Scanner {
     return Scanner {
-        .current_pos = .init(1, 1),
-        .token_pos = .init(1, 1),
-        .index = 0,
-
         .prev_char = undefined,
         .read_char = unit.transport.readByte() catch '\x00',
         .peek_char = unit.transport.readByte() catch '\x00',
         .peep_char = unit.transport.readByte() catch '\x00',
+
+        .current_pos = .init(1, 1),
+        .token_pos = .init(1, 1),
+        .index = 0,
 
         .unit = unit,
     };

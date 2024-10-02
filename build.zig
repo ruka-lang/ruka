@@ -7,9 +7,6 @@ const description = "Compiler for the Ruka Programming Language";
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
-    // Dependencies
-    const chrono = b.dependency("chrono", .{});
-
     const optimize = b.standardOptimizeOption(.{});
 
     const root = b.addStaticLibrary(.{
@@ -18,8 +15,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    root.root_module.addImport("chrono", chrono.module("chrono"));
 
     b.installArtifact(root);
 

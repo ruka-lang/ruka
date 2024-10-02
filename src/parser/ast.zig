@@ -9,6 +9,7 @@ const Token = ruka.Token;
 const std = @import("std");
 
 root: ?*Node2EB,
+
 allocator: std.mem.Allocator,
 
 const Ast = @This();

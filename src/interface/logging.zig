@@ -2,11 +2,10 @@
 // @created: 2024-09-12
 
 const ruka = @import("libruka").prelude;
-const chrono = ruka.Chrono;
+const Chrono = ruka.Chrono;
 
 const std = @import("std");
 
-///
 pub const options: std.Options = .{
     .log_level = switch (@import("builtin").mode) {
         .Debug => .debug,
@@ -17,30 +16,6 @@ pub const options: std.Options = .{
 
 var log_path: []const u8 = undefined;
 
-///
-fn getDateTime(allocator: std.mem.Allocator) !struct {
-    chrono.date.YearMonthDay,
-    chrono.Time
-} {
-    var tzdb = try chrono.tz.DataBase.init(allocator);
-    defer tzdb.deinit();
-
-    const timezone = try tzdb.getLocalTimeZone();
-
-    const timestamp_utc = std.time.timestamp();
-    const local_offset = timezone.offsetAtTimestamp(timestamp_utc) orelse {
-        std.debug.print("Could not convert current time to local time", .{});
-        return error.ConversionFailed;
-    };
-    const timestamp_local = timestamp_utc + local_offset;
-
-    const date = chrono.date.YearMonthDay.fromDaysSinceUnixEpoch(@intCast(@divFloor(timestamp_local, std.time.s_per_day)));
-    const time = chrono.Time{ .secs = @intCast(@mod(timestamp_local, std.time.s_per_day)), .frac = 0 };
-
-    return .{date, time};
-}
-
-///
 pub fn init(allocator: std.mem.Allocator) !void {
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
@@ -57,15 +32,16 @@ pub fn init(allocator: std.mem.Allocator) !void {
     var logs = try homedir.openDir(logs_path, .{});
     defer logs.close();
 
-    const created_date, const created_time = try getDateTime(allocator);
+    // Update to check local timezone
+    const current_time = Chrono.init(.UTC);
 
     const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
-        @as(u13, @intCast(created_date.year)),
-        created_date.month.number(),
-        created_date.day,
-        chrono.Time.hour(created_time),
-        chrono.Time.minute(created_time),
-        chrono.Time.second(created_time)
+        @as(u13, @intCast(current_time.year)),
+        @intFromEnum(current_time.month),
+        current_time.day,
+        current_time.hour,
+        current_time.minute,
+        current_time.second
     });
     defer allocator.free(log_file);
 
@@ -75,12 +51,10 @@ pub fn init(allocator: std.mem.Allocator) !void {
     log_path = try std.fmt.allocPrint(allocator, "{s}/.local/state/ruka/logs/{s}", .{home, log_file});
 }
 
-///
 pub fn deinit(allocator: std.mem.Allocator) void {
     allocator.free(log_path);
 }
 
-///
 pub fn log(
     comptime level: std.log.Level,
     comptime scope: @TypeOf(.EnumLiteral),
@@ -88,7 +62,6 @@ pub fn log(
     args: anytype
 ) void {
     var buffer: [4096]u8 = undefined;
-    var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
     const file = std.fs.openFileAbsolute(log_path, .{ .mode = .read_write }) catch |err| {
         std.debug.print("Failed to open log file: {}\n", .{err});
@@ -106,11 +79,6 @@ pub fn log(
         return;
     };
 
-    _, const current_time = getDateTime(fba.allocator()) catch |err| {
-        std.debug.print("Failed to get current date and time: {}\n", .{err});
-        return;
-    };
-
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
     const message = std.fmt.bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
@@ -118,9 +86,13 @@ pub fn log(
         return;
     };
 
-    const entry = std.fmt.bufPrint(buffer[message.len..], "{} {s}: {s}",
-        .{current_time, prefix, message}
-    ) catch |err| {
+    // Update to check local timezone
+    const current_time = Chrono.init(.UTC);
+
+    const entry = std.fmt.bufPrint(buffer[message.len..], "{d:02}:{d:02}:{d:02} {s}: {s}", .{
+        current_time.hour, current_time.minute, current_time.second,
+        prefix, message
+    }) catch |err| {
         std.debug.print("Failed to format log entry: {}\n", .{err});
         return;
     };

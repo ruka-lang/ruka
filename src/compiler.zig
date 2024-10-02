@@ -18,16 +18,14 @@ const ArenaAllocator = std.heap.ArenaAllocator;
 
 cwd: Dir,
 errors: ArrayList(Error),
-
 transport: Transport,
 
 allocator: Allocator,
 arena: ArenaAllocator,
 
+mutex: Mutex,
 pool: Pool,
 wait_group: WaitGroup,
-
-mutex: Mutex,
 job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
@@ -54,10 +52,9 @@ pub fn init(allocator: Allocator) !*Compiler {
         .allocator = allocator,
         .arena = ArenaAllocator.init(allocator),
 
+        .mutex = .{},
         .pool = undefined,
         .wait_group = .{},
-
-        .mutex = .{},
         .job_queue = LinearFifo(Job, .Dynamic).init(allocator)
     };
 

@@ -4,8 +4,7 @@
 const ruka = @import("root.zig");
 
 pub const utilities = ruka.utilities;
-//pub const Chrono = utilities.Chrono;
-pub const Chrono = utilities.chrono;
+pub const Chrono = ruka.Chrono;
 
 pub const Error = ruka.Error;
 

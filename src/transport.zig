@@ -7,7 +7,6 @@ const std = @import("std");
 
 reader: std.io.AnyReader,
 writer: std.io.AnyWriter,
-
 br: std.io.BufferedReader(4096, std.io.AnyReader),
 bw: std.io.BufferedWriter(4096, std.io.AnyWriter),
 
@@ -19,7 +18,6 @@ pub fn init(reader: std.io.AnyReader, writer: std.io.AnyWriter) !Transport {
     return .{
         .reader = reader,
         .writer = writer,
-
         .br = std.io.bufferedReader(reader),
         .bw = std.io.bufferedWriter(writer),
 

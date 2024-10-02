@@ -7,6 +7,7 @@ const Scanner = ruka.Scanner;
 const std = @import("std");
 
 ast: Ast,
+
 allocator: std.mem.Allocator,
 
 const Parser = @This();

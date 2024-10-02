@@ -11,6 +11,8 @@ pub fn main() !void {
     var interface = Interface.init();
     defer interface.deinit();
 
+    std.log.scoped(.bin).info("starting ruka", .{});
+
     try interface.begin();
 }
 
