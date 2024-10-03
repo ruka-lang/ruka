@@ -79,11 +79,7 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
         if (self.hour + offset < 0) {
             if (self.day - 1 == 0) {
                 self.month.previous();
-                if (isLeapYear(self.year) and self.month == .january) {
-                    self.day = @intCast(Month.daysPerMonth.get(self.month.toString()).? + 1);
-                } else {
-                    self.day = @intCast(Month.daysPerMonth.get(self.month.toString()).?);
-                }
+                self.day = @intCast(self.month.getDaysPerMonth(self.year));
 
                 if (self.month == .december) {
                     self.year -= 1;
@@ -103,23 +99,16 @@ fn calculateDate(self: *Chrono, milliseconds: i64) void {
     var days = @divTrunc(milliseconds, 1000 * 60 * 60 * 24);
     self.weekday.advance(days);
 
-    const daysPerMonth = &Month.daysPerMonth;
     var month = epoch_unix.month;
     var year = epoch_unix.year;
-    var leap = isLeapYear(year);
 
     while (moreDaysThanInMonth(days, month, year)) {
-        if (leap and month == .february) {
-            days -= daysPerMonth.get(month.toString()).? + 1;
-        } else {
-            days -= daysPerMonth.get(month.toString()).?;
-        }
+        days -= month.getDaysPerMonth(year);
 
         month.next();
 
         if (month == .january) {
             year += 1;
-            leap = isLeapYear(year);
         }
     }
 
@@ -129,13 +118,7 @@ fn calculateDate(self: *Chrono, milliseconds: i64) void {
 }
 
 fn moreDaysThanInMonth(days: i64, month: Month, year: i64) bool {
-    const daysPerMonth = &Month.daysPerMonth;
-
-    if (isLeapYear(year) and month == .february) {
-        return days > daysPerMonth.get(month.toString()).? + 1;
-    } else {
-        return days > daysPerMonth.get(month.toString()).?;
-    }
+    return days > month.getDaysPerMonth(year);
 }
 
 fn isLeapYear(year: i64) bool {
@@ -202,6 +185,14 @@ pub const Month = enum(u8) {
         return @tagName(self);
     }
 
+    pub fn getDaysPerMonth(self: Month, year: i64) i16 {
+        if (isLeapYear(year) and self == .february) {
+            return daysPerMonth.get(self.toString()).? + 1;
+        } else {
+            return daysPerMonth.get(self.toString()).?;
+        }
+    }
+
     pub const daysPerMonth = std.StaticStringMap(i16).initComptime(.{
         .{"january", 31},
         .{"february", 28}, //29 on a leap year
@@ -228,7 +219,6 @@ const tests = struct {
 
     test "epoch initialization" {
         const chrono = Chrono.init(.PST);
-        std.debug.print("{}\n", .{chrono});
         try testing.expect(chrono.timezone == .PST);
     }
 };
