@@ -33,11 +33,11 @@ pub fn init(allocator: std.mem.Allocator) !void {
     defer logs.close();
 
     // Update to check local timezone
-    const current_time = Chrono.init(.UTC);
+    const current_time = Chrono.init(.PST);
 
-    const log_file = try std.fmt.allocPrint(allocator, "ruka-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+    const log_file = try std.fmt.allocPrint(allocator, "ruka-{d:4}-{d:02}-{d:02}_{d:02}:{d:02}:{d:02}.log", .{
         @as(u13, @intCast(current_time.year)),
-        @intFromEnum(current_time.month),
+        @intFromEnum(current_time.month) + 1,
         current_time.day,
         current_time.hour,
         current_time.minute,
@@ -87,7 +87,7 @@ pub fn log(
     };
 
     // Update to check local timezone
-    const current_time = Chrono.init(.UTC);
+    const current_time = Chrono.init(.PST);
 
     const entry = std.fmt.bufPrint(buffer[message.len..], "{d:02}:{d:02}:{d:02} {s}: {s}", .{
         current_time.hour, current_time.minute, current_time.second,

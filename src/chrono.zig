@@ -22,9 +22,20 @@ const Timezone = enum {
     PST,
     UTC,
 
-    pub fn toString(self: @This()) []const u8 {
+    pub fn toString(self: Timezone) []const u8 {
         return @tagName(self);
     }
+
+    pub fn getOffset(self: Timezone) i64 {
+        return offsetHoursFromUTC.get(self.toString()) orelse unreachable; 
+    }
+
+    pub const offsetHoursFromUTC = std.StaticStringMap(i64).initComptime(.{
+        .{"CST", -6},
+        .{"EST", -5},
+        .{"PST", -8},
+        .{"UTC", 0}
+    });
 };
 
 ///
@@ -44,47 +55,67 @@ pub fn initEpoch() Chrono {
     return epoch_unix;
 }
 
-// TODO fix calculations and include timezone adjustments
 pub fn init(timezone: Timezone) Chrono {
-    const time = std.time.milliTimestamp();
-
-    var chrono: Chrono = undefined;
+    var chrono = epoch_unix;
     chrono.timezone = timezone;
 
-    const milliseconds: u64 = @intCast(time);
-    const seconds = @divTrunc(milliseconds, 1000);
-    const minutes = @divTrunc(seconds, 60);
-    const hours = @divTrunc(minutes, 60);
-    const days = @divTrunc(hours, 24);
+    const milliseconds = std.time.milliTimestamp();
 
-    chrono.month, chrono.day, chrono.year = calculateMonthAndDayAndYear(days);
-    chrono.hour = @truncate(std.math.clamp(hours - @as(u16, chrono.day) * 24, 0, 24));
-    chrono.minute = @truncate(std.math.clamp(minutes - @as(u16, chrono.hour) * 60, 0, 59));
-    chrono.second = @truncate(std.math.clamp(seconds - @as(u16, chrono.minute) * 60, 0, 59));
-    chrono.millisecond = @truncate(std.math.clamp(milliseconds - @as(u32, chrono.second) * 1000, 0, 99));
+    chrono.calculateDate(milliseconds);
+    chrono.calculateTime(milliseconds);
+    
+    chrono.convertTimezone(timezone);
 
     return chrono;
 }
 
-pub fn deinit(self: Chrono) void {
-    _ = self;
+fn convertTimezone(self: *Chrono, timezone: Timezone) void {
+    const offset = timezone.getOffset(); 
+
+    if (offset < 0) {
+        const hour = @mod(self.hour + offset, @as(i8, 24));
+        self.hour = @as(u8, @intCast(hour)) + 1;
+
+        if (self.hour + offset < 0) {
+            if (self.day - 1 == 0) {
+                self.month.previous();
+                if (isLeapYear(self.year) and self.month == .january) {
+                    self.day = @intCast(Month.daysPerMonth.get(self.month.toString()).? + 1);
+                } else {
+                    self.day = @intCast(Month.daysPerMonth.get(self.month.toString()).?);
+                }
+
+                if (self.month == .december) {
+                    self.year -= 1;
+                }
+            }
+        }
+    } else if (offset > 0) {
+        const hour = @mod(offset, @as(i8, 24));
+        self.hour = @as(u8, @intCast(hour));
+    } else if (offset == 24) {
+        self.day += 1;
+        self.weekday.advance(1);
+    }
 }
 
-fn calculateMonthAndDayAndYear(days: u64) std.meta.Tuple(&.{Month, u8, isize}) {
+fn calculateDate(self: *Chrono, milliseconds: i64) void {
+    var days = @divTrunc(milliseconds, 1000 * 60 * 60 * 24);
+    self.weekday.advance(days);
+
     const daysPerMonth = &Month.daysPerMonth;
-    var daysSinceUnixJanuary: u64 = @intCast(days);
     var month = epoch_unix.month;
     var year = epoch_unix.year;
     var leap = isLeapYear(year);
 
-    while (moreDaysThanInMonth(daysSinceUnixJanuary, month, year)) {
-        if (isLeapYear(year) and month == .february) {
-            daysSinceUnixJanuary -= daysPerMonth.get(month.toString()).? + 1;
+    while (moreDaysThanInMonth(days, month, year)) {
+        if (leap and month == .february) {
+            days -= daysPerMonth.get(month.toString()).? + 1;
         } else {
-            daysSinceUnixJanuary -= daysPerMonth.get(month.toString()).?;
+            days -= daysPerMonth.get(month.toString()).?;
         }
 
-        month = month.next();
+        month.next();
 
         if (month == .january) {
             year += 1;
@@ -92,34 +123,41 @@ fn calculateMonthAndDayAndYear(days: u64) std.meta.Tuple(&.{Month, u8, isize}) {
         }
     }
 
-    return .{month, @truncate(daysSinceUnixJanuary), year};
+    self.day = @as(u8, @intCast(days + 1));
+    self.month = month;
+    self.year = year;
 }
 
-fn moreDaysThanInMonth(days: u64, month: Month, year: i64) bool {
+fn moreDaysThanInMonth(days: i64, month: Month, year: i64) bool {
     const daysPerMonth = &Month.daysPerMonth;
 
-    return  (isLeapYear(year) and month == .february and days > daysPerMonth.get(month.toString()).? + 1) or 
-            days > daysPerMonth.get(month.toString()).?;
+    if (isLeapYear(year) and month == .february) {
+        return days > daysPerMonth.get(month.toString()).? + 1;
+    } else {
+        return days > daysPerMonth.get(month.toString()).?;
+    }
 }
 
 fn isLeapYear(year: i64) bool {
-    if (@mod(year, 4) == 0) {
-        if (@mod(year, 100) != 0) {
-            return true;
-        } else {
-            if (@mod(year, 400) == 0) {
-                return true;
-            }
+    return @mod(year, 4) == 0
+        and (!(@mod(year, 100) == 0)
+        or @mod(year, 400) == 0);
+}
 
-            return false;
-        }
-    }
+// TODO
+fn calculateTime(self: *Chrono, milliseconds: i64) void {
+    const seconds = @divTrunc(milliseconds, 1000);
+    const minutes = @divTrunc(milliseconds, 1000 * 60);
+    const hours = @divTrunc(milliseconds, 1000 * 60 * 60);
 
-    return false;
+    self.hour = @as(u8, @intCast(@mod(hours + self.hour, 24)));
+    self.minute = @as(u8, @intCast(@mod(minutes + self.minute, 60)));
+    self.second = @as(u8, @intCast(@mod(seconds + self.second, 60)));
+    self.millisecond = @as(u16, @intCast(@mod(milliseconds + self.millisecond,  1000)));
 }
 
 ///
-pub const Weekday = enum {
+pub const Weekday = enum(u8) {
     monday,
     tuesday,
     wednesday,
@@ -131,10 +169,14 @@ pub const Weekday = enum {
     pub fn toString(self: Weekday) []const u8 {
         return @tagName(self);
     }
+
+    pub fn advance(self: *Weekday, days: i64) void {
+        self.* = @enumFromInt(@mod(days + @intFromEnum(self.*), 7));
+    }
 };
 
 ///
-pub const Month = enum {
+pub const Month = enum(u8) {
     january,
     february,
     march,
@@ -148,18 +190,19 @@ pub const Month = enum {
     november,
     december,
 
-    pub fn next(self: Month) Month {
-        return switch (self) {
-            .december => .january,
-            else => @enumFromInt(@intFromEnum(self) + 1)
-        };
+    pub fn next(self: *Month) void {
+        self.* = @enumFromInt((@intFromEnum(self.*) + 1) % 12);
+    }
+
+    pub fn previous(self: *Month) void {
+        self.* = @enumFromInt((@intFromEnum(self.*) - 1) % 12);
     }
 
     pub fn toString(self: Month) []const u8 {
         return @tagName(self);
     }
 
-    pub const daysPerMonth = std.StaticStringMap(usize).initComptime(.{
+    pub const daysPerMonth = std.StaticStringMap(i16).initComptime(.{
         .{"january", 31},
         .{"february", 28}, //29 on a leap year
         .{"march", 31},
@@ -184,7 +227,8 @@ const tests = struct {
     const allocator = testing.allocator;
 
     test "epoch initialization" {
-        const chrono: Chrono = .init(.UTC);
-        try testing.expect(chrono.timezone == .UTC);
+        const chrono = Chrono.init(.PST);
+        std.debug.print("{}\n", .{chrono});
+        try testing.expect(chrono.timezone == .PST);
     }
 };
