@@ -230,8 +230,21 @@ const tests = struct {
     const allocator = testing.allocator;
 
     test "epoch initialization" {
-        const chrono = Chrono.init(.PST);
-        std.debug.print("{}\n", .{chrono});
-        try testing.expect(chrono.timezone == .PST);
+        var chrono: Chrono = .epoch_unix;
+
+        const milliseconds: i64 = 1_000_000_000_000;
+
+        chrono.calculateDate(milliseconds);
+        chrono.calculateTime(milliseconds);
+
+        try testing.expect(chrono.timezone == .UTC);
+        try testing.expect(chrono.hour == 1);
+        try testing.expect(chrono.minute == 46);
+        try testing.expect(chrono.second == 40);
+        try testing.expect(chrono.millisecond == 0);
+        try testing.expect(chrono.day == 9);
+        try testing.expect(chrono.weekday == .sunday);
+        try testing.expect(chrono.month == .september);
+        try testing.expect(chrono.year == 2001);
     }
 };
