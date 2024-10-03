@@ -229,7 +229,7 @@ const tests = struct {
     const testing = std.testing;
     const allocator = testing.allocator;
 
-    test "epoch initialization" {
+    test "utc time after a trillion milliseconds" {
         var chrono: Chrono = .epoch_unix;
 
         const milliseconds: i64 = 1_000_000_000_000;
