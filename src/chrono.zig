@@ -27,7 +27,7 @@ const Timezone = enum {
     }
 
     pub fn getOffset(self: Timezone) i64 {
-        return offsetHoursFromUTC.get(self.toString()) orelse unreachable; 
+        return offsetHoursFromUTC.get(self.toString()) orelse unreachable;
     }
 
     pub const offsetHoursFromUTC = std.StaticStringMap(i64).initComptime(.{
@@ -55,6 +55,7 @@ pub fn initEpoch() Chrono {
     return epoch_unix;
 }
 
+// TODO daylight savings, leap seconds, add more timezones, formatting
 pub fn init(timezone: Timezone) Chrono {
     var chrono = epoch_unix;
     chrono.timezone = timezone;
@@ -63,36 +64,12 @@ pub fn init(timezone: Timezone) Chrono {
 
     chrono.calculateDate(milliseconds);
     chrono.calculateTime(milliseconds);
-    
+
     chrono.convertTimezone(timezone);
 
+    chrono.daylightSavings();
+
     return chrono;
-}
-
-fn convertTimezone(self: *Chrono, timezone: Timezone) void {
-    const offset = timezone.getOffset(); 
-
-    if (offset < 0) {
-        const hour = @mod(self.hour + offset, @as(i8, 24));
-        self.hour = @as(u8, @intCast(hour)) + 1;
-
-        if (self.hour + offset < 0) {
-            if (self.day - 1 == 0) {
-                self.month.previous();
-                self.day = @intCast(self.month.getDaysPerMonth(self.year));
-
-                if (self.month == .december) {
-                    self.year -= 1;
-                }
-            }
-        }
-    } else if (offset > 0) {
-        const hour = @mod(offset, @as(i8, 24));
-        self.hour = @as(u8, @intCast(hour));
-    } else if (offset == 24) {
-        self.day += 1;
-        self.weekday.advance(1);
-    }
 }
 
 fn calculateDate(self: *Chrono, milliseconds: i64) void {
@@ -127,7 +104,6 @@ fn isLeapYear(year: i64) bool {
         or @mod(year, 400) == 0);
 }
 
-// TODO
 fn calculateTime(self: *Chrono, milliseconds: i64) void {
     const seconds = @divTrunc(milliseconds, 1000);
     const minutes = @divTrunc(milliseconds, 1000 * 60);
@@ -139,7 +115,44 @@ fn calculateTime(self: *Chrono, milliseconds: i64) void {
     self.millisecond = @as(u16, @intCast(@mod(milliseconds + self.millisecond,  1000)));
 }
 
-///
+fn convertTimezone(self: *Chrono, timezone: Timezone) void {
+    const offset = timezone.getOffset();
+
+    if (offset < 0) {
+        const hour = @mod(self.hour + offset, @as(i8, 24));
+        self.hour = @as(u8, @intCast(hour));
+
+        if (self.hour + offset < 0) {
+            self.hour = 23;
+            if (self.day - 1 == 0) {
+                self.month.previous();
+                self.day = @intCast(self.month.getDaysPerMonth(self.year));
+
+                if (self.month == .december) {
+                    self.year -= 1;
+                }
+            }
+        }
+    } else if (offset == 24) {
+        self.day += 1;
+        self.weekday.advance(1);
+    } else if (offset > 0 and offset < 24) {
+        const hour = @mod(self.hour + offset, @as(i8, 24));
+        self.hour = @as(u8, @intCast(hour));
+    }
+}
+
+fn daylightSavings(self: *Chrono) void {
+    if (self.isDaylightSavings()) self.hour += 1;
+}
+
+// If between second sunday of march and first sunday of november, and an hour
+// Otherwise do nothing
+fn isDaylightSavings(self: Chrono) bool {
+    _ = self;
+    return true;
+}
+
 pub const Weekday = enum(u8) {
     monday,
     tuesday,
@@ -158,7 +171,6 @@ pub const Weekday = enum(u8) {
     }
 };
 
-///
 pub const Month = enum(u8) {
     january,
     february,
@@ -219,6 +231,7 @@ const tests = struct {
 
     test "epoch initialization" {
         const chrono = Chrono.init(.PST);
+        std.debug.print("{}\n", .{chrono});
         try testing.expect(chrono.timezone == .PST);
     }
 };
