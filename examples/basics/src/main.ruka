@@ -17,7 +17,7 @@ const mul = (x: Vector.t) do
     v.x = x.x * 2
     v.y = x.y * 3
 
-    // Compiler error because z is private, would be find if defined in Vector module
+    // Compiler error because z is private, would be fine if defined in Vector module
     // as this function would be a method
     //v.z = x.z * 2
 end

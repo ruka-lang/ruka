@@ -6,7 +6,7 @@ pub const Buffer = @import("buffer.ruka")
 pub const io = @import("io.ruka")
 
 pub const Vector = module {
-    pub const t = struct {
+    pub const t = record {
         x: u8,
         y: u8,
         pvt z: u8
