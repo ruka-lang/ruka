@@ -20,7 +20,7 @@ pub fn init() !Interface {
     const stdin = std.io.getStdIn().reader();
     const stderr = std.io.getStdErr().writer();
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
+    var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
     try logging.init(gpa.allocator());
 
     return .{
