@@ -17,7 +17,7 @@ index: usize,
 
 unit: *Compiler.Unit,
 
-pub const Token = @import("scanner/token.zig");
+pub const Token = @import("scanner/Token.zig");
 
 const Scanner = @This();
 

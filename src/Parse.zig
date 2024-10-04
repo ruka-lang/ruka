@@ -12,7 +12,7 @@ allocator: std.mem.Allocator,
 
 const Parser = @This();
 
-pub const Ast = @import("parser/ast.zig");
+pub const Ast = @import("parser/Ast.zig");
 
 ///
 pub fn init(allocator: std.mem.Allocator) Parser {

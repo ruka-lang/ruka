@@ -14,7 +14,7 @@ const Interface = @This();
 
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
-pub const ArgumentParser = @import("interface/argumentParser.zig");
+pub const ArgumentParser = @import("interface/ArgumentParser.zig");
 
 pub fn init() !Interface {
     const stdin = std.io.getStdIn().reader();

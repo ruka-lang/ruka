@@ -30,7 +30,7 @@ job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
 
-pub const Unit = @import("compiler/unit.zig");
+pub const Unit = @import("compiler/Unit.zig");
 
 pub const Job = union(enum) {
     pub fn deinit(self: Job) void {
