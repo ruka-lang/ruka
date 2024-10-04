@@ -55,7 +55,6 @@ pub fn initEpoch() Chrono {
     return epoch_unix;
 }
 
-// TODO daylight savings, leap seconds, add more timezones, formatting
 pub fn init(timezone: Timezone) Chrono {
     var chrono = epoch_unix;
     chrono.timezone = timezone;
@@ -123,7 +122,6 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
         self.hour = @as(u8, @intCast(hour));
 
         if (self.hour + offset < 0) {
-            self.hour = 23;
             if (self.day - 1 == 0) {
                 self.month.previous();
                 self.day = @intCast(self.month.getDaysPerMonth(self.year));
