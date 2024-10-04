@@ -18,7 +18,8 @@ Ruka is planned to be a general use, compiled programming language. Ruka's plann
     - Interfaces for shared functionality
     - Named arguments
     - Pattern matching
-    - Record for a structure which defaults to private, Struct for a structure which does not
+    - Maybe Record for a structure which defaults to private, Struct for a structure which does not
+    - Maybe Files are imported as either modules or types depending on if they have fields or not
 
 # Old Stuff 
 
