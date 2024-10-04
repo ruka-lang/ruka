@@ -35,7 +35,6 @@ pub const Vector = module {
             want: t
         }
 
-        //let t: @map(string, testcase) = .{
         let tests = [string, testcase]{
             "addition": .{
                 num: new(1, 2),
