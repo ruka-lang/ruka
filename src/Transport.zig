@@ -47,3 +47,11 @@ pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
     try self.bw.writer().print(msg, args);
     try self.bw.flush();
 }
+
+test "test all transport modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};

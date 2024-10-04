@@ -92,3 +92,11 @@ pub fn compile(self: *Unit) !void {
 
     std.debug.print("eof: \\x00\n", .{});
 }
+
+test "test all unit modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};

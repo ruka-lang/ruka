@@ -9,13 +9,12 @@ pub const Chrono = @import("Chrono.zig");
 pub const Compiler = @import("Compiler.zig");
 pub const Scanner = @import("Scanner.zig");
 pub const Parser = @import("Parser.zig");
-
 pub const Transport = @import("Transport.zig");
 
-test "Test all rukac library modules" {
-    _ = utilities;
+test "test all rukac library modules" {
     _ = Chrono;
     _ = Compiler;
     _ = Scanner;
     _ = Parser;
+    _ = Transport;
 }

@@ -16,6 +16,6 @@ pub fn main() !void {
     try interface.begin();
 }
 
-test "Test all rukac executable modules" {
+test "test all rukac executable modules" {
     _ = Interface;
 }

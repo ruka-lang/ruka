@@ -6,3 +6,11 @@ const std = @import("std");
 allocator: std.mem.Allocator,
 
 const ArgumentParser = @This();
+
+test "test all argumentParser modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};

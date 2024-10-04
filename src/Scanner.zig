@@ -571,8 +571,8 @@ fn readMultiString(self: *Scanner) !Token {
 }
 
 test "test all scanner modules" {
-    _ = Token;
     _ = tests;
+    _ = Token;
 }
 
 const tests = struct {

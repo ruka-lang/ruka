@@ -123,3 +123,12 @@ fn compileFile(
 
     try self.errors.appendSlice(unit.errors.items);
 }
+
+test "test all compiler modules" {
+    _ = tests;
+    _ = Unit;
+}
+
+const tests = struct {
+
+};

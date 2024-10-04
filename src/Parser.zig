@@ -14,7 +14,6 @@ const Parser = @This();
 
 pub const Ast = @import("parser/Ast.zig");
 
-///
 pub fn init(allocator: std.mem.Allocator) Parser {
     return Parser {
         .allocator = allocator,
@@ -22,7 +21,15 @@ pub fn init(allocator: std.mem.Allocator) Parser {
     };
 }
 
-///
 pub fn deinit(self: Parser) void {
     self.ast.deinit();
 }
+
+test "test all parsing modules" {
+    _ = tests;
+    _ = Ast;
+}
+
+const tests = struct {
+
+};
