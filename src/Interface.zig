@@ -17,13 +17,10 @@ pub const logging = @import("interface/logging.zig");
 pub const ArgumentParser = @import("interface/ArgumentParser.zig");
 
 pub fn init() !Interface {
-    const stdin = std.io.getStdIn().reader();
-    const stderr = std.io.getStdErr().writer();
-
     try logging.init();
 
     return .{
-        .transport = try Transport.init(stdin.any(), stderr.any()),
+        .transport = try Transport.init(null, null),
         .gpa = .init
     };
 }
