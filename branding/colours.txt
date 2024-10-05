@@ -1,4 +1,4 @@
-main       = #a0323f
-Alternate  = #a0452e
-Alternate2 = #f58b1f
-Background = #fff9f4
+green  = #386248
+blue   = #374D5F
+red    = #9E4043
+yellow = #E78D41
