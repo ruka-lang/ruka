@@ -20,17 +20,15 @@ pub fn init() !Interface {
     const stdin = std.io.getStdIn().reader();
     const stderr = std.io.getStdErr().writer();
 
-    var gpa: std.heap.GeneralPurposeAllocator(.{}) = .init;
-    try logging.init(gpa.allocator());
+    try logging.init();
 
     return .{
         .transport = try Transport.init(stdin.any(), stderr.any()),
-        .gpa = gpa
+        .gpa = .init
     };
 }
 
 pub fn deinit(self: *Interface) void {
-    logging.deinit(self.gpa.allocator());
     _ = self.gpa.deinit();
 }
 
@@ -40,7 +38,7 @@ pub fn begin(self: *Interface) !void {
     defer args.deinit();
 
     if (!args.skip()) {
-        try self.transport.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
+        try self.transport.printStderr("{s}\n{s}\n\nExpected subcommand argument\n", .{
             constants.usage,
             constants.commands
         });
@@ -58,7 +56,7 @@ pub fn begin(self: *Interface) !void {
         .version => try self.displayVersion(),
         .help => try self.displayHelp(),
         .invalid => {
-            try self.transport.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
+            try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
                 constants.usage,
                 constants.commands,
                 subcommand_arg
@@ -70,11 +68,11 @@ pub fn begin(self: *Interface) !void {
 }
 
 fn displayHelp(self: *Interface) !void {
-    try self.transport.write(constants.help);
+    try self.transport.writeStderr(constants.help);
 }
 
 fn displayVersion(self: *Interface) !void {
-    try self.transport.print("rukac {s} (released {s})\n", .{
+    try self.transport.printStderr("rukac {s} (released {s})\n", .{
         constants.version_str,
         constants.project_options.version_date
     });

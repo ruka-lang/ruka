@@ -48,6 +48,23 @@ pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
     try self.bw.flush();
 }
 
+
+pub fn writeStderr(self: *Transport, msg: []const u8) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const stderr = std.io.getStdErr();
+    _ = try stderr.writer().write(msg);
+}
+
+pub fn printStderr(self: *Transport, comptime msg: []const u8, args: anytype) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const stderr = std.io.getStdErr();
+    try stderr.writer().print(msg, args);
+}
+
 test "test all transport modules" {
     _ = tests;
 }

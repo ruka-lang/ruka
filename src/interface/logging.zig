@@ -14,9 +14,12 @@ pub const options: std.Options = .{
     .logFn = log
 };
 
-var log_path: []const u8 = undefined;
+// Make this a struct and log use synchronization
 
-pub fn init(allocator: std.mem.Allocator) !void {
+var path_buffer: [512]u8 = undefined;
+var path_length: usize = undefined;
+
+pub fn init() !void {
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
@@ -35,7 +38,7 @@ pub fn init(allocator: std.mem.Allocator) !void {
     // Update to check local timezone
     const current_time = Chrono.init(.PST);
 
-    const log_file = try std.fmt.allocPrint(allocator, "ruka-{d:4}-{d:02}-{d:02}_{d:02}:{d:02}:{d:02}.log", .{
+    const log_file = try std.fmt.bufPrint(path_buffer[512 - 50..], "ruka-{d:4}_{d:02}_{d:02}-{d:02}_{d:02}_{d:02}.log", .{
         @as(u13, @intCast(current_time.year)),
         @intFromEnum(current_time.month) + 1,
         current_time.day,
@@ -43,16 +46,12 @@ pub fn init(allocator: std.mem.Allocator) !void {
         current_time.minute,
         current_time.second
     });
-    defer allocator.free(log_file);
 
     const file = try logs.createFile(log_file, .{});
     file.close();
 
-    log_path = try std.fmt.allocPrint(allocator, "{s}/{s}/{s}", .{home, logs_path, log_file});
-}
-
-pub fn deinit(allocator: std.mem.Allocator) void {
-    allocator.free(log_path);
+    const path = try std.fmt.bufPrint(path_buffer[0..], "{s}/{s}/{s}", .{home, logs_path, log_file});
+    path_length = path.len;
 }
 
 pub fn log(
@@ -63,7 +62,7 @@ pub fn log(
 ) void {
     var buffer: [4096]u8 = undefined;
 
-    const file = std.fs.openFileAbsolute(log_path, .{ .mode = .read_write }) catch |err| {
+    const file = std.fs.openFileAbsolute(path_buffer[0..path_length], .{ .mode = .read_write }) catch |err| {
         std.debug.print("Failed to open log file: {}\n", .{err});
         return;
     };
