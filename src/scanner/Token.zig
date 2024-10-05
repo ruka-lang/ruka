@@ -6,6 +6,8 @@
 const ruka = @import("../root.zig").prelude;
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 
 const Token = @This();
 
@@ -30,11 +32,13 @@ pub fn deinit(self: Token) void {
 
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
-    identifier: std.ArrayList(u8),
-    string: std.ArrayList(u8),
+    // Literals
+    identifier: ArrayList(u8),
+    @"enum": ArrayList(u8),
+    string: ArrayList(u8),
     character: u8,
-    integer: std.ArrayList(u8),
-    float: std.ArrayList(u8),
+    integer: ArrayList(u8),
+    float: ArrayList(u8),
     keyword: Keyword,
     mode: Mode,
     // Assignment
@@ -96,8 +100,8 @@ pub const Kind = union(enum) {
     illegal,
     eof,           // \x00
 
-    pub fn initIdentifier(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var identifier = std.ArrayList(u8).init(allocator);
+    pub fn initIdentifier(source: []const u8, allocator: Allocator) !Kind {
+        var identifier = ArrayList(u8).init(allocator);
         try identifier.appendSlice(source);
 
         return Kind {
@@ -105,8 +109,17 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initString(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var string = std.ArrayList(u8).init(allocator);
+    pub fn initEnum(source: []const u8, allocator: Allocator) !Kind {
+        var enum_literal = ArrayList(u8).init(allocator);
+        try enum_literal.appendSlice(source);
+
+        return Kind {
+            .@"enum" = enum_literal
+        };
+    }
+
+    pub fn initString(source: []const u8, allocator: Allocator) !Kind {
+        var string = ArrayList(u8).init(allocator);
         try string.appendSlice(source);
 
         return Kind {
@@ -114,8 +127,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initInteger(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var integer = std.ArrayList(u8).init(allocator);
+    pub fn initInteger(source: []const u8, allocator: Allocator) !Kind {
+        var integer = ArrayList(u8).init(allocator);
         try integer.appendSlice(source);
 
         return Kind {
@@ -123,8 +136,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initFloat(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var float = std.ArrayList(u8).init(allocator);
+    pub fn initFloat(source: []const u8, allocator: Allocator) !Kind {
+        var float = ArrayList(u8).init(allocator);
         try float.appendSlice(source);
 
         return Kind {
@@ -182,6 +195,7 @@ pub const Kind = union(enum) {
     pub fn deinit(self: Kind) void {
         switch (self) {
             .identifier   => |id| id.deinit(),
+            .@"enum"      => |en| en.deinit(),
             .string       => |st| st.deinit(),
             .integer      => |in| in.deinit(),
             .float        => |fl| fl.deinit(),
@@ -190,10 +204,11 @@ pub const Kind = union(enum) {
     }
 
     // Converts a Kind into a string slice
-    pub fn toStr(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
+    pub fn toStr(self: *const Kind, allocator: Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
+            .@"enum"      => |en| en.items,
             .string       => |st| st.items,
             .character    => |ch| try self.charToString(ch, allocator),
             .integer      => |in| in.items,
@@ -261,7 +276,7 @@ pub const Kind = union(enum) {
         };
     }
 
-    fn charToString(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
+    fn charToString(_: *const Kind, ch: u8, allocator: Allocator) ![]const u8 {
         var str = try allocator.alloc(u8, 1);
         str[0] = ch;
         return str[0..];
@@ -286,11 +301,13 @@ pub const Keyword = enum {
     let,
     @"var",
     @"pub",
+    pvt,
     @"return",
     do,
     end,
     module,
     record,
+    @"struct",
     tuple,
     @"enum",
     interface,
@@ -314,7 +331,6 @@ pub const Keyword = enum {
     in,
     // Reserved
     @"inline",
-    private,
     derive,
     static,
     macro,
@@ -342,11 +358,13 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"let", .let},
     .{"var", .@"var"},
     .{"pub", .@"pub"},
+    .{"pvt", .pvt},
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
     .{"module", .module},
     .{"record", .record},
+    .{"struct", .@"struct"},
     .{"tuple", .tuple},
     .{"enum", .@"enum"},
     .{"interface", .interface},
@@ -370,7 +388,6 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"in", .in},
     // Reserved
     .{"inline", .@"inline"},
-    .{"private", .private},
     .{"derive", .derive},
     .{"static", .static},
     .{"macro", .macro},
@@ -446,11 +463,17 @@ comptime {
     }
 }
 
-test "mode comparision" {
-    const testing = std.testing;
-
-    const mode: Kind = .{ .mode = .mut };
-    const mode2 = Kind.tryMode("mut").?;
-
-    try testing.expectEqual(mode.mode, mode2.mode);
+test "test all token modules" {
+    _ = tests;
 }
+
+const tests = struct {
+    test "mode comparision" {
+        const testing = std.testing;
+
+        const mode: Kind = .{ .mode = .mut };
+        const mode2 = Kind.tryMode("mut").?;
+
+        try testing.expectEqual(mode.mode, mode2.mode);
+    }
+};

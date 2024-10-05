@@ -4,18 +4,17 @@
 pub const prelude = @import("prelude.zig");
 pub const utilities = @import("utilities.zig");
 
-pub const Error = @import("error.zig");
-pub const Chrono = @import("chrono.zig");
-pub const Compiler = @import("compiler.zig");
-pub const Scanner = @import("scanner.zig");
-pub const Parser = @import("parser.zig");
+pub const Error = @import("Error.zig");
+pub const Chrono = @import("Chrono.zig");
+pub const Compiler = @import("Compiler.zig");
+pub const Scanner = @import("Scanner.zig");
+pub const Parser = @import("Parser.zig");
+pub const Transport = @import("Transport.zig");
 
-pub const Transport = @import("transport.zig");
-
-test "Test all rukac library modules" {
-    _ = utilities;
+test "test all rukac library modules" {
     _ = Chrono;
     _ = Compiler;
     _ = Scanner;
     _ = Parser;
+    _ = Transport;
 }

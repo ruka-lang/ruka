@@ -5,6 +5,8 @@ const ruka = @import("libruka").prelude;
 const Chrono = ruka.Chrono;
 
 const std = @import("std");
+const print = std.debug.print;
+const bufPrint = std.fmt.bufPrint;
 
 pub const options: std.Options = .{
     .log_level = switch (@import("builtin").mode) {
@@ -14,11 +16,14 @@ pub const options: std.Options = .{
     .logFn = log
 };
 
-var log_path: []const u8 = undefined;
+// Make this a struct and log use synchronization
 
-pub fn init(allocator: std.mem.Allocator) !void {
+var path_buffer: [512]u8 = undefined;
+var path_length: usize = undefined;
+
+pub fn init() !void {
     const home = std.posix.getenv("HOME") orelse {
-        std.debug.print("Failed to read $HOME.\n", .{});
+        print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
     };
 
@@ -33,26 +38,22 @@ pub fn init(allocator: std.mem.Allocator) !void {
     defer logs.close();
 
     // Update to check local timezone
-    const current_time = Chrono.init(.UTC);
+    const current_time = Chrono.init(.PST);
 
-    const log_file = try std.fmt.allocPrint(allocator, "rukac-{d:4}{d:02}{d:02}-{d:02}{d:02}{d:02}.log", .{
+    const log_file = try bufPrint(path_buffer[512 - 50..], "ruka-{d:4}_{d:02}_{d:02}-{d:02}_{d:02}_{d:02}.log", .{
         @as(u13, @intCast(current_time.year)),
-        @intFromEnum(current_time.month),
+        @intFromEnum(current_time.month) + 1,
         current_time.day,
         current_time.hour,
         current_time.minute,
         current_time.second
     });
-    defer allocator.free(log_file);
 
     const file = try logs.createFile(log_file, .{});
     file.close();
 
-    log_path = try std.fmt.allocPrint(allocator, "{s}/.local/state/ruka/logs/{s}", .{home, log_file});
-}
-
-pub fn deinit(allocator: std.mem.Allocator) void {
-    allocator.free(log_path);
+    const path = try bufPrint(path_buffer[0..], "{s}/{s}/{s}", .{home, logs_path, log_file});
+    path_length = path.len;
 }
 
 pub fn log(
@@ -63,41 +64,49 @@ pub fn log(
 ) void {
     var buffer: [4096]u8 = undefined;
 
-    const file = std.fs.openFileAbsolute(log_path, .{ .mode = .read_write }) catch |err| {
-        std.debug.print("Failed to open log file: {}\n", .{err});
+    const file = std.fs.openFileAbsolute(path_buffer[0..path_length], .{ .mode = .read_write }) catch |err| {
+        print("Failed to open log file: {}\n", .{err});
         return;
     };
     defer file.close();
 
     const stat = file.stat() catch |err| {
-        std.debug.print("Failed to get stat of log file: {}\n", .{err});
+        print("Failed to get stat of log file: {}\n", .{err});
         return;
     };
 
     file.seekTo(stat.size) catch |err| {
-        std.debug.print("Failed to seek log file: {}\n", .{err});
+        print("Failed to seek log file: {}\n", .{err});
         return;
     };
 
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
-    const message = std.fmt.bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
-        std.debug.print("Failed to format log message with args: {}\n", .{err});
+    const message = bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
+        print("Failed to format log message with args: {}\n", .{err});
         return;
     };
 
     // Update to check local timezone
-    const current_time = Chrono.init(.UTC);
+    const current_time = Chrono.init(.PST);
 
-    const entry = std.fmt.bufPrint(buffer[message.len..], "{d:02}:{d:02}:{d:02} {s}: {s}", .{
+    const entry = bufPrint(buffer[message.len..], "{d:02}:{d:02}:{d:02} {s}: {s}", .{
         current_time.hour, current_time.minute, current_time.second,
         prefix, message
     }) catch |err| {
-        std.debug.print("Failed to format log entry: {}\n", .{err});
+        print("Failed to format log entry: {}\n", .{err});
         return;
     };
 
     file.writeAll(entry) catch |err| {
-        std.debug.print("Failed to write to log file: {}\n", .{err});
+        print("Failed to write to log file: {}\n", .{err});
     };
 }
+
+test "test all logging modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};

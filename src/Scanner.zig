@@ -5,6 +5,9 @@ const ruka = @import("root.zig").prelude;
 const Compiler = ruka.Compiler;
 
 const std = @import("std");
+const eql = std.mem.eql;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
 
 prev_char: u8,
 read_char: u8,
@@ -17,7 +20,7 @@ index: usize,
 
 unit: *Compiler.Unit,
 
-pub const Token = @import("scanner/token.zig");
+pub const Token = @import("scanner/Token.zig");
 
 const Scanner = @This();
 
@@ -51,13 +54,8 @@ pub fn nextToken(self: *Scanner) !Token {
                 else => try self.readSingleString()
             };
         },
-        // Characters
-        '\'' => {
-            return try self.readCharacter() orelse block: {
-                self.advance(1);
-                break :block self.nextToken();
-            };
-        },
+        // Characters and Enum Literals
+        '\'' => return try self.readCharacterEnum(),
         // Comments or '/'
         '/' => block: {
             switch (self.peek()) {
@@ -221,22 +219,22 @@ pub fn nextToken(self: *Scanner) !Token {
     return token;
 }
 
-// Returns the character actual_token the current index
-fn read(self: *Scanner) u8 {
+fn read(self: Scanner) u8 {
     return self.read_char;
 }
 
-// Returns the character after the current index
-fn peek(self: *Scanner) u8 {
+fn peek(self: Scanner) u8 {
     return self.peek_char;
 }
 
-// Returns the character previous to the current index
-fn prev(self: *Scanner) u8 {
+fn peep(self: Scanner) u8 {
+    return self.peep_char;
+}
+
+fn prev(self: Scanner) u8 {
     return self.prev_char;
 }
 
-// Advances the scanner count number of times
 fn advance(self: *Scanner, count: usize) void {
     for (0..count) |_| {
         self.prev_char = self.read_char;
@@ -255,7 +253,6 @@ fn advance(self: *Scanner, count: usize) void {
 }
 
 
-// Creates a new token of the kind passed in
 fn createToken(self: *Scanner, kind: Token.Kind) Token {
     return Token.init(
         kind,
@@ -268,7 +265,6 @@ fn createError(self: *Scanner, msg: []const u8) !void {
     try self.unit.createError(self, "scanner error", msg);
 }
 
-// Creates an escape character compilation error
 fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
     if (i + 1 > slice.len) {
         return try self.createError("unterminated escape character");
@@ -281,7 +277,6 @@ fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
     ));
 }
 
-// Skips characters until the current character is not a space or tab
 fn skipWhitespace(self: *Scanner) void {
     switch (self.read()) {
         inline ' ', '\t' => {
@@ -292,7 +287,6 @@ fn skipWhitespace(self: *Scanner) void {
     }
 }
 
-// Skips a single line comment
 fn skipSingleComment(self: *Scanner) void {
     switch (self.read()) {
         '\n', '\x00' => {},
@@ -303,7 +297,6 @@ fn skipSingleComment(self: *Scanner) void {
     }
 }
 
-// Skips a multi line comment
 fn skipMultiComment(self: *Scanner) !void {
     var next = self.peek();
 
@@ -321,22 +314,28 @@ fn skipMultiComment(self: *Scanner) !void {
     }
 }
 
-// Reads a character literal from the file
-fn readCharacter(self: *Scanner) !?Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+fn readCharacterEnum(self: *Scanner) !Token {
+    var string = ArrayList(u8).init(self.unit.allocator);
     defer string.deinit();
 
-    // Iterate until the final delimiter or EOF is reached
+    if (self.peep() != '\'' and self.peek() != '\\') {
+        // A character follows the forms "'a'" where a is any single character
+        // or "'\a'" where a can be any one or more characters.
+        // Therefor without advancing we can tell wether this is a char literal or enum literal
+        // which is a '\'' followed by a identifier
+        return try self.readEnumLiteral();
+    }
+
     while (self.peek() != '\'' and self.peek() != '\x00') {
         try string.append(self.peek());
         self.advance(1);
     }
 
-    // Check if character literal contains a escape character
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
 
-    // Create errors if string length isn't 1
     if (string.items.len > 1) {
         try self.createError("too many characters in character literal");
     } else if (string.items.len < 1) {
@@ -347,10 +346,25 @@ fn readCharacter(self: *Scanner) !?Token {
     return self.createToken(.{ .character = string.items[0] });
 }
 
+fn readEnumLiteral(self: *Scanner) !Token {
+    var string = ArrayList(u8).init(self.unit.allocator);
+    errdefer string.deinit();
+
+    self.advance(1);
+    var byte = self.read();
+    while (ruka.isAlphanumerical(byte)) {
+        try string.append(byte);
+        self.advance(1);
+        byte = self.read();
+    }
+
+    return self.createToken(.{ .@"enum" = string });
+}
+
 const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
 // Tries to create a token.Kind based on the passed in tuple of tuples
 fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     defer string.deinit();
 
     try string.append(self.read());
@@ -361,10 +375,10 @@ fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
     // return the third element of the sub-tuple
     inline for (matches) |match| {
         if (match[0] == 3) {
-            try string.append(self.peep_char);
+            try string.append(self.peep());
         }
 
-        if (std.mem.eql(u8, string.items[0..match[1].len], match[1])) {
+        if (eql(u8, string.items[0..match[1].len], match[1])) {
             self.advance(match[0]);
             return match[2];
         }
@@ -395,10 +409,10 @@ const escapes = std.StaticStringMap(u8).initComptime(.{
 fn handleEscapeCharacters(
     self: *Scanner,
     slice: [] const u8,
-    allocator: std.mem.Allocator
+    allocator: Allocator
 ) !std.ArrayList(u8) {
     defer self.unit.allocator.free(slice);
-    var string = std.ArrayList(u8).init(allocator);
+    var string = ArrayList(u8).init(allocator);
     errdefer string.deinit();
 
     var i: usize = 0;
@@ -428,9 +442,8 @@ fn handleEscapeCharacters(
     return string;
 }
 
-// Reads an identifier, keyword, or mode literal from the file
 fn readIdentifierKeywordMode(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     var byte = self.read();
@@ -457,9 +470,8 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
     return self.createToken(kind.?);
 }
 
-// Reads a integer or float literal from the file
 fn readIntegerFloat(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     // Iterate while self.read() is numeric, if self.read() is a '.',
@@ -487,8 +499,7 @@ fn readIntegerFloat(self: *Scanner) !Token {
     return self.createToken(kind);
 }
 
-// Reads only integral numbers from the file, no decimals allowed
-fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
+fn readMantissa(self: *Scanner, string: *ArrayList(u8)) !void {
     self.advance(1);
 
     var byte = self.read();
@@ -505,9 +516,8 @@ fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
     }
 }
 
-// Reads a single line string
 fn readSingleString(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     while (self.peek() != '"' and self.peek() != '\x00') {
@@ -521,14 +531,15 @@ fn readSingleString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
     return self.createToken(.{ .string = string });
 }
 
-// Reads a multi line string
 fn readMultiString(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     self.advance(1);
@@ -561,26 +572,31 @@ fn readMultiString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
     return self.createToken(.{ .string = string });
 }
 
 test "test all scanner modules" {
-    _ = Token;
     _ = tests;
+    _ = Token;
 }
 
 const tests = struct {
     const testing = std.testing;
     const expectEqualStrings = testing.expectEqualStrings;
     const expectEqual = testing.expectEqual;
-    const eql = std.mem.eql;
 
     fn compareTokens(expected_token: *const Token, actual_token: *const Token) !void {
         switch (expected_token.kind) {
             .identifier => |e_identifier| switch (actual_token.kind) {
                 .identifier => |a_identifier| try expectEqualStrings(e_identifier.items, a_identifier.items),
+                else => try expectEqual(expected_token.kind, actual_token.kind)
+            },
+            .@"enum" => |e_enum_literal| switch (actual_token.kind) {
+                .@"enum" => |a_enum_literal| try expectEqualStrings(e_enum_literal.items, a_enum_literal.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .string => |e_string| switch (actual_token.kind) {
@@ -761,6 +777,60 @@ const tests = struct {
             .init(.assign, "test source", .init(1, 7)),
             .init(try .initString("Hello, \n\\sworld!", allocator), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 28)),
+        };
+
+        try checkResults(&scanner, &expected);
+    }
+
+    test "charater literals" {
+        const source = "let x = '\\n'";
+        var input = std.io.fixedBufferStream(source);
+
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
+        defer unit.deinit();
+        var scanner = Scanner.init(unit);
+
+        const allocator = unit.arena.allocator();
+
+        const expected = [_]Token{
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(.{ .character = '\n' }, "test source", .init(1, 9)),
+            .init(.eof, "test source", .init(1, 13)),
+        };
+
+        try checkResults(&scanner, &expected);
+    }
+
+    test "enum literals" {
+        const source = "let x = {'b', 'a, 'hello}";
+        var input = std.io.fixedBufferStream(source);
+
+        var buf: [10]u8 = undefined;
+        var output = std.io.fixedBufferStream(&buf);
+
+        var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
+        defer unit.deinit();
+        var scanner = Scanner.init(unit);
+
+        const allocator = unit.arena.allocator();
+
+        const expected = [_]Token{
+            .init(.{ .keyword = .let }, "test source", .init(1, 1)),
+            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(.assign, "test source", .init(1, 7)),
+            .init(.lsquirly, "test source", .init(1, 9)),
+            .init(.{ .character = 'b' }, "test source", .init(1, 10)),
+            .init(.comma, "test source", .init(1, 13)),
+            .init(try .initEnum("a", allocator), "test source", .init(1, 15)),
+            .init(.comma, "test source", .init(1, 17)),
+            .init(try .initEnum("hello", allocator), "test source", .init(1, 19)),
+            .init(.rsquirly, "test source", .init(1, 25)),
+            .init(.eof, "test source", .init(1, 26)),
         };
 
         try checkResults(&scanner, &expected);

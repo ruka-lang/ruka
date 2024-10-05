@@ -7,10 +7,11 @@ const ruka = @import("../root.zig").prelude;
 const Token = ruka.Token;
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
 root: ?*Node2EB,
 
-allocator: std.mem.Allocator,
+allocator: Allocator,
 
 const Ast = @This();
 
@@ -66,7 +67,7 @@ pub const Node2EB = struct {
     }
 
     ///
-    pub fn initAlloc(allocator: std.mem.Allocator, tag: identifier, token: Token, data: Data) !*Node2EB {
+    pub fn initAlloc(allocator: Allocator, tag: identifier, token: Token, data: Data) !*Node2EB {
         var node = try allocator.create(Node2EB);
 
         node.tag = tag;
@@ -83,7 +84,7 @@ pub const Node2EB = struct {
 };
 
 ///
-pub fn init(allocator: std.mem.Allocator) Ast {
+pub fn init(allocator: Allocator) Ast {
     return Ast {
         .allocator = allocator,
         .root = null

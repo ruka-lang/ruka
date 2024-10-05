@@ -4,22 +4,43 @@
 
 const Buffer, Vector = @import("basics")
 
-fn main = () do
+// enum literals begin with a apostrophe which do not belong to a specific type
+// and types specified with enum literals are generic
+const genFunc = (a: 't, b: 't) do
+    @expect(@typeOf(a) == @typeOf(b))
+end
+
+const mul = (x: Vector.t) do
+    var v = Vector.new(0, 0)
+
+    // Okay because x, y is public
+    v.x = x.x * 2
+    v.y = x.y * 3
+
+    // Compiler error because z is private, would be fine if defined in Vector module
+    // as this function would be a method
+    //v.z = x.z * 2
+
+    v
+end
+
+const main = () do
     var buffer = Buffer.init()
 
     Vector.new(1, 2)
-        |> .add(.new(3, 4))
-        |> .write ~writer: buffer.writer()
-        |> .?
+        .add(.new(3, 4))
+        .mul()
+        .write ~writer: buffer.writer()
+        .?
 
     let values = []{
         buffer.get(),
         buffer.get()
     }
 
-    @expectEq(values[0], 4).?
-    @expectEq(values[1], 5).?
+    @expectEq(values[0], 8).?
+    @expectEq(values[1], 15).?
 
-    let string: @arrayList(u8) = @fmtToString("x: #{values[0]}, y: #{values[1]}")
+    let string: @arrayList(u8).t = @fmtToString("x: #{values[0]}, y: #{values[1]}")
     @println(string)
 end

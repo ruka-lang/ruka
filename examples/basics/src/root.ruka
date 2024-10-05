@@ -8,17 +8,19 @@ pub const io = @import("io.ruka")
 pub const Vector = module {
     pub const t = record {
         x: u8,
-        y: u8
+        y: u8,
+        pvt z: u8
     }
 
     pub fn new = (x, y) do
-        t.{ x, y }
+        t.{ x, y, 0 }
     end
 
     pub fn add = (self: t, other: t) do
         t.{
             x = self.x + other.x,
-            y = self.y + other.y
+            y = self.y + other.y,
+            z = self.z + other.z
         }
     end
 
@@ -33,7 +35,6 @@ pub const Vector = module {
             want: t
         }
 
-        //let t: @map(string, testcase) = .{
         let tests = [string, testcase]{
             "addition": .{
                 num: new(1, 2),

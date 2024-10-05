@@ -30,7 +30,7 @@ job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
 
-pub const Unit = @import("compiler/unit.zig");
+pub const Unit = @import("compiler/Unit.zig");
 
 pub const Job = union(enum) {
     pub fn deinit(self: Job) void {
@@ -46,16 +46,16 @@ pub fn init(allocator: Allocator) !*Compiler {
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
-        .errors = ArrayList(Error).init(allocator),
-        .transport = try Transport.init(stdin.any(), stderr.any()),
+        .errors = .init(allocator),
+        .transport = .init(stdin.any(), stderr.any()),
 
         .allocator = allocator,
-        .arena = ArenaAllocator.init(allocator),
+        .arena = .init(allocator),
 
         .mutex = .{},
         .pool = undefined,
         .wait_group = .{},
-        .job_queue = LinearFifo(Job, .Dynamic).init(allocator)
+        .job_queue = .init(allocator)
     };
 
     try compiler.pool.init(.{
@@ -123,3 +123,12 @@ fn compileFile(
 
     try self.errors.appendSlice(unit.errors.items);
 }
+
+test "test all compiler modules" {
+    _ = tests;
+    _ = Unit;
+}
+
+const tests = struct {
+
+};

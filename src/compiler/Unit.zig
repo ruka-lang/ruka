@@ -51,11 +51,11 @@ pub fn init(opts: UnitOptions) !*Unit {
     unit.* = .{
         .input = opts.input,
         .output = opts.output,
-        .transport = try Transport.init(opts.reader, opts.writer),
-        .errors = ArrayList(Error).init(opts.allocator),
+        .transport = .init(opts.reader, opts.writer),
+        .errors = .init(opts.allocator),
 
         .allocator = opts.allocator,
-        .arena = ArenaAllocator.init(opts.allocator),
+        .arena = .init(opts.allocator),
 
         .mutex = .{}
     };
@@ -92,3 +92,11 @@ pub fn compile(self: *Unit) !void {
 
     std.debug.print("eof: \\x00\n", .{});
 }
+
+test "test all unit modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};
