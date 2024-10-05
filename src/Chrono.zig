@@ -66,7 +66,7 @@ pub fn init(timezone: Timezone) Chrono {
 
     chrono.convertTimezone(timezone);
 
-    chrono.daylightSavings();
+    //chrono.daylightSavings();
 
     return chrono;
 }
@@ -142,6 +142,10 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
 
 fn daylightSavings(self: *Chrono) void {
     if (self.isDaylightSavings()) self.hour += 1;
+
+    // Calculate the weekdays for the current year and check 
+    // if after 2 am on the second sunday of march 
+    // and 2 am on the first sunday of november
 }
 
 // If between second sunday of march and first sunday of november, and an hour
