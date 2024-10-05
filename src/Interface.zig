@@ -104,3 +104,13 @@ fn testProject(self: *Interface) !void {
 fn runProject(self: *Interface) !void {
     _ = self;
 }
+
+test "test all interface modules" {
+    _ = tests;
+    _ = ArgumentParser;
+    _ = logging;
+}
+
+const tests = struct {
+
+};

@@ -101,3 +101,11 @@ pub fn log(
         std.debug.print("Failed to write to log file: {}\n", .{err});
     };
 }
+
+test "test all logging modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};
