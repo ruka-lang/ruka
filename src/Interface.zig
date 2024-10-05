@@ -20,7 +20,7 @@ pub fn init() !Interface {
     try logging.init();
 
     return .{
-        .transport = try Transport.init(null, null),
+        .transport = .init(null, null),
         .gpa = .init
     };
 }
@@ -30,37 +30,18 @@ pub fn deinit(self: *Interface) void {
 }
 
 pub fn begin(self: *Interface) !void {
-    // Instead here we would instanciate a ArgumentParser and it will return us subcommands and optionals
-    var args = try std.process.argsWithAllocator(self.gpa.allocator());
-    defer args.deinit();
+    var arg_parser = ArgumentParser.init(self.gpa.allocator());
+    defer arg_parser.deinit();
 
-    if (!args.skip()) {
-        try self.transport.printStderr("{s}\n{s}\n\nExpected subcommand argument\n", .{
-            constants.usage,
-            constants.commands
-        });
+    try arg_parser.parse();
 
-        std.posix.exit(1);
-    }
-
-    const subcommand_arg = args.next() orelse return self.displayHelp();
-    const subcommand = constants.subcommands.get(subcommand_arg) orelse .invalid;
-    switch (subcommand) {
+    switch (arg_parser.getSubcommand().?) {
         .new => try self.newProject(),
         .build => try self.buildProject(),
         .@"test" => try self.testProject(),
         .run => try self.runProject(),
         .version => try self.displayVersion(),
-        .help => try self.displayHelp(),
-        .invalid => {
-            try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
-                constants.usage,
-                constants.commands,
-                subcommand_arg
-            });
-
-            std.posix.exit(1);
-        }
+        .help => try self.displayHelp()
     }
 }
 

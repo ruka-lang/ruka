@@ -21,25 +21,6 @@ const options =
     \\
 ;
 
-const Subcommand = enum {
-    new,
-    build,
-    @"test",
-    run,
-    version,
-    help,
-    invalid
-};
-
-pub const subcommands = std.StaticStringMap(Subcommand).initComptime(.{
-    .{"new", .new},
-    .{"build", .build},
-    .{"test", .@"test"},
-    .{"run", .run},
-    .{"version", .version},
-    .{"help", .help}
-});
-
 pub const version_str = std.fmt.comptimePrint("{d}.{d}.{d}", .{
     project_options.version.major,
     project_options.version.minor,

@@ -46,16 +46,16 @@ pub fn init(allocator: Allocator) !*Compiler {
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
-        .errors = ArrayList(Error).init(allocator),
-        .transport = try Transport.init(stdin.any(), stderr.any()),
+        .errors = .init(allocator),
+        .transport = .init(stdin.any(), stderr.any()),
 
         .allocator = allocator,
-        .arena = ArenaAllocator.init(allocator),
+        .arena = .init(allocator),
 
         .mutex = .{},
         .pool = undefined,
         .wait_group = .{},
-        .job_queue = LinearFifo(Job, .Dynamic).init(allocator)
+        .job_queue = .init(allocator)
     };
 
     try compiler.pool.init(.{

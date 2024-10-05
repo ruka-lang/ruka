@@ -12,7 +12,7 @@ mutex: std.Thread.Mutex,
 
 const Transport = @This();
 
-pub fn init(reader: ?std.io.AnyReader, writer: ?std.io.AnyWriter) !Transport {
+pub fn init(reader: ?std.io.AnyReader, writer: ?std.io.AnyWriter) Transport {
     return .{
         .br = if (reader) |r| std.io.bufferedReader(r) else null,
         .bw = if (writer) |w| std.io.bufferedWriter(w) else null,
@@ -45,12 +45,12 @@ pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
 }
 
 
-pub fn writeStderr(_: *Transport, msg: []const u8) !void {
+pub fn writeStderr(_: Transport, msg: []const u8) !void {
     const stderr = std.io.getStdErr();
     _ = try stderr.writer().write(msg);
 }
 
-pub fn printStderr(_: *Transport, comptime msg: []const u8, args: anytype) !void {
+pub fn printStderr(_: Transport, comptime msg: []const u8, args: anytype) !void {
     const stderr = std.io.getStdErr();
     try stderr.writer().print(msg, args);
 }

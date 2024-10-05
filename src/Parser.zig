@@ -16,8 +16,8 @@ pub const Ast = @import("parser/Ast.zig");
 
 pub fn init(allocator: std.mem.Allocator) Parser {
     return Parser {
-        .allocator = allocator,
-        .ast = Ast.init(allocator)
+        .ast = .init(allocator),
+        .allocator = allocator
     };
 }
 
