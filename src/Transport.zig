@@ -4,15 +4,20 @@
 // The transport layer of rukac
 
 const std = @import("std");
+const Mutex = std.Thread.Mutex;
+const AnyReader = std.io.AnyReader;
+const AnyWriter = std.io.AnyWriter;
+const BufferedReader = std.io.BufferedReader;
+const BufferedWriter = std.io.BufferedWriter;
 
-br: ?std.io.BufferedReader(4096, std.io.AnyReader),
-bw: ?std.io.BufferedWriter(4096, std.io.AnyWriter),
+br: ?BufferedReader(4096, AnyReader),
+bw: ?BufferedWriter(4096, AnyWriter),
 
-mutex: std.Thread.Mutex,
+mutex: Mutex,
 
 const Transport = @This();
 
-pub fn init(reader: ?std.io.AnyReader, writer: ?std.io.AnyWriter) Transport {
+pub fn init(reader: ?AnyReader, writer: ?AnyWriter) Transport {
     return .{
         .br = if (reader) |r| std.io.bufferedReader(r) else null,
         .bw = if (writer) |w| std.io.bufferedWriter(w) else null,

@@ -5,6 +5,9 @@ const ruka = @import("root.zig").prelude;
 const Compiler = ruka.Compiler;
 
 const std = @import("std");
+const eql = std.mem.eql;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
 
 prev_char: u8,
 read_char: u8,
@@ -312,7 +315,7 @@ fn skipMultiComment(self: *Scanner) !void {
 }
 
 fn readCharacterEnum(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     defer string.deinit();
 
     if (self.peep() != '\'' and self.peek() != '\\') {
@@ -328,8 +331,10 @@ fn readCharacterEnum(self: *Scanner) !Token {
         self.advance(1);
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
 
     if (string.items.len > 1) {
         try self.createError("too many characters in character literal");
@@ -342,7 +347,7 @@ fn readCharacterEnum(self: *Scanner) !Token {
 }
 
 fn readEnumLiteral(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     self.advance(1);
@@ -359,7 +364,7 @@ fn readEnumLiteral(self: *Scanner) !Token {
 const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
 // Tries to create a token.Kind based on the passed in tuple of tuples
 fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     defer string.deinit();
 
     try string.append(self.read());
@@ -373,7 +378,7 @@ fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
             try string.append(self.peep());
         }
 
-        if (std.mem.eql(u8, string.items[0..match[1].len], match[1])) {
+        if (eql(u8, string.items[0..match[1].len], match[1])) {
             self.advance(match[0]);
             return match[2];
         }
@@ -404,10 +409,10 @@ const escapes = std.StaticStringMap(u8).initComptime(.{
 fn handleEscapeCharacters(
     self: *Scanner,
     slice: [] const u8,
-    allocator: std.mem.Allocator
+    allocator: Allocator
 ) !std.ArrayList(u8) {
     defer self.unit.allocator.free(slice);
-    var string = std.ArrayList(u8).init(allocator);
+    var string = ArrayList(u8).init(allocator);
     errdefer string.deinit();
 
     var i: usize = 0;
@@ -438,7 +443,7 @@ fn handleEscapeCharacters(
 }
 
 fn readIdentifierKeywordMode(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     var byte = self.read();
@@ -466,7 +471,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
 }
 
 fn readIntegerFloat(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     // Iterate while self.read() is numeric, if self.read() is a '.',
@@ -494,7 +499,7 @@ fn readIntegerFloat(self: *Scanner) !Token {
     return self.createToken(kind);
 }
 
-fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
+fn readMantissa(self: *Scanner, string: *ArrayList(u8)) !void {
     self.advance(1);
 
     var byte = self.read();
@@ -512,7 +517,7 @@ fn readMantissa(self: *Scanner, string: *std.ArrayList(u8)) !void {
 }
 
 fn readSingleString(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     while (self.peek() != '"' and self.peek() != '\x00') {
@@ -526,13 +531,15 @@ fn readSingleString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
     return self.createToken(.{ .string = string });
 }
 
 fn readMultiString(self: *Scanner) !Token {
-    var string = std.ArrayList(u8).init(self.unit.allocator);
+    var string = ArrayList(u8).init(self.unit.allocator);
     errdefer string.deinit();
 
     self.advance(1);
@@ -565,8 +572,10 @@ fn readMultiString(self: *Scanner) !Token {
         try self.createError("unterminated string literal");
     }
 
-    string = try self.handleEscapeCharacters(try string.toOwnedSlice(),
-                                             self.unit.allocator);
+    string = try self.handleEscapeCharacters(
+        try string.toOwnedSlice(),
+        self.unit.allocator
+    );
     return self.createToken(.{ .string = string });
 }
 
@@ -579,7 +588,6 @@ const tests = struct {
     const testing = std.testing;
     const expectEqualStrings = testing.expectEqualStrings;
     const expectEqual = testing.expectEqual;
-    const eql = std.mem.eql;
 
     fn compareTokens(expected_token: *const Token, actual_token: *const Token) !void {
         switch (expected_token.kind) {

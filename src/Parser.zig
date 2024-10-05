@@ -5,6 +5,7 @@ const ruka = @import("root.zig").prelude;
 const Scanner = ruka.Scanner;
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
 ast: Ast,
 
@@ -14,7 +15,7 @@ const Parser = @This();
 
 pub const Ast = @import("parser/Ast.zig");
 
-pub fn init(allocator: std.mem.Allocator) Parser {
+pub fn init(allocator: Allocator) Parser {
     return Parser {
         .ast = .init(allocator),
         .allocator = allocator

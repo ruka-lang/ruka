@@ -6,6 +6,8 @@
 const ruka = @import("../root.zig").prelude;
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 
 const Token = @This();
 
@@ -31,12 +33,12 @@ pub fn deinit(self: Token) void {
 /// Represents the kind of lexeme and corresponding value when applicable
 pub const Kind = union(enum) {
     // Literals
-    identifier: std.ArrayList(u8),
-    @"enum": std.ArrayList(u8),
-    string: std.ArrayList(u8),
+    identifier: ArrayList(u8),
+    @"enum": ArrayList(u8),
+    string: ArrayList(u8),
     character: u8,
-    integer: std.ArrayList(u8),
-    float: std.ArrayList(u8),
+    integer: ArrayList(u8),
+    float: ArrayList(u8),
     keyword: Keyword,
     mode: Mode,
     // Assignment
@@ -98,8 +100,8 @@ pub const Kind = union(enum) {
     illegal,
     eof,           // \x00
 
-    pub fn initIdentifier(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var identifier = std.ArrayList(u8).init(allocator);
+    pub fn initIdentifier(source: []const u8, allocator: Allocator) !Kind {
+        var identifier = ArrayList(u8).init(allocator);
         try identifier.appendSlice(source);
 
         return Kind {
@@ -107,8 +109,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initEnum(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var enum_literal = std.ArrayList(u8).init(allocator);
+    pub fn initEnum(source: []const u8, allocator: Allocator) !Kind {
+        var enum_literal = ArrayList(u8).init(allocator);
         try enum_literal.appendSlice(source);
 
         return Kind {
@@ -116,8 +118,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initString(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var string = std.ArrayList(u8).init(allocator);
+    pub fn initString(source: []const u8, allocator: Allocator) !Kind {
+        var string = ArrayList(u8).init(allocator);
         try string.appendSlice(source);
 
         return Kind {
@@ -125,8 +127,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initInteger(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var integer = std.ArrayList(u8).init(allocator);
+    pub fn initInteger(source: []const u8, allocator: Allocator) !Kind {
+        var integer = ArrayList(u8).init(allocator);
         try integer.appendSlice(source);
 
         return Kind {
@@ -134,8 +136,8 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initFloat(source: []const u8, allocator: std.mem.Allocator) !Kind {
-        var float = std.ArrayList(u8).init(allocator);
+    pub fn initFloat(source: []const u8, allocator: Allocator) !Kind {
+        var float = ArrayList(u8).init(allocator);
         try float.appendSlice(source);
 
         return Kind {
@@ -202,7 +204,7 @@ pub const Kind = union(enum) {
     }
 
     // Converts a Kind into a string slice
-    pub fn toStr(self: *const Kind, allocator: std.mem.Allocator) ![]const u8 {
+    pub fn toStr(self: *const Kind, allocator: Allocator) ![]const u8 {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
@@ -274,7 +276,7 @@ pub const Kind = union(enum) {
         };
     }
 
-    fn charToString(_: *const Kind, ch: u8, allocator: std.mem.Allocator) ![]const u8 {
+    fn charToString(_: *const Kind, ch: u8, allocator: Allocator) ![]const u8 {
         var str = try allocator.alloc(u8, 1);
         str[0] = ch;
         return str[0..];
