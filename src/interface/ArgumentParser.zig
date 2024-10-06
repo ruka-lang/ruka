@@ -61,7 +61,7 @@ pub fn parse(self: *ArgumentParser) !void {
     var args = try std.process.argsWithAllocator(self.allocator);
     defer args.deinit();
 
-    _ = args.skip();
+    std.debug.assert(args.skip());
 
     const subcommand_arg = args.next();
     if (subcommand_arg == null) {
