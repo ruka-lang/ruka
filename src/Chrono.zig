@@ -66,7 +66,7 @@ pub fn init(timezone: Timezone) Chrono {
 
     chrono.convertTimezone(timezone);
 
-    //chrono.daylightSavings();
+    chrono.daylightSavings();
 
     return chrono;
 }
@@ -150,11 +150,13 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
 }
 
 fn daylightSavings(self: *Chrono) void {
-    if (self.isDaylightSavings()) self.hour += 1;
+    switch (self.timezone) {
+        .UTC => {},
+        else => {
+            self.hour += @intFromBool(self.isDaylightSavings());
 
-    // Calculate the weekdays for the current year and check 
-    // if after 2 am on the second sunday of march 
-    // and 2 am on the first sunday of november
+        }
+    }
 }
 
 // If between second sunday of march and first sunday of november, and an hour
@@ -249,8 +251,6 @@ const tests = struct {
         chrono.calculateDate(milliseconds);
         chrono.calculateTime(milliseconds);
 
-        std.debug.print("{}\n", .{chrono});
-
         try expectEq(.UTC, chrono.timezone);
         try expectEq(1, chrono.hour);
         try expectEq(46, chrono.minute);
@@ -260,5 +260,24 @@ const tests = struct {
         try expectEq(.sunday, chrono.weekday);
         try expectEq(.september, chrono.month);
         try expectEq(2001, chrono.year);
+    }
+
+    test "utc time after a ten trillion milliseconds" {
+        var chrono: Chrono = .epoch_unix;
+
+        const milliseconds: i64 = 10_000_000_000_000;
+
+        chrono.calculateDate(milliseconds);
+        chrono.calculateTime(milliseconds);
+
+        try expectEq(.UTC, chrono.timezone);
+        try expectEq(17, chrono.hour);
+        try expectEq(46, chrono.minute);
+        try expectEq(40, chrono.second);
+        try expectEq(0, chrono.millisecond);
+        try expectEq(20, chrono.day);
+        try expectEq(.saturday, chrono.weekday);
+        try expectEq(.november, chrono.month);
+        try expectEq(2286, chrono.year);
     }
 };
