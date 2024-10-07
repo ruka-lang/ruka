@@ -64,6 +64,9 @@ pub fn main() !void {
         }
 
         const test_name = t.name[0..];
+        // Print out test name more clearly, maybe with coloring
+        //var name_iter = std.mem.splitAny(u8, test_name, ".");
+        //_ = name_iter.next();
         fmt(out.any(), "Testing {s}: ", .{test_name});
         const result = t.func();
 
