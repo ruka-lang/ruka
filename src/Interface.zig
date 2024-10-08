@@ -12,9 +12,12 @@ gpa: std.heap.GeneralPurposeAllocator(.{}),
 
 const Interface = @This();
 
+// Think about adding some termios stuff to the compiler
+
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
 pub const ArgumentParser = @import("interface/ArgumentParser.zig");
+pub const Repl = @import("interface/Repl.zig");
 
 pub fn init() !Interface {
     try logging.init();
@@ -40,6 +43,7 @@ pub fn begin(self: *Interface) !void {
         .build => try self.buildProject(),
         .@"test" => try self.testProject(),
         .run => try self.runProject(),
+        .repl => try self.startRepl(),
         .version => try self.displayVersion(),
         .help => try self.displayHelp()
     }
@@ -79,6 +83,13 @@ fn testProject(self: *Interface) !void {
 
 fn runProject(self: *Interface) !void {
     _ = self;
+}
+
+fn startRepl(self: *Interface) !void {
+    var repl = try Repl.init(self, self.gpa.allocator());
+    defer repl.deinit();
+
+    try repl.run();
 }
 
 test "test all interface modules" {

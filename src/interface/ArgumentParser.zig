@@ -24,6 +24,7 @@ const Subcommand = enum {
     build,
     @"test",
     run,
+    repl,
     version,
     help
 };
@@ -33,6 +34,7 @@ pub const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
     .{"build", .build},
     .{"test", .@"test"},
     .{"run", .run},
+    .{"repl", .repl},
     .{"version", .version},
     .{"help", .help}
 });
@@ -45,7 +47,7 @@ pub fn init(allocator: Allocator) ArgumentParser {
     return ArgumentParser {
         .subcommands = .init(allocator),
         .options = .init(allocator),
-    
+
         .transport = .init(null, null),
 
         .allocator = allocator
@@ -74,7 +76,7 @@ pub fn parse(self: *ArgumentParser) !void {
     }
 
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {
-        try self.subcommands.writeItem(subcommand); 
+        try self.subcommands.writeItem(subcommand);
     } else {
         try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,
