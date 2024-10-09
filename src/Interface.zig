@@ -2,21 +2,20 @@
 // @created: 2024-03-04
 
 const ruka = @import("ruka").prelude;
-const Transport = ruka.Transport;
 const Compiler = ruka.Compiler;
+const Transport = ruka.Transport;
 
 const std = @import("std");
+const GeneralPurposeAllocator = std.heap.GeneralPurposeAllocator(.{});
 
 transport: Transport,
-gpa: std.heap.GeneralPurposeAllocator(.{}),
+gpa: GeneralPurposeAllocator,
 
 const Interface = @This();
 
-// Think about adding some termios stuff to the compiler
-
+pub const ArgumentParser = @import("interface/ArgumentParser.zig");
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
-pub const ArgumentParser = @import("interface/ArgumentParser.zig");
 pub const Repl = @import("interface/Repl.zig");
 
 pub fn init() !Interface {

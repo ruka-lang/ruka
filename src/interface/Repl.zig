@@ -2,25 +2,29 @@ const ruka = @import("ruka").prelude;
 const Interface = @import("../Interface.zig");
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+const AnyWriter = std.io.AnyWriter;
+const File = std.fs.File;
+const Termios = std.posix.termios;
 const builtin = @import("builtin");
 
-original: std.posix.termios = undefined,
-raw: std.posix.termios = undefined,
+original: Termios = undefined,
+raw: Termios = undefined,
 
 utf8_supported: bool,
 status: enum {uninitialized, initialized, running, exiting_success, exiting_failure},
 
 interface: *Interface,
 
-allocator: std.mem.Allocator,
+allocator: Allocator,
 
 const Repl = @This();
 
-var tty: std.fs.File = undefined;
+var tty: File = undefined;
 var size: Size = undefined;
 var position: Position = undefined;
 
-pub fn init(interface: *Interface, allocator: std.mem.Allocator) !*Repl {
+pub fn init(interface: *Interface, allocator: Allocator) !*Repl {
     const terminal = try allocator.create(Repl);
     errdefer allocator.destroy(terminal);
 
@@ -219,7 +223,7 @@ fn render() !void {
     try bw.flush();
 }
 
-fn draw_border(writer: std.io.AnyWriter) !void {
+fn draw_border(writer: AnyWriter) !void {
     for (0..size.height - 1) |i| {
         try move_cursor(writer, i, 0);
         try writer.writeAll("\u{2502}");
@@ -252,62 +256,62 @@ fn draw_border(writer: std.io.AnyWriter) !void {
     try writer.writeAll("Menu");
 }
 
-fn draw_cursor(writer: std.io.AnyWriter) !void {
+fn draw_cursor(writer: AnyWriter) !void {
     try move_cursor(writer, position.row, position.col);
     try white_background(writer);
     try writer.writeAll(" ");
     try reset_attribute(writer);
 }
 
-fn blue_background(writer: std.io.AnyWriter) !void {
+fn blue_background(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[44m");
 }
 
-fn white_background(writer: std.io.AnyWriter) !void {
+fn white_background(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[47m");
 }
 
-fn move_cursor(writer: std.io.AnyWriter, row: usize, col: usize) !void {
+fn move_cursor(writer: AnyWriter, row: usize, col: usize) !void {
     try writer.print("\x1B[{};{}H", .{row + 1, col + 1});
 }
 
-fn hide_cursor(writer: std.io.AnyWriter) !void {
+fn hide_cursor(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?25l"); // Hide the cursor.
 }
 
-fn show_cursor(writer: std.io.AnyWriter) !void {
+fn show_cursor(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?25h"); // Shows the cursor.
 }
 
-fn save_cursor(writer: std.io.AnyWriter) !void {
+fn save_cursor(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[s"); // Save cursor position.
 }
 
-fn restore_cursor(writer: std.io.AnyWriter) !void {
+fn restore_cursor(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[u"); // Restore cursor position.
 }
 
-fn save_screen(writer: std.io.AnyWriter) !void {
+fn save_screen(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?47h"); // Save screen.
 }
 
-fn restore_screen(writer: std.io.AnyWriter) !void {
+fn restore_screen(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?47l"); // Restore screen.
 }
 
-fn enable_alt_buffer(writer: std.io.AnyWriter) !void {
+fn enable_alt_buffer(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?1049h"); // Enable alternative buffer.
 }
 
-fn disable_alt_buffer(writer: std.io.AnyWriter) !void {
+fn disable_alt_buffer(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[?1049l"); // Disable alternative buffer.
 }
 
-fn clear(writer: std.io.AnyWriter) !void {
+fn clear(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[H\x1B[J"); // Clear.
 }
 
-fn reset_attribute(writer: std.io.AnyWriter) !void {
+fn reset_attribute(writer: AnyWriter) !void {
     try writer.writeAll("\x1B[0m"); // Attribute reset.
 }
 

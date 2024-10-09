@@ -2,19 +2,19 @@
 // @created: 2024-03-04
 
 const ruka = @import("root.zig").prelude;
+const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
-const Error = ruka.Error;
 
 const std = @import("std");
-const Dir = std.fs.Dir;
-const Pool = std.Thread.Pool;
-const Mutex = std.Thread.Mutex;
-const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
-const WaitGroup = std.Thread.WaitGroup;
-const LinearFifo = std.fifo.LinearFifo;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const ArrayList = std.ArrayList;
+const Dir = std.fs.Dir;
+const LinearFifo = std.fifo.LinearFifo;
+const Mutex = std.Thread.Mutex;
+const Pool = std.Thread.Pool;
+const WaitGroup = std.Thread.WaitGroup;
 
 cwd: Dir,
 errors: ArrayList(Error),

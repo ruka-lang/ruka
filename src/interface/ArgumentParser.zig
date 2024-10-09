@@ -6,8 +6,8 @@ const Transport = ruka.Transport;
 const constants = @import("constants.zig");
 
 const std = @import("std");
-const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 const LinearFifo = std.fifo.LinearFifo;
 
 subcommands: LinearFifo(Subcommand, .Dynamic),

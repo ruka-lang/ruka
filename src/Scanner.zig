@@ -5,9 +5,9 @@ const ruka = @import("root.zig").prelude;
 const Compiler = ruka.Compiler;
 
 const std = @import("std");
-const eql = std.mem.eql;
-const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
+const eql = std.mem.eql;
 
 prev_char: u8,
 read_char: u8,

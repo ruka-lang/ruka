@@ -4,7 +4,6 @@
 pub const prelude = @import("prelude.zig");
 pub const utilities = @import("utilities.zig");
 
-pub const Error = @import("Error.zig");
 pub const Chrono = @import("Chrono.zig");
 pub const Compiler = @import("Compiler.zig");
 pub const Scanner = @import("Scanner.zig");

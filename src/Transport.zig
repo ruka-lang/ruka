@@ -1,14 +1,12 @@
 // @author: ruka-lang
 // @created: 2024-09-25
 
-// The transport layer of rukac
-
 const std = @import("std");
-const Mutex = std.Thread.Mutex;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const BufferedReader = std.io.BufferedReader;
 const BufferedWriter = std.io.BufferedWriter;
+const Mutex = std.Thread.Mutex;
 
 br: ?BufferedReader(4096, AnyReader),
 bw: ?BufferedWriter(4096, AnyWriter),
