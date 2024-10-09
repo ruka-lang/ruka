@@ -1,20 +1,22 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const ruka = @import("libruka").prelude;
-const Transport = ruka.Transport;
+const ruka = @import("ruka").prelude;
 const Compiler = ruka.Compiler;
+const Transport = ruka.Transport;
 
 const std = @import("std");
+const GeneralPurposeAllocator = std.heap.GeneralPurposeAllocator(.{});
 
 transport: Transport,
-gpa: std.heap.GeneralPurposeAllocator(.{}),
+gpa: GeneralPurposeAllocator,
 
 const Interface = @This();
 
+pub const ArgumentParser = @import("interface/ArgumentParser.zig");
 pub const constants = @import("interface/constants.zig");
 pub const logging = @import("interface/logging.zig");
-pub const ArgumentParser = @import("interface/ArgumentParser.zig");
+pub const Repl = @import("interface/Repl.zig");
 
 pub fn init() !Interface {
     try logging.init();
@@ -40,6 +42,7 @@ pub fn begin(self: *Interface) !void {
         .build => try self.buildProject(),
         .@"test" => try self.testProject(),
         .run => try self.runProject(),
+        .repl => try self.startRepl(),
         .version => try self.displayVersion(),
         .help => try self.displayHelp()
     }
@@ -79,6 +82,13 @@ fn testProject(self: *Interface) !void {
 
 fn runProject(self: *Interface) !void {
     _ = self;
+}
+
+fn startRepl(self: *Interface) !void {
+    var repl = try Repl.init(self, self.gpa.allocator());
+    defer repl.deinit();
+
+    try repl.run();
 }
 
 test "test all interface modules" {

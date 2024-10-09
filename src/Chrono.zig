@@ -66,7 +66,7 @@ pub fn init(timezone: Timezone) Chrono {
 
     chrono.convertTimezone(timezone);
 
-    //chrono.daylightSavings();
+    chrono.daylightSavings();
 
     return chrono;
 }
@@ -78,14 +78,23 @@ fn calculateDate(self: *Chrono, milliseconds: i64) void {
     var month = epoch_unix.month;
     var year = epoch_unix.year;
 
+    // Calculate current year
+    while (days > 365 or isLeapYear(year) and days > 366) {
+        if (isLeapYear(year)) {
+            days -= 366;
+            year += 1;
+            continue;
+        }
+
+        days -= 365;
+        year += 1;
+    }
+
+    // Calculate day and month
     while (moreDaysThanInMonth(days, month, year)) {
         days -= month.getDaysPerMonth(year);
 
         month.next();
-
-        if (month == .january) {
-            year += 1;
-        }
     }
 
     self.day = @as(u8, @intCast(days + 1));
@@ -141,11 +150,13 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
 }
 
 fn daylightSavings(self: *Chrono) void {
-    if (self.isDaylightSavings()) self.hour += 1;
+    switch (self.timezone) {
+        .UTC => {},
+        else => {
+            self.hour += @intFromBool(self.isDaylightSavings());
 
-    // Calculate the weekdays for the current year and check 
-    // if after 2 am on the second sunday of march 
-    // and 2 am on the first sunday of november
+        }
+    }
 }
 
 // If between second sunday of march and first sunday of november, and an hour
@@ -229,6 +240,7 @@ test "test chrono module" {
 
 const tests = struct {
     const testing = std.testing;
+    const expectEq = testing.expectEqual;
     const allocator = testing.allocator;
 
     test "utc time after a trillion milliseconds" {
@@ -239,14 +251,33 @@ const tests = struct {
         chrono.calculateDate(milliseconds);
         chrono.calculateTime(milliseconds);
 
-        try testing.expect(chrono.timezone == .UTC);
-        try testing.expect(chrono.hour == 1);
-        try testing.expect(chrono.minute == 46);
-        try testing.expect(chrono.second == 40);
-        try testing.expect(chrono.millisecond == 0);
-        try testing.expect(chrono.day == 9);
-        try testing.expect(chrono.weekday == .sunday);
-        try testing.expect(chrono.month == .september);
-        try testing.expect(chrono.year == 2001);
+        try expectEq(.UTC, chrono.timezone);
+        try expectEq(1, chrono.hour);
+        try expectEq(46, chrono.minute);
+        try expectEq(40, chrono.second);
+        try expectEq(0, chrono.millisecond);
+        try expectEq(9, chrono.day);
+        try expectEq(.sunday, chrono.weekday);
+        try expectEq(.september, chrono.month);
+        try expectEq(2001, chrono.year);
+    }
+
+    test "utc time after a ten trillion milliseconds" {
+        var chrono: Chrono = .epoch_unix;
+
+        const milliseconds: i64 = 10_000_000_000_000;
+
+        chrono.calculateDate(milliseconds);
+        chrono.calculateTime(milliseconds);
+
+        try expectEq(.UTC, chrono.timezone);
+        try expectEq(17, chrono.hour);
+        try expectEq(46, chrono.minute);
+        try expectEq(40, chrono.second);
+        try expectEq(0, chrono.millisecond);
+        try expectEq(20, chrono.day);
+        try expectEq(.saturday, chrono.weekday);
+        try expectEq(.november, chrono.month);
+        try expectEq(2286, chrono.year);
     }
 };

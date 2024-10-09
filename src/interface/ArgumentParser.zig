@@ -1,13 +1,13 @@
 // @author: ruka-lang
 // @created: 2024-09-13
 
-const ruka = @import("libruka").prelude;
+const ruka = @import("ruka").prelude;
 const Transport = ruka.Transport;
 const constants = @import("constants.zig");
 
 const std = @import("std");
-const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 const LinearFifo = std.fifo.LinearFifo;
 
 subcommands: LinearFifo(Subcommand, .Dynamic),
@@ -24,6 +24,7 @@ const Subcommand = enum {
     build,
     @"test",
     run,
+    repl,
     version,
     help
 };
@@ -33,6 +34,7 @@ pub const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
     .{"build", .build},
     .{"test", .@"test"},
     .{"run", .run},
+    .{"repl", .repl},
     .{"version", .version},
     .{"help", .help}
 });
@@ -45,7 +47,7 @@ pub fn init(allocator: Allocator) ArgumentParser {
     return ArgumentParser {
         .subcommands = .init(allocator),
         .options = .init(allocator),
-    
+
         .transport = .init(null, null),
 
         .allocator = allocator
@@ -61,7 +63,7 @@ pub fn parse(self: *ArgumentParser) !void {
     var args = try std.process.argsWithAllocator(self.allocator);
     defer args.deinit();
 
-    _ = args.skip();
+    std.debug.assert(args.skip());
 
     const subcommand_arg = args.next();
     if (subcommand_arg == null) {
@@ -74,7 +76,7 @@ pub fn parse(self: *ArgumentParser) !void {
     }
 
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {
-        try self.subcommands.writeItem(subcommand); 
+        try self.subcommands.writeItem(subcommand);
     } else {
         try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,

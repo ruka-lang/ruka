@@ -3,6 +3,13 @@
 
 const std = @import("std");
 
+pub const Error = struct { 
+    file: []const u8,
+    kind: []const u8,
+    msg: []const u8,
+    pos: Position,
+};
+
 pub const Position = struct {
     line: usize = 0,
     col: usize = 0,
@@ -22,6 +29,10 @@ pub fn isAlphabetical(byte: u8) bool {
     };
 }
 
+pub fn isAlphanumerical(byte: u8) bool {
+    return isAlphabetical(byte) or isIntegral(byte);
+}
+
 pub fn isIntegral(byte: u8) bool {
     return switch(byte) {
         inline '0'...'9', '_' => true,
@@ -31,8 +42,4 @@ pub fn isIntegral(byte: u8) bool {
 
 pub fn isNumeric(byte: u8) bool {
     return isIntegral(byte) or byte == '.';
-}
-
-pub fn isAlphanumerical(byte: u8) bool {
-    return isAlphabetical(byte) or isIntegral(byte);
 }
