@@ -3,17 +3,17 @@
 
 const ruka = @import("../root.zig").prelude;
 const Compiler = ruka.Compiler;
+const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
-const Error = ruka.Error;
 
 const std = @import("std");
-const Mutex = std.Thread.Mutex;
-const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const ArrayList = std.ArrayList;
+const Mutex = std.Thread.Mutex;
 
 input: []const u8,
 output: []const u8,
