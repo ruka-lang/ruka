@@ -1,3 +1,4 @@
+const ruka = @import("ruka").prelude;
 const Interface = @import("../Interface.zig");
 
 const std = @import("std");

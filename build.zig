@@ -10,7 +10,7 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const root = b.addStaticLibrary(.{
-        .name = "libruka",
+        .name = "ruka",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.root_module.addImport("libruka", &root.root_module);
+    exe.root_module.addImport("ruka", &root.root_module);
 
     b.installArtifact(exe);
 
@@ -62,7 +62,7 @@ pub fn build(b: *std.Build) void {
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-    exe_unit_tests.root_module.addImport("libruka", &root.root_module);
+    exe_unit_tests.root_module.addImport("ruka", &root.root_module);
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     run_exe_unit_tests.addArg("--suite bin");

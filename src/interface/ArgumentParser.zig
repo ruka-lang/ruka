@@ -1,7 +1,7 @@
 // @author: ruka-lang
 // @created: 2024-09-13
 
-const ruka = @import("libruka").prelude;
+const ruka = @import("ruka").prelude;
 const Transport = ruka.Transport;
 const constants = @import("constants.zig");
 

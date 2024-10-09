@@ -1,7 +1,7 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const ruka = @import("libruka").prelude;
+const ruka = @import("ruka").prelude;
 const Transport = ruka.Transport;
 const Compiler = ruka.Compiler;
 
