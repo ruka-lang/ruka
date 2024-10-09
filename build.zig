@@ -16,7 +16,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    b.installArtifact(root);
+    //b.installArtifact(root);
 
     const exe = b.addExecutable(.{
         .name = "ruka",
