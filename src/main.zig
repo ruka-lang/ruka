@@ -18,7 +18,7 @@ pub fn main() !void {
 
     std.log.scoped(.bin).info("starting ruka", .{});
 
-    try interface.begin();
+    try interface.start();
 }
 
 test "test all rukac executable modules" {
