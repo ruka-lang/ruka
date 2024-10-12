@@ -13,7 +13,6 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
-const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayList = std.ArrayList;
 const Mutex = std.Thread.Mutex;
 
@@ -23,7 +22,6 @@ transport: *Transport,
 errors: ArrayList(Error),
 
 allocator: Allocator,
-arena: ArenaAllocator,
 
 const Unit = @This();
 
@@ -55,8 +53,7 @@ pub fn init(opts: UnitOptions) !*Unit {
         .transport = try .init(opts.allocator, opts.reader, opts.writer),
         .errors = .init(opts.allocator),
 
-        .allocator = opts.allocator,
-        .arena = .init(opts.allocator)
+        .allocator = opts.allocator
     };
 
     return unit;
@@ -64,7 +61,6 @@ pub fn init(opts: UnitOptions) !*Unit {
 
 pub fn deinit(self: *Unit) void {
     self.errors.deinit();
-    self.arena.deinit();
     self.transport.deinit();
     self.allocator.destroy(self);
 }
@@ -79,23 +75,13 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
 }
 
 pub fn compile(self: *Unit) !*Ast {
-    std.debug.print("\t{s}:\n", .{self.input});
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
 
-    var parser = try Parser.init(self.allocator, scanner);
+    var parser = try Parser.init(self, scanner);
     defer parser.deinit();
 
     const ast = try parser.parse();
-
-    var token = try scanner.nextToken();
-
-    while(token.kind != .eof): (token = try scanner.nextToken()) {
-        std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
-        token.deinit();
-    }
-
-    std.debug.print("eof: \\x00\n", .{});
 
     return ast;
 }

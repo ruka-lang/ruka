@@ -43,7 +43,9 @@ const Status = enum {
 };
 
 pub const Job = union(enum) {
-    scan_and_parse_file: []const u8,
+    parse_file: []const u8,
+    combine_asts,
+    check_ast_semantics,
 
     const SynchronizationMode = enum {
         exclusive,
@@ -53,13 +55,16 @@ pub const Job = union(enum) {
 
     pub fn deinit(self: Job, allocator: Allocator) void {
         switch (self) {
-            .scan_and_parse_file => |file| allocator.free(file)
+            .parse_file => |file| allocator.free(file),
+            else => {}
         }
     }
 
     fn syncMode(self: Job) SynchronizationMode {
         return switch (self) {
-            .scan_and_parse_file => |_| .shared,
+            .parse_file => |_| .shared,
+            .combine_asts => .exclusive,
+            .check_ast_semantics => .exclusive,
         };
     }
 };
@@ -76,7 +81,7 @@ pub fn init(allocator: Allocator) !*Compiler {
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
-        .ast = undefined,
+        .ast = try .init(allocator),
         .unprocessed_asts = .init(allocator),
 
         .allocator = allocator,
@@ -104,7 +109,7 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
-    //self.ast.deinit();
+    self.ast.deinit();
     for (self.unprocessed_asts.items) |ast| {
         ast.deinit();
     }
@@ -115,6 +120,10 @@ pub fn deinit(self: *Compiler) void {
 pub fn buildProject(self: *Compiler) !void {
     try self.verifyProject(self.cwd);
     try self.sendProject(self.cwd);
+
+    try self.job_queue.ensureUnusedCapacity(2);
+    try self.job_queue.writeItem(.combine_asts);
+    try self.job_queue.writeItem(.check_ast_semantics);
 
     while (self.job_queue.readItem()) |job| {
         switch (job.syncMode()) {
@@ -144,7 +153,7 @@ fn sendFile(self: *Compiler, file: []const u8) !void {
     errdefer self.allocator.free(file);
 
     try self.job_queue.ensureUnusedCapacity(1);
-    try self.job_queue.writeItem(.{ .scan_and_parse_file = file });
+    try self.job_queue.writeItem(.{ .parse_file = file });
 }
 
 fn verifyProject(self: *Compiler, dir: Dir) !void {
@@ -192,15 +201,25 @@ fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
     defer job.deinit(self.allocator);
 
     switch (job) {
-        .scan_and_parse_file => |file| {
-            self.compileFile(file, null) catch |err| {
+        .parse_file => |file| {
+            self.parseFile(file, null) catch |err| {
                 log.err("Failed to compile file: {}", .{err});
+            };
+        },
+        .combine_asts => {
+            self.combineAsts() catch |err| {
+                log.err("Failed to combine asts: {}", .{err});
+            };
+        },
+        .check_ast_semantics => {
+            self.checkAstSemantics() catch |err| {
+                log.err("Failed to check ast semantics: {}", .{err});
             };
         }
     }
 }
 
-fn compileFile(
+fn parseFile(
     self: *Compiler,
     in: []const u8,
     out: ?[]const u8
@@ -229,6 +248,14 @@ fn compileFile(
 
     try self.unprocessed_asts.append(ast);
     try self.errors.appendSlice(unit.errors.items);
+}
+
+fn combineAsts(_: *Compiler) !void {
+    std.debug.print("\ncombining asts\n", .{});
+}
+
+fn checkAstSemantics(_: *Compiler) !void {
+    std.debug.print("\nverifying ast\n", .{});
 }
 
 test "test all compiler modules" {
