@@ -2,9 +2,11 @@
 // @created: 2024-09-25
 
 const libruka = @import("../root.zig").prelude;
+const Ast = libruka.Ast;
 const Compiler = libruka.Compiler;
 const Error = libruka.Error;
 const Scanner = libruka.Scanner;
+const Parser = libruka.Parser;
 const Transport = libruka.Transport;
 
 const std = @import("std");
@@ -22,8 +24,6 @@ errors: ArrayList(Error),
 
 allocator: Allocator,
 arena: ArenaAllocator,
-
-mutex: Mutex,
 
 const Unit = @This();
 
@@ -56,9 +56,7 @@ pub fn init(opts: UnitOptions) !*Unit {
         .errors = .init(opts.allocator),
 
         .allocator = opts.allocator,
-        .arena = .init(opts.allocator),
-
-        .mutex = .{}
+        .arena = .init(opts.allocator)
     };
 
     return unit;
@@ -72,9 +70,6 @@ pub fn deinit(self: *Unit) void {
 }
 
 pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []const u8) !void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
     try self.errors.append(.{
         .file = self.input,
         .kind = kind,
@@ -83,10 +78,15 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
     });
 }
 
-pub fn compile(self: *Unit) !void {
+pub fn compile(self: *Unit) !*Ast {
     std.debug.print("\t{s}:\n", .{self.input});
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
+
+    var parser = try Parser.init(self.allocator, scanner);
+    defer parser.deinit();
+
+    const ast = try parser.parse();
 
     var token = try scanner.nextToken();
 
@@ -96,6 +96,8 @@ pub fn compile(self: *Unit) !void {
     }
 
     std.debug.print("eof: \\x00\n", .{});
+
+    return ast;
 }
 
 test "test all unit modules" {

@@ -2,6 +2,7 @@
 // @created: 2024-03-04
 
 const libruka = @import("root.zig").prelude;
+const Ast = libruka.Ast;
 const Error = libruka.Error;
 const Scanner = libruka.Scanner;
 const Transport = libruka.Transport;
@@ -19,6 +20,9 @@ const WaitGroup = std.Thread.WaitGroup;
 cwd: Dir,
 errors: ArrayList(Error),
 transport: *Transport,
+
+ast: *Ast,
+unprocessed_asts: ArrayList(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -72,6 +76,9 @@ pub fn init(allocator: Allocator) !*Compiler {
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
+        .ast = undefined,
+        .unprocessed_asts = .init(allocator),
+
         .allocator = allocator,
         .arena = .init(allocator),
 
@@ -80,8 +87,6 @@ pub fn init(allocator: Allocator) !*Compiler {
         .wait_group = .{},
         .job_queue = .init(allocator)
     };
-
-    compiler.wait_group.reset();
 
     try compiler.thread_pool.init(.{
         .allocator = allocator,
@@ -99,12 +104,40 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
+    //self.ast.deinit();
+    for (self.unprocessed_asts.items) |ast| {
+        ast.deinit();
+    }
+    self.unprocessed_asts.deinit();
     self.allocator.destroy(self);
+}
+
+pub fn buildProject(self: *Compiler) !void {
+    try self.verifyProject(self.cwd);
+    try self.sendProject(self.cwd);
+
+    while (self.job_queue.readItem()) |job| {
+        switch (job.syncMode()) {
+            .exclusive => {
+                self.waitAndWork();
+                self.processJob(job, null);
+            },
+            .shared => {
+                self.wait_group.start();
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
+            },
+            .atomic => {
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, null});
+            }
+        }
+    }
 }
 
 fn waitAndWork(self: *Compiler) void {
     self.thread_pool.waitAndWork(&self.wait_group);
-    self.wait_group.reset(); 
+    self.wait_group.reset();
 }
 
 fn sendFile(self: *Compiler, file: []const u8) !void {
@@ -117,6 +150,13 @@ fn sendFile(self: *Compiler, file: []const u8) !void {
 fn verifyProject(self: *Compiler, dir: Dir) !void {
     _ = self;
     _ = dir;
+}
+
+fn isProperExtension(file: []const u8) bool {
+    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
+    const extension = path_iter.first();
+
+    return std.mem.eql(u8, "ruka", extension);
 }
 
 fn sendProject(self: *Compiler, dir: Dir) !void {
@@ -147,11 +187,10 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
     }
 }
 
-
 fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
     defer if (wait_group != null) wait_group.?.finish();
     defer job.deinit(self.allocator);
-    
+
     switch (job) {
         .scan_and_parse_file => |file| {
             self.compileFile(file, null) catch |err| {
@@ -159,36 +198,6 @@ fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
             };
         }
     }
-}
-
-pub fn buildProject(self: *Compiler) !void {
-    try self.verifyProject(self.cwd);
-    try self.sendProject(self.cwd);
-
-    while (self.job_queue.readItem()) |job| {
-        switch (job.syncMode()) {
-            .exclusive => {
-                self.waitAndWork();
-                self.processJob(job, null);
-            },
-            .shared => {
-                self.wait_group.start();
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
-            },
-            .atomic => {
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, null});
-            }
-        }
-    }
-}
-
-fn isProperExtension(file: []const u8) bool {
-    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-    const extension = path_iter.first();
-
-    return std.mem.eql(u8, "ruka", extension);
 }
 
 fn compileFile(
@@ -212,8 +221,13 @@ fn compileFile(
     });
     defer unit.deinit();
 
-    try unit.compile();
+    const ast = try unit.compile();
+    errdefer ast.deinit();
 
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    try self.unprocessed_asts.append(ast);
     try self.errors.appendSlice(unit.errors.items);
 }
 
