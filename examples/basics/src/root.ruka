@@ -2,29 +2,29 @@
  *
  */
 
-pub const Buffer = @import("buffer.ruka")
-pub const io = @import("io.ruka")
+pub const {Buffer, ..} = @import("buffer.ruka")
+const io = @import("io.ruka")
 
 pub const Vector = module {
     pub const t = record {
         x: u8,
         y: u8,
-        pvt z: u8
+        private z: u8
     }
 
-    pub fn new = (x, y) do
-        t.{ x, y, 0 }
+    pub const init = (x, y) do
+        { x, y, z = 0 }
     end
 
-    pub fn add = (self: t, other: t) do
-        t.{
+    pub const add = (self: t, other: t) do
+        {
             x = self.x + other.x,
             y = self.y + other.y,
             z = self.z + other.z
         }
     end
 
-    pub fn write = (self: t, writer: any io.Writer) do
+    pub const write = (self: t, writer: any io.Writer) do
         writer.writeRecord(self).?
     end
 
@@ -36,10 +36,10 @@ pub const Vector = module {
         }
 
         let tests = [string, testcase]{
-            "addition": .{
-                num: new(1, 2),
-                div: new(3, 4),
-                want: new(4, 6)
+            "addition" = {
+                num = init(1, 2),
+                div = init(3, 4),
+                want = init(4, 6)
             }
         }
 

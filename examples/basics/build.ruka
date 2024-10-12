@@ -1,16 +1,16 @@
 /*
  *
  */
-const project = .{
+const project = {
     name = "basics",
-    version = 0.0.1,
-    ruka_version = 0.0.0
+    version = "0.0.1",
+    ruka_version = "0.0.0"
 }
 
 /*
  *
  */
-const executable = .{
+const executable = {
     name = project.name,
     path = "src/main.ruka"
 }
@@ -18,7 +18,7 @@ const executable = .{
 /*
  *
  */
-const library = .{
+const library = {
     name = project.name,
     path = "src/root.ruka"
 }
@@ -26,6 +26,6 @@ const library = .{
 /*
  *
  */
-const dependencies = .{
+const dependencies = {
     std = { version = project.ruka_version, features = [] }
 }

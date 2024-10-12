@@ -300,7 +300,8 @@ pub const Keyword = enum {
     let,
     @"var",
     @"pub",
-    pvt,
+    private,
+    interpret,
     @"return",
     do,
     end,
@@ -310,6 +311,7 @@ pub const Keyword = enum {
     tuple,
     @"enum",
     interface,
+    any,
     @"error",
     @"defer",
     true,
@@ -336,7 +338,6 @@ pub const Keyword = enum {
     from,
     impl,
     when,
-    any,
     use,
     as,
 
@@ -357,7 +358,8 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"let", .let},
     .{"var", .@"var"},
     .{"pub", .@"pub"},
-    .{"pvt", .pvt},
+    .{"private", .private},
+    .{"interpret", .interpret},
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
@@ -367,6 +369,7 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"tuple", .tuple},
     .{"enum", .@"enum"},
     .{"interface", .interface},
+    .{"any", .any},
     .{"error", .@"error"},
     .{"defer", .@"defer"},
     .{"true", .true},
@@ -393,7 +396,6 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"from", .from},
     .{"impl", .impl},
     .{"when", .when},
-    .{"any", .any},
     .{"use", .use},
     .{"as", .as}
 });
@@ -419,7 +421,6 @@ comptime {
 /// Represent various parameter modes
 pub const Mode = enum {
     @"comptime",
-    @"&",
     loc,
     mov,
     mut,
@@ -438,7 +439,6 @@ pub const Mode = enum {
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
     .{"comptime", .@"comptime"},
-    .{"&", .@"&"},
     .{"loc", .loc},
     .{"mov", .mov},
     .{"mut", .mut}

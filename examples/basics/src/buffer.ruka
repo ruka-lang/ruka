@@ -1,77 +1,85 @@
 const std = @import("std")
-const Vector = @import("basics").Vector
+const {Vector} = @import("basics")
 
-pub const t = struct {
-    buf: [4096]u8,
-    front: usize,
-    back: usize,
+pub const Buffer = (% size: usize) do
+    module {
+        pub const t = struct {
+            buf: [size]u8,
+            front: usize,
+            back: usize,
 
-    mtx: std.sync.Mutex,
-    add: std.sync.CV,
-    rem: std.sync.CV
-}
+            mtx: std.sync.Mutex,
+            add: std.sync.CV,
+            rem: std.sync.CV
+        }
 
-pub fn init = () do
-    t.{
-        buf = []{},
-        front = 0,
-        back = 0
+        pub const init = () do
+            {
+                buf = []{},
+                front = 0,
+                back = 0,
+
+                mtx = .init,
+                add = .init,
+                rem = .init
+            }
+        end
+
+        const Writer = record {
+            buf: *t
+        }
+
+        pub const writeRecord = (self: Writer, val: Vector.t) do
+            self.buf.put(val.x)
+            self.buf.put(val.y)
+        end
+
+        const Reader = record {
+            buf: *t
+        }
+
+        pub const readByte = (self: Reader) do
+            self.buf.get()
+        end
+
+        pub const writer = (self: t) do
+            writer.{
+                buf = self.&
+            }
+        end
+
+        pub const reader = (self: t) do
+            reader.{
+                buf = self.&
+            }
+        end
+
+        pub const put = (self: *t, value) do
+            self.mtx.lock()
+            defer self.mtx.unlock()
+
+            while self.front -| self.back == 10 do
+                self.rem.wait(&self.mtx)
+            end
+
+            self.buf[self.front % 10] = value
+            self.front += 1;
+
+            self.add.signal()
+        end
+
+        pub const get = (self: *t) do
+            self.mtx.lock()
+            defer self.mtx.unlock()
+
+            while self.back == self.front do
+                self.add.wait(&self.mtx)
+            end
+
+            self.back += 1
+            self.removed.signal()
+
+            self.buf[self.back % 10];
+        end
     }
-end
-
-const writer = record {
-    buf: *t
-}
-
-pub fn writeRecord = (self: *writer, val: Vector.t) do
-    self.buf.put(val.x)
-    self.buf.put(val.y)
-end
-
-const reader = record {
-    buf: *t
-}
-
-pub fn Reader.readByte = (self: *reader) do
-    self.buf.get()
-end
-
-pub fn writer = (self: t) do
-    writer.{
-        buf: &self.buf
-    }
-end
-
-pub fn reader = (self: Reader) do
-    reader.{
-        buf: &self.buf
-    }
-end
-
-pub fn put = (self: *t, value) do
-    self.mtx.lock()
-    defer self.mtx.unlock()
-
-    while self.front -| self.back == 10 do
-        self.rem.wait(&self.mtx)
-    end
-
-    self.buf[self.front % 10] = value
-    self.front += 1;
-
-    self.add.signal()
-end
-
-pub fn get = (self: *t) do
-    self.mtx.lock()
-    defer self.mtx.unlock()
-
-    while self.back == self.front do
-        self.add.wait(&self.mtx)
-    end
-
-    self.back += 1
-    self.removed.signal()
-
-    self.buf[self.back % 10];
 end
