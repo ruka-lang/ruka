@@ -91,12 +91,7 @@ pub fn parse(self: *ArgumentParser) !void {
 
     const subcommand_arg = args.next();
     if (subcommand_arg == null) {
-        try self.transport.printStderr("{s}\n{s}\n\nExpected subcommand argument\n", .{
-            constants.usage,
-            constants.subcommands_display
-        });
-
-        std.posix.exit(1);
+        return error.MissingSubcommand;
     }
 
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {

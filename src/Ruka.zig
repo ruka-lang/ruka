@@ -35,11 +35,23 @@ pub fn deinit(self: *Ruka) void {
     self.allocator.destroy(self);
 }
 
-pub fn begin(self: *Ruka) !void {
+pub fn start(self: *Ruka) !void {
     var arg_parser = try ArgumentParser.init(self.allocator);
     defer arg_parser.deinit();
 
-    try arg_parser.parse();
+    arg_parser.parse() catch |err| {
+        switch (err) {
+            error.MissingSubcommand => {
+                try self.transport.printStderr("{s}\n{s}\n\nExpected subcommand argument\n", .{
+                    constants.usage,
+                    constants.subcommands_display
+                });
+
+                return;
+            },
+            else => return err
+        }
+    };
 
     switch (arg_parser.getSubcommand().?) {
         .new => try self.newProject(),
