@@ -84,6 +84,7 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
 }
 
 pub fn compile(self: *Unit) !void {
+    std.debug.print("\t{s}:\n", .{self.input});
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
 

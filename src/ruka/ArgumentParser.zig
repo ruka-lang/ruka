@@ -11,7 +11,7 @@ const ArrayList = std.ArrayList;
 const LinearFifo = std.fifo.LinearFifo;
 
 subcommands: LinearFifo(Subcommand, .Dynamic),
-options: ArrayList(Option),
+options: LinearFifo(Option, .Dynamic),
 
 transport: *Transport,
 
@@ -29,7 +29,7 @@ const Subcommand = enum {
     help
 };
 
-pub const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
+const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
     .{"new", .new},
     .{"build", .build},
     .{"test", .@"test"},
@@ -39,8 +39,25 @@ pub const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
     .{"help", .help}
 });
 
-const Option = enum {
+const Option = union(enum) {
+    cwd: []const u8,
 
+    pub fn init(option: []const u8) ?Option {
+        var iter = std.mem.splitAny(u8, option, "=");
+
+        // need to make sure option are following the --opt=value or --opt or -o syntax
+        const opt = iter.next() orelse return null;
+        const value = iter.next() orelse {
+            std.debug.print("Option missing it's value\n", .{});
+            return null;
+        };
+
+        if (std.mem.eql(u8, opt, "--cwd")) {
+            return .{ .cwd = value };
+        }
+
+        return null;
+    }
 };
 
 pub fn init(allocator: Allocator) !*ArgumentParser {
@@ -62,6 +79,7 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
 pub fn deinit(self: *ArgumentParser) void {
     self.subcommands.deinit();
     self.options.deinit();
+    self.transport.deinit();
     self.allocator.destroy(self);
 }
 
@@ -75,7 +93,7 @@ pub fn parse(self: *ArgumentParser) !void {
     if (subcommand_arg == null) {
         try self.transport.printStderr("{s}\n{s}\n\nExpected subcommand argument\n", .{
             constants.usage,
-            constants.commands
+            constants.subcommands_display
         });
 
         std.posix.exit(1);
@@ -86,16 +104,32 @@ pub fn parse(self: *ArgumentParser) !void {
     } else {
         try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,
-            constants.commands,
+            constants.subcommands_display,
             subcommand_arg.?
         });
 
         std.posix.exit(1);
     }
+
+    while (args.next()) |arg| {
+        if (Option.init(arg)) |option| {
+            try self.options.writeItem(option);
+        } else {
+            try self.transport.printStderr("{s}\n{s}\n\nInvalid option: {s}\n", .{
+                constants.usage,
+                constants.subcommands_display,
+                arg
+            });
+        }
+    }
 }
 
 pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
     return self.subcommands.readItem();
+}
+
+pub fn getOption(self: *ArgumentParser) ?Option {
+    return self.options.readItem();
 }
 
 test "test all argumentParser modules" {

@@ -26,7 +26,7 @@ pub fn init() !void {
         return error.ReadingEnviromentFailed;
     };
 
-    const logs_path = ".local/state/libruka/logs";
+    const logs_path = ".local/state/ruka/logs";
 
     var homedir = try std.fs.openDirAbsolute(home, .{});
     defer homedir.close();
