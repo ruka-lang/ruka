@@ -1,10 +1,10 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const ruka = @import("root.zig").prelude;
-const Error = ruka.Error;
-const Scanner = ruka.Scanner;
-const Transport = ruka.Transport;
+const libruka = @import("root.zig").prelude;
+const Error = libruka.Error;
+const Scanner = libruka.Scanner;
+const Transport = libruka.Transport;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
@@ -18,7 +18,7 @@ const WaitGroup = std.Thread.WaitGroup;
 
 cwd: Dir,
 errors: ArrayList(Error),
-transport: Transport,
+transport: *Transport,
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -40,6 +40,7 @@ pub const Job = union(enum) {
 
 pub fn init(allocator: Allocator) !*Compiler {
     const compiler = try allocator.create(Compiler);
+    errdefer compiler.deinit();
 
     const stdin = std.io.getStdIn().reader();
     const stderr = std.io.getStdErr().writer();
@@ -47,7 +48,7 @@ pub fn init(allocator: Allocator) !*Compiler {
     compiler.* = .{
         .cwd = std.fs.cwd(),
         .errors = .init(allocator),
-        .transport = .init(stdin.any(), stderr.any()),
+        .transport = try .init(allocator, stdin.any(), stderr.any()),
 
         .allocator = allocator,
         .arena = .init(allocator),
@@ -73,6 +74,7 @@ pub fn deinit(self: *Compiler) void {
     self.job_queue.deinit();
     self.errors.deinit();
     self.arena.deinit();
+    self.transport.deinit();
     self.allocator.destroy(self);
 }
 

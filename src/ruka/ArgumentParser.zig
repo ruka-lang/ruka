@@ -1,8 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-09-13
 
-const ruka = @import("ruka").prelude;
-const Transport = ruka.Transport;
+const libruka = @import("ruka").prelude;
+const Transport = libruka.Transport;
 const constants = @import("constants.zig");
 
 const std = @import("std");
@@ -13,7 +13,7 @@ const LinearFifo = std.fifo.LinearFifo;
 subcommands: LinearFifo(Subcommand, .Dynamic),
 options: ArrayList(Option),
 
-transport: Transport,
+transport: *Transport,
 
 allocator: Allocator,
 
@@ -43,20 +43,26 @@ const Option = enum {
 
 };
 
-pub fn init(allocator: Allocator) ArgumentParser {
-    return ArgumentParser {
+pub fn init(allocator: Allocator) !*ArgumentParser {
+    const argument_parser = try allocator.create(ArgumentParser);
+    errdefer argument_parser.deinit();
+
+    argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
 
-        .transport = .init(null, null),
+        .transport = try .init(allocator, null, null),
 
         .allocator = allocator
     };
+
+    return argument_parser;
 }
 
-pub fn deinit(self: ArgumentParser) void {
+pub fn deinit(self: *ArgumentParser) void {
     self.subcommands.deinit();
     self.options.deinit();
+    self.allocator.destroy(self);
 }
 
 pub fn parse(self: *ArgumentParser) !void {

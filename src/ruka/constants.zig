@@ -5,9 +5,10 @@ const std = @import("std");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
-pub const usage = "usage: ruka [options] [command]";
+pub const usage = "usage: ruka [options] [subcommand]";
+// Declaration needs a better name
 pub const commands =
-    \\    commands:
+    \\    subcommands:
     \\        new     : Creates a new project in the current directory
     \\        build   : Builds the project in the current directory
     \\        test    : Tests the project in the current directory
