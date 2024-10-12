@@ -2,7 +2,7 @@
  *
  */
 
-const Buffer, Vector = @import("basics")
+const {Buffer, Vector, ..} = @import("basics")
 
 // enum literals begin with a apostrophe which do not belong to a specific type
 // and types specified with enum literals are generic
@@ -11,7 +11,7 @@ const genFunc = (a: 't, b: 't) do
 end
 
 const mul = (x: Vector.t) do
-    var v = Vector.new(0, 0)
+    var v = Vector.init(0, 0)
 
     // Okay because x, y is public
     v.x = x.x * 2
@@ -25,16 +25,18 @@ const mul = (x: Vector.t) do
 end
 
 const main = () do
-    var buffer = Buffer.init()
+    // Buffer is a function which takes a integer which must be known at compile time
+    // and returns a module, if a var or let were passed to this function a compile error would be thrown
+    var buffer = Buffer(512).init()
 
     // Methods are functions defined within the module the type was
     // defined in where the first parameter is of that type, only the
     // type or module needs to be in scope to call the methods.
 
     // Alternatively any function can be called as a method but
-    // it should be imported directly into scope as 
+    // it should be imported directly into scope as
     // variable.std.function()
-    // would be quite verbose unless split onto multiple lines, any 
+    // would be quite verbose unless split onto multiple lines, any
     // ambiguity would result in a compile error.
     // In the proceeding example each step in the method chain
     // is a method except for mul which is defined above
@@ -45,11 +47,11 @@ const main = () do
     //    .write ~writer: buffer.writer()
     //    .?
 
-    // Although may just stick with reverse function application 
+    // Although may just stick with reverse function application
     // pipelines "|>", as opposed to UFCS
 
-    // Can call methods in pipelines. In the case where some steps 
-    // are methods and other are not, can be written like this for 
+    // Can call methods in pipelines. In the case where some steps
+    // are methods and other are not, can be written like this for
     // consistency
     Vector.new(1, 2)
         |> .add(.new(3, 4))

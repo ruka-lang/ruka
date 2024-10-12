@@ -41,6 +41,7 @@ pub const Node = struct {
         postfix,
         binding,
         @"type",
+        interpet,
         @"return"
     };
 
@@ -92,24 +93,24 @@ pub const Node = struct {
 
     pub fn addLeft(self: *Node, kind: Kind, token: Token) !*Node {
         const node = try Node.init(self.allocator, kind, token, .default);
-        
+
         self.data.lhs = node;
-
-        return node;
-    }
-
-    pub fn addRight(self: *Node, kind: Kind, token: Token) !*Node {
-        const node = try Node.init(self.allocator, kind, token, .default);
-        
-        self.data.rhs = node;
 
         return node;
     }
 
     pub fn addMiddle(self: *Node, kind: Kind, token: Token) !*Node {
         const node = try Node.init(self.allocator, kind, token, .default);
-        
+
         self.data.mhs = node;
+
+        return node;
+    }
+
+    pub fn addRight(self: *Node, kind: Kind, token: Token) !*Node {
+        const node = try Node.init(self.allocator, kind, token, .default);
+
+        self.data.rhs = node;
 
         return node;
     }
@@ -120,7 +121,7 @@ pub const Node = struct {
 
     pub fn addToBuf(self: *Node, kind: Kind, token: Token) !*Node {
         const node = try Node.init(self.allocator, kind, token, .default);
-        
+
         try self.data.buf.?.append(node);
 
         return node;
