@@ -1,8 +1,9 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const ruka = @import("root.zig").prelude;
-const Compiler = ruka.Compiler;
+const libruka = @import("root.zig").prelude;
+const Compiler = libruka.Compiler;
+const Position = libruka.Position;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
@@ -14,8 +15,8 @@ read_char: u8,
 peek_char: u8,
 peep_char: u8,
 
-current_pos: ruka.Position,
-token_pos: ruka.Position,
+current_pos: Position,
+token_pos: Position,
 index: usize,
 
 unit: *Compiler.Unit,
@@ -24,8 +25,10 @@ pub const Token = @import("scanner/Token.zig");
 
 const Scanner = @This();
 
-pub fn init(unit: *Compiler.Unit) Scanner {
-    return Scanner {
+pub fn init(unit: *Compiler.Unit) !*Scanner {
+    const scanner = try unit.allocator.create(Scanner);
+
+    scanner.* = .{
         .prev_char = undefined,
         .read_char = unit.transport.readByte() catch '\x00',
         .peek_char = unit.transport.readByte() catch '\x00',
@@ -37,6 +40,12 @@ pub fn init(unit: *Compiler.Unit) Scanner {
 
         .unit = unit,
     };
+
+    return scanner;
+}
+
+pub fn deinit(self: *Scanner) void {
+    self.unit.allocator.destroy(self);
 }
 
 /// Returns the next token from the files, when eof is reached,
@@ -204,9 +213,9 @@ pub fn nextToken(self: *Scanner) !Token {
         '\x00' => self.createToken(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => block: {
-            if (ruka.isAlphabetical(byte)) {
+            if (libruka.isAlphabetical(byte)) {
                 break :block try self.readIdentifierKeywordMode();
-            } else if (ruka.isIntegral(byte)) {
+            } else if (libruka.isIntegral(byte)) {
                 break :block try self.readIntegerFloat();
             }
 
@@ -352,7 +361,7 @@ fn readEnumLiteral(self: *Scanner) !Token {
 
     self.advance(1);
     var byte = self.read();
-    while (ruka.isAlphanumerical(byte)) {
+    while (libruka.isAlphanumerical(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -447,7 +456,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
     errdefer string.deinit();
 
     var byte = self.read();
-    while (ruka.isAlphanumerical(byte)) {
+    while (libruka.isAlphanumerical(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -478,7 +487,7 @@ fn readIntegerFloat(self: *Scanner) !Token {
     // read only integer values afterwards
     var float = false;
     var byte = self.read();
-    while (ruka.isNumeric(byte)) {
+    while (libruka.isNumeric(byte)) {
         if (byte == '.') {
             try string.append(byte);
             try self.readMantissa(&string);
@@ -504,12 +513,12 @@ fn readMantissa(self: *Scanner, string: *ArrayList(u8)) !void {
 
     var byte = self.read();
 
-    if (!ruka.isIntegral(byte)) {
+    if (!libruka.isIntegral(byte)) {
         try string.append('0');
         return;
     }
 
-    while (ruka.isIntegral(byte)) {
+    while (libruka.isIntegral(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -655,7 +664,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -669,7 +679,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 30)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "compound operators" {
@@ -681,7 +691,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.equal, "test source", .init(1, 1)),
@@ -704,7 +715,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 52))
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "string reading" {
@@ -716,7 +727,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -728,7 +740,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 24)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "multi string reading" {
@@ -743,7 +755,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -755,7 +768,7 @@ const tests = struct {
             .init(.eof, "test source", .init(3, 12)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "escape charaters" {
@@ -767,7 +780,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -779,7 +793,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 28)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "charater literals" {
@@ -791,7 +805,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -803,7 +818,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 13)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "enum literals" {
@@ -815,7 +830,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -833,7 +849,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 26)),
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "read function identifier" {
@@ -845,7 +861,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -859,7 +876,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 16))
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "skip single comment" {
@@ -871,7 +888,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -882,7 +900,7 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 27))
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 
     test "skip multi comment" {
@@ -897,7 +915,8 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
-        var scanner = Scanner.init(unit);
+        var scanner = try Scanner.init(unit);
+        defer scanner.deinit();
 
         const allocator = unit.arena.allocator();
 
@@ -908,6 +927,6 @@ const tests = struct {
             .init(.eof, "test source", .init(3, 3))
         };
 
-        try checkResults(&scanner, &expected);
+        try checkResults(scanner, &expected);
     }
 };

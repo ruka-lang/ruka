@@ -1,10 +1,13 @@
-const ruka = @import("ruka").prelude;
-const Interface = @import("../Interface.zig");
+// @author: ruka-lang
+// @created: 2024-10-10
+
+const libruka = @import("ruka").prelude;
+const Ruka = @import("../Ruka.zig");
+const Transport = libruka.Transport;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyWriter = std.io.AnyWriter;
-const File = std.fs.File;
 const Termios = std.posix.termios;
 const builtin = @import("builtin");
 
@@ -14,19 +17,23 @@ raw: Termios = undefined,
 utf8_supported: bool,
 status: enum {uninitialized, initialized, running, exiting_success, exiting_failure},
 
-interface: *Interface,
+interface: *Ruka,
 
 allocator: Allocator,
 
 const Repl = @This();
 
-var tty: File = undefined;
+var transport: *Transport = undefined;
 var size: Size = undefined;
 var position: Position = undefined;
 
-pub fn init(interface: *Interface, allocator: Allocator) !*Repl {
+pub fn init(interface: *Ruka, allocator: Allocator) !*Repl {
     const terminal = try allocator.create(Repl);
     errdefer allocator.destroy(terminal);
+
+    const stdin = std.io.getStdIn();
+    transport = try Transport.initWithFile(allocator, stdin);
+    errdefer transport.deinit();
 
     terminal.* = .{
         .original = undefined,
@@ -43,13 +50,12 @@ pub fn init(interface: *Interface, allocator: Allocator) !*Repl {
 }
 
 pub fn deinit(self: *Repl) void {
+    self.allocator.destroy(transport);
     self.allocator.destroy(self);
 }
 
 fn tty_setup(self: *Repl) !void {
-    tty = std.io.getStdIn();
-
-    self.original = try std.posix.tcgetattr(tty.handle);
+    self.original = try std.posix.tcgetattr(transport.getHandle());
     self.raw = self.original;
 
     self.raw.lflag.ECHO = false;
@@ -129,7 +135,7 @@ pub fn run(self: *Repl) !void {
 
     outer: while(true) {
         try render();
-        _ = try tty.read(&buffer);
+        _ = try transport.read(&buffer);
 
         switch (buffer[0]) {
             'q' => break,
@@ -137,14 +143,14 @@ pub fn run(self: *Repl) !void {
             '\x1B' => {
                 self.raw.cc[@intFromEnum(std.posix.system.V.TIME)] = 1;
                 self.raw.cc[@intFromEnum(std.posix.system.V.MIN)] = 0;
-                try std.posix.tcsetattr(tty.handle, .NOW, self.raw);
+                try std.posix.tcsetattr(transport.getHandle(), .NOW, self.raw);
 
                 var esc_buffer: [8]u8 = undefined;
-                const esc_read = try tty.read(&esc_buffer);
+                const esc_read = try transport.read(&esc_buffer);
 
                 self.raw.cc[@intFromEnum(std.posix.system.V.TIME)] = 0;
                 self.raw.cc[@intFromEnum(std.posix.system.V.MIN)] = 1;
-                try std.posix.tcsetattr(tty.handle, .FLUSH, self.raw);
+                try std.posix.tcsetattr(transport.getHandle(), .FLUSH, self.raw);
 
                 if (esc_read == 0) {
                     // Escape
@@ -182,142 +188,135 @@ fn handle_sig_winch(_: c_int) callconv(.C) void {
 }
 
 fn uncook(self: *Repl) !void {
-    var bw = std.io.bufferedWriter(tty.writer());
-    const writer = bw.writer();
     errdefer self.cook() catch {};
 
-    try std.posix.tcsetattr(tty.handle, .FLUSH, self.raw);
+    try std.posix.tcsetattr(transport.getHandle(), .FLUSH, self.raw);
 
-    try enable_alt_buffer(writer.any());
-    try hide_cursor(writer.any());
-    try save_cursor(writer.any());
-    try save_screen(writer.any());
-    try clear(writer.any());
+    try enable_alt_buffer();
+    try hide_cursor();
+    try save_cursor();
+    try save_screen();
+    try clear();
 
-    try bw.flush();
+    try transport.flush();
 }
 
 fn cook(self: *Repl) !void {
-    var bw = std.io.bufferedWriter(tty.writer());
-    const writer = bw.writer();
+    try std.posix.tcsetattr(transport.getHandle(), .FLUSH, self.original);
 
-    try std.posix.tcsetattr(tty.handle, .FLUSH, self.original);
+    try clear();
+    try reset_attribute();
+    try restore_screen();
+    try restore_cursor();
+    try show_cursor();
+    try disable_alt_buffer();
 
-    try clear(writer.any());
-    try reset_attribute(writer.any());
-    try restore_screen(writer.any());
-    try restore_cursor(writer.any());
-    try show_cursor(writer.any());
-    try disable_alt_buffer(writer.any());
-
-    try bw.flush();
+    try transport.flush();
 }
 
 fn render() !void {
-    var bw = std.io.bufferedWriter(tty.writer());
-    const writer = bw.writer();
+    try clear();
+    try draw_border();
+    try draw_cursor();
 
-    try clear(writer.any());
-    try draw_border(writer.any());
-    try draw_cursor(writer.any());
-    try bw.flush();
+    try transport.flush();
 }
 
-fn draw_border(writer: AnyWriter) !void {
+fn draw_border() !void {
     for (0..size.height - 1) |i| {
-        try move_cursor(writer, i, 0);
-        try writer.writeAll("\u{2502}");
+        try move_cursor(i, 0);
+        try transport.writeAllNoFlush("\u{2502}");
 
-        try move_cursor(writer, i, size.width);
-        try writer.writeAll("\u{2502}");
+        try move_cursor(i, size.width);
+        try transport.writeAllNoFlush("\u{2502}");
     }
 
     for (0..size.width) |i| {
-        try move_cursor(writer, 0, i);
-        try writer.writeAll("\u{2500}");
+        try move_cursor(0, i);
+        try transport.writeAllNoFlush("\u{2500}");
 
-        try move_cursor(writer, size.height - 1, i);
-        try writer.writeAll("\u{2500}");
+        try move_cursor(size.height - 1, i);
+        try transport.writeAllNoFlush("\u{2500}");
     }
 
-    try move_cursor(writer, 0, 0);
-    try writer.writeAll("\u{250c}");
-    try move_cursor(writer, 0, size.width);
-    try writer.writeAll("\u{2510}");
-    try move_cursor(writer, size.height - 1, 0);
-    try writer.writeAll("\u{2514}");
-    try move_cursor(writer, size.height - 1, size.width);
-    try writer.writeAll("\u{2518}");
+    try move_cursor(0, 0);
+    try transport.writeAllNoFlush("\u{250c}");
+    try move_cursor(0, size.width);
+    try transport.writeAllNoFlush("\u{2510}");
+    try move_cursor(size.height - 1, 0);
+    try transport.writeAllNoFlush("\u{2514}");
+    try move_cursor(size.height - 1, size.width);
+    try transport.writeAllNoFlush("\u{2518}");
 
-    try move_cursor(writer, size.height, 0);
-    try writer.writeAll("  q: Quit");
+    try move_cursor(size.height, 0);
+    try transport.writeAllNoFlush("  q: Quit");
 
-    try move_cursor(writer, 0, 2);
-    try writer.writeAll("Menu");
+    try move_cursor(0, 2);
+    try transport.writeAllNoFlush("Menu");
 }
 
-fn draw_cursor(writer: AnyWriter) !void {
-    try move_cursor(writer, position.row, position.col);
-    try white_background(writer);
-    try writer.writeAll(" ");
-    try reset_attribute(writer);
+fn draw_cursor() !void {
+    try move_cursor(position.row, position.col);
+    try white_background();
+    try transport.writeAllNoFlush(" ");
+    try reset_attribute();
 }
 
-fn blue_background(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[44m");
+fn blue_background() !void {
+    try transport.writeAllNoFlush("\x1B[44m");
 }
 
-fn white_background(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[47m");
+fn white_background() !void {
+    try transport.writeAllNoFlush("\x1B[47m");
 }
 
-fn move_cursor(writer: AnyWriter, row: usize, col: usize) !void {
-    try writer.print("\x1B[{};{}H", .{row + 1, col + 1});
+fn move_cursor(row: usize, col: usize) !void {
+    try transport.printNoFlush("\x1B[{};{}H", .{row + 1, col + 1});
 }
 
-fn hide_cursor(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?25l"); // Hide the cursor.
+fn hide_cursor() !void {
+    try transport.writeAllNoFlush("\x1B[?25l"); // Hide the cursor.
 }
 
-fn show_cursor(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?25h"); // Shows the cursor.
+fn show_cursor() !void {
+    try transport.writeAllNoFlush("\x1B[?25h"); // Shows the cursor.
 }
 
-fn save_cursor(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[s"); // Save cursor position.
+fn save_cursor() !void {
+    try transport.writeAllNoFlush("\x1B[s"); // Save cursor position.
 }
 
-fn restore_cursor(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[u"); // Restore cursor position.
+fn restore_cursor() !void {
+    try transport.writeAllNoFlush("\x1B[u"); // Restore cursor position.
 }
 
-fn save_screen(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?47h"); // Save screen.
+fn save_screen() !void {
+    try transport.writeAllNoFlush("\x1B[?47h"); // Save screen.
 }
 
-fn restore_screen(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?47l"); // Restore screen.
+fn restore_screen() !void {
+    try transport.writeAllNoFlush("\x1B[?47l"); // Restore screen.
 }
 
-fn enable_alt_buffer(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?1049h"); // Enable alternative buffer.
+fn enable_alt_buffer() !void {
+    try transport.writeAllNoFlush("\x1B[?1049h"); // Enable alternative buffer.
 }
 
-fn disable_alt_buffer(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[?1049l"); // Disable alternative buffer.
+fn disable_alt_buffer() !void {
+    try transport.writeAllNoFlush("\x1B[?1049l"); // Disable alternative buffer.
 }
 
-fn clear(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[H\x1B[J"); // Clear.
+fn clear() !void {
+    try transport.writeAllNoFlush("\x1B[H\x1B[J"); // Clear.
 }
 
-fn reset_attribute(writer: AnyWriter) !void {
-    try writer.writeAll("\x1B[0m"); // Attribute reset.
+fn reset_attribute() !void {
+    try transport.writeAllNoFlush("\x1B[0m"); // Attribute reset.
 }
 
 fn resize() !Size {
     var win_size = std.mem.zeroes(std.posix.winsize);
-    const err = std.posix.system.ioctl(tty.handle, std.posix.system.T.IOCGWINSZ, @intFromPtr(&win_size));
+    const err = std.posix.system.ioctl(transport.getHandle(), std.posix.system.T.IOCGWINSZ, @intFromPtr(&win_size));
     if (std.posix.errno(err) != .SUCCESS) {
         return std.posix.unexpectedErrno(@enumFromInt(err));
     }

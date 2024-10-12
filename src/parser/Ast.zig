@@ -1,10 +1,8 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
-//
-
-const ruka = @import("../root.zig").prelude;
-const Token = ruka.Token;
+const libruka = @import("../root.zig").prelude;
+const Token = libruka.Token;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;

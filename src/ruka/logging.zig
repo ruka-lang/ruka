@@ -1,11 +1,10 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-const ruka = @import("ruka").prelude;
-const Chrono = ruka.Chrono;
+const libruka = @import("ruka").prelude;
+const Chrono = libruka.Chrono;
 
 const std = @import("std");
-const print = std.debug.print;
 const bufPrint = std.fmt.bufPrint;
 
 pub const options: std.Options = .{
@@ -19,15 +18,15 @@ pub const options: std.Options = .{
 // Make this a struct and log use synchronization
 
 var path_buffer: [512]u8 = undefined;
-var path_length: usize = undefined;
+var path: []u8 = undefined;
 
 pub fn init() !void {
     const home = std.posix.getenv("HOME") orelse {
-        print("Failed to read $HOME.\n", .{});
+        std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
     };
 
-    const logs_path = ".local/state/ruka/logs";
+    const logs_path = ".local/state/libruka/logs";
 
     var homedir = try std.fs.openDirAbsolute(home, .{});
     defer homedir.close();
@@ -52,8 +51,7 @@ pub fn init() !void {
     const file = try logs.createFile(log_file, .{});
     file.close();
 
-    const path = try bufPrint(path_buffer[0..], "{s}/{s}/{s}", .{home, logs_path, log_file});
-    path_length = path.len;
+    path = try bufPrint(path_buffer[0..], "{s}/{s}/{s}", .{home, logs_path, log_file});
 }
 
 pub fn log(
@@ -64,26 +62,26 @@ pub fn log(
 ) void {
     var buffer: [4096]u8 = undefined;
 
-    const file = std.fs.openFileAbsolute(path_buffer[0..path_length], .{ .mode = .read_write }) catch |err| {
-        print("Failed to open log file: {}\n", .{err});
+    const file = std.fs.openFileAbsolute(path, .{ .mode = .read_write }) catch |err| {
+        std.debug.print("Failed to open log file: {}\n", .{err});
         return;
     };
     defer file.close();
 
     const stat = file.stat() catch |err| {
-        print("Failed to get stat of log file: {}\n", .{err});
+        std.debug.print("Failed to get stat of log file: {}\n", .{err});
         return;
     };
 
     file.seekTo(stat.size) catch |err| {
-        print("Failed to seek log file: {}\n", .{err});
+        std.debug.print("Failed to seek log file: {}\n", .{err});
         return;
     };
 
     const prefix = "[" ++ comptime level.asText() ++ "] " ++ "(" ++ @tagName(scope) ++ ")";
 
     const message = bufPrint(buffer[0..], format ++ "\n", args) catch |err| {
-        print("Failed to format log message with args: {}\n", .{err});
+        std.debug.print("Failed to format log message with args: {}\n", .{err});
         return;
     };
 
@@ -94,12 +92,12 @@ pub fn log(
         current_time.hour, current_time.minute, current_time.second,
         prefix, message
     }) catch |err| {
-        print("Failed to format log entry: {}\n", .{err});
+        std.debug.print("Failed to format log entry: {}\n", .{err});
         return;
     };
 
     file.writeAll(entry) catch |err| {
-        print("Failed to write to log file: {}\n", .{err});
+        std.debug.print("Failed to write to log file: {}\n", .{err});
     };
 }
 

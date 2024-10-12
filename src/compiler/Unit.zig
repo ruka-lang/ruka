@@ -1,11 +1,11 @@
 // @author: ruka-lang
 // @created: 2024-09-25
 
-const ruka = @import("../root.zig").prelude;
-const Compiler = ruka.Compiler;
-const Error = ruka.Error;
-const Scanner = ruka.Scanner;
-const Transport = ruka.Transport;
+const libruka = @import("../root.zig").prelude;
+const Compiler = libruka.Compiler;
+const Error = libruka.Error;
+const Scanner = libruka.Scanner;
+const Transport = libruka.Transport;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
@@ -17,7 +17,7 @@ const Mutex = std.Thread.Mutex;
 
 input: []const u8,
 output: []const u8,
-transport: Transport,
+transport: *Transport,
 errors: ArrayList(Error),
 
 allocator: Allocator,
@@ -47,11 +47,12 @@ pub const UnitOptions = struct {
 
 pub fn init(opts: UnitOptions) !*Unit {
     const unit = try opts.allocator.create(Unit);
+    errdefer unit.deinit();
 
     unit.* = .{
         .input = opts.input,
         .output = opts.output,
-        .transport = .init(opts.reader, opts.writer),
+        .transport = try .init(opts.allocator, opts.reader, opts.writer),
         .errors = .init(opts.allocator),
 
         .allocator = opts.allocator,
@@ -66,6 +67,7 @@ pub fn init(opts: UnitOptions) !*Unit {
 pub fn deinit(self: *Unit) void {
     self.errors.deinit();
     self.arena.deinit();
+    self.transport.deinit();
     self.allocator.destroy(self);
 }
 
@@ -82,7 +84,9 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
 }
 
 pub fn compile(self: *Unit) !void {
-    var scanner = Scanner.init(self);
+    var scanner = try Scanner.init(self);
+    defer scanner.deinit();
+
     var token = try scanner.nextToken();
 
     while(token.kind != .eof): (token = try scanner.nextToken()) {
