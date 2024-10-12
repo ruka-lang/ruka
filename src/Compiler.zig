@@ -21,7 +21,7 @@ cwd: Dir,
 errors: ArrayList(Error),
 transport: *Transport,
 
-ast: *Ast,
+root: *Ast,
 unprocessed_asts: ArrayList(*Ast),
 
 allocator: Allocator,
@@ -81,7 +81,7 @@ pub fn init(allocator: Allocator) !*Compiler {
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
-        .ast = try .init(allocator),
+        .root = undefined,
         .unprocessed_asts = .init(allocator),
 
         .allocator = allocator,
@@ -109,7 +109,6 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
-    self.ast.deinit();
     for (self.unprocessed_asts.items) |ast| {
         ast.deinit();
     }
