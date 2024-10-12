@@ -5,9 +5,9 @@ const std = @import("std");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
-pub const usage = "usage: ruka [options] [subcommand]";
+pub const usage = "usage: ruka [options_display] [subcommand]";
 // Declaration needs a better name
-pub const commands =
+pub const subcommands_display =
     \\    subcommands:
     \\        new     : Creates a new project in the current directory
     \\        build   : Builds the project in the current directory
@@ -17,8 +17,9 @@ pub const commands =
     \\        help    : Displays the help menu
 ;
 
-const options =
-    \\    options:
+const options_display =
+    \\    options_display:
+    \\        --cwd   : Changes the directory to a subdirectory of the cwd
     \\
 ;
 
@@ -33,6 +34,6 @@ pub const help = std.fmt.comptimePrint("ruka {s} (released {s})\n{s}\n\n{s}\n{s}
     project_options.version_date,
     project_options.description,
     usage,
-    commands,
-    options
+    subcommands_display,
+    options_display
 });

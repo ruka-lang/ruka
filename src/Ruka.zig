@@ -43,7 +43,7 @@ pub fn begin(self: *Ruka) !void {
 
     switch (arg_parser.getSubcommand().?) {
         .new => try self.newProject(),
-        .build => try self.buildProject(),
+        .build => try self.buildProject(arg_parser),
         .@"test" => try self.testProject(),
         .run => try self.runProject(),
         .repl => try self.startRepl(),
@@ -71,10 +71,17 @@ fn isProperProject(self: Ruka) void {
     _ = self;
 }
 
-// Create compiler here
-fn buildProject(self: *Ruka) !void {
+fn buildProject(self: *Ruka, arg_parser: *ArgumentParser) !void {
     var compiler = try Compiler.init(self.allocator);
     defer compiler.deinit();
+
+    if (arg_parser.getOption()) |option| {
+        switch (option) {
+            .cwd => |path| {
+                compiler.cwd = try compiler.cwd.openDir(path, .{});
+            }
+        }
+    }
 
     try compiler.buildProject();
 }

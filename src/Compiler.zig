@@ -68,7 +68,7 @@ pub fn init(allocator: Allocator) !*Compiler {
     const stderr = std.io.getStdErr().writer();
 
     compiler.* = .{
-        .cwd = try std.fs.cwd().openDir("examples/basics", .{}),
+        .cwd = std.fs.cwd(),
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
@@ -181,13 +181,6 @@ pub fn buildProject(self: *Compiler) !void {
                 try self.thread_pool.spawn(processJob, .{self, job, null});
             }
         }
-    }
-
-    self.waitAndWork();
-
-    std.debug.print("\nErrors:\n", .{});
-    while (self.errors.popOrNull()) |err| {
-        std.debug.print("{}\n", .{err});
     }
 }
 
