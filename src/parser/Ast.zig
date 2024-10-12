@@ -6,21 +6,22 @@ const Token = libruka.Token;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 
-root: ?*Node2EB,
+root: ?*Node,
 
 allocator: Allocator,
 
 const Ast = @This();
 
-///
-pub const Node2EB = struct {
-    tag: identifier,
+pub const Node = struct {
+    tag: Identifier,
     main_token: Token,
     data: Data,
 
-    ///
-    pub const identifier = enum {
+    allocator: Allocator,
+
+    pub const Identifier = enum {
         unit,
         identifier,
         integer,
@@ -38,77 +39,146 @@ pub const Node2EB = struct {
         infix,
         postfix,
         binding,
+        @"type",
         @"return"
     };
 
-    ///
     pub const Data = struct {
-        lhs: ?*Node2EB,
-        mhs: ?*Node2EB,
-        rhs: ?*Node2EB,
+        lhs: ?*Node,
+        mhs: ?*Node,
+        rhs: ?*Node,
+        buf: ?ArrayList(*Node),
 
-        ///
         pub const default: Data = .{
             .lhs = null,
             .mhs = null,
-            .rhs = null
+            .rhs = null,
+            .buf = null
         };
     };
 
-    ///
-    pub fn init(tag: identifier, token: Token, data: Data) Node2EB {
-        return Node2EB {
-            .tag = tag,
-            .main_token = token,
-            .data = data
-        };
-    }
-
-    ///
-    pub fn initAlloc(
+    pub fn init(
         allocator: Allocator,
-        tag: identifier,
-        token: Token,
+        tag: Identifier,
+        kind: Token.Kind,
         data: Data
-    ) !*Node2EB {
-        var node = try allocator.create(Node2EB);
+    ) !*Node {
+        const node = try allocator.create(Node);
 
-        node.tag = tag;
-        node.main_token = token;
-        node.data = data;
+        node.* = .{
+            .tag = tag,
+            .main_token = Token.init(kind, "", .{}),
+            .data = data,
+            .allocator = allocator
+        };
 
         return node;
     }
 
-    ///
-    pub fn deinit(self: Node2EB) void {
-        self.main_token.deinit();
+    pub fn deinit(self: ?*Node) void {
+        if (self) |n| {
+            defer n.allocator.destroy(n);
+
+            n.main_token.deinit();
+
+            if (n.data.buf) |buf| {
+                for (buf.items) |n2| {
+                    Node.deinit(n2);
+                }
+
+                buf.deinit();
+            }
+            Node.deinit(n.data.lhs);
+            Node.deinit(n.data.mhs);
+            Node.deinit(n.data.rhs);
+        }
+    }
+
+    pub fn addLeft(
+        self: *Node,
+        tag: Identifier,
+        kind: Token.Kind
+    ) !*Node {
+        const node = try Node.init(self.allocator, tag, kind, .default);
+        
+        self.data.lhs = node;
+
+        return node;
+    }
+
+    pub fn addRight(
+        self: *Node,
+        tag: Identifier,
+        kind: Token.Kind
+    ) !*Node {
+        const node = try Node.init(self.allocator, tag, kind, .default);
+        
+        self.data.rhs = node;
+
+        return node;
+    }
+
+    pub fn addMiddle(
+        self: *Node,
+        tag: Identifier,
+        kind: Token.Kind
+    ) !*Node {
+        const node = try Node.init(self.allocator, tag, kind, .default);
+        
+        self.data.mhs = node;
+
+        return node;
+    }
+
+    pub fn createBuf(self: *Node) void {
+        self.data.buf = ArrayList(*Node).init();
+    }
+
+    pub fn addToBuf(
+        self: *Node,
+        tag: Identifier,
+        kind: Token.Kind
+    ) !*Node {
+        const node = try Node.init(self.allocator, tag, kind, .default);
+        
+        try self.data.buf.?.append(node);
+
+        return node;
     }
 };
 
-///
-pub fn init(allocator: Allocator) Ast {
-    return Ast {
+pub fn init(allocator: Allocator) !*Ast {
+    const ast = try allocator.create(Ast);
+    ast.* = .{
         .allocator = allocator,
         .root = null
     };
+
+    return ast;
 }
 
-///
-pub fn deinit(self: Ast) void {
+pub fn deinit(self: *Ast) void {
     const root = self.root;
-    self.deinit_internal(root);
+    Node.deinit(root);
+
+    self.allocator.destroy(self);
 }
 
-//
-fn deinit_internal(self: Ast, node: ?*Node2EB) void {
-    if (node) |n| {
-        defer self.allocator.destroy(n);
-        n.deinit();
+pub fn initRoot(
+    self: *Ast, 
+    tag: Node.Identifier,
+    kind: Token.Kind
+) !*Node {
+    const root = try Node.init(
+        self.allocator,
+        tag,
+        kind,
+        .default
+    );
 
-        self.deinit_internal(n.data.lhs);
-        self.deinit_internal(n.data.rhs);
-    }
+    self.root = root;
+
+    return root;
 }
 
 test "test all ast modules" {
@@ -119,28 +189,14 @@ const tests = struct {
     const testing = std.testing;
 
     test "ast initialization and deinitialization" {
-        const alloc = std.testing.allocator;
-        var ast = Ast.init(alloc);
-        defer ast.deinit();
+        const allocator = std.testing.allocator;
+        var program = try Ast.init(allocator);
+        defer program.deinit();
 
-        ast.root = try Node2EB.initAlloc(ast.allocator,
-            .binding,
-            Token.init(.{ .keyword = .let }, "", .{}),
-            .{
-                .lhs = try Node2EB.initAlloc(ast.allocator,
-                    .identifier,
-                    Token.init(try .initIdentifier("x", alloc), "", .{}),
-                    .default
-                ),
-                .mhs = null,
-                .rhs = try Node2EB.initAlloc(ast.allocator,
-                    .integer,
-                    Token.init(try .initInteger("12", alloc), "", .{}),
-                    .default
-                )
-            }
-        );
+        const root = try program.initRoot(.binding, .{ .keyword = .let });
+        _ = try root.addLeft(.identifier, try .initIdentifier("x", allocator));
+        _ = try root.addRight(.integer, try .initInteger("12", allocator));
 
-        try testing.expect(ast.root.?.data.lhs.?.main_token.kind == .identifier);
+        try testing.expect(program.root.?.data.lhs.?.main_token.kind == .identifier);
     }
 };
