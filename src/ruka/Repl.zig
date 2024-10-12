@@ -121,8 +121,6 @@ pub fn run(self: *Repl) !void {
     try self.uncook();
     defer self.cook() catch {};
 
-    self.status = .running;
-
     var buffer: [1]u8 = undefined;
 
     std.posix.sigaction(std.posix.SIG.WINCH, &std.posix.Sigaction{

@@ -2,6 +2,7 @@
 // @created: 2024-04-13
 
 const libruka = @import("../root.zig").prelude;
+const Position = libruka.Position;
 const Token = libruka.Token;
 
 const std = @import("std");
@@ -15,13 +16,13 @@ allocator: Allocator,
 const Ast = @This();
 
 pub const Node = struct {
-    tag: Identifier,
-    main_token: Token,
+    kind: Kind,
+    token: Token,
     data: Data,
 
     allocator: Allocator,
 
-    pub const Identifier = enum {
+    pub const Kind = enum {
         unit,
         identifier,
         integer,
@@ -57,17 +58,12 @@ pub const Node = struct {
         };
     };
 
-    pub fn init(
-        allocator: Allocator,
-        tag: Identifier,
-        kind: Token.Kind,
-        data: Data
-    ) !*Node {
+    pub fn init(allocator: Allocator, kind: Kind, token: Token, data: Data) !*Node {
         const node = try allocator.create(Node);
 
         node.* = .{
-            .tag = tag,
-            .main_token = Token.init(kind, "", .{}),
+            .kind = kind,
+            .token = token,
             .data = data,
             .allocator = allocator
         };
@@ -79,7 +75,7 @@ pub const Node = struct {
         if (self) |n| {
             defer n.allocator.destroy(n);
 
-            n.main_token.deinit();
+            n.token.deinit();
 
             if (n.data.buf) |buf| {
                 for (buf.items) |n2| {
@@ -94,36 +90,24 @@ pub const Node = struct {
         }
     }
 
-    pub fn addLeft(
-        self: *Node,
-        tag: Identifier,
-        kind: Token.Kind
-    ) !*Node {
-        const node = try Node.init(self.allocator, tag, kind, .default);
+    pub fn addLeft(self: *Node, kind: Kind, token: Token) !*Node {
+        const node = try Node.init(self.allocator, kind, token, .default);
         
         self.data.lhs = node;
 
         return node;
     }
 
-    pub fn addRight(
-        self: *Node,
-        tag: Identifier,
-        kind: Token.Kind
-    ) !*Node {
-        const node = try Node.init(self.allocator, tag, kind, .default);
+    pub fn addRight(self: *Node, kind: Kind, token: Token) !*Node {
+        const node = try Node.init(self.allocator, kind, token, .default);
         
         self.data.rhs = node;
 
         return node;
     }
 
-    pub fn addMiddle(
-        self: *Node,
-        tag: Identifier,
-        kind: Token.Kind
-    ) !*Node {
-        const node = try Node.init(self.allocator, tag, kind, .default);
+    pub fn addMiddle(self: *Node, kind: Kind, token: Token) !*Node {
+        const node = try Node.init(self.allocator, kind, token, .default);
         
         self.data.mhs = node;
 
@@ -134,12 +118,8 @@ pub const Node = struct {
         self.data.buf = ArrayList(*Node).init();
     }
 
-    pub fn addToBuf(
-        self: *Node,
-        tag: Identifier,
-        kind: Token.Kind
-    ) !*Node {
-        const node = try Node.init(self.allocator, tag, kind, .default);
+    pub fn addToBuf(self: *Node, kind: Kind, token: Token) !*Node {
+        const node = try Node.init(self.allocator, kind, token, .default);
         
         try self.data.buf.?.append(node);
 
@@ -164,15 +144,11 @@ pub fn deinit(self: *Ast) void {
     self.allocator.destroy(self);
 }
 
-pub fn initRoot(
-    self: *Ast, 
-    tag: Node.Identifier,
-    kind: Token.Kind
-) !*Node {
+pub fn initRoot(self: *Ast, node_kind: Node.Kind, token: Token) !*Node {
     const root = try Node.init(
         self.allocator,
-        tag,
-        kind,
+        node_kind,
+        token,
         .default
     );
 
@@ -193,10 +169,14 @@ const tests = struct {
         var program = try Ast.init(allocator);
         defer program.deinit();
 
-        const root = try program.initRoot(.binding, .{ .keyword = .let });
-        _ = try root.addLeft(.identifier, try .initIdentifier("x", allocator));
-        _ = try root.addRight(.integer, try .initInteger("12", allocator));
+        const keyword: Token = .init(.{ .keyword = .let }, "test", .init(0, 0));
+        const identifier: Token = .init(try .initIdentifier("x", allocator), "test", .init(0, 4));
+        const integer: Token = .init(try .initInteger("12", allocator), "test", .init(0, 8));
 
-        try testing.expect(program.root.?.data.lhs.?.main_token.kind == .identifier);
+        const root = try program.initRoot(.binding, keyword);
+        _ = try root.addLeft(.identifier, identifier);
+        _ = try root.addRight(.integer, integer);
+
+        try testing.expect(program.root.?.data.lhs.?.token.kind == .identifier);
     }
 };
