@@ -67,7 +67,12 @@ pub const Node2EB = struct {
     }
 
     ///
-    pub fn initAlloc(allocator: Allocator, tag: identifier, token: Token, data: Data) !*Node2EB {
+    pub fn initAlloc(
+        allocator: Allocator,
+        tag: identifier,
+        token: Token,
+        data: Data
+    ) !*Node2EB {
         var node = try allocator.create(Node2EB);
 
         node.tag = tag;
@@ -120,11 +125,21 @@ const tests = struct {
         var ast = Ast.init(alloc);
         defer ast.deinit();
 
-        ast.root = try Node2EB.initAlloc(ast.allocator, .binding, Token.init(.{ .keyword = .let }, "", .{}),
+        ast.root = try Node2EB.initAlloc(ast.allocator,
+            .binding,
+            Token.init(.{ .keyword = .let }, "", .{}),
             .{
-                .lhs = try Node2EB.initAlloc(ast.allocator, .identifier, Token.init(try .initIdentifier("x", alloc), "", .{}), .default),
+                .lhs = try Node2EB.initAlloc(ast.allocator,
+                    .identifier,
+                    Token.init(try .initIdentifier("x", alloc), "", .{}),
+                    .default
+                ),
                 .mhs = null,
-                .rhs = try Node2EB.initAlloc(ast.allocator, .integer, Token.init(try .initInteger("12", alloc), "", .{}), .default)
+                .rhs = try Node2EB.initAlloc(ast.allocator,
+                    .integer,
+                    Token.init(try .initInteger("12", alloc), "", .{}),
+                    .default
+                )
             }
         );
 
