@@ -2,8 +2,8 @@
  *
  */
 
-pub const {Buffer, ..} = @import("buffer.ruka")
-const io = @import("io.ruka")
+pub const {Buffer, ..} = @import("basics/buffer.ruka")
+const io = @import("basics/io.ruka")
 
 pub const Vector = module {
     pub const t = record {

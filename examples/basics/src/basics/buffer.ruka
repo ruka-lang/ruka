@@ -1,5 +1,5 @@
 const std = @import("std")
-const {Vector} = @import("basics")
+const {Vector, ..} = @import("basics")
 
 pub const Buffer = (% size: usize) do
     module {

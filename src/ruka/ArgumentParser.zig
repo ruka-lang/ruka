@@ -40,7 +40,7 @@ pub const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
 });
 
 const Option = enum {
-
+    // Add a cwd option to change cwd path
 };
 
 pub fn init(allocator: Allocator) !*ArgumentParser {
@@ -62,6 +62,7 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
 pub fn deinit(self: *ArgumentParser) void {
     self.subcommands.deinit();
     self.options.deinit();
+    self.transport.deinit();
     self.allocator.destroy(self);
 }
 

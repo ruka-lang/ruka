@@ -24,17 +24,39 @@ allocator: Allocator,
 arena: ArenaAllocator,
 
 mutex: Mutex,
-pool: Pool,
+thread_pool: Pool,
 wait_group: WaitGroup,
 job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
 
+const log = std.log.scoped(.compiler);
+
 pub const Unit = @import("compiler/Unit.zig");
 
+const Status = enum {
+
+};
+
 pub const Job = union(enum) {
-    pub fn deinit(self: Job) void {
-        _ = self;
+    scan_and_parse_file: []const u8,
+
+    const SynchronizationMode = enum {
+        exclusive,
+        shared,
+        atomic
+    };
+
+    pub fn deinit(self: Job, allocator: Allocator) void {
+        switch (self) {
+            .scan_and_parse_file => |file| allocator.free(file)
+        }
+    }
+
+    fn syncMode(self: Job) SynchronizationMode {
+        return switch (self) {
+            .scan_and_parse_file => |_| .shared,
+        };
     }
 };
 
@@ -46,7 +68,7 @@ pub fn init(allocator: Allocator) !*Compiler {
     const stderr = std.io.getStdErr().writer();
 
     compiler.* = .{
-        .cwd = std.fs.cwd(),
+        .cwd = try std.fs.cwd().openDir("examples/basics", .{}),
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
@@ -54,12 +76,14 @@ pub fn init(allocator: Allocator) !*Compiler {
         .arena = .init(allocator),
 
         .mutex = .{},
-        .pool = undefined,
+        .thread_pool = undefined,
         .wait_group = .{},
         .job_queue = .init(allocator)
     };
 
-    try compiler.pool.init(.{
+    compiler.wait_group.reset();
+
+    try compiler.thread_pool.init(.{
         .allocator = allocator,
         .n_jobs = 4
     });
@@ -69,8 +93,8 @@ pub fn init(allocator: Allocator) !*Compiler {
 
 pub fn deinit(self: *Compiler) void {
     self.wait_group.wait();
-    self.pool.deinit();
-    while (self.job_queue.readItem()) |job| job.deinit();
+    self.thread_pool.deinit();
+    while (self.job_queue.readItem()) |job| job.deinit(self.allocator);
     self.job_queue.deinit();
     self.errors.deinit();
     self.arena.deinit();
@@ -78,20 +102,93 @@ pub fn deinit(self: *Compiler) void {
     self.allocator.destroy(self);
 }
 
+fn waitAndWork(self: *Compiler) void {
+    self.thread_pool.waitAndWork(&self.wait_group);
+    self.wait_group.reset(); 
+}
+
+fn sendFile(self: *Compiler, file: []const u8) !void {
+    errdefer self.allocator.free(file);
+
+    try self.job_queue.ensureUnusedCapacity(1);
+    try self.job_queue.writeItem(.{ .scan_and_parse_file = file });
+}
+
+fn verifyProject(self: *Compiler, dir: Dir) !void {
+    _ = self;
+    _ = dir;
+}
+
+fn sendProject(self: *Compiler, dir: Dir) !void {
+    const src = try dir.openDir("src", .{.iterate = true});
+    var iter = try src.walk(self.allocator);
+    defer iter.deinit();
+
+    while (try iter.next()) |item| {
+        switch (item.kind) {
+            .file => {
+                if (!isProperExtension(item.path)) {
+                    var path_iter = std.mem.splitBackwardsSequence(u8, item.path, ".");
+                    log.err(
+                        "Invalid file extension, expected .ruka, got: .{s}\n",
+                        .{path_iter.first()}
+                    );
+
+                    continue;
+                }
+
+                const path = try self.allocator.dupe(u8, item.path);
+                errdefer self.allocator.free(path);
+
+                try self.sendFile(path);
+            },
+            else => continue
+        }
+    }
+}
+
+
+fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
+    defer if (wait_group != null) wait_group.?.finish();
+    defer job.deinit(self.allocator);
+    
+    switch (job) {
+        .scan_and_parse_file => |file| {
+            self.compileFile(file, null) catch |err| {
+                log.err("Failed to compile file: {}", .{err});
+            };
+        }
+    }
+}
+
 pub fn buildProject(self: *Compiler) !void {
-    const filepath = "examples/basics/src/main.ruka";
+    try self.verifyProject(self.cwd);
+    try self.sendProject(self.cwd);
 
-    if (!isProperExtension(filepath)) {
-        var path_iter = std.mem.splitBackwardsSequence(u8, filepath, ".");
-        try self.transport.print(
-            "Invalid file extension, expected .ruka or .rk, got: .{s}\n",
-            .{path_iter.first()}
-        );
-
-        std.posix.exit(1);
+    while (self.job_queue.readItem()) |job| {
+        switch (job.syncMode()) {
+            .exclusive => {
+                self.waitAndWork();
+                self.processJob(job, null);
+            },
+            .shared => {
+                self.wait_group.start();
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
+            },
+            .atomic => {
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, null});
+            }
+        }
     }
 
-    try self.compileFile(filepath, null);
+    self.waitAndWork();
+
+    std.debug.print("\nErrors:\n", .{});
+    while (self.errors.popOrNull()) |err| {
+        std.debug.print("{}\n", .{err});
+    }
 }
 
 fn isProperExtension(file: []const u8) bool {
@@ -106,7 +203,8 @@ fn compileFile(
     in: []const u8,
     out: ?[]const u8
 ) !void {
-    const input = try self.cwd.openFile(in, .{});
+    const src = try self.cwd.openDir("src", .{});
+    const input = try src.openFile(in, .{});
     defer input.close();
 
     var buf: [10]u8 = undefined;

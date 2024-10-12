@@ -31,6 +31,7 @@ pub fn init(allocator: Allocator) !*Ruka {
 }
 
 pub fn deinit(self: *Ruka) void {
+    self.transport.deinit();
     self.allocator.destroy(self);
 }
 
