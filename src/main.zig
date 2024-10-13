@@ -5,13 +5,13 @@ const Ruka = @import("Ruka.zig");
 
 const std = @import("std");
 
-//pub const std_options = Ruka.logging.options;
+pub const std_options = Ruka.logging.options;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
     defer _ = gpa.deinit();
 
-    //try Ruka.logging.init();
+    try Ruka.logging.init();
 
     var interface = try Ruka.init(gpa.allocator());
     defer interface.deinit();
