@@ -104,7 +104,6 @@ pub fn build(b: *std.Build) void {
 
     lib_test_coverage.setExecCmd(&.{
         "kcov",
-        "--dump-summary",
         include,
         ".coverage",
         null
@@ -112,7 +111,6 @@ pub fn build(b: *std.Build) void {
 
     bin_test_coverage.setExecCmd(&.{
         "kcov",
-        "--dump-summary",
         include,
         ".coverage",
         null
