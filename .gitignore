@@ -1,4 +1,4 @@
 zig-out
 .zig-cache
 .DS_Store
-.kcov-output
+.coverage
