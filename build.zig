@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 0, .patch = 0 };
+const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "09-30-2024";
 const description = "Compiler for the Ruka Programming Language";
 
@@ -28,7 +28,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     var options = b.addOptions();
-    options.addOption(std.SemanticVersion, "version", version);
+    options.addOption(std.SemanticVersion, "version", getVersion(b));
     options.addOption([]const u8, "version_date", version_date);
     options.addOption([]const u8, "description", description);
     exe.root_module.addOptions("options", options);
@@ -88,8 +88,6 @@ pub fn build(b: *std.Build) void {
     });
     bin_test_coverage.root_module.addImport("ruka", &root.root_module);
 
-    const coveralls_id = b.option([]const u8, "coverallsId", "Secret for coveralls repo") orelse "";
-
     var buf: [4096]u8 = undefined;
     const cwd = std.posix.getcwd(&buf) catch |err| {
         std.debug.print("{}\n", .{err});
@@ -103,28 +101,18 @@ pub fn build(b: *std.Build) void {
         std.debug.print("{}\n", .{err});
         return;
     };
-    const coveralls_option = std.fmt.bufPrint(
-        buf[include.len + cwd.len..],
-        "--coveralls-id={s}",
-        .{coveralls_id}
-    ) catch |err| {
-        std.debug.print("{}\n", .{err});
-        return;
-    };
 
     lib_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        ".coverage",
+        "zig-out/coverage",
         null
     });
 
     bin_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        "--merge",
-        coveralls_option,
-        ".coverage",
+        "zig-out/coverage",
         null
     });
 
@@ -134,4 +122,44 @@ pub fn build(b: *std.Build) void {
     const coverage_step = b.step("coverage", "Generate test coverage");
     coverage_step.dependOn(&run_lib_test_coverage.step);
     coverage_step.dependOn(&run_bin_test_coverage.step);
+}
+
+fn getVersion(b: *std.Build) std.SemanticVersion {
+    if (version.pre == null and version.build == null) return version;
+
+    var code: u8 = undefined; 
+    const git_describe_untrimmed = b.runAllowFail(&.{
+        "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags"
+    }, &code, .Ignore) catch return version;
+
+    const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
+
+    switch (std.mem.count(u8, git_describe, "-")) {
+        0 => {
+            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{version})));
+            return version;
+        },
+        2 => {
+            var iter = std.mem.splitScalar(u8, git_describe, '-');
+            const tagged_ancestor = iter.first();
+            const commit_height = iter.next().?;
+            const commit_id = iter.next().?;
+
+            const ancestor_ver = std.SemanticVersion.parse(tagged_ancestor) catch unreachable;
+            std.debug.assert(version.order(ancestor_ver) == .gt);
+            std.debug.assert(std.mem.startsWith(u8, commit_id, "g"));
+
+            return std.SemanticVersion {
+                .major = version.major,
+                .minor = version.minor,
+                .patch = version.patch,
+                .pre = b.fmt("dev.{s}", .{commit_height}),
+                .build = commit_id[1..]
+            };
+        },
+        else => {
+            std.debug.print("Unexpected 'git describe' output: {s}\n", .{git_describe});
+            std.process.exit(1);
+        }
+    }
 }
