@@ -22,11 +22,7 @@ const options_display =
     \\
 ;
 
-pub const version_str = std.fmt.comptimePrint("{d}.{d}.{d}", .{
-    project_options.version.major,
-    project_options.version.minor,
-    project_options.version.patch
-});
+pub const version_str = std.fmt.comptimePrint("{}", .{project_options.version});
 
 pub const help = std.fmt.comptimePrint("ruka {s} (released {s})\n{s}\n\n{s}\n{s}\n{s}", .{
     version_str,
