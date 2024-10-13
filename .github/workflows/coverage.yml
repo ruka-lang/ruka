@@ -1,10 +1,8 @@
 name: Coverage
 
 on:
-  pull_request:
-    branches: [ "main" ]
   push:
-    branches: [ "main" ]
+    branches: [ "mains" ]
 
 jobs:
   coverage:
@@ -18,8 +16,11 @@ jobs:
         run: sudo apt install -y kcov
 
       - name: Generate Coverage
-      #  run: zig build coverage -DcoverallsId=${{ secrets.COVERALLS_REPO_TOKEN }}
         run: zig build coverage
 
-      - name: Coveralls
-        uses: coverallsapp/github-action@v2
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./.coverage/
+          fail_ci_if_error: true
