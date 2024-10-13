@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
+const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0 };
 const version_date = "09-30-2024";
 const description = "Compiler for the Ruka Programming Language";
 
