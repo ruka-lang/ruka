@@ -664,10 +664,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -691,6 +694,7 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
@@ -727,10 +731,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -755,10 +762,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -780,10 +790,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -805,10 +818,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -830,10 +846,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -861,10 +880,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),
@@ -888,10 +910,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
@@ -915,10 +940,13 @@ const tests = struct {
 
         var unit = try Compiler.Unit.init(.testing(input.reader().any(), output.writer().any()));
         defer unit.deinit();
+
         var scanner = try Scanner.init(unit);
         defer scanner.deinit();
 
-        const allocator = unit.arena.allocator();
+        var arena = std.heap.ArenaAllocator.init(unit.allocator);
+        defer arena.deinit();
+        const allocator = arena.allocator();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),

@@ -46,15 +46,14 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
+    const coverage = b.option(bool, "test-coverage", "Generate test coverage") orelse false;
+
     const lib_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    run_lib_unit_tests.addArg("--suite lib");
 
     const exe_unit_tests = b.addTest(.{
         .root_source_file = b.path("src/main.zig"),
@@ -64,8 +63,28 @@ pub fn build(b: *std.Build) void {
     });
     exe_unit_tests.root_module.addImport("ruka", &root.root_module);
 
+    if (coverage) {
+        lib_unit_tests.setExecCmd(&.{
+            "kcov",
+            "--clean",
+            ".kcov-output",
+            null
+        });
+
+        exe_unit_tests.setExecCmd(&.{
+            "kcov",
+            "--clean",
+            ".kcov-output",
+            null
+        });
+    }
+
+    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    run_lib_unit_tests.addArg("--suite lib");
+
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     run_exe_unit_tests.addArg("--suite bin");
+
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
