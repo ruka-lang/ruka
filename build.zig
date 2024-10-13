@@ -103,7 +103,7 @@ pub fn build(b: *std.Build) void {
         std.debug.print("{}\n", .{err});
         return;
     };
-    const coveralls_option = std.fmt.bufPrint(
+    _ = std.fmt.bufPrint(
         buf[include.len + cwd.len..],
         "--coveralls-id={s}",
         .{coveralls_id}
@@ -115,7 +115,7 @@ pub fn build(b: *std.Build) void {
     lib_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        coveralls_option,
+        //coveralls_option,
         ".coverage",
         null
     });
