@@ -116,14 +116,14 @@ pub fn build(b: *std.Build) void {
         "kcov",
         include,
         //coveralls_option,
-        ".coverage",
+        ".kcoverage",
         null
     });
 
     bin_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        ".coverage",
+        ".kcoverage",
         null
     });
 
