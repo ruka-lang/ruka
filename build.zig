@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 0, .patch = 0 };
+const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "09-30-2024";
 const description = "Compiler for the Ruka Programming Language";
 
@@ -129,13 +129,13 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
 
     var code: u8 = undefined; 
     const git_describe_untrimmed = b.runAllowFail(&.{
-        "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags", "--always"
+        "git", "rev-parse", "--short", "HEAD"
     }, &code, .Ignore) catch return version;
 
     const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
 
     const commit_height_untrimmed = b.runAllowFail(&.{
-        "git", "rev-list", "HEAD","--count"
+        "git", "rev-list", "HEAD", "--count"
     }, &code, .Ignore) catch return version;
 
     const commit_height = std.mem.trim(u8, commit_height_untrimmed, " \n\r");
