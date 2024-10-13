@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0 };
+const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "09-30-2024";
 const description = "Compiler for the Ruka Programming Language";
 
@@ -129,37 +129,22 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
 
     var code: u8 = undefined; 
     const git_describe_untrimmed = b.runAllowFail(&.{
-        "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags"
+        "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags", "--always"
     }, &code, .Ignore) catch return version;
 
     const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
 
-    switch (std.mem.count(u8, git_describe, "-")) {
-        0 => {
-            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{version})));
-            return version;
-        },
-        2 => {
-            var iter = std.mem.splitScalar(u8, git_describe, '-');
-            const tagged_ancestor = iter.first();
-            const commit_height = iter.next().?;
-            const commit_id = iter.next().?;
+    const commit_height_untrimmed = b.runAllowFail(&.{
+        "git", "rev-list", "HEAD","--count"
+    }, &code, .Ignore) catch return version;
 
-            const ancestor_ver = std.SemanticVersion.parse(tagged_ancestor) catch unreachable;
-            std.debug.assert(version.order(ancestor_ver) == .gt);
-            std.debug.assert(std.mem.startsWith(u8, commit_id, "g"));
+    const commit_height = std.mem.trim(u8, commit_height_untrimmed, " \n\r");
 
-            return std.SemanticVersion {
-                .major = version.major,
-                .minor = version.minor,
-                .patch = version.patch,
-                .pre = b.fmt("dev.{s}", .{commit_height}),
-                .build = commit_id[1..]
-            };
-        },
-        else => {
-            std.debug.print("Unexpected 'git describe' output: {s}\n", .{git_describe});
-            std.process.exit(1);
-        }
-    }
+    return std.SemanticVersion {
+        .major = version.major,
+        .minor = version.minor,
+        .patch = version.patch,
+        .pre = b.fmt("dev.{s}", .{commit_height}),
+        .build = git_describe
+    };
 }

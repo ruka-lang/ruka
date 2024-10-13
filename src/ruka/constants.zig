@@ -32,3 +32,8 @@ pub const help = std.fmt.comptimePrint("ruka {s} (released {s})\n{s}\n\n{s}\n{s}
     subcommands_display,
     options_display
 });
+
+pub const version = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
+    version_str,
+    project_options.version_date,
+});
