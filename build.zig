@@ -13,14 +13,14 @@ pub fn build(b: *std.Build) void {
         .name = "ruka",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = optimize
     });
 
     const exe = b.addExecutable(.{
         .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = optimize
     });
 
     exe.root_module.addImport("ruka", &root.root_module);
@@ -77,16 +77,18 @@ pub fn build(b: *std.Build) void {
         .name = "lib_test",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = optimize
     });
 
     const bin_test_coverage = b.addTest(.{
         .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = optimize
     });
     bin_test_coverage.root_module.addImport("ruka", &root.root_module);
+
+    const coveralls_id = b.option([]const u8, "coverallsId", "Secret for coveralls repo") orelse "";
 
     var buf: [4096]u8 = undefined;
     const cwd = std.posix.getcwd(&buf) catch |err| {
@@ -101,20 +103,27 @@ pub fn build(b: *std.Build) void {
         std.debug.print("{}\n", .{err});
         return;
     };
+    const coveralls_option = std.fmt.bufPrint(
+        buf[include.len + cwd.len..],
+        "--coveralls-id={s}",
+        .{coveralls_id}
+    ) catch |err| {
+        std.debug.print("{}\n", .{err});
+        return;
+    };
 
     lib_test_coverage.setExecCmd(&.{
         "kcov",
-        "--clean",
         include,
-        ".kcov-output",
+        coveralls_option,
+        ".coverage",
         null
     });
 
     bin_test_coverage.setExecCmd(&.{
         "kcov",
-        "--clean",
         include,
-        ".kcov-output",
+        ".coverage",
         null
     });
 
