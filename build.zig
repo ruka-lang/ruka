@@ -112,7 +112,6 @@ pub fn build(b: *std.Build) void {
     bin_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        "--merge",
         "zig-out/coverage",
         null
     });
