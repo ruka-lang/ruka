@@ -49,19 +49,21 @@ pub fn build(b: *std.Build) void {
     const coverage = b.option(bool, "test-coverage", "Generate test coverage") orelse false;
 
     const lib_unit_tests = b.addTest(.{
+        .name = "lib_test",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
 
-    const exe_unit_tests = b.addTest(.{
+    const bin_unit_tests = b.addTest(.{
+        .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-    exe_unit_tests.root_module.addImport("ruka", &root.root_module);
+    bin_unit_tests.root_module.addImport("ruka", &root.root_module);
 
     if (coverage) {
         var buf: [4096]u8 = undefined;
@@ -87,25 +89,25 @@ pub fn build(b: *std.Build) void {
         });
         lib_unit_tests.test_runner = null;
 
-        exe_unit_tests.setExecCmd(&.{
+        bin_unit_tests.setExecCmd(&.{
             "kcov",
             "--clean",
             include,
             ".kcov-output",
             null
         });
-        exe_unit_tests.test_runner = null;
+        bin_unit_tests.test_runner = null;
     }
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+    const run_bin_unit_tests = b.addRunArtifact(bin_unit_tests);
 
     if (!coverage) {
         run_lib_unit_tests.addArg("--suite lib");
-        run_exe_unit_tests.addArg("--suite bin");
+        run_bin_unit_tests.addArg("--suite bin");
     }
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
-    test_step.dependOn(&run_exe_unit_tests.step);
+    test_step.dependOn(&run_bin_unit_tests.step);
 }
