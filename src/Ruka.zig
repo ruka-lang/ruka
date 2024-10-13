@@ -69,10 +69,7 @@ fn displayHelp(self: *Ruka) !void {
 }
 
 fn displayVersion(self: *Ruka) !void {
-    try self.transport.printStderr("rukac {s} (released {s})\n", .{
-        constants.version_str,
-        constants.project_options.version_date
-    });
+    try self.transport.writeStderr(constants.version);
 }
 
 fn newProject(self: *Ruka) !void {
