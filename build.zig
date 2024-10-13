@@ -65,11 +65,17 @@ pub fn build(b: *std.Build) void {
 
     if (coverage) {
         var buf: [4096]u8 = undefined;
-        const cwd = std.posix.getcwd(&buf) catch {
-            @compileError("Failed to get cwd for kcov test coverage");
+        const cwd = std.posix.getcwd(&buf) catch |err| {
+            std.debug.print("{}\n", .{err});
+            return;
         };
-        const include = std.fmt.bufPrint(buf[cwd.len..], "--include-path={s}", .{cwd}) catch {
-            @compileError("Failed to format --include flag for kcov test coverage");
+        const include = std.fmt.bufPrint(
+            buf[cwd.len..],
+            "--include-path={s}",
+            .{cwd}
+        ) catch |err| {
+            std.debug.print("{}\n", .{err});
+            return;
         };
 
         lib_unit_tests.setExecCmd(&.{
@@ -79,6 +85,7 @@ pub fn build(b: *std.Build) void {
             ".kcov-output",
             null
         });
+        lib_unit_tests.test_runner = null;
 
         exe_unit_tests.setExecCmd(&.{
             "kcov",
@@ -87,14 +94,16 @@ pub fn build(b: *std.Build) void {
             ".kcov-output",
             null
         });
+        exe_unit_tests.test_runner = null;
     }
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    run_lib_unit_tests.addArg("--suite lib");
-
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-    run_exe_unit_tests.addArg("--suite bin");
 
+    if (!coverage) {
+        run_lib_unit_tests.addArg("--suite lib");
+        run_exe_unit_tests.addArg("--suite bin");
+    }
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
