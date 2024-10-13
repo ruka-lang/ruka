@@ -8,22 +8,15 @@ jobs:
   test:
     strategy:
       fail-fast: false
-      matrix:
-        runs-on: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       #  with:
       #    submodules: recursive
       #    fetch-depth: 0
       - uses: goto-bus-stop/setup-zig@v2
-      - name: Install kcov (Linux)
-        if: startsWith(matrix.runs-on, 'ubuntu')
+      - name: Install kcov
         run: sudo apt install -y kcov
 
-      - name: Install kcov (MacOS)
-        if: startsWith(matrix.runs-on, 'macos')
-        run: brew install kcov
-
       - name: Coverage
-        run: zig build coverage
+        run: zig build coverage  -DcoverallsId=${{ secrets.COVERALLS_REPO_TOKEN }}
