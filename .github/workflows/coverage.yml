@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
+  coverage:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
