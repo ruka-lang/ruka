@@ -115,7 +115,6 @@ pub fn build(b: *std.Build) void {
     lib_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        coveralls_option,
         ".coverage",
         null
     });
@@ -123,6 +122,8 @@ pub fn build(b: *std.Build) void {
     bin_test_coverage.setExecCmd(&.{
         "kcov",
         include,
+        "--merge",
+        coveralls_option,
         ".coverage",
         null
     });
