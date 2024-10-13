@@ -64,9 +64,18 @@ pub fn build(b: *std.Build) void {
     exe_unit_tests.root_module.addImport("ruka", &root.root_module);
 
     if (coverage) {
+        var buf: [4096]u8 = undefined;
+        const cwd = std.posix.getcwd(&buf) catch {
+            @compileError("Failed to get cwd for kcov test coverage");
+        };
+        const include = std.fmt.bufPrint(buf[cwd.len..], "--include-path={s}", .{cwd}) catch {
+            @compileError("Failed to format --include flag for kcov test coverage");
+        };
+
         lib_unit_tests.setExecCmd(&.{
             "kcov",
             "--clean",
+            include,
             ".kcov-output",
             null
         });
@@ -74,6 +83,7 @@ pub fn build(b: *std.Build) void {
         exe_unit_tests.setExecCmd(&.{
             "kcov",
             "--clean",
+            include,
             ".kcov-output",
             null
         });
