@@ -2,16 +2,17 @@
 // @created: 2024-09-25
 
 const libruka = @import("../root.zig").prelude;
+const Ast = libruka.Ast;
 const Compiler = libruka.Compiler;
 const Error = libruka.Error;
 const Scanner = libruka.Scanner;
+const Parser = libruka.Parser;
 const Transport = libruka.Transport;
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
-const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayList = std.ArrayList;
 const Mutex = std.Thread.Mutex;
 
@@ -21,9 +22,6 @@ transport: *Transport,
 errors: ArrayList(Error),
 
 allocator: Allocator,
-arena: ArenaAllocator,
-
-mutex: Mutex,
 
 const Unit = @This();
 
@@ -55,10 +53,7 @@ pub fn init(opts: UnitOptions) !*Unit {
         .transport = try .init(opts.allocator, opts.reader, opts.writer),
         .errors = .init(opts.allocator),
 
-        .allocator = opts.allocator,
-        .arena = .init(opts.allocator),
-
-        .mutex = .{}
+        .allocator = opts.allocator
     };
 
     return unit;
@@ -66,15 +61,11 @@ pub fn init(opts: UnitOptions) !*Unit {
 
 pub fn deinit(self: *Unit) void {
     self.errors.deinit();
-    self.arena.deinit();
     self.transport.deinit();
     self.allocator.destroy(self);
 }
 
 pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []const u8) !void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
     try self.errors.append(.{
         .file = self.input,
         .kind = kind,
@@ -83,19 +74,16 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
     });
 }
 
-pub fn compile(self: *Unit) !void {
-    std.debug.print("\t{s}:\n", .{self.input});
+pub fn compile(self: *Unit) !*Ast {
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
 
-    var token = try scanner.nextToken();
+    var parser = try Parser.init(self, scanner);
+    defer parser.deinit();
 
-    while(token.kind != .eof): (token = try scanner.nextToken()) {
-        std.debug.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.arena.allocator())});
-        token.deinit();
-    }
+    const ast = try parser.parse();
 
-    std.debug.print("eof: \\x00\n", .{});
+    return ast;
 }
 
 test "test all unit modules" {

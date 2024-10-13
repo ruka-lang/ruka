@@ -139,8 +139,7 @@ pub fn init(allocator: Allocator) !*Ast {
 }
 
 pub fn deinit(self: *Ast) void {
-    const root = self.root;
-    Node.deinit(root);
+    Node.deinit(self.root);
 
     self.allocator.destroy(self);
 }

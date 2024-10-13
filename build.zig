@@ -16,8 +16,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    //b.installArtifact(root);
-
     const exe = b.addExecutable(.{
         .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
@@ -46,28 +44,84 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
+    // Tests
     const lib_unit_tests = b.addTest(.{
+        .name = "lib_test",
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
 
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    run_lib_unit_tests.addArg("--suite lib");
-
-    const exe_unit_tests = b.addTest(.{
+    const bin_unit_tests = b.addTest(.{
+        .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-    exe_unit_tests.root_module.addImport("ruka", &root.root_module);
+    bin_unit_tests.root_module.addImport("ruka", &root.root_module);
 
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
-    run_exe_unit_tests.addArg("--suite bin");
+    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    run_lib_unit_tests.addArg("--suite lib");
+
+    const run_bin_unit_tests = b.addRunArtifact(bin_unit_tests);
+    run_bin_unit_tests.addArg("--suite bin");
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
-    test_step.dependOn(&run_exe_unit_tests.step);
+    test_step.dependOn(&run_bin_unit_tests.step);
+
+    // Coverage
+    const lib_test_coverage = b.addTest(.{
+        .name = "lib_test",
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const bin_test_coverage = b.addTest(.{
+        .name = "bin_test",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bin_test_coverage.root_module.addImport("ruka", &root.root_module);
+
+    var buf: [4096]u8 = undefined;
+    const cwd = std.posix.getcwd(&buf) catch |err| {
+        std.debug.print("{}\n", .{err});
+        return;
+    };
+    const include = std.fmt.bufPrint(
+        buf[cwd.len..],
+        "--include-path={s}",
+        .{cwd}
+    ) catch |err| {
+        std.debug.print("{}\n", .{err});
+        return;
+    };
+
+    lib_test_coverage.setExecCmd(&.{
+        "kcov",
+        "--clean",
+        include,
+        ".kcov-output",
+        null
+    });
+
+    bin_test_coverage.setExecCmd(&.{
+        "kcov",
+        "--clean",
+        include,
+        ".kcov-output",
+        null
+    });
+
+    const run_lib_test_coverage = b.addRunArtifact(lib_test_coverage);
+    const run_bin_test_coverage = b.addRunArtifact(bin_test_coverage);
+
+    const coverage_step = b.step("coverage", "Generate test coverage");
+    coverage_step.dependOn(&run_lib_test_coverage.step);
+    coverage_step.dependOn(&run_bin_test_coverage.step);
 }

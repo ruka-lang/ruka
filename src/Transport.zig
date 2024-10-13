@@ -114,12 +114,18 @@ pub fn printNoFlush(self: *Transport, comptime msg: []const u8, args: anytype) !
     try self.bw.?.writer().print(msg, args);
 }
 
-pub fn writeStderr(_: Transport, msg: []const u8) !void {
+pub fn writeStderr(self: *Transport, msg: []const u8) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
     const stderr = std.io.getStdErr();
     _ = try stderr.writer().write(msg);
 }
 
-pub fn printStderr(_: Transport, comptime msg: []const u8, args: anytype) !void {
+pub fn printStderr(self: *Transport, comptime msg: []const u8, args: anytype) !void {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
     const stderr = std.io.getStdErr();
     try stderr.writer().print(msg, args);
 }

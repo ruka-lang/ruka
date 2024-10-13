@@ -2,6 +2,7 @@
 // @created: 2024-03-04
 
 const libruka = @import("root.zig").prelude;
+const Ast = libruka.Ast;
 const Error = libruka.Error;
 const Scanner = libruka.Scanner;
 const Transport = libruka.Transport;
@@ -19,6 +20,9 @@ const WaitGroup = std.Thread.WaitGroup;
 cwd: Dir,
 errors: ArrayList(Error),
 transport: *Transport,
+
+root: *Ast,
+unprocessed_asts: ArrayList(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -39,7 +43,9 @@ const Status = enum {
 };
 
 pub const Job = union(enum) {
-    scan_and_parse_file: []const u8,
+    parse_file: []const u8,
+    combine_asts,
+    check_ast_semantics,
 
     const SynchronizationMode = enum {
         exclusive,
@@ -49,13 +55,16 @@ pub const Job = union(enum) {
 
     pub fn deinit(self: Job, allocator: Allocator) void {
         switch (self) {
-            .scan_and_parse_file => |file| allocator.free(file)
+            .parse_file => |file| allocator.free(file),
+            else => {}
         }
     }
 
     fn syncMode(self: Job) SynchronizationMode {
         return switch (self) {
-            .scan_and_parse_file => |_| .shared,
+            .parse_file => |_| .shared,
+            .combine_asts => .exclusive,
+            .check_ast_semantics => .exclusive,
         };
     }
 };
@@ -72,6 +81,9 @@ pub fn init(allocator: Allocator) !*Compiler {
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
+        .root = undefined,
+        .unprocessed_asts = .init(allocator),
+
         .allocator = allocator,
         .arena = .init(allocator),
 
@@ -80,8 +92,6 @@ pub fn init(allocator: Allocator) !*Compiler {
         .wait_group = .{},
         .job_queue = .init(allocator)
     };
-
-    compiler.wait_group.reset();
 
     try compiler.thread_pool.init(.{
         .allocator = allocator,
@@ -99,24 +109,62 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
+    for (self.unprocessed_asts.items) |ast| {
+        ast.deinit();
+    }
+    self.unprocessed_asts.deinit();
     self.allocator.destroy(self);
+}
+
+pub fn buildProject(self: *Compiler) !void {
+    try self.verifyProject(self.cwd);
+    try self.sendProject(self.cwd);
+
+    try self.job_queue.ensureUnusedCapacity(2);
+    try self.job_queue.writeItem(.combine_asts);
+    try self.job_queue.writeItem(.check_ast_semantics);
+
+    while (self.job_queue.readItem()) |job| {
+        switch (job.syncMode()) {
+            .exclusive => {
+                self.waitAndWork();
+                self.processJob(job, null);
+            },
+            .shared => {
+                self.wait_group.start();
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
+            },
+            .atomic => {
+                errdefer job.deinit(self.allocator);
+                try self.thread_pool.spawn(processJob, .{self, job, null});
+            }
+        }
+    }
 }
 
 fn waitAndWork(self: *Compiler) void {
     self.thread_pool.waitAndWork(&self.wait_group);
-    self.wait_group.reset(); 
+    self.wait_group.reset();
 }
 
 fn sendFile(self: *Compiler, file: []const u8) !void {
     errdefer self.allocator.free(file);
 
     try self.job_queue.ensureUnusedCapacity(1);
-    try self.job_queue.writeItem(.{ .scan_and_parse_file = file });
+    try self.job_queue.writeItem(.{ .parse_file = file });
 }
 
 fn verifyProject(self: *Compiler, dir: Dir) !void {
     _ = self;
     _ = dir;
+}
+
+fn isProperExtension(file: []const u8) bool {
+    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
+    const extension = path_iter.first();
+
+    return std.mem.eql(u8, "ruka", extension);
 }
 
 fn sendProject(self: *Compiler, dir: Dir) !void {
@@ -147,51 +195,30 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
     }
 }
 
-
 fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
     defer if (wait_group != null) wait_group.?.finish();
     defer job.deinit(self.allocator);
-    
+
     switch (job) {
-        .scan_and_parse_file => |file| {
-            self.compileFile(file, null) catch |err| {
+        .parse_file => |file| {
+            self.parseFile(file, null) catch |err| {
                 log.err("Failed to compile file: {}", .{err});
+            };
+        },
+        .combine_asts => {
+            self.combineAsts() catch |err| {
+                log.err("Failed to combine asts: {}", .{err});
+            };
+        },
+        .check_ast_semantics => {
+            self.checkAstSemantics() catch |err| {
+                log.err("Failed to check ast semantics: {}", .{err});
             };
         }
     }
 }
 
-pub fn buildProject(self: *Compiler) !void {
-    try self.verifyProject(self.cwd);
-    try self.sendProject(self.cwd);
-
-    while (self.job_queue.readItem()) |job| {
-        switch (job.syncMode()) {
-            .exclusive => {
-                self.waitAndWork();
-                self.processJob(job, null);
-            },
-            .shared => {
-                self.wait_group.start();
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
-            },
-            .atomic => {
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, null});
-            }
-        }
-    }
-}
-
-fn isProperExtension(file: []const u8) bool {
-    var path_iter = std.mem.splitBackwardsSequence(u8, file, ".");
-    const extension = path_iter.first();
-
-    return std.mem.eql(u8, "ruka", extension);
-}
-
-fn compileFile(
+fn parseFile(
     self: *Compiler,
     in: []const u8,
     out: ?[]const u8
@@ -212,9 +239,22 @@ fn compileFile(
     });
     defer unit.deinit();
 
-    try unit.compile();
+    const ast = try unit.compile();
+    errdefer ast.deinit();
 
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    try self.unprocessed_asts.append(ast);
     try self.errors.appendSlice(unit.errors.items);
+}
+
+fn combineAsts(_: *Compiler) !void {
+    std.debug.print("\ncombining asts\n", .{});
+}
+
+fn checkAstSemantics(_: *Compiler) !void {
+    std.debug.print("\nverifying ast\n", .{});
 }
 
 test "test all compiler modules" {

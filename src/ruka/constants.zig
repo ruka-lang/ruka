@@ -6,7 +6,6 @@ const builtin = @import("builtin");
 pub const project_options = @import("options");
 
 pub const usage = "usage: ruka [options_display] [subcommand]";
-// Declaration needs a better name
 pub const subcommands_display =
     \\    subcommands:
     \\        new     : Creates a new project in the current directory
