@@ -16,7 +16,11 @@ jobs:
         run: sudo apt install -y kcov
 
       - name: Generate Coverage
-        run: zig build coverage
+        run: |
+          zig build
+          zig build coverage
+          cd zig-out/coverage
+          kcov --merge . *_test.*
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
