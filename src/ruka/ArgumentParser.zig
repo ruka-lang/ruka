@@ -40,20 +40,13 @@ const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
 });
 
 const Option = union(enum) {
-    cwd: []const u8,
+    change_dir: []const u8,
 
-    pub fn init(option: []const u8) ?Option {
-        var iter = std.mem.splitAny(u8, option, "=");
-
-        // need to make sure option are following the --opt=value or --opt or -o syntax
-        const opt = iter.next() orelse return null;
-        const value = iter.next() orelse {
-            std.debug.print("Option missing it's value\n", .{});
-            return null;
-        };
-
-        if (std.mem.eql(u8, opt, "--cwd")) {
-            return .{ .cwd = value };
+    pub fn init(option: []const u8, value: []const u8) ?Option {
+        if (std.mem.eql(u8, option, "change_dir") 
+            or std.mem.eql(u8, option, "C")
+        ) {
+            return .{ .change_dir = value };
         }
 
         return null;
@@ -107,15 +100,36 @@ pub fn parse(self: *ArgumentParser) !void {
     }
 
     while (args.next()) |arg| {
-        if (Option.init(arg)) |option| {
-            try self.options.writeItem(option);
-        } else {
-            try self.transport.printStderr("{s}\n{s}\n\nInvalid option: {s}\n", .{
-                constants.usage,
-                constants.subcommands_display,
-                arg
-            });
+        if (std.mem.startsWith(u8, arg, "--")) {
+            if (args.next()) |value| {
+                try self.addOption(arg, value, 2);
+                continue;
+            }
         }
+        
+        if (std.mem.startsWith(u8, arg, "-")) {
+            if (args.next()) |value| {
+                try self.addOption(arg, value, 1);
+                continue;
+            }
+        }
+
+        // Unrecognized argument
+        std.debug.print("unrecognized argument: {s}\n", .{arg});
+        return error.UnrecognizedArgument;
+    }
+}
+
+fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCount: usize) !void {
+    if (Option.init(arg[dashCount..], value)) |option| {
+        try self.options.writeItem(option);
+    } else {
+        try self.transport.printStderr("{s}\n{s}\n\nInvalid option: {s}\n", .{
+            constants.usage,
+            constants.subcommands_display,
+            arg
+        });
+        return error.InvalidOption;
     }
 }
 

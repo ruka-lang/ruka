@@ -86,7 +86,7 @@ fn buildProject(self: *Ruka, arg_parser: *ArgumentParser) !void {
 
     if (arg_parser.getOption()) |option| {
         switch (option) {
-            .cwd => |path| {
+            .change_dir => |path| {
                 compiler.cwd = try compiler.cwd.openDir(path, .{});
             }
         }

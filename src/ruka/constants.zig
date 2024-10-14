@@ -18,7 +18,7 @@ pub const subcommands_display =
 
 const options_display =
     \\    options_display:
-    \\        --cwd   : Changes the directory to a subdirectory of the cwd
+    \\        --change_dir, -C : Changes the directory to a subdirectory of the cwd
     \\
 ;
 
