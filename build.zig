@@ -1,7 +1,8 @@
 const std = @import("std");
+const Chrono = @import("src/Chrono.zig");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 0, .patch = 0 };
-const version_date = "09-30-2024";
+const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
+const version_date = "10-13-2024";
 const description = "Compiler for the Ruka Programming Language";
 
 pub fn build(b: *std.Build) void {
@@ -29,7 +30,7 @@ pub fn build(b: *std.Build) void {
 
     var options = b.addOptions();
     options.addOption(std.SemanticVersion, "version", getVersion(b));
-    options.addOption([]const u8, "version_date", version_date);
+    options.addOption([]const u8, "version_date", getDate(b));
     options.addOption([]const u8, "description", description);
     exe.root_module.addOptions("options", options);
 
@@ -129,13 +130,13 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
 
     var code: u8 = undefined; 
     const git_describe_untrimmed = b.runAllowFail(&.{
-        "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags", "--always"
+        "git", "rev-parse", "--short", "HEAD"
     }, &code, .Ignore) catch return version;
 
     const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
 
     const commit_height_untrimmed = b.runAllowFail(&.{
-        "git", "rev-list", "HEAD","--count"
+        "git", "rev-list", "HEAD", "--count"
     }, &code, .Ignore) catch return version;
 
     const commit_height = std.mem.trim(u8, commit_height_untrimmed, " \n\r");
@@ -147,4 +148,14 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
         .pre = b.fmt("dev.{s}", .{commit_height}),
         .build = git_describe
     };
+}
+
+fn getDate(b: *std.Build) []const u8 {
+    var code: u8 = undefined; 
+    const date_untrimmed = b.runAllowFail(&.{
+        "date", "+'%m/%d/%Y'"
+    }, &code, .Ignore) catch return version_date;
+    const date = std.mem.trim(u8, date_untrimmed, " \n\r");
+
+    return date;
 }

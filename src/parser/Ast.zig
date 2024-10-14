@@ -18,7 +18,8 @@ const Ast = @This();
 pub const Node = struct {
     kind: Kind,
     token: Token,
-    data: Data,
+    lhs: ?*Node,
+    rhs: ?*Node,
 
     allocator: Allocator,
 
@@ -45,27 +46,14 @@ pub const Node = struct {
         @"return"
     };
 
-    pub const Data = struct {
-        lhs: ?*Node,
-        mhs: ?*Node,
-        rhs: ?*Node,
-        buf: ?ArrayList(*Node),
-
-        pub const default: Data = .{
-            .lhs = null,
-            .mhs = null,
-            .rhs = null,
-            .buf = null
-        };
-    };
-
-    pub fn init(allocator: Allocator, kind: Kind, token: Token, data: Data) !*Node {
+    pub fn init(allocator: Allocator, kind: Kind, token: Token) !*Node {
         const node = try allocator.create(Node);
 
         node.* = .{
             .kind = kind,
             .token = token,
-            .data = data,
+            .lhs = null,
+            .rhs = null,
             .allocator = allocator
         };
 
@@ -73,56 +61,28 @@ pub const Node = struct {
     }
 
     pub fn deinit(self: ?*Node) void {
-        if (self) |n| {
-            defer n.allocator.destroy(n);
+        if (self) |node| {
+            defer node.allocator.destroy(node);
 
-            n.token.deinit();
+            node.token.deinit();
 
-            if (n.data.buf) |buf| {
-                for (buf.items) |n2| {
-                    Node.deinit(n2);
-                }
-
-                buf.deinit();
-            }
-            Node.deinit(n.data.lhs);
-            Node.deinit(n.data.mhs);
-            Node.deinit(n.data.rhs);
+            Node.deinit(node.lhs);
+            Node.deinit(node.rhs);
         }
     }
 
     pub fn addLeft(self: *Node, kind: Kind, token: Token) !*Node {
-        const node = try Node.init(self.allocator, kind, token, .default);
+        const node = try Node.init(self.allocator, kind, token);
 
-        self.data.lhs = node;
-
-        return node;
-    }
-
-    pub fn addMiddle(self: *Node, kind: Kind, token: Token) !*Node {
-        const node = try Node.init(self.allocator, kind, token, .default);
-
-        self.data.mhs = node;
+        self.lhs = node;
 
         return node;
     }
 
     pub fn addRight(self: *Node, kind: Kind, token: Token) !*Node {
-        const node = try Node.init(self.allocator, kind, token, .default);
+        const node = try Node.init(self.allocator, kind, token);
 
-        self.data.rhs = node;
-
-        return node;
-    }
-
-    pub fn createBuf(self: *Node) void {
-        self.data.buf = ArrayList(*Node).init();
-    }
-
-    pub fn addToBuf(self: *Node, kind: Kind, token: Token) !*Node {
-        const node = try Node.init(self.allocator, kind, token, .default);
-
-        try self.data.buf.?.append(node);
+        self.rhs = node;
 
         return node;
     }
@@ -148,13 +108,52 @@ pub fn initRoot(self: *Ast, node_kind: Node.Kind, token: Token) !*Node {
     const root = try Node.init(
         self.allocator,
         node_kind,
-        token,
-        .default
+        token
     );
 
     self.root = root;
 
     return root;
+}
+
+pub fn write(self: *Ast, writer: std.io.AnyWriter) !void {
+    const node = self.root orelse return error.UninitializeAst;
+    try self.writeInternal(writer, node);
+}
+
+fn writeInternal(self: *Ast, writer: std.io.AnyWriter, node: *Node) !void {
+    switch (node.kind) {
+        .@"if" => {
+            try writer.writeAll("if (");
+            try self.writeInternal(writer, node.lhs.?);
+            try writer.writeAll(") {\n    ");
+            try self.writeInternal(writer, node.rhs.?);
+            try writer.writeAll("\n}");
+
+            if (node.rhs.?.rhs) |consequence| {
+                try writer.writeAll(" else {\n    ");
+                try self.writeInternal(writer, consequence);
+                try writer.writeAll("\n}");
+            }
+        },
+        .integer => {
+            switch (node.token.kind) {
+                .integer => |integer| {
+                    try writer.writeAll(integer.items);
+                },
+                else => unreachable
+            }
+        },
+        .identifier => {
+            switch (node.token.kind) {
+                .identifier => |identifier| {
+                    try writer.writeAll(identifier.items);
+                },
+                else => unreachable
+            }
+        },
+        else => return
+    }
 }
 
 test "test all ast modules" {
@@ -169,14 +168,20 @@ const tests = struct {
         var program = try Ast.init(allocator);
         defer program.deinit();
 
-        const keyword: Token = .init(.{ .keyword = .let }, "test", .init(0, 0));
-        const identifier: Token = .init(try .initIdentifier("x", allocator), "test", .init(0, 4));
-        const integer: Token = .init(try .initInteger("12", allocator), "test", .init(0, 8));
+        const keyword: Token = .init(.{ .keyword = .@"if" }, "test", .init(0, 0));
+        const condition: Token = .init(try .initIdentifier("x", allocator), "test", .init(0, 0));
+        const consequence: Token = .init(try .initInteger("12", allocator), "test", .init(0, 0));
+        const alternative: Token = .init(try .initInteger("13", allocator), "test", .init(0, 0));
 
-        const root = try program.initRoot(.binding, keyword);
-        _ = try root.addLeft(.identifier, identifier);
-        _ = try root.addRight(.integer, integer);
+        const root = try program.initRoot(.@"if", keyword);
+        _ = try root.addLeft(.identifier, condition);
+        const c = try root.addRight(.integer, consequence);
+        _ = try c.addRight(.integer, alternative);
 
-        try testing.expect(program.root.?.data.lhs.?.token.kind == .identifier);
+        var buf: [4096]u8 = undefined;
+        var stream = std.io.fixedBufferStream(&buf);
+        try program.write(stream.writer().any());
+
+        //std.debug.print("{s}\n", .{buf[0..stream.pos]});
     }
 };
