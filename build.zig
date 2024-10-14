@@ -3,7 +3,7 @@ const Chrono = @import("src/Chrono.zig");
 
 const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "10-13-2024";
-const description = "Compiler for the Ruka Programming Language";
+const description = "Build tool/Package manager for the Ruka Programming Language";
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -128,7 +128,7 @@ pub fn build(b: *std.Build) void {
 fn getVersion(b: *std.Build) std.SemanticVersion {
     if (version.pre == null and version.build == null) return version;
 
-    var code: u8 = undefined; 
+    var code: u8 = undefined;
     const git_describe_untrimmed = b.runAllowFail(&.{
         "git", "rev-parse", "--short", "HEAD"
     }, &code, .Ignore) catch return version;
@@ -151,7 +151,7 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
 }
 
 fn getDate(b: *std.Build) []const u8 {
-    var code: u8 = undefined; 
+    var code: u8 = undefined;
     const date_untrimmed = b.runAllowFail(&.{
         "date", "+'%m/%d/%Y'"
     }, &code, .Ignore) catch return version_date;
