@@ -106,14 +106,14 @@ pub fn build(b: *std.Build) void {
     lib_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        "zig-out/coverage",
+        "./zig-out/coverage",
         null
     });
 
     bin_test_coverage.setExecCmd(&.{
         "kcov",
         include,
-        "zig-out/coverage",
+        "./zig-out/coverage",
         null
     });
 
