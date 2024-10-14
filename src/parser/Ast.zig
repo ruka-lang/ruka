@@ -182,6 +182,6 @@ const tests = struct {
         var stream = std.io.fixedBufferStream(&buf);
         try program.write(stream.writer().any());
 
-        //std.debug.print("{s}\n", .{buf[0..stream.pos]});
+        std.debug.print("{s}\n", .{buf[0..stream.pos]});
     }
 };
