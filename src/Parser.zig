@@ -61,7 +61,7 @@ pub fn parse(self: *Parser) !*Ast {
     return ast;
 }
 
-test "test all parsing modules" {
+test "parser modules" {
     _ = tests;
     _ = Ast;
 }

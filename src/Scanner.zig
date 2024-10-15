@@ -588,7 +588,7 @@ fn readMultiString(self: *Scanner) !Token {
     return self.createToken(.{ .string = string });
 }
 
-test "test all scanner modules" {
+test "scanner modules" {
     _ = tests;
     _ = Token;
 }

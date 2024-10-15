@@ -32,7 +32,7 @@ pub const Node = Ast.Node;
 
 pub const Interpreter = @import("Interpreter.zig");
 
-test {
+test "ruka modules" {
     _ = Chrono;
     _ = Compiler;
     _ = Scanner;

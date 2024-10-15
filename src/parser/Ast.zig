@@ -156,7 +156,7 @@ fn writeInternal(self: *Ast, writer: std.io.AnyWriter, node: *Node) !void {
     }
 }
 
-test "test all ast modules" {
+test "ast" {
     _ = tests;
 }
 

@@ -257,7 +257,7 @@ fn checkAstSemantics(_: *Compiler) !void {
     std.debug.print("\nverifying ast\n", .{});
 }
 
-test "test all compiler modules" {
+test "compiler modules" {
     _ = tests;
     _ = Unit;
 }

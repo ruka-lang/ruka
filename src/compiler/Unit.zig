@@ -86,7 +86,7 @@ pub fn compile(self: *Unit) !*Ast {
     return ast;
 }
 
-test "test all unit modules" {
+test "unit modules" {
     _ = tests;
 }
 

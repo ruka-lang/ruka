@@ -16,7 +16,7 @@ timezone: Timezone,
 
 const Chrono = @This();
 
-const Timezone = enum {
+const Timezone = enum(u8) {
     CST,
     EST,
     PST,
@@ -27,15 +27,15 @@ const Timezone = enum {
     }
 
     pub fn getOffset(self: Timezone) i64 {
-        return offsetHoursFromUTC.get(self.toString()) orelse unreachable;
+        return offsetHoursFromUTC[@intFromEnum(self)];
     }
 
-    pub const offsetHoursFromUTC = std.StaticStringMap(i64).initComptime(.{
-        .{"CST", -6},
-        .{"EST", -5},
-        .{"PST", -8},
-        .{"UTC", 0}
-    });
+    pub const offsetHoursFromUTC = [_]i64{
+        -6,
+        -5,
+        -8,
+         0
+    };
 };
 
 ///
@@ -50,10 +50,6 @@ pub const epoch_unix = Chrono {
     .year = 1970,
     .timezone = .UTC
 };
-
-pub fn Epoch() Chrono {
-    return epoch_unix;
-}
 
 pub fn now(timezone: Timezone) Chrono {
     var chrono = epoch_unix;
@@ -97,7 +93,7 @@ fn calculateDate(self: *Chrono, milliseconds: i64) void {
         month.next();
     }
 
-    self.day = @as(u8, @intCast(days + 1));
+    self.day = @intCast(days + 1);
     self.month = month;
     self.year = year;
 }
@@ -117,10 +113,10 @@ fn calculateTime(self: *Chrono, milliseconds: i64) void {
     const minutes = @divTrunc(milliseconds, 1000 * 60);
     const hours = @divTrunc(milliseconds, 1000 * 60 * 60);
 
-    self.hour = @as(u8, @intCast(@mod(hours + self.hour, 24)));
-    self.minute = @as(u8, @intCast(@mod(minutes + self.minute, 60)));
-    self.second = @as(u8, @intCast(@mod(seconds + self.second, 60)));
-    self.millisecond = @as(u16, @intCast(@mod(milliseconds + self.millisecond,  1000)));
+    self.hour = @intCast(@mod(hours + self.hour, 24));
+    self.minute = @intCast(@mod(minutes + self.minute, 60));
+    self.second = @intCast(@mod(seconds + self.second, 60));
+    self.millisecond = @intCast(@mod(milliseconds + self.millisecond,  1000));
 }
 
 fn convertTimezone(self: *Chrono, timezone: Timezone) void {
@@ -128,7 +124,7 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
 
     if (offset < 0) {
         const hour = @mod(self.hour + offset, @as(i8, 24));
-        self.hour = @as(u8, @intCast(hour));
+        self.hour = @intCast(hour);
 
         if (self.hour + offset < 0) {
             if (self.day - 1 == 0) {
@@ -145,7 +141,7 @@ fn convertTimezone(self: *Chrono, timezone: Timezone) void {
         self.weekday.advance(1);
     } else if (offset > 0 and offset < 24) {
         const hour = @mod(self.hour + offset, @as(i8, 24));
-        self.hour = @as(u8, @intCast(hour));
+        self.hour = @intCast(hour);
     }
 }
 
@@ -221,7 +217,7 @@ pub const Month = enum(u8) {
     pub const daysPerMonth = [12]i16{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 };
 
-test "test chrono module" {
+test "chrono" {
     _ = tests;
 }
 

@@ -327,3 +327,11 @@ fn is_utf8_supported() !bool {
 
     return std.mem.containsAtLeast(u8, &lang, 1, "utf-8");
 }
+
+test "repl modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};

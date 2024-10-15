@@ -462,7 +462,7 @@ comptime {
     }
 }
 
-test "test all token modules" {
+test "token" {
     _ = tests;
 }
 

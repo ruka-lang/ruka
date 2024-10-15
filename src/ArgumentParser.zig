@@ -43,7 +43,7 @@ const Option = union(enum) {
     change_dir: []const u8,
 
     pub fn init(option: []const u8, value: []const u8) ?Option {
-        if (std.mem.eql(u8, option, "change_dir") 
+        if (std.mem.eql(u8, option, "change_dir")
             or std.mem.eql(u8, option, "C")
         ) {
             return .{ .change_dir = value };
@@ -107,7 +107,7 @@ pub fn parse(self: *ArgumentParser) !void {
                 continue;
             }
         }
-        
+
         if (std.mem.startsWith(u8, arg, "-")) {
             if (args.next()) |value| {
                 try self.addOption(arg, value, 1);
@@ -142,7 +142,7 @@ pub fn getOption(self: *ArgumentParser) ?Option {
     return self.options.readItem();
 }
 
-test "test all argumentParser modules" {
+test "argumentParser" {
     _ = tests;
 }
 
