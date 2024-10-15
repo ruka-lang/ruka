@@ -1,11 +1,11 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-const libruka = @import("ruka").prelude;
-const Chrono = libruka.Chrono;
-
 const std = @import("std");
 const bufPrint = std.fmt.bufPrint;
+
+const ruka = @import("prelude.zig");
+const Chrono = ruka.Chrono;
 
 pub const options: std.Options = .{
     .log_level = switch (@import("builtin").mode) {

@@ -1,14 +1,14 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const libruka = @import("root.zig").prelude;
-const Compiler = libruka.Compiler;
-const Position = libruka.Position;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const eql = std.mem.eql;
+
+const ruka = @import("prelude.zig");
+const Compiler = ruka.Compiler;
+const Position = ruka.Position;
 
 prev_char: u8,
 read_char: u8,
@@ -213,9 +213,9 @@ pub fn nextToken(self: *Scanner) !Token {
         '\x00' => self.createToken(Token.Kind.eof),
         // Single characters, identifiers, keywords, modes, numbers
         else => block: {
-            if (libruka.isAlphabetical(byte)) {
+            if (ruka.isAlphabetical(byte)) {
                 break :block try self.readIdentifierKeywordMode();
-            } else if (libruka.isIntegral(byte)) {
+            } else if (ruka.isIntegral(byte)) {
                 break :block try self.readIntegerFloat();
             }
 
@@ -361,7 +361,7 @@ fn readEnumLiteral(self: *Scanner) !Token {
 
     self.advance(1);
     var byte = self.read();
-    while (libruka.isAlphanumerical(byte)) {
+    while (ruka.isAlphanumerical(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -456,7 +456,7 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
     errdefer string.deinit();
 
     var byte = self.read();
-    while (libruka.isAlphanumerical(byte)) {
+    while (ruka.isAlphanumerical(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();
@@ -487,7 +487,7 @@ fn readIntegerFloat(self: *Scanner) !Token {
     // read only integer values afterwards
     var float = false;
     var byte = self.read();
-    while (libruka.isNumeric(byte)) {
+    while (ruka.isNumeric(byte)) {
         if (byte == '.') {
             try string.append(byte);
             try self.readMantissa(&string);
@@ -513,12 +513,12 @@ fn readMantissa(self: *Scanner, string: *ArrayList(u8)) !void {
 
     var byte = self.read();
 
-    if (!libruka.isIntegral(byte)) {
+    if (!ruka.isIntegral(byte)) {
         try string.append('0');
         return;
     }
 
-    while (libruka.isIntegral(byte)) {
+    while (ruka.isIntegral(byte)) {
         try string.append(byte);
         self.advance(1);
         byte = self.read();

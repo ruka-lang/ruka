@@ -1,13 +1,13 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
-const libruka = @import("../root.zig").prelude;
-const Position = libruka.Position;
-const Token = libruka.Token;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+
+const ruka = @import("../prelude.zig");
+const Position = ruka.Position;
+const Token = ruka.Token;
 
 root: ?*Node,
 

@@ -1,13 +1,13 @@
 // @author: ruka-lang
 // @created: 2024-04-13
 
-const libruka = @import("root.zig").prelude;
-const Scanner = libruka.Scanner;
-const Unit = libruka.Unit;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+
+const ruka = @import("prelude.zig");
+const Scanner = ruka.Scanner;
+const Unit = ruka.Unit;
 
 scanner: *Scanner,
 unit: *Unit,

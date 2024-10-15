@@ -9,31 +9,22 @@ pub fn build(b: *std.Build) void {
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const root = b.addStaticLibrary(.{
-        .name = "ruka",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-
-    const exe = b.addExecutable(.{
+    const bin = b.addExecutable(.{
         .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize
     });
 
-    exe.root_module.addImport("ruka", &root.root_module);
-
-    b.installArtifact(exe);
+    b.installArtifact(bin);
 
     var options = b.addOptions();
     options.addOption(std.SemanticVersion, "version", getVersion(b));
     options.addOption([]const u8, "version_date", getDate(b));
     options.addOption([]const u8, "description", description);
-    exe.root_module.addOptions("options", options);
+    bin.root_module.addOptions("options", options);
 
-    const run_cmd = b.addRunArtifact(exe);
+    const run_cmd = b.addRunArtifact(bin);
 
     run_cmd.step.dependOn(b.getInstallStep());
 
@@ -45,14 +36,6 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Tests
-    const lib_unit_tests = b.addTest(.{
-        .name = "lib_test",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .test_runner = b.path("tests/test_runner.zig"),
-        .optimize = optimize,
-    });
-
     const bin_unit_tests = b.addTest(.{
         .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
@@ -60,16 +43,11 @@ pub fn build(b: *std.Build) void {
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-    bin_unit_tests.root_module.addImport("ruka", &root.root_module);
-
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    run_lib_unit_tests.addArg("--suite lib");
 
     const run_bin_unit_tests = b.addRunArtifact(bin_unit_tests);
     run_bin_unit_tests.addArg("--suite bin");
 
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_bin_unit_tests.step);
 
     const coverage_step = b.step("coverage", "Generate test coverage");
@@ -78,16 +56,6 @@ pub fn build(b: *std.Build) void {
     merge_step.addArgs(&.{ "kcov", "--merge" });
     merge_step.rename_step_with_output_arg = false;
     const merged_coverage_output = merge_step.addOutputFileArg(".");
-
-    // Lib test coverage
-    {
-        const kcov_collect = std.Build.Step.Run.create(b, "collect lib coverage");
-        kcov_collect.addArgs(&.{ "kcov", "--collect-only" });
-        kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
-        merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(lib_unit_tests.name));
-        kcov_collect.addArtifactArg(lib_unit_tests);
-        kcov_collect.enableTestRunnerMode();
-    }
 
     // Bin test coverage
     {

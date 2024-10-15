@@ -1,12 +1,6 @@
 // @author: ruka-lang
 // @created: 2024-03-04
 
-const libruka = @import("root.zig").prelude;
-const Ast = libruka.Ast;
-const Error = libruka.Error;
-const Scanner = libruka.Scanner;
-const Transport = libruka.Transport;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
@@ -16,6 +10,12 @@ const LinearFifo = std.fifo.LinearFifo;
 const Mutex = std.Thread.Mutex;
 const Pool = std.Thread.Pool;
 const WaitGroup = std.Thread.WaitGroup;
+
+const ruka = @import("prelude.zig");
+const Ast = ruka.Ast;
+const Error = ruka.Error;
+const Scanner = ruka.Scanner;
+const Transport = ruka.Transport;
 
 cwd: Dir,
 errors: ArrayList(Error),

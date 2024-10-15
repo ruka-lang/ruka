@@ -1,14 +1,14 @@
 // @author: ruka-lang
 // @created: 2024-09-13
 
-const libruka = @import("ruka").prelude;
-const Transport = libruka.Transport;
-const constants = @import("constants.zig");
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const LinearFifo = std.fifo.LinearFifo;
+
+const libruka = @import("prelude.zig");
+const Transport = libruka.Transport;
+const constants = @import("constants.zig");
 
 subcommands: LinearFifo(Subcommand, .Dynamic),
 options: LinearFifo(Option, .Dynamic),
@@ -57,11 +57,12 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
     const argument_parser = try allocator.create(ArgumentParser);
     errdefer argument_parser.deinit();
 
+    const stderr = std.io.getStdErr();
     argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
 
-        .transport = try .init(allocator, null, null),
+        .transport = try .initWithFile(allocator, stderr),
 
         .allocator = allocator
     };
@@ -90,7 +91,7 @@ pub fn parse(self: *ArgumentParser) !void {
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {
         try self.subcommands.writeItem(subcommand);
     } else {
-        try self.transport.printStderr("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
+        try self.transport.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,
             constants.subcommands_display,
             subcommand_arg.?
@@ -115,7 +116,7 @@ pub fn parse(self: *ArgumentParser) !void {
         }
 
         // Unrecognized argument
-        std.debug.print("unrecognized argument: {s}\n", .{arg});
+        try self.transport.print("unrecognized argument: {s}\n", .{arg});
         return error.UnrecognizedArgument;
     }
 }
@@ -124,7 +125,7 @@ fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCoun
     if (Option.init(arg[dashCount..], value)) |option| {
         try self.options.writeItem(option);
     } else {
-        try self.transport.printStderr("{s}\n{s}\n\nInvalid option: {s}\n", .{
+        try self.transport.print("{s}\n{s}\n\nInvalid option: {s}\n", .{
             constants.usage,
             constants.subcommands_display,
             arg

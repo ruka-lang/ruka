@@ -1,20 +1,20 @@
 // @author: ruka-lang
 // @created: 2024-09-25
 
-const libruka = @import("../root.zig").prelude;
-const Ast = libruka.Ast;
-const Compiler = libruka.Compiler;
-const Error = libruka.Error;
-const Scanner = libruka.Scanner;
-const Parser = libruka.Parser;
-const Transport = libruka.Transport;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const ArrayList = std.ArrayList;
 const Mutex = std.Thread.Mutex;
+
+const ruka = @import("../prelude.zig");
+const Ast = ruka.Ast;
+const Compiler = ruka.Compiler;
+const Error = ruka.Error;
+const Scanner = ruka.Scanner;
+const Parser = ruka.Parser;
+const Transport = ruka.Transport;
 
 input: []const u8,
 output: []const u8,

@@ -34,19 +34,11 @@ pub fn main() !void {
     const filter = getenvOwned(alloc, "TEST_FILTER");
     defer if (filter) |f| alloc.free(f);
 
-    // Print out test suite name
-    var args = try std.process.argsWithAllocator(alloc);
-    defer args.deinit();
-
-    _ = args.skip();
-    const name = args.next().?;
-
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const out = bw.writer();
 
     fmt(out.any(), "\r\x1b[0K", .{}); // beginning of line and clear to end of line
-    wstatus(out.any(), .skip, "Running test suite: {s}\n", .{name[8..]});
 
     var pass: usize = 0;
     var fail: usize = 0;
