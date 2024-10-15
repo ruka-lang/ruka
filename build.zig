@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
         .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .test_runner = b.path("tests/test_runner.zig"),
+        .test_runner = b.path("runners/test.zig"),
         .optimize = optimize,
     });
 
