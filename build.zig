@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
+const ruka_version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "10-13-2024";
 const description = "Build tool/Package manager for the Ruka Programming Language";
 
@@ -76,28 +76,47 @@ pub fn build(b: *std.Build) void {
 }
 
 fn getVersion(b: *std.Build) std.SemanticVersion {
-    if (version.pre == null and version.build == null) return version;
+    if (ruka_version.pre == null and ruka_version.build == null) return ruka_version;
 
     var code: u8 = undefined;
-    const sha_untrimmed = b.runAllowFail(&.{
-        "git", "rev-parse", "--short", "HEAD"
-    }, &code, .Ignore) catch return version;
+    const git_describe_untrimmed = b.runAllowFail(
+        &.{ "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags" },
+        &code,
+        .Ignore,
+    ) catch return ruka_version;
 
-    const sha = std.mem.trim(u8, sha_untrimmed, " \n\r");
+    const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
 
-    const commit_height_untrimmed = b.runAllowFail(&.{
-        "git", "rev-list", "HEAD", "--count"
-    }, &code, .Ignore) catch return version;
+    switch (std.mem.count(u8, git_describe, "-")) {
+        0 => {
+            // Tagged release ruka_version (e.g. 0.10.0).
+            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{ruka_version}))); // tagged release must match ruka_version string
+            return ruka_version;
+        },
+        2 => {
+            // Untagged development build (e.g. 0.10.0-dev.216+34ce200).
+            var it = std.mem.splitScalar(u8, git_describe, '-');
+            const tagged_ancestor = it.first();
+            const commit_height = it.next().?;
+            const commit_id = it.next().?;
 
-    const commit_height = std.mem.trim(u8, commit_height_untrimmed, " \n\r");
+            const ancestor_ver = std.SemanticVersion.parse(tagged_ancestor) catch unreachable;
+            std.debug.assert(ruka_version.order(ancestor_ver) == .gt); // ZLS ruka_version must be greater than its previous ruka_version
+            std.debug.assert(std.mem.startsWith(u8, commit_id, "g")); // commit hash is prefixed with a 'g'
 
-    return std.SemanticVersion {
-        .major = version.major,
-        .minor = version.minor,
-        .patch = version.patch,
-        .pre = b.fmt("dev.{s}", .{commit_height}),
-        .build = sha
-    };
+            return std.SemanticVersion{
+                .major = ruka_version.major,
+                .minor = ruka_version.minor,
+                .patch = ruka_version.patch,
+                .pre = b.fmt("dev.{s}", .{commit_height}),
+                .build = commit_id[1..],
+            };
+        },
+        else => {
+            std.debug.print("Unexpected 'git describe' output: '{s}'\n", .{git_describe});
+            std.process.exit(1);
+        },
+    }
 }
 
 fn getDate(b: *std.Build) []const u8 {
