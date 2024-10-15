@@ -51,11 +51,11 @@ pub const epoch_unix = Chrono {
     .timezone = .UTC
 };
 
-pub fn initEpoch() Chrono {
+pub fn Epoch() Chrono {
     return epoch_unix;
 }
 
-pub fn init(timezone: Timezone) Chrono {
+pub fn now(timezone: Timezone) Chrono {
     var chrono = epoch_unix;
     chrono.timezone = timezone;
 
@@ -212,26 +212,13 @@ pub const Month = enum(u8) {
 
     pub fn getDaysPerMonth(self: Month, year: i64) i16 {
         if (isLeapYear(year) and self == .february) {
-            return daysPerMonth.get(self.toString()).? + 1;
+            return daysPerMonth[@intFromEnum(self)] + 1;
         } else {
-            return daysPerMonth.get(self.toString()).?;
+            return daysPerMonth[@intFromEnum(self)];
         }
     }
 
-    pub const daysPerMonth = std.StaticStringMap(i16).initComptime(.{
-        .{"january", 31},
-        .{"february", 28}, //29 on a leap year
-        .{"march", 31},
-        .{"april", 30},
-        .{"may", 31},
-        .{"june", 30},
-        .{"july", 31},
-        .{"august", 31},
-        .{"september", 30},
-        .{"october", 31},
-        .{"november", 30},
-        .{"december", 31}
-    });
+    pub const daysPerMonth = [12]i16{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 };
 
 test "test chrono module" {
