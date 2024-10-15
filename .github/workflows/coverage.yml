@@ -6,8 +6,7 @@ on:
 
 jobs:
   coverage:
-    strategy:
-      fail-fast: false
+    if: github.repository_owner == 'ruka-lang'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +15,7 @@ jobs:
         run: sudo apt install -y kcov
 
       - name: Generate Coverage
-        run: zig build coverage
+        run: zig build coverage --summary all
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
@@ -24,3 +23,4 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: zig-out/coverage/kcov-merged
           fail_ci_if_error: true
+          verbose: true
