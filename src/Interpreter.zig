@@ -1,10 +1,10 @@
 // @author: ruka-lang
 // @created: 2024-10-12
 
-const libruka = @import("ruka").prelude;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+
+const ruka = @import("prelude.zig");
 
 allocator: Allocator,
 
@@ -25,7 +25,7 @@ pub fn deinit(self: *Interpreter) void {
     self.allocator.destroy(self);
 }
 
-test "test all interpreter modules" {
+test "interpreter modules" {
     _ = tests;
 }
 

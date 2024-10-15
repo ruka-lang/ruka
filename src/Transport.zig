@@ -81,7 +81,7 @@ pub fn write(self: *Transport, msg: []const u8) !void {
     defer self.mutex.unlock();
 
     _ = try self.bw.?.writer().write(msg);
-    try self.bw.flush();
+    try self.bw.?.flush();
 }
 
 pub fn writeAll(self: *Transport, msg: []const u8) !void {
@@ -114,23 +114,7 @@ pub fn printNoFlush(self: *Transport, comptime msg: []const u8, args: anytype) !
     try self.bw.?.writer().print(msg, args);
 }
 
-pub fn writeStderr(self: *Transport, msg: []const u8) !void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
-    const stderr = std.io.getStdErr();
-    _ = try stderr.writer().write(msg);
-}
-
-pub fn printStderr(self: *Transport, comptime msg: []const u8, args: anytype) !void {
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
-    const stderr = std.io.getStdErr();
-    try stderr.writer().print(msg, args);
-}
-
-test "test all transport modules" {
+test "transport modules" {
     _ = tests;
 }
 

@@ -1,11 +1,11 @@
 // @author: ruka-lang
 // @created: 2024-09-12
 
-const libruka = @import("ruka").prelude;
-const Chrono = libruka.Chrono;
-
 const std = @import("std");
 const bufPrint = std.fmt.bufPrint;
+
+const ruka = @import("prelude.zig");
+const Chrono = ruka.Chrono;
 
 pub const options: std.Options = .{
     .log_level = switch (@import("builtin").mode) {
@@ -37,7 +37,7 @@ pub fn init() !void {
     defer logs.close();
 
     // Update to check local timezone
-    const current_time = Chrono.init(.PST);
+    const current_time = Chrono.now(.PST);
 
     const log_file = try bufPrint(path_buffer[512 - 50..], "ruka-{d:4}_{d:02}_{d:02}-{d:02}_{d:02}_{d:02}.log", .{
         @as(u13, @intCast(current_time.year)),
@@ -86,7 +86,7 @@ pub fn log(
     };
 
     // Update to check local timezone
-    const current_time = Chrono.init(.PST);
+    const current_time = Chrono.now(.PST);
 
     const entry = bufPrint(buffer[message.len..], "{d:02}:{d:02}:{d:02} {s}: {s}", .{
         current_time.hour, current_time.minute, current_time.second,

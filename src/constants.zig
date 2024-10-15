@@ -5,7 +5,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 pub const project_options = @import("options");
 
-pub const usage = "usage: ruka [options_display] [subcommand]";
+pub const usage = "usage: ruka [subcommand] [options]";
 pub const subcommands_display =
     \\    subcommands:
     \\        new     : Creates a new project in the current directory
@@ -17,23 +17,21 @@ pub const subcommands_display =
 ;
 
 const options_display =
-    \\    options_display:
-    \\        --cwd   : Changes the directory to a subdirectory of the cwd
-    \\
+    \\    options:
+    \\        --change_dir, -C [subpath] : Changes the directory to a subdirectory of the cwd
 ;
 
 pub const version_str = std.fmt.comptimePrint("{}", .{project_options.version});
 
-pub const help = std.fmt.comptimePrint("ruka {s} (released {s})\n{s}\n\n{s}\n{s}\n{s}", .{
+pub const version = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
     version_str,
-    project_options.version_date,
+    std.mem.trim(u8, project_options.version_date, "'")
+});
+
+pub const help = std.fmt.comptimePrint("{s}{s}\n\n{s}\n{s}\n{s}\n", .{
+    version,
     project_options.description,
     usage,
     subcommands_display,
     options_display
-});
-
-pub const version = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
-    version_str,
-    project_options.version_date,
 });

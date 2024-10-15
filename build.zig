@@ -1,40 +1,30 @@
 const std = @import("std");
-const Chrono = @import("src/Chrono.zig");
 
-const version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
+const ruka_version = std.SemanticVersion{ .major = 0, .minor = 1, .patch = 0, .pre = "dev" };
 const version_date = "10-13-2024";
-const description = "Compiler for the Ruka Programming Language";
+const description = "Build tool/Package manager for the Ruka Programming Language";
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const root = b.addStaticLibrary(.{
-        .name = "ruka",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-
-    const exe = b.addExecutable(.{
+    const bin = b.addExecutable(.{
         .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize
     });
 
-    exe.root_module.addImport("ruka", &root.root_module);
-
-    b.installArtifact(exe);
+    b.installArtifact(bin);
 
     var options = b.addOptions();
     options.addOption(std.SemanticVersion, "version", getVersion(b));
     options.addOption([]const u8, "version_date", getDate(b));
     options.addOption([]const u8, "description", description);
-    exe.root_module.addOptions("options", options);
+    bin.root_module.addOptions("options", options);
 
-    const run_cmd = b.addRunArtifact(exe);
+    const run_cmd = b.addRunArtifact(bin);
 
     run_cmd.step.dependOn(b.getInstallStep());
 
@@ -46,14 +36,6 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Tests
-    const lib_unit_tests = b.addTest(.{
-        .name = "lib_test",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .test_runner = b.path("tests/test_runner.zig"),
-        .optimize = optimize,
-    });
-
     const bin_unit_tests = b.addTest(.{
         .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
@@ -61,97 +43,84 @@ pub fn build(b: *std.Build) void {
         .test_runner = b.path("tests/test_runner.zig"),
         .optimize = optimize,
     });
-    bin_unit_tests.root_module.addImport("ruka", &root.root_module);
-
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-    run_lib_unit_tests.addArg("--suite lib");
 
     const run_bin_unit_tests = b.addRunArtifact(bin_unit_tests);
     run_bin_unit_tests.addArg("--suite bin");
 
     const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_bin_unit_tests.step);
 
-    // Coverage
-    const lib_test_coverage = b.addTest(.{
-        .name = "lib_test",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-
-    const bin_test_coverage = b.addTest(.{
-        .name = "bin_test",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-    bin_test_coverage.root_module.addImport("ruka", &root.root_module);
-
-    var buf: [4096]u8 = undefined;
-    const cwd = std.posix.getcwd(&buf) catch |err| {
-        std.debug.print("{}\n", .{err});
-        return;
-    };
-    const include = std.fmt.bufPrint(
-        buf[cwd.len..],
-        "--include-path={s}",
-        .{cwd}
-    ) catch |err| {
-        std.debug.print("{}\n", .{err});
-        return;
-    };
-
-    lib_test_coverage.setExecCmd(&.{
-        "kcov",
-        include,
-        "zig-out/coverage",
-        null
-    });
-
-    bin_test_coverage.setExecCmd(&.{
-        "kcov",
-        include,
-        "zig-out/coverage",
-        null
-    });
-
-    const run_lib_test_coverage = b.addRunArtifact(lib_test_coverage);
-    const run_bin_test_coverage = b.addRunArtifact(bin_test_coverage);
-
     const coverage_step = b.step("coverage", "Generate test coverage");
-    coverage_step.dependOn(&run_lib_test_coverage.step);
-    coverage_step.dependOn(&run_bin_test_coverage.step);
+
+    const merge_step = std.Build.Step.Run.create(b, "merge coverage");
+    merge_step.addArgs(&.{ "kcov", "--merge" });
+    merge_step.rename_step_with_output_arg = false;
+    const merged_coverage_output = merge_step.addOutputFileArg(".");
+
+    // Bin test coverage
+    {
+        const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
+        kcov_collect.addArgs(&.{ "kcov", "--collect-only" });
+        kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
+        merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
+        kcov_collect.addArtifactArg(bin_unit_tests);
+        kcov_collect.enableTestRunnerMode();
+    }
+
+    const install_coverage = b.addInstallDirectory(.{
+        .source_dir = merged_coverage_output,
+        .install_dir = .{ .custom = "coverage" },
+        .install_subdir = ""
+    });
+    coverage_step.dependOn(&install_coverage.step);
 }
 
 fn getVersion(b: *std.Build) std.SemanticVersion {
-    if (version.pre == null and version.build == null) return version;
+    if (ruka_version.pre == null and ruka_version.build == null) return ruka_version;
 
-    var code: u8 = undefined; 
-    const git_describe_untrimmed = b.runAllowFail(&.{
-        "git", "rev-parse", "--short", "HEAD"
-    }, &code, .Ignore) catch return version;
+    var code: u8 = undefined;
+    const git_describe_untrimmed = b.runAllowFail(
+        &.{ "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags" },
+        &code,
+        .Ignore,
+    ) catch return ruka_version;
 
     const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
 
-    const commit_height_untrimmed = b.runAllowFail(&.{
-        "git", "rev-list", "HEAD", "--count"
-    }, &code, .Ignore) catch return version;
+    switch (std.mem.count(u8, git_describe, "-")) {
+        0 => {
+            // Tagged release ruka_version (e.g. 0.10.0).
+            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{ruka_version}))); // tagged release must match ruka_version string
+            return ruka_version;
+        },
+        2 => {
+            // Untagged development build (e.g. 0.10.0-dev.216+34ce200).
+            var it = std.mem.splitScalar(u8, git_describe, '-');
+            const tagged_ancestor = it.first();
+            const commit_height = it.next().?;
+            const commit_id = it.next().?;
 
-    const commit_height = std.mem.trim(u8, commit_height_untrimmed, " \n\r");
+            const ancestor_ver = std.SemanticVersion.parse(tagged_ancestor) catch unreachable;
+            std.debug.assert(ruka_version.order(ancestor_ver) == .gt); // ZLS ruka_version must be greater than its previous ruka_version
+            std.debug.assert(std.mem.startsWith(u8, commit_id, "g")); // commit hash is prefixed with a 'g'
 
-    return std.SemanticVersion {
-        .major = version.major,
-        .minor = version.minor,
-        .patch = version.patch,
-        .pre = b.fmt("dev.{s}", .{commit_height}),
-        .build = git_describe
-    };
+            return std.SemanticVersion{
+                .major = ruka_version.major,
+                .minor = ruka_version.minor,
+                .patch = ruka_version.patch,
+                .pre = b.fmt("dev.{s}", .{commit_height}),
+                .build = commit_id[1..],
+            };
+        },
+        else => {
+            std.debug.print("Unexpected 'git describe' output: '{s}'\n", .{git_describe});
+            std.process.exit(1);
+        },
+    }
 }
 
 fn getDate(b: *std.Build) []const u8 {
-    var code: u8 = undefined; 
+    var code: u8 = undefined;
     const date_untrimmed = b.runAllowFail(&.{
         "date", "+'%m/%d/%Y'"
     }, &code, .Ignore) catch return version_date;

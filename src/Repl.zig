@@ -1,23 +1,20 @@
 // @author: ruka-lang
 // @created: 2024-10-10
 
-const libruka = @import("ruka").prelude;
-const Ruka = @import("../Ruka.zig");
-const Transport = libruka.Transport;
-
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyWriter = std.io.AnyWriter;
 const Termios = std.posix.termios;
 const builtin = @import("builtin");
 
+const ruka = @import("prelude.zig");
+const Transport = ruka.Transport;
+
 original: Termios = undefined,
 raw: Termios = undefined,
 
 utf8_supported: bool,
 status: enum {uninitialized, initialized, running, exiting_success, exiting_failure},
-
-interface: *Ruka,
 
 allocator: Allocator,
 
@@ -27,7 +24,7 @@ var transport: *Transport = undefined;
 var size: Size = undefined;
 var position: Position = undefined;
 
-pub fn init(interface: *Ruka, allocator: Allocator) !*Repl {
+pub fn init(allocator: Allocator) !*Repl {
     const terminal = try allocator.create(Repl);
     errdefer allocator.destroy(terminal);
 
@@ -40,8 +37,7 @@ pub fn init(interface: *Ruka, allocator: Allocator) !*Repl {
         .raw = undefined,
         .utf8_supported = try is_utf8_supported(),
         .status = .uninitialized,
-        .interface = interface,
-        .allocator = allocator,
+        .allocator = allocator
     };
 
     try terminal.tty_setup();
@@ -331,3 +327,11 @@ fn is_utf8_supported() !bool {
 
     return std.mem.containsAtLeast(u8, &lang, 1, "utf-8");
 }
+
+test "repl modules" {
+    _ = tests;
+}
+
+const tests = struct {
+
+};
