@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
         .name = "bin_test",
         .root_source_file = b.path("src/main.zig"),
         .target = target,
-        .test_runner = b.path("tests/test_runner.zig"),
+        .test_runner = b.path("runners/test.zig"),
         .optimize = optimize,
     });
 
@@ -57,10 +57,9 @@ pub fn build(b: *std.Build) void {
     merge_step.rename_step_with_output_arg = false;
     const merged_coverage_output = merge_step.addOutputFileArg(".");
 
-    // Bin test coverage
     {
         const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
-        kcov_collect.addArgs(&.{ "kcov", "--collect-only" });
+        kcov_collect.addArgs(&.{ "kcov" });
         kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
         merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
         kcov_collect.addArtifactArg(bin_unit_tests);
