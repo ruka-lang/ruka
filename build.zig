@@ -72,67 +72,50 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_bin_unit_tests.step);
 
-    // Coverage
-    const lib_test_coverage = b.addTest(.{
-        .name = "lib_test",
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-
-    const bin_test_coverage = b.addTest(.{
-        .name = "bin_test",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize
-    });
-    bin_test_coverage.root_module.addImport("ruka", &root.root_module);
-
-    var buf: [4096]u8 = undefined;
-    const cwd = std.posix.getcwd(&buf) catch |err| {
-        std.debug.print("{}\n", .{err});
-        return;
-    };
-    const include = std.fmt.bufPrint(
-        buf[cwd.len..],
-        "--include-path={s}",
-        .{cwd}
-    ) catch |err| {
-        std.debug.print("{}\n", .{err});
-        return;
-    };
-
-    lib_test_coverage.setExecCmd(&.{
-        "kcov",
-        include,
-        "zig-out/coverage",
-        null
-    });
-
-    bin_test_coverage.setExecCmd(&.{
-        "kcov",
-        include,
-        "zig-out/coverage",
-        null
-    });
-
-    const run_lib_test_coverage = b.addRunArtifact(lib_test_coverage);
-    const run_bin_test_coverage = b.addRunArtifact(bin_test_coverage);
-
     const coverage_step = b.step("coverage", "Generate test coverage");
-    coverage_step.dependOn(&run_lib_test_coverage.step);
-    coverage_step.dependOn(&run_bin_test_coverage.step);
+
+    const merge_step = std.Build.Step.Run.create(b, "merge coverage");
+    merge_step.addArgs(&.{ "kcov", "--merge" });
+    merge_step.rename_step_with_output_arg = false;
+    const merged_coverage_output = merge_step.addOutputFileArg(".");
+
+    // Lib test coverage
+    {
+        const kcov_collect = std.Build.Step.Run.create(b, "collect lib coverage");
+        kcov_collect.addArgs(&.{ "kcov", "--collect-only" });
+        kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
+        merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(lib_unit_tests.name));
+        kcov_collect.addArtifactArg(lib_unit_tests);
+        kcov_collect.enableTestRunnerMode();
+    }
+
+    // Bin test coverage
+    {
+        const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
+        kcov_collect.addArgs(&.{ "kcov", "--collect-only" });
+        kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
+        merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
+        kcov_collect.addArtifactArg(bin_unit_tests);
+        kcov_collect.enableTestRunnerMode();
+    }
+
+    const install_coverage = b.addInstallDirectory(.{
+        .source_dir = merged_coverage_output,
+        .install_dir = .{ .custom = "coverage" },
+        .install_subdir = ""
+    });
+    coverage_step.dependOn(&install_coverage.step);
 }
 
 fn getVersion(b: *std.Build) std.SemanticVersion {
     if (version.pre == null and version.build == null) return version;
 
     var code: u8 = undefined;
-    const git_describe_untrimmed = b.runAllowFail(&.{
+    const sha_untrimmed = b.runAllowFail(&.{
         "git", "rev-parse", "--short", "HEAD"
     }, &code, .Ignore) catch return version;
 
-    const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
+    const sha = std.mem.trim(u8, sha_untrimmed, " \n\r");
 
     const commit_height_untrimmed = b.runAllowFail(&.{
         "git", "rev-list", "HEAD", "--count"
@@ -145,7 +128,7 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
         .minor = version.minor,
         .patch = version.patch,
         .pre = b.fmt("dev.{s}", .{commit_height}),
-        .build = git_describe
+        .build = sha
     };
 }
 
