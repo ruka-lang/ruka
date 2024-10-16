@@ -35,15 +35,15 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Tests
-    const bin_unit_tests = b.addTest(.{
-        .name = "bin_test",
-        .root_source_file = b.path("src/main.zig"),
+    const ruka_unit_tests = b.addTest(.{
+        .name = "ruka_test",
+        .root_source_file = b.path("src/prelude.zig"),
         .target = target,
         .test_runner = b.path("runners/test.zig"),
         .optimize = optimize,
     });
 
-    const run_bin_unit_tests = b.addRunArtifact(bin_unit_tests);
+    const run_bin_unit_tests = b.addRunArtifact(ruka_unit_tests);
     run_bin_unit_tests.addArg("--suite bin");
 
     const test_step = b.step("test", "Run unit tests");
@@ -60,8 +60,8 @@ pub fn build(b: *std.Build) void {
     const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
     kcov_collect.addArgs(&.{ "kcov" });
     kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
-    merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
-    kcov_collect.addArtifactArg(bin_unit_tests);
+    merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(ruka_unit_tests.name));
+    kcov_collect.addArtifactArg(ruka_unit_tests);
     kcov_collect.enableTestRunnerMode();
 
     const install_coverage = b.addInstallDirectory(.{
