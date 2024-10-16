@@ -6,9 +6,9 @@ const description = "Build tool/Package manager for the Ruka Programming Languag
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-
     const optimize = b.standardOptimizeOption(.{});
 
+    // Binary
     const bin = b.addExecutable(.{
         .name = "ruka",
         .root_source_file = b.path("src/main.zig"),
@@ -19,13 +19,12 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(bin);
 
     var options = b.addOptions();
-    options.addOption(std.SemanticVersion, "version", getVersion(b));
-    options.addOption([]const u8, "version_date", getDate(b));
+    options.addOption(std.SemanticVersion, "semver", getVersion(b));
+    options.addOption([]const u8, "build_date", getDate(b));
     options.addOption([]const u8, "description", description);
     bin.root_module.addOptions("options", options);
 
     const run_cmd = b.addRunArtifact(bin);
-
     run_cmd.step.dependOn(b.getInstallStep());
 
     if (b.args) |args| {
@@ -50,6 +49,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_bin_unit_tests.step);
 
+    // Coverage
     const coverage_step = b.step("coverage", "Generate test coverage");
 
     const merge_step = std.Build.Step.Run.create(b, "merge coverage");
@@ -57,14 +57,12 @@ pub fn build(b: *std.Build) void {
     merge_step.rename_step_with_output_arg = false;
     const merged_coverage_output = merge_step.addOutputFileArg(".");
 
-    {
-        const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
-        kcov_collect.addArgs(&.{ "kcov" });
-        kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
-        merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
-        kcov_collect.addArtifactArg(bin_unit_tests);
-        kcov_collect.enableTestRunnerMode();
-    }
+    const kcov_collect = std.Build.Step.Run.create(b, "collect bin coverage");
+    kcov_collect.addArgs(&.{ "kcov" });
+    kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
+    merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(bin_unit_tests.name));
+    kcov_collect.addArtifactArg(bin_unit_tests);
+    kcov_collect.enableTestRunnerMode();
 
     const install_coverage = b.addInstallDirectory(.{
         .source_dir = merged_coverage_output,
@@ -88,8 +86,8 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
 
     switch (std.mem.count(u8, git_describe, "-")) {
         0 => {
-            // Tagged release ruka_version (e.g. 0.10.0).
-            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{ruka_version}))); // tagged release must match ruka_version string
+            // Tagged release (e.g. 0.1.0).
+            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{ruka_version})));
             return ruka_version;
         },
         2 => {
@@ -100,8 +98,8 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
             const commit_id = it.next().?;
 
             const ancestor_ver = std.SemanticVersion.parse(tagged_ancestor) catch unreachable;
-            std.debug.assert(ruka_version.order(ancestor_ver) == .gt); // ZLS ruka_version must be greater than its previous ruka_version
-            std.debug.assert(std.mem.startsWith(u8, commit_id, "g")); // commit hash is prefixed with a 'g'
+            std.debug.assert(ruka_version.order(ancestor_ver) == .gt);
+            std.debug.assert(std.mem.startsWith(u8, commit_id, "g"));
 
             return std.SemanticVersion{
                 .major = ruka_version.major,
