@@ -101,7 +101,3 @@ fn startRepl(allocator: Allocator) !void {
 
     try repl.run();
 }
-
-test "ruka modules" {
-    _ = ruka;
-}

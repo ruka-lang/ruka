@@ -141,11 +141,3 @@ pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
 pub fn getOption(self: *ArgumentParser) ?Option {
     return self.options.readItem();
 }
-
-test "argumentParser" {
-    _ = tests;
-}
-
-const tests = struct {
-
-};

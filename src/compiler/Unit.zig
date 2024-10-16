@@ -85,11 +85,3 @@ pub fn compile(self: *Unit) !*Parser {
 
     return parser;
 }
-
-test "unit modules" {
-    _ = tests;
-}
-
-const tests = struct {
-
-};

@@ -92,39 +92,3 @@ pub const Node = struct {
 //        else => return
 //    }
 //}
-
-test "ast" {
-    _ = tests;
-}
-
-const tests = struct {
-    //const testing = std.testing;
-
-    //test "ast initialization and deinitialization" {
-    //    const allocator = std.testing.allocator;
-
-    //    const keyword: Token = .init(.{ .keyword = .@"if" }, "test", .init(0, 0));
-    //    const condition: Token = .init(try .initIdentifier("x", allocator), "test", .init(0, 0));
-    //    const consequence: Token = .init(try .initInteger("12", allocator), "test", .init(0, 0));
-    //    const alternative: Token = .init(try .initInteger("13", allocator), "test", .init(0, 0));
-
-    //    const root = try allocator.create(Node);
-    //    root.* = .{
-    //        .kind = .@"if",
-    //        .token = keyword,
-    //        .rhs = null,
-    //        .lhs = null,
-    //        .allocator = allocator
-    //    };
-
-    //    _ = try root.addLeft(.identifier, condition);
-    //    const c = try root.addRight(.integer, consequence);
-    //    _ = try c.addRight(.integer, alternative);
-
-    //    var buf: [4096]u8 = undefined;
-    //    var stream = std.io.fixedBufferStream(&buf);
-    //    try program.write(stream.writer().any());
-
-    //    std.debug.print("{s}\n", .{buf[0..stream.pos]});
-    //}
-};

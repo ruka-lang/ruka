@@ -27,7 +27,7 @@ pub const Keyword = Token.Keyword;
 pub const Mode = Token.Mode;
 
 pub const Parser = @import("Parser.zig");
-pub const Ast = Parser.ast;
+pub const Ast = Parser.Ast;
 pub const Index = Ast.Index;
 pub const Node = Ast.Node;
 

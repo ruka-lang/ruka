@@ -462,17 +462,11 @@ comptime {
     }
 }
 
-test "token" {
-    _ = tests;
+test "mode comparision" {
+    const testing = std.testing;
+
+    const mode: Kind = .{ .mode = .mut };
+    const mode2 = Kind.tryMode("mut").?;
+
+    try testing.expectEqual(mode.mode, mode2.mode);
 }
-
-const tests = struct {
-    test "mode comparision" {
-        const testing = std.testing;
-
-        const mode: Kind = .{ .mode = .mut };
-        const mode2 = Kind.tryMode("mut").?;
-
-        try testing.expectEqual(mode.mode, mode2.mode);
-    }
-};

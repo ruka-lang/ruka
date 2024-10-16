@@ -113,11 +113,3 @@ pub fn printNoFlush(self: *Transport, comptime msg: []const u8, args: anytype) !
 
     try self.bw.?.writer().print(msg, args);
 }
-
-test "transport modules" {
-    _ = tests;
-}
-
-const tests = struct {
-
-};

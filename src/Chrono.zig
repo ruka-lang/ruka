@@ -217,50 +217,42 @@ pub const Month = enum(u8) {
     pub const daysPerMonth = [12]i16{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 };
 
-test "chrono" {
-    _ = tests;
+test "utc time after a trillion milliseconds" {
+    const testing = std.testing;
+    var chrono: Chrono = .epoch_unix;
+
+    const milliseconds: i64 = 1_000_000_000_000;
+
+    chrono.calculateDate(milliseconds);
+    chrono.calculateTime(milliseconds);
+
+    try testing.expectEqual(.UTC, chrono.timezone);
+    try testing.expectEqual(1, chrono.hour);
+    try testing.expectEqual(46, chrono.minute);
+    try testing.expectEqual(40, chrono.second);
+    try testing.expectEqual(0, chrono.millisecond);
+    try testing.expectEqual(9, chrono.day);
+    try testing.expectEqual(.sunday, chrono.weekday);
+    try testing.expectEqual(.september, chrono.month);
+    try testing.expectEqual(2001, chrono.year);
 }
 
-const tests = struct {
+test "utc time after a ten trillion milliseconds" {
     const testing = std.testing;
-    const expectEq = testing.expectEqual;
-    const allocator = testing.allocator;
+    var chrono: Chrono = .epoch_unix;
 
-    test "utc time after a trillion milliseconds" {
-        var chrono: Chrono = .epoch_unix;
+    const milliseconds: i64 = 10_000_000_000_000;
 
-        const milliseconds: i64 = 1_000_000_000_000;
+    chrono.calculateDate(milliseconds);
+    chrono.calculateTime(milliseconds);
 
-        chrono.calculateDate(milliseconds);
-        chrono.calculateTime(milliseconds);
-
-        try expectEq(.UTC, chrono.timezone);
-        try expectEq(1, chrono.hour);
-        try expectEq(46, chrono.minute);
-        try expectEq(40, chrono.second);
-        try expectEq(0, chrono.millisecond);
-        try expectEq(9, chrono.day);
-        try expectEq(.sunday, chrono.weekday);
-        try expectEq(.september, chrono.month);
-        try expectEq(2001, chrono.year);
-    }
-
-    test "utc time after a ten trillion milliseconds" {
-        var chrono: Chrono = .epoch_unix;
-
-        const milliseconds: i64 = 10_000_000_000_000;
-
-        chrono.calculateDate(milliseconds);
-        chrono.calculateTime(milliseconds);
-
-        try expectEq(.UTC, chrono.timezone);
-        try expectEq(17, chrono.hour);
-        try expectEq(46, chrono.minute);
-        try expectEq(40, chrono.second);
-        try expectEq(0, chrono.millisecond);
-        try expectEq(20, chrono.day);
-        try expectEq(.saturday, chrono.weekday);
-        try expectEq(.november, chrono.month);
-        try expectEq(2286, chrono.year);
-    }
-};
+    try testing.expectEqual(.UTC, chrono.timezone);
+    try testing.expectEqual(17, chrono.hour);
+    try testing.expectEqual(46, chrono.minute);
+    try testing.expectEqual(40, chrono.second);
+    try testing.expectEqual(0, chrono.millisecond);
+    try testing.expectEqual(20, chrono.day);
+    try testing.expectEqual(.saturday, chrono.weekday);
+    try testing.expectEqual(.november, chrono.month);
+    try testing.expectEqual(2286, chrono.year);
+}

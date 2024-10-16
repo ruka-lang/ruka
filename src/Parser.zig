@@ -109,7 +109,7 @@ fn createBinding(self: *Parser) !void {
     _ = self;
 }
 
-test "parser modules" {
+test "Parser modules" {
     _ = tests;
     _ = Ast;
 }

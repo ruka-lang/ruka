@@ -56,10 +56,13 @@ pub fn main() !void {
         }
 
         const test_name = t.name[0..];
-        // Print out test name more clearly, maybe with coloring
-        //var name_iter = std.mem.splitAny(u8, test_name, ".");
-        //_ = name_iter.next();
-        fmt(out.any(), "Testing {s}: ", .{test_name});
+
+        const pass_one = try std.mem.replaceOwned(u8, alloc, test_name, ".tests", "");
+        defer alloc.free(pass_one);
+        const pass_two = try std.mem.replaceOwned(u8, alloc, pass_one, ".test", "");
+        defer alloc.free(pass_two);
+
+        fmt(out.any(), "{s}: ", .{pass_two});
         const result = t.func();
 
         if (std.testing.allocator_instance.deinit() == .leak) {
