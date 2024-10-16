@@ -35,7 +35,7 @@ pub const Kind = union(enum) {
     identifier: ArrayList(u8),
     @"enum": ArrayList(u8),
     string: ArrayList(u8),
-    character: u8,
+    character: ArrayList(u8),
     integer: ArrayList(u8),
     float: ArrayList(u8),
     keyword: Keyword,
@@ -126,6 +126,15 @@ pub const Kind = union(enum) {
         };
     }
 
+    pub fn initCharacter(source: []const u8, allocator: Allocator) !Kind {
+        var character = ArrayList(u8).init(allocator);
+        try character.appendSlice(source);
+
+        return Kind {
+            .character = character
+        };
+    }
+
     pub fn initInteger(source: []const u8, allocator: Allocator) !Kind {
         var integer = ArrayList(u8).init(allocator);
         try integer.appendSlice(source);
@@ -196,6 +205,7 @@ pub const Kind = union(enum) {
             .identifier   => |id| id.deinit(),
             .@"enum"      => |en| en.deinit(),
             .string       => |st| st.deinit(),
+            .character    => |ch| ch.deinit(),
             .integer      => |in| in.deinit(),
             .float        => |fl| fl.deinit(),
             else => {}
@@ -203,13 +213,13 @@ pub const Kind = union(enum) {
     }
 
     // Converts a Kind into a string slice
-    pub fn toStr(self: *const Kind, allocator: Allocator) ![]const u8 {
+    pub fn toStr(self: *const Kind) ?[]const u8 {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
             .@"enum"      => |en| en.items,
             .string       => |st| st.items,
-            .character    => |ch| try self.charToString(ch, allocator),
+            .character    => |ch| ch.items,
             .integer      => |in| in.items,
             .float        => |fl| fl.items,
             .keyword      => |ke| ke.toStr(),
@@ -273,12 +283,6 @@ pub const Kind = union(enum) {
             .illegal      => "ILLEGAL",
             .eof          => "EOF"
         };
-    }
-
-    fn charToString(_: *const Kind, ch: u8, allocator: Allocator) ![]const u8 {
-        var str = try allocator.alloc(u8, 1);
-        str[0] = ch;
-        return str[0..];
     }
 
     /// Tries to create a keyword Kind from a string slice

@@ -240,6 +240,11 @@ fn parseFile(
     const parsed = try unit.compile();
     errdefer parsed.deinit();
 
+    for (parsed.node_soa.items(.kind)) |kind| {
+        std.debug.print("{}\n", .{kind});
+
+    }
+
     self.mutex.lock();
     defer self.mutex.unlock();
 

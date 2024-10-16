@@ -279,6 +279,7 @@ fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
         return try self.createError("unterminated escape character");
     }
 
+    // TODO: cant do this with buffer as error message will go out of scope immediately
     var buf: [40]u8 = undefined;
     try self.createError(try std.fmt.bufPrint(&buf,
         "unrecognized escape character: //{}",
@@ -352,7 +353,7 @@ fn readCharacterEnum(self: *Scanner) !Token {
     }
 
     self.advance(2);
-    return self.createToken(.{ .character = string.items[0] });
+    return self.createToken(.{ .character = string });
 }
 
 fn readEnumLiteral(self: *Scanner) !Token {
@@ -613,7 +614,7 @@ const tests = struct {
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .character => |e_character| switch (actual_token.kind) {
-                .character => |a_character| try expectEqual(e_character, a_character),
+                .character => |a_character| try expectEqualStrings(e_character.items, a_character.items),
                 else => try expectEqual(expected_token.kind, actual_token.kind)
             },
             .integer => |e_integer| switch (actual_token.kind) {
@@ -678,7 +679,7 @@ const tests = struct {
             .init(.assign, "test source", .init(1, 7)),
             .init(try .initInteger("12_000", allocator), "test source", .init(1, 9)),
             .init(try .initFloat("12_000.50", allocator), "test source", .init(1, 16)),
-            .init(.{ .character = '\n' }, "test source", .init(1, 26)),
+            .init(try .initCharacter("\n", allocator), "test source", .init(1, 26)),
             .init(.eof, "test source", .init(1, 30)),
         };
 
@@ -830,7 +831,7 @@ const tests = struct {
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
             .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(.{ .character = '\n' }, "test source", .init(1, 9)),
+            .init(try .initCharacter("\n", allocator), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 13)),
         };
 
@@ -859,7 +860,7 @@ const tests = struct {
             .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
             .init(.lsquirly, "test source", .init(1, 9)),
-            .init(.{ .character = 'b' }, "test source", .init(1, 10)),
+            .init(try .initCharacter("b", allocator), "test source", .init(1, 10)),
             .init(.comma, "test source", .init(1, 13)),
             .init(try .initEnum("a", allocator), "test source", .init(1, 15)),
             .init(.comma, "test source", .init(1, 17)),
