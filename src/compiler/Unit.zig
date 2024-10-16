@@ -74,16 +74,16 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
     });
 }
 
-pub fn compile(self: *Unit) !*Ast {
+pub fn compile(self: *Unit) !*Parser {
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
 
     var parser = try Parser.init(self, scanner);
-    defer parser.deinit();
+    errdefer parser.deinit();
 
-    const ast = try parser.parse();
+    try parser.parse();
 
-    return ast;
+    return parser;
 }
 
 test "unit modules" {

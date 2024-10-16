@@ -60,7 +60,7 @@ fn displayHelp(transport: *Transport) !void {
 }
 
 fn displayVersion(transport: *Transport) !void {
-    try transport.write(constants.version);
+    try transport.write(constants.version_and_date);
 }
 
 fn newProject() !void {

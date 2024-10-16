@@ -12,8 +12,8 @@ const Pool = std.Thread.Pool;
 const WaitGroup = std.Thread.WaitGroup;
 
 const ruka = @import("prelude.zig");
-const Ast = ruka.Ast;
 const Error = ruka.Error;
+const Parser = ruka.Parser;
 const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
 
@@ -21,8 +21,7 @@ cwd: Dir,
 errors: ArrayList(Error),
 transport: *Transport,
 
-root: *Ast,
-unprocessed_asts: ArrayList(*Ast),
+unprocessed_asts: ArrayList(*Parser),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -81,7 +80,6 @@ pub fn init(allocator: Allocator) !*Compiler {
         .errors = .init(allocator),
         .transport = try .init(allocator, stdin.any(), stderr.any()),
 
-        .root = undefined,
         .unprocessed_asts = .init(allocator),
 
         .allocator = allocator,
@@ -109,8 +107,8 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed_asts.items) |ast| {
-        ast.deinit();
+    for (self.unprocessed_asts.items) |parser| {
+        parser.deinit();
     }
     self.unprocessed_asts.deinit();
     self.allocator.destroy(self);
@@ -239,13 +237,13 @@ fn parseFile(
     });
     defer unit.deinit();
 
-    const ast = try unit.compile();
-    errdefer ast.deinit();
+    const parsed = try unit.compile();
+    errdefer parsed.deinit();
 
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    try self.unprocessed_asts.append(ast);
+    try self.unprocessed_asts.append(parsed);
     try self.errors.appendSlice(unit.errors.items);
 }
 

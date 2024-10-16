@@ -279,7 +279,7 @@ fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
         return try self.createError("unterminated escape character");
     }
 
-    var buf = [_]u8{0} ** 40;
+    var buf: [40]u8 = undefined;
     try self.createError(try std.fmt.bufPrint(&buf,
         "unrecognized escape character: //{}",
         .{slice[i + 1]}
