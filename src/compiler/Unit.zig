@@ -74,14 +74,13 @@ pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []cons
     });
 }
 
-pub fn compile(self: *Unit) !*Parser {
+pub fn compile(self: *Unit) !*Ast {
     var scanner = try Scanner.init(self);
     defer scanner.deinit();
 
-    var parser = try Parser.init(self, scanner);
-    errdefer parser.deinit();
+    var parser = try Parser.init(self, scanner, self.allocator);
+    defer parser.deinit();
 
-    try parser.parse();
-
-    return parser;
+    const ast = try parser.parse();
+    return ast;
 }

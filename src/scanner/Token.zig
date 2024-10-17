@@ -213,7 +213,7 @@ pub const Kind = union(enum) {
     }
 
     // Converts a Kind into a string slice
-    pub fn toStr(self: *const Kind) ?[]const u8 {
+    pub fn toStr(self: *const Kind) []const u8 {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,

@@ -5,6 +5,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayList = std.ArrayList;
+const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
 const LinearFifo = std.fifo.LinearFifo;
 const Mutex = std.Thread.Mutex;
@@ -12,6 +13,7 @@ const Pool = std.Thread.Pool;
 const WaitGroup = std.Thread.WaitGroup;
 
 const ruka = @import("prelude.zig");
+const Ast = ruka.Ast;
 const Error = ruka.Error;
 const Parser = ruka.Parser;
 const Scanner = ruka.Scanner;
@@ -21,7 +23,7 @@ cwd: Dir,
 errors: ArrayList(Error),
 transport: *Transport,
 
-unprocessed_asts: ArrayList(*Parser),
+unprocessed: ArrayListUnmanaged(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -72,15 +74,14 @@ pub fn init(allocator: Allocator) !*Compiler {
     const compiler = try allocator.create(Compiler);
     errdefer compiler.deinit();
 
-    const stdin = std.io.getStdIn().reader();
-    const stderr = std.io.getStdErr().writer();
+    const stderr = std.io.getStdErr();
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
         .errors = .init(allocator),
-        .transport = try .init(allocator, stdin.any(), stderr.any()),
+        .transport = try .initWithFile(allocator, stderr),
 
-        .unprocessed_asts = .init(allocator),
+        .unprocessed = .{},
 
         .allocator = allocator,
         .arena = .init(allocator),
@@ -107,10 +108,10 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit();
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed_asts.items) |parser| {
-        parser.deinit();
+    for (self.unprocessed.items) |ast| {
+        ast.deinit();
     }
-    self.unprocessed_asts.deinit();
+    self.unprocessed.deinit(self.allocator);
     self.allocator.destroy(self);
 }
 
@@ -176,8 +177,8 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
                 if (!isProperExtension(item.path)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, item.path, ".");
                     log.err(
-                        "Invalid file extension, expected .ruka, got: .{s}\n",
-                        .{path_iter.first()}
+                        "Invalid file extension, expected .ruka, got: {s}, {s}\n",
+                        .{path_iter.first(), item.path}
                     );
 
                     continue;
@@ -242,22 +243,21 @@ fn parseFile(
 
     for (parsed.node_soa.items(.kind)) |kind| {
         std.debug.print("{}\n", .{kind});
-
     }
 
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    try self.unprocessed_asts.append(parsed);
+    try self.unprocessed.append(self.allocator, parsed);
     try self.errors.appendSlice(unit.errors.items);
 }
 
-fn combineAsts(_: *Compiler) !void {
-    std.debug.print("\ncombining asts\n", .{});
+fn combineAsts(self: *Compiler) !void {
+    try self.transport.print("\ncombining asts\n", .{});
 }
 
-fn checkAstSemantics(_: *Compiler) !void {
-    std.debug.print("\nverifying ast\n", .{});
+fn checkAstSemantics(self: *Compiler) !void {
+    try self.transport.print("\nverifying ast\n", .{});
 }
 
 test "Compiler modules" {

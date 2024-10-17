@@ -2,14 +2,24 @@
 // @created: 2024-04-13
 
 const std = @import("std");
+const Allocator = std.mem.Allocator;
+const ArrayListUnmanaged = std.ArrayListUnmanaged;
+const MultiArrayList = std.MultiArrayList;
 
 const ruka = @import("../prelude.zig");
 const Token = ruka.Token;
 
+node_soa: MultiArrayList(Node),
+extra_data: ArrayListUnmanaged(Index),
+
+allocator: Allocator,
+
+const Ast = @This();
+
 pub const Index = u32;
 pub const Node = struct {
     kind: Kind,
-    token: ?Token,
+    token: Token,
 
     data: struct {
         lhs: Index,
@@ -48,10 +58,38 @@ pub const Node = struct {
         };
     }
 
-    pub fn deinit(self: Node) void {
-        if (self.token) |token| token.deinit();
+    pub fn deinit(self: Node, _: Allocator) void {
+        self.token.deinit();
+        //allocator.destroy(self.token);
     }
 };
+
+pub fn init(allocator: Allocator) !*Ast {
+    const ast = try allocator.create(Ast);
+
+    ast.* = .{
+        .node_soa = .{},
+        .extra_data = .{},
+
+        .allocator = allocator
+    };
+
+    return ast;
+}
+
+pub fn deinit(self: *Ast) void {
+    for (self.node_soa.items(.token)) |token| {
+        token.deinit();
+        //self.allocator.destroy(t);
+    }
+    self.node_soa.deinit(self.allocator);
+    self.extra_data.deinit(self.allocator);
+    self.allocator.destroy(self);
+}
+
+pub fn append(self: *Ast, node: Node) !void {
+    try self.node_soa.append(self.allocator, node);
+}
 
 //pub fn write(self: *Ast, writer: std.io.AnyWriter) !void {
 //    const node = self.root;

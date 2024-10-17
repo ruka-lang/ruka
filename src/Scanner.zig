@@ -326,7 +326,7 @@ fn skipMultiComment(self: *Scanner) !void {
 
 fn readCharacterEnum(self: *Scanner) !Token {
     var string = ArrayList(u8).init(self.unit.allocator);
-    defer string.deinit();
+    errdefer string.deinit();
 
     if (self.peep() != '\'' and self.peek() != '\\') {
         // A character follows the forms "'a'" where a is any single character
