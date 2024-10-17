@@ -37,7 +37,7 @@ pub fn init(unit: *Unit, scanner: *Scanner, allocator: Allocator) !*Parser {
     parser.* = .{
         .current_token = try scanner.nextToken(),
         .peek_token = try scanner.nextToken(),
-        .ast = undefined,
+        .ast = try .init(allocator),
         .errors = .{},
         .scanner = scanner,
         .unit = unit,
@@ -63,7 +63,6 @@ fn advance(self: *Parser) !void {
 }
 
 pub fn parse(self: *Parser) !*Ast {
-    self.ast = try .init(self.allocator);
     errdefer {
         self.ast.deinit();
         self.allocator.destroy(self.ast);
@@ -121,7 +120,7 @@ fn createBinding(self: *Parser) !void {
         // TODO: cant do this with buffer as error message will go out of scope immediately
         var buf: [512]u8 = undefined;
 
-        try self.createError("parsing", 
+        try self.createError("parsing",
             try std.fmt.bufPrint(&buf, "Expected '=', found {s}", .{
                 self.peek_token.kind.toStr()
             })
