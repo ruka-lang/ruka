@@ -248,11 +248,13 @@ fn parseFile(
 }
 
 fn combineAsts(self: *Compiler) !void {
-    try self.transport.print("\ncombining asts\n", .{});
+    _ = self;
+    std.debug.print("\ncombining asts\n", .{});
 }
 
 fn checkAstSemantics(self: *Compiler) !void {
-    try self.transport.print("\nverifying ast\n", .{});
+    _ = self;
+    std.debug.print("\nverifying ast\n", .{});
 }
 
 test "compiler modules" {

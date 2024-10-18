@@ -33,7 +33,7 @@ pub fn main() !void {
     arg_parser.parse() catch |err| {
         switch (err) {
             error.MissingSubcommand => {
-                try transport.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
+                try transport.printFlush("{s}\n{s}\n\nExpected subcommand argument\n", .{
                     constants.usage,
                     constants.subcommands_display
                 });
@@ -56,11 +56,11 @@ pub fn main() !void {
 }
 
 fn displayHelp(transport: *Transport) !void {
-    try transport.write(constants.help);
+    try transport.writeAllFlush(constants.help);
 }
 
 fn displayVersion(transport: *Transport) !void {
-    try transport.write(constants.version_and_date);
+    try transport.writeAllFlush(constants.version_and_date);
 }
 
 fn newProject() !void {
