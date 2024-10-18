@@ -27,7 +27,7 @@ pub fn init(allocator: Allocator) !*Repl {
     errdefer allocator.destroy(terminal);
 
     const stdin = std.io.getStdIn();
-    transport = try Transport.initWithFile(allocator, stdin);
+    transport = try .initFile(allocator, stdin);
     errdefer transport.deinit();
 
     terminal.* = .{

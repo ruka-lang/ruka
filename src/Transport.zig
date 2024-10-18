@@ -35,7 +35,7 @@ pub fn init(allocator: Allocator, reader: ?AnyReader, writer: ?AnyWriter) !*Tran
     return transport;
 }
 
-pub fn initWithFile(allocator: Allocator, file: File) !*Transport {
+pub fn initFile(allocator: Allocator, file: File) !*Transport {
     const transport = try allocator.create(Transport);
 
     transport.* = .{

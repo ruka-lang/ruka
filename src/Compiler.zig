@@ -76,7 +76,7 @@ pub fn init(allocator: Allocator) !*Compiler {
     compiler.* = .{
         .cwd = std.fs.cwd(),
         .errors = .{},
-        .transport = try .initWithFile(allocator, stderr),
+        .transport = try .initFile(allocator, stderr),
         .unprocessed = .{},
         .allocator = allocator,
         .arena = .init(allocator),

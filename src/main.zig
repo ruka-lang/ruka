@@ -21,16 +21,16 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     const stderr = std.io.getStdErr();
-    var transport = try Transport.initWithFile(allocator, stderr);
+    var transport = try Transport.initFile(allocator, stderr);
     defer transport.deinit();
 
     try logging.init();
     std.log.scoped(.bin).info("starting ruka", .{});
 
-    var arg_parser = try ArgumentParser.init(allocator);
-    defer arg_parser.deinit();
+    var args = try ArgumentParser.init(allocator);
+    defer args.deinit();
 
-    arg_parser.parse() catch |err| {
+    args.parse() catch |err| {
         switch (err) {
             error.MissingSubcommand => {
                 try transport.printFlush("{s}\n{s}\n\nExpected subcommand argument\n", .{
@@ -44,9 +44,9 @@ pub fn main() !void {
         }
     };
 
-    switch (arg_parser.getSubcommand().?) {
+    switch (args.getSubcommand().?) {
         .new => try newProject(),
-        .build => try buildProject(arg_parser, allocator),
+        .build => try buildProject(args, allocator),
         .@"test" => try testProject(),
         .run => try runProject(),
         .repl => try startRepl(allocator),
@@ -71,11 +71,11 @@ fn isProperProject() void {
 
 }
 
-fn buildProject(arg_parser: *ArgumentParser, allocator: Allocator) !void {
+fn buildProject(args: *ArgumentParser, allocator: Allocator) !void {
     var compiler = try Compiler.init(allocator);
     defer compiler.deinit();
 
-    if (arg_parser.getOption()) |option| {
+    if (args.getOption()) |option| {
         switch (option) {
             .change_dir => |path| {
                 compiler.cwd = try compiler.cwd.openDir(path, .{});

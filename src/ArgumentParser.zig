@@ -61,7 +61,7 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
     argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
-        .transport = try .initWithFile(allocator, stderr),
+        .transport = try .initFile(allocator, stderr),
         .allocator = allocator
     };
 
