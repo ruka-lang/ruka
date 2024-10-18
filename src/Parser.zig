@@ -3,26 +3,30 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const MultiArrayList = std.MultiArrayList;
+const Mutex = std.Thread.Mutex;
 
 const ruka = @import("prelude.zig");
 const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Token = ruka.Token;
+const Transport = ruka.Transport;
 const Unit = ruka.Unit;
 
-current_token: Token,
-peek_token: Token,
+current_token: ?Token,
+peek_token: ?Token,
 
 ast: *Ast,
-
 errors: ArrayListUnmanaged(Error),
 
+file: []const u8,
 scanner: *Scanner,
-unit: *Unit,
 
 allocator: std.mem.Allocator,
+arena: *ArenaAllocator,
+mutex: *Mutex,
 
 const Parser = @This();
 
@@ -30,35 +34,46 @@ pub const Ast = @import("parser/Ast.zig");
 const Index = Ast.Index;
 const Node = Ast.Node;
 
-pub fn init(unit: *Unit, scanner: *Scanner, allocator: Allocator) !*Parser {
+pub fn init(allocator: Allocator, arena: *ArenaAllocator, mutex: *Mutex, transport: *Transport, file: []const u8) !*Parser {
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
+
+    const scanner = try Scanner.init(allocator, arena, mutex, transport, file);
+    errdefer scanner.deinit();
 
     parser.* = .{
         .current_token = try scanner.nextToken(),
         .peek_token = try scanner.nextToken(),
         .ast = try .init(allocator),
         .errors = .{},
+        .file = file,
         .scanner = scanner,
-        .unit = unit,
-        .allocator = allocator
+        .allocator = allocator,
+        .arena = arena,
+        .mutex = mutex
     };
 
     return parser;
 }
 
 pub fn deinit(self: *Parser) void {
-    self.current_token.deinit();
-    self.peek_token.deinit();
+    self.scanner.deinit();
     self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }
 
 fn advance(self: *Parser) !void {
     const token = self.current_token;
-    defer token.deinit();
+    errdefer if (token) |t| t.deinit();
 
-    self.current_token = self.peek_token;
+    self.current_token = self.peek_token orelse try self.scanner.nextToken();
+    self.peek_token = try self.scanner.nextToken();
+}
+
+fn discard(self: *Parser) !void {
+    if (self.current_token) |token| token.deinit();
+
+    self.current_token = self.peek_token orelse try self.scanner.nextToken();
     self.peek_token = try self.scanner.nextToken();
 }
 
@@ -68,15 +83,22 @@ pub fn parse(self: *Parser) !*Ast {
         self.allocator.destroy(self.ast);
     }
 
-    while (self.current_token.kind != .eof) {
-        switch (self.current_token.kind) {
+    try self.advance();
+
+    while (self.current_token.?.kind != .eof) {
+        switch (self.current_token.?.kind) {
             .keyword => |keyword| try self.parseBeginsWithKeyword(keyword),
             .mode => |mode| try self.parseBeginsWithMode(mode),
             else => {
-                try self.advance();
+                try self.discard();
             }
         }
     }
+
+    self.current_token = null;
+    self.peek_token = null;
+
+    try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
 
     return self.ast;
 }
@@ -87,7 +109,7 @@ fn parseBeginsWithKeyword(self: *Parser, keyword: Token.Keyword) !void {
             try self.createBinding();
         },
         else => {
-            try self.advance();
+            try self.discard();
         }
     }
 }
@@ -95,7 +117,7 @@ fn parseBeginsWithKeyword(self: *Parser, keyword: Token.Keyword) !void {
 fn parseBeginsWithMode(self: *Parser, mode: Token.Mode) !void {
     switch (mode) {
         else => {
-            try self.advance();
+            try self.discard();
         }
     }
 }
@@ -103,37 +125,35 @@ fn parseBeginsWithMode(self: *Parser, mode: Token.Mode) !void {
 fn createBinding(self: *Parser) !void {
     try self.ast.append(.{
         .kind = .binding,
-        //.token = self.current_token,
-        .token = undefined,
+        .token = self.current_token.?,
         .data = undefined
     });
     try self.advance();
 
     try self.ast.append(.{
         .kind = .identifier,
-        //.token = self.current_token,
-        .token = undefined,
+        .token = self.current_token.?,
         .data = undefined
     });
 
-    if (self.peek_token.kind != .assign) {
-        // TODO: cant do this with buffer as error message will go out of scope immediately
-        var buf: [512]u8 = undefined;
+    if (self.peek_token.?.kind != .assign) {
+        self.mutex.lock();
+        defer self.mutex.unlock();
 
-        try self.createError("parsing",
-            try std.fmt.bufPrint(&buf, "Expected '=', found {s}", .{
-                self.peek_token.kind.toStr()
-            })
-        );
+        try self.createError(try std.fmt.allocPrint(
+            self.arena.allocator(), 
+            "Expected '=', found {s}", 
+            .{self.peek_token.?.kind.toStr()}
+        ));
     }
 
     try self.advance();
 }
 
-pub fn createError(self: *Parser, kind: []const u8, msg: []const u8) !void {
+pub fn createError(self: *Parser, msg: []const u8) !void {
     try self.errors.append(self.allocator, .{
-        .file = self.unit.input,
-        .kind = kind,
+        .file = self.file,
+        .kind = "parser",
         .msg = msg,
         .pos = self.scanner.current_pos
     });

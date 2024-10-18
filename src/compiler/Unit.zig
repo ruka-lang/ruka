@@ -5,7 +5,8 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
-const ArrayList = std.ArrayList;
+const ArenaAllocator = std.heap.ArenaAllocator;
+const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Mutex = std.Thread.Mutex;
 
 const ruka = @import("../prelude.zig");
@@ -19,9 +20,11 @@ const Transport = ruka.Transport;
 input: []const u8,
 output: []const u8,
 transport: *Transport,
-errors: ArrayList(Error),
+errors: ArrayListUnmanaged(Error),
 
 allocator: Allocator,
+arena: *ArenaAllocator,
+mutex: *Mutex,
 
 const Unit = @This();
 
@@ -31,16 +34,8 @@ pub const UnitOptions = struct {
     reader: AnyReader,
     writer: AnyWriter,
     allocator: Allocator,
-
-    pub fn testing(reader: AnyReader, writer: AnyWriter) UnitOptions {
-        return UnitOptions {
-            .input = "test source",
-            .output = "test buffer",
-            .reader = reader,
-            .writer = writer,
-            .allocator = std.testing.allocator
-        };
-    }
+    arena: *ArenaAllocator,
+    mutex: *Mutex
 };
 
 pub fn init(opts: UnitOptions) !*Unit {
@@ -51,36 +46,36 @@ pub fn init(opts: UnitOptions) !*Unit {
         .input = opts.input,
         .output = opts.output,
         .transport = try .init(opts.allocator, opts.reader, opts.writer),
-        .errors = .init(opts.allocator),
-
-        .allocator = opts.allocator
+        .errors = .{},
+        .allocator = opts.allocator,
+        .arena = opts.arena,
+        .mutex = opts.mutex
     };
 
     return unit;
 }
 
 pub fn deinit(self: *Unit) void {
-    self.errors.deinit();
+    self.errors.deinit(self.allocator);
     self.transport.deinit();
     self.allocator.destroy(self);
 }
 
-pub fn createError(self: *Unit, scanner: *Scanner, kind: []const u8, msg: []const u8) !void {
-    try self.errors.append(.{
-        .file = self.input,
-        .kind = kind,
-        .msg = msg,
-        .pos = scanner.current_pos
-    });
-}
-
 pub fn compile(self: *Unit) !*Ast {
-    var scanner = try Scanner.init(self);
-    defer scanner.deinit();
+    var parser = try Parser.init(
+        self.allocator, 
+        self.arena,
+        self.mutex,
+        self.transport, 
+        self.input
+    );
 
-    var parser = try Parser.init(self, scanner, self.allocator);
     defer parser.deinit();
 
     const ast = try parser.parse();
+    errdefer ast.deinit();
+
+    try self.errors.appendSlice(self.allocator, parser.errors.items);
+
     return ast;
 }

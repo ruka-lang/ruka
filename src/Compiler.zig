@@ -234,7 +234,9 @@ fn parseFile(
         .output = out orelse "no output",
         .reader = input.reader().any(),
         .writer = output.writer().any(),
-        .allocator = self.allocator
+        .allocator = self.allocator,
+        .arena = &self.arena,
+        .mutex = &self.mutex
     });
     defer unit.deinit();
 
