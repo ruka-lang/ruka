@@ -232,8 +232,7 @@ fn parseFile(
         .reader = input.reader().any(),
         .writer = output.writer().any(),
         .allocator = self.allocator,
-        .arena = &self.arena,
-        .mutex = &self.mutex
+        .arena = &self.arena
     });
     defer unit.deinit();
 

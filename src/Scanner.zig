@@ -6,7 +6,6 @@ const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayList = std.ArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
-const Mutex = std.Thread.Mutex;
 const eql = std.mem.eql;
 
 const ruka = @import("prelude.zig");
@@ -30,13 +29,12 @@ errors: ArrayListUnmanaged(Error),
 
 allocator: Allocator,
 arena: *ArenaAllocator,
-mutex: *Mutex,
 
 pub const Token = @import("scanner/Token.zig");
 
 const Scanner = @This();
 
-pub fn init(allocator: Allocator, arena: *ArenaAllocator, mutex: *Mutex, transport: *Transport, file: []const u8) !*Scanner {
+pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Scanner {
     const scanner = try allocator.create(Scanner);
 
     scanner.* = .{
@@ -51,8 +49,7 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, mutex: *Mutex, transpo
         .transport = transport,
         .errors = .{},
         .allocator = allocator,
-        .arena = arena,
-        .mutex = mutex
+        .arena = arena
     };
 
     return scanner;
@@ -298,9 +295,6 @@ fn createEscapeError(self: *Scanner, i: usize, slice: []const u8) !void {
     if (i + 1 > slice.len) {
         return try self.createError("unterminated escape character");
     }
-
-    self.mutex.lock();
-    defer self.mutex.unlock();
 
     try self.createError(try std.fmt.allocPrint(self.arena.allocator(),
         "unrecognized escape character: //{}",
@@ -686,14 +680,13 @@ const tests = struct {
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
-        const allocator = arena.allocator();
 
-        var mutex = Mutex{};
+        const allocator = arena.allocator();
 
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -719,12 +712,10 @@ const tests = struct {
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -763,12 +754,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -797,12 +786,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -828,12 +815,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -859,12 +844,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -890,12 +873,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -927,12 +908,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -960,12 +939,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -993,12 +970,10 @@ const tests = struct {
 
         const allocator = arena.allocator();
 
-        var mutex = Mutex{};
-
         const transport = try Transport.init(testing.allocator, input.reader().any(), output.writer().any());
         defer transport.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &mutex, transport, "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, transport, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{

@@ -26,7 +26,6 @@ scanner: *Scanner,
 
 allocator: std.mem.Allocator,
 arena: *ArenaAllocator,
-mutex: *Mutex,
 
 const Parser = @This();
 
@@ -34,11 +33,11 @@ pub const Ast = @import("parser/Ast.zig");
 const Index = Ast.Index;
 const Node = Ast.Node;
 
-pub fn init(allocator: Allocator, arena: *ArenaAllocator, mutex: *Mutex, transport: *Transport, file: []const u8) !*Parser {
+pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
 
-    const scanner = try Scanner.init(allocator, arena, mutex, transport, file);
+    const scanner = try Scanner.init(allocator, arena, transport, file);
     errdefer scanner.deinit();
 
     parser.* = .{
@@ -49,8 +48,7 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, mutex: *Mutex, transpo
         .file = file,
         .scanner = scanner,
         .allocator = allocator,
-        .arena = arena,
-        .mutex = mutex
+        .arena = arena
     };
 
     return parser;
@@ -137,9 +135,6 @@ fn createBinding(self: *Parser) !void {
     });
 
     if (self.peek_token.?.kind != .assign) {
-        self.mutex.lock();
-        defer self.mutex.unlock();
-
         try self.createError(try std.fmt.allocPrint(
             self.arena.allocator(), 
             "Expected '=', found {s}", 

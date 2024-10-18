@@ -7,7 +7,6 @@ const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
-const Mutex = std.Thread.Mutex;
 
 const ruka = @import("../prelude.zig");
 const Ast = ruka.Ast;
@@ -24,7 +23,6 @@ errors: ArrayListUnmanaged(Error),
 
 allocator: Allocator,
 arena: *ArenaAllocator,
-mutex: *Mutex,
 
 const Unit = @This();
 
@@ -34,8 +32,7 @@ pub const UnitOptions = struct {
     reader: AnyReader,
     writer: AnyWriter,
     allocator: Allocator,
-    arena: *ArenaAllocator,
-    mutex: *Mutex
+    arena: *ArenaAllocator
 };
 
 pub fn init(opts: UnitOptions) !*Unit {
@@ -48,8 +45,7 @@ pub fn init(opts: UnitOptions) !*Unit {
         .transport = try .init(opts.allocator, opts.reader, opts.writer),
         .errors = .{},
         .allocator = opts.allocator,
-        .arena = opts.arena,
-        .mutex = opts.mutex
+        .arena = opts.arena
     };
 
     return unit;
@@ -65,7 +61,6 @@ pub fn compile(self: *Unit) !*Ast {
     var parser = try Parser.init(
         self.allocator, 
         self.arena,
-        self.mutex,
         self.transport, 
         self.input
     );
