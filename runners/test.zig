@@ -38,8 +38,7 @@ pub fn main() !void {
     var bw = std.io.bufferedWriter(stdout_file);
     const out = bw.writer();
 
-    fmt(out.any(), "\r\x1b[0K", .{}); // beginning of line and clear to end of line
-
+    fmt(out.any(), "\r\x1b[0K", .{});
     fmt(out.any(), "Testing `Ruka`.\n\n", .{});
 
     var ok: usize = 0;
