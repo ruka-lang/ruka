@@ -37,13 +37,12 @@ pub fn init(allocator: Allocator, reader: ?AnyReader, writer: ?AnyWriter) !*Tran
 
 pub fn initWithFile(allocator: Allocator, file: File) !*Transport {
     const transport = try allocator.create(Transport);
+
     transport.* = .{
         .file = file,
         .br = std.io.bufferedReader(file.reader().any()),
         .bw = std.io.bufferedWriter(file.writer().any()),
-
         .allocator = allocator,
-
         .mutex = .{}
     };
 

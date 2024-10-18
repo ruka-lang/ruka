@@ -80,12 +80,9 @@ pub fn init(allocator: Allocator) !*Compiler {
         .cwd = std.fs.cwd(),
         .errors = .init(allocator),
         .transport = try .initWithFile(allocator, stderr),
-
         .unprocessed = .{},
-
         .allocator = allocator,
         .arena = .init(allocator),
-
         .mutex = .{},
         .thread_pool = undefined,
         .wait_group = .{},

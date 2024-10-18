@@ -60,7 +60,6 @@ pub const Node = struct {
 
     pub fn deinit(self: Node, _: Allocator) void {
         self.token.deinit();
-        //allocator.destroy(self.token);
     }
 };
 
@@ -70,7 +69,6 @@ pub fn init(allocator: Allocator) !*Ast {
     ast.* = .{
         .node_soa = .{},
         .extra_data = .{},
-
         .allocator = allocator
     };
 
@@ -80,7 +78,6 @@ pub fn init(allocator: Allocator) !*Ast {
 pub fn deinit(self: *Ast) void {
     for (self.node_soa.items(.token)) |token| {
         token.deinit();
-        //self.allocator.destroy(t);
     }
     self.node_soa.deinit(self.allocator);
     self.extra_data.deinit(self.allocator);
@@ -90,43 +87,3 @@ pub fn deinit(self: *Ast) void {
 pub fn append(self: *Ast, node: Node) !void {
     try self.node_soa.append(self.allocator, node);
 }
-
-//pub fn write(self: *Ast, writer: std.io.AnyWriter) !void {
-//    const node = self.root;
-//    try self.writeInternal(writer, node);
-//}
-
-//fn writeInternal(self: *Ast, writer: std.io.AnyWriter, node: *Node) !void {
-//    switch (node.kind) {
-//        .@"if" => {
-//            try writer.writeAll("if (");
-//            try self.writeInternal(writer, node.lhs.?);
-//            try writer.writeAll(") {\n    ");
-//            try self.writeInternal(writer, node.rhs.?);
-//            try writer.writeAll("\n}");
-//
-//            if (node.rhs.?.rhs) |consequence| {
-//                try writer.writeAll(" else {\n    ");
-//                try self.writeInternal(writer, consequence);
-//                try writer.writeAll("\n}");
-//            }
-//        },
-//        .integer => {
-//            switch (node.token.?.kind) {
-//                .integer => |integer| {
-//                    try writer.writeAll(integer.items);
-//                },
-//                else => unreachable
-//            }
-//        },
-//        .identifier => {
-//            switch (node.token.?.kind) {
-//                .identifier => |identifier| {
-//                    try writer.writeAll(identifier.items);
-//                },
-//                else => unreachable
-//            }
-//        },
-//        else => return
-//    }
-//}

@@ -58,12 +58,11 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
     errdefer argument_parser.deinit();
 
     const stderr = std.io.getStdErr();
+
     argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
-
         .transport = try .initWithFile(allocator, stderr),
-
         .allocator = allocator
     };
 
