@@ -17,9 +17,7 @@ pub const std_options = logging.options;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-    defer if (gpa.deinit() == .leak) {
-        std.debug.print("memory leak\n", .{});
-    };
+    defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
     const stderr = std.io.getStdErr();

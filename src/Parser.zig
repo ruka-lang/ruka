@@ -21,7 +21,7 @@ errors: ArrayListUnmanaged(Error),
 file: []const u8,
 scanner: *Scanner,
 
-allocator: std.mem.Allocator,
+allocator: Allocator,
 arena: *ArenaAllocator,
 
 const Parser = @This();
@@ -34,16 +34,13 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
 
-    const scanner = try Scanner.init(allocator, arena, transport, file);
-    errdefer scanner.deinit();
-
     parser.* = .{
-        .current_token = try scanner.nextToken(),
-        .peek_token = try scanner.nextToken(),
+        .current_token = null,
+        .peek_token = null,
         .ast = try .init(allocator),
         .errors = .{},
         .file = file,
-        .scanner = scanner,
+        .scanner = try .init(allocator, arena, transport, file),
         .allocator = allocator,
         .arena = arena
     };
