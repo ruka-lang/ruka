@@ -3,9 +3,7 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const AnyWriter = std.io.AnyWriter;
 const Termios = std.posix.termios;
-const builtin = @import("builtin");
 
 const ruka = @import("prelude.zig");
 const Transport = ruka.Transport;

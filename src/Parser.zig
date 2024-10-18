@@ -5,15 +5,12 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
-const MultiArrayList = std.MultiArrayList;
-const Mutex = std.Thread.Mutex;
 
 const ruka = @import("prelude.zig");
 const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Token = ruka.Token;
 const Transport = ruka.Transport;
-const Unit = ruka.Unit;
 
 current_token: ?Token,
 peek_token: ?Token,

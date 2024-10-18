@@ -4,7 +4,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
-const ArrayList = std.ArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
 const LinearFifo = std.fifo.LinearFifo;
@@ -15,12 +14,10 @@ const WaitGroup = std.Thread.WaitGroup;
 const ruka = @import("prelude.zig");
 const Ast = ruka.Ast;
 const Error = ruka.Error;
-const Parser = ruka.Parser;
-const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
 
 cwd: Dir,
-errors: ArrayList(Error),
+errors: ArrayListUnmanaged(Error),
 transport: *Transport,
 
 unprocessed: ArrayListUnmanaged(*Ast),
@@ -78,7 +75,7 @@ pub fn init(allocator: Allocator) !*Compiler {
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
-        .errors = .init(allocator),
+        .errors = .{},
         .transport = try .initWithFile(allocator, stderr),
         .unprocessed = .{},
         .allocator = allocator,
@@ -102,7 +99,7 @@ pub fn deinit(self: *Compiler) void {
     self.thread_pool.deinit();
     while (self.job_queue.readItem()) |job| job.deinit(self.allocator);
     self.job_queue.deinit();
-    self.errors.deinit();
+    self.errors.deinit(self.allocator);
     self.arena.deinit();
     self.transport.deinit();
     for (self.unprocessed.items) |ast| {
@@ -247,7 +244,7 @@ fn parseFile(
     defer self.mutex.unlock();
 
     try self.unprocessed.append(self.allocator, parsed);
-    try self.errors.appendSlice(unit.errors.items);
+    try self.errors.appendSlice(self.allocator, unit.errors.items);
 }
 
 fn combineAsts(self: *Compiler) !void {

@@ -9,7 +9,6 @@ const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const eql = std.mem.eql;
 
 const ruka = @import("prelude.zig");
-const Compiler = ruka.Compiler;
 const Error = ruka.Error;
 const Position = ruka.Position;
 const Transport = ruka.Transport;
