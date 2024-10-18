@@ -255,7 +255,7 @@ fn checkAstSemantics(self: *Compiler) !void {
     try self.transport.print("\nverifying ast\n", .{});
 }
 
-test "Compiler modules" {
+test "compiler modules" {
     _ = tests;
     _ = Unit;
 }

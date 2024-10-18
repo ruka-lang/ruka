@@ -148,7 +148,7 @@ pub fn createError(self: *Parser, msg: []const u8) !void {
     });
 }
 
-test "Parser modules" {
+test "parser modules" {
     _ = tests;
     _ = Ast;
 }

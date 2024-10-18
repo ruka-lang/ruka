@@ -25,7 +25,7 @@ pub fn deinit(self: *Interpreter) void {
     self.allocator.destroy(self);
 }
 
-test "Interpreter modules" {
+test "interpreter modules" {
     _ = tests;
 }
 
