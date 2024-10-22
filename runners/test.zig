@@ -52,7 +52,7 @@ pub fn main() !void {
     const status: Status = if (results.fail == 0) .ok else .fail;
 
     wstatus(out.any(), status, "\nTest{s} finished ", .{ if (results.count != 1) "s" else "" });
-    fmt(out.any(), "in {d}.{d:04}s. ", .{ seconds, @as(u64, @intCast(milliseconds)) });
+    fmt(out.any(), "in {d}.{d:03}s. ", .{ seconds, @as(u64, @intCast(milliseconds)) });
     fmt(out.any(), "{d} of {d} passed\n", .{ results.ok, results.count});
 
     if (results.skip > 0) {
