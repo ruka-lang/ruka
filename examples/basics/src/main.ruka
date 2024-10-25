@@ -41,11 +41,11 @@ const main = () do
     // In the proceeding example each step in the method chain
     // is a method except for mul which is defined above
 
-    //Vector.new(1, 2)
-    //    .add(.new(3, 4))
-    //    .mul()
-    //    .write ~writer: buffer.writer()
-    //    .?
+    Vector.new(1, 2)
+        .add(.new(3, 4))
+        .mul()
+        .write ~writer: buffer.writer()
+        .?
 
     // Although may just stick with reverse function application
     // pipelines "|>", as opposed to UFCS
@@ -53,11 +53,11 @@ const main = () do
     // Can call methods in pipelines. In the case where some steps
     // are methods and other are not, can be written like this for
     // consistency
-    Vector.new(1, 2)
-        |> .add(.new(3, 4))
-        |> mul()
-        |> .write ~writer: buffer.writer()
-        |> .?
+    //Vector.new(1, 2)
+    //    |> .add(.new(3, 4))
+    //    |> mul()
+    //    |> .write ~writer: buffer.writer()
+    //    |> .?
 
     let values = []{
         buffer.get(),
