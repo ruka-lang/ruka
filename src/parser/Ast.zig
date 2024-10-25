@@ -9,7 +9,7 @@ const MultiArrayList = std.MultiArrayList;
 const ruka = @import("../prelude.zig");
 const Token = ruka.Token;
 
-node_soa: MultiArrayList(Node),
+nodes: MultiArrayList(Node),
 extra_data: ArrayListUnmanaged(Index),
 
 allocator: Allocator,
@@ -67,7 +67,7 @@ pub fn init(allocator: Allocator) !*Ast {
     const ast = try allocator.create(Ast);
 
     ast.* = .{
-        .node_soa = .{},
+        .nodes = .{},
         .extra_data = .{},
         .allocator = allocator
     };
@@ -76,14 +76,14 @@ pub fn init(allocator: Allocator) !*Ast {
 }
 
 pub fn deinit(self: *Ast) void {
-    for (self.node_soa.items(.token)) |token| {
+    for (self.nodes.items(.token)) |token| {
         token.deinit();
     }
-    self.node_soa.deinit(self.allocator);
+    self.nodes.deinit(self.allocator);
     self.extra_data.deinit(self.allocator);
     self.allocator.destroy(self);
 }
 
 pub fn append(self: *Ast, node: Node) !void {
-    try self.node_soa.append(self.allocator, node);
+    try self.nodes.append(self.allocator, node);
 }

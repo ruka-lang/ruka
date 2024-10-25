@@ -236,7 +236,7 @@ fn parseFile(
     const parsed = try unit.compile();
     errdefer parsed.deinit();
 
-    for (parsed.node_soa.items(.kind)) |kind| {
+    for (parsed.nodes.items(.kind)) |kind| {
         std.debug.print("{}\n", .{kind});
     }
 
