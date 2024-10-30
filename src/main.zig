@@ -13,7 +13,7 @@ const Transport = ruka.Transport;
 const constants = @import("constants.zig");
 const logging = @import("logging.zig");
 
-pub const std_options = logging.options;
+pub const std_options = logging.std_options;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{.stack_trace_frames = 2}).init;
@@ -25,7 +25,7 @@ pub fn main() !void {
     defer transport.deinit();
 
     try logging.init();
-    std.log.scoped(.bin).info("starting ruka", .{});
+    logging.log(.bin, "starting ruka", .{});
 
     var args = try ArgumentParser.init(allocator);
     defer args.deinit();

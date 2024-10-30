@@ -3,24 +3,39 @@
 
 const std = @import("std");
 const bufPrint = std.fmt.bufPrint;
+const options = @import("options");
 
 const ruka = @import("prelude.zig");
 const Chrono = ruka.Chrono;
 
-pub const options: std.Options = .{
-    .log_level = switch (@import("builtin").mode) {
-        .Debug => .debug,
-        else => .info
-    },
-    .logFn = log
+pub const std_options: std.Options = blk: {
+    if (options.logging) {
+        break :blk .{
+            .log_level = switch (@import("builtin").mode) {
+                .Debug => .debug,
+                else => .info
+            },
+            .logFn = logFn
+        };
+    } else {
+        break :blk .{};
+    }
 };
 
 // Make this a struct and log use synchronization
+
+pub fn log(comptime scope: @TypeOf(.enum_literal), comptime msg: []const u8, args: anytype) void {
+    if (!options.logging) return;
+
+    std.log.scoped(scope).info(msg, args);
+}
 
 var path_buffer: [512]u8 = undefined;
 var path: []u8 = undefined;
 
 pub fn init() !void {
+    if (!options.logging) return;
+
     const home = std.posix.getenv("HOME") orelse {
         std.debug.print("Failed to read $HOME.\n", .{});
         return error.ReadingEnviromentFailed;
@@ -54,7 +69,7 @@ pub fn init() !void {
     path = try bufPrint(path_buffer[0..], "{s}/{s}/{s}", .{home, logs_path, log_file});
 }
 
-pub fn log(
+pub fn logFn(
     comptime level: std.log.Level,
     comptime scope: @TypeOf(.EnumLiteral),
     comptime format: []const u8,

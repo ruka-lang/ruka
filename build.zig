@@ -16,12 +16,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize
     });
 
+    const logging = b.option(bool, "logging", "Build executable with logging") orelse false;
+
     b.installArtifact(bin);
 
     var options = b.addOptions();
     options.addOption(std.SemanticVersion, "semver", getVersion(b));
     options.addOption([]const u8, "build_date", getDate(b));
     options.addOption([]const u8, "description", description);
+    options.addOption(bool, "logging", logging);
     bin.root_module.addOptions("options", options);
 
     const run_cmd = b.addRunArtifact(bin);
