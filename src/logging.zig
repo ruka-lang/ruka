@@ -22,8 +22,6 @@ pub const std_options: std.Options = blk: {
     }
 };
 
-// Make this a struct and log use synchronization
-
 pub fn log(comptime scope: @TypeOf(.enum_literal), comptime msg: []const u8, args: anytype) void {
     if (!options.logging) return;
 
