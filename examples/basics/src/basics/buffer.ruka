@@ -3,7 +3,7 @@ const {Vector, ..} = @import("basics")
 
 pub const Buffer = (% size: usize) do
     module {
-        pub const t = struct {
+        pub const t = record {
             buf: [size]u8,
             front: usize,
             back: usize,
