@@ -38,11 +38,21 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Tests
+    const test_runner = std.Build.Step.Compile.TestRunner { 
+        .path = .{ 
+            .src_path = .{ 
+                .owner = b, 
+                .sub_path = "runners/test.zig" 
+            }
+        }, 
+        .mode = .simple 
+    };
+
     const ruka_unit_tests = b.addTest(.{
         .name = "ruka_test",
         .root_source_file = b.path("src/prelude.zig"),
         .target = target,
-        .test_runner = .{ .path = .{ .src_path = .{ .owner = b, .sub_path = "runners/test.zig" }}, .mode = .simple },
+        .test_runner = test_runner,
         .optimize = optimize,
     });
 
