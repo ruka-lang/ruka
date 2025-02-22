@@ -42,7 +42,7 @@ pub fn build(b: *std.Build) void {
         .name = "ruka_test",
         .root_source_file = b.path("src/prelude.zig"),
         .target = target,
-        .test_runner = b.path("runners/test.zig"),
+        .test_runner = .{ .path = .{ .src_path = .{ .owner = b, . sub_path = "runners/test.zig" }}, .mode = .simple },
         .optimize = optimize,
     });
 
