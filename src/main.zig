@@ -16,9 +16,9 @@ const logging = @import("logging.zig");
 pub const std_options = logging.std_options;
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{.stack_trace_frames = 2}).init;
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    var dbga = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
+    defer _ = dbga.deinit();
+    const allocator = dbga.allocator();
 
     const stderr = std.io.getStdErr();
     var transport = try Transport.initFile(allocator, stderr);

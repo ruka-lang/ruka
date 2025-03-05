@@ -1,18 +1,19 @@
 .{
-    .name = "ruka",
+    .name = .ruka,
     .version = "0.0.0",
-    .minimum_zig_version = "0.14.0-dev.1765+73de620ad",
+    .fingerprint = 0xef4fe12922491c9, // Changing this has security and trust implications.
 
-    .dependencies = .{
-    },
+    .minimum_zig_version = "0.14.0",
+
+    .dependencies = .{},
 
     .paths = .{
-        "src",
         "build.zig",
         "build.zig.zon",
-        "copyright",
+        "src",
         "license-mit",
         "license-apache",
-        "readme.md"
+        "readme.md",
+        "copyright"
     },
 }
