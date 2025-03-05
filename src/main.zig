@@ -15,10 +15,18 @@ const logging = @import("logging.zig");
 
 pub const std_options = logging.std_options;
 
+var debug_allocator = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
+
 pub fn main() !void {
-    var dbga = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
-    defer _ = dbga.deinit();
-    const allocator = dbga.allocator();
+    const allocator, const is_debug = gpa: {
+        break :gpa switch (@import("builtin").mode) {
+            .Debug, .ReleaseSafe => .{debug_allocator.allocator(), true},
+            .ReleaseFast, .ReleaseSmall => .{std.heap.smp_allocator, false}
+        };
+    };
+    defer if (is_debug) {
+        _ = debug_allocator.deinit();
+    };
 
     const stderr = std.io.getStdErr();
     var transport = try Transport.initFile(allocator, stderr);
