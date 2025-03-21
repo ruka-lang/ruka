@@ -3,62 +3,149 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList;
+const ArenaAllocator = std.heap.ArenaAllocator;
+const ArrayListUnmanaged = std.ArrayListUnmanaged;
 
 const ruka = @import("prelude.zig");
+const Error = ruka.Error;
 const Scanner = ruka.Scanner;
-const Unit = ruka.Unit;
+const Token = ruka.Token;
+const Transport = ruka.Transport;
 
+current_token: ?Token,
+peek_token: ?Token,
+
+ast: *Ast,
+errors: ArrayListUnmanaged(Error),
+
+file: []const u8,
 scanner: *Scanner,
-unit: *Unit,
 
-allocator: std.mem.Allocator,
+allocator: Allocator,
+arena: *ArenaAllocator,
 
 const Parser = @This();
 
 pub const Ast = @import("parser/Ast.zig");
+const Index = Ast.Index;
+const Node = Ast.Node;
 
-pub fn init(unit: *Unit, scanner: *Scanner) !*Parser {
-    const parser = try unit.allocator.create(Parser);
+pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
+    const parser = try allocator.create(Parser);
     errdefer parser.deinit();
 
     parser.* = .{
-        .unit = unit,
-        .scanner = scanner,
-        .allocator = unit.allocator
+        .current_token = null,
+        .peek_token = null,
+        .ast = try .init(allocator),
+        .errors = .{},
+        .file = file,
+        .scanner = try .init(allocator, arena, transport, file),
+        .allocator = allocator,
+        .arena = arena
     };
 
     return parser;
 }
 
 pub fn deinit(self: *Parser) void {
+    self.scanner.deinit();
+    self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }
 
+fn advance(self: *Parser) !void {
+    const token = self.current_token;
+    errdefer if (token) |t| t.deinit();
+
+    self.current_token = self.peek_token orelse try self.scanner.nextToken();
+    self.peek_token = try self.scanner.nextToken();
+}
+
+fn discard(self: *Parser) !void {
+    if (self.current_token) |token| token.deinit();
+
+    self.current_token = self.peek_token orelse try self.scanner.nextToken();
+    self.peek_token = try self.scanner.nextToken();
+}
 
 pub fn parse(self: *Parser) !*Ast {
-    const ast = try Ast.init(self.allocator);
-    errdefer ast.deinit();
-
-    var output = ArrayList(u8).init(self.allocator);
-    defer output.deinit();
-
-    const writer = output.writer();
-
-    try writer.print("\t{s}:\n", .{self.unit.input});
-
-    var token = try self.scanner.nextToken();
-
-    while(token.kind != .eof): (token = try self.scanner.nextToken()) {
-        try writer.print("{s}: {s}\n", .{@tagName(token.kind) , try token.kind.toStr(self.allocator)});
-        token.deinit();
+    errdefer {
+        self.ast.deinit();
+        self.allocator.destroy(self.ast);
     }
 
-    try writer.print("eof: \\x00\n", .{});
+    try self.advance();
 
-    std.debug.print("{s}\n", .{output.items});
+    while (self.current_token.?.kind != .eof) {
+        switch (self.current_token.?.kind) {
+            .keyword => |keyword| try self.parseBeginsWithKeyword(keyword),
+            .mode => |mode| try self.parseBeginsWithMode(mode),
+            else => {
+                try self.discard();
+            }
+        }
+    }
 
-    return ast;
+    self.current_token = null;
+    self.peek_token = null;
+
+    try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
+
+    return self.ast;
+}
+
+fn parseBeginsWithKeyword(self: *Parser, keyword: Token.Keyword) !void {
+    switch (keyword) {
+        .@"const", .let, .@"var" => {
+            try self.createBinding();
+        },
+        else => {
+            try self.discard();
+        }
+    }
+}
+
+fn parseBeginsWithMode(self: *Parser, mode: Token.Mode) !void {
+    switch (mode) {
+        else => {
+            try self.discard();
+        }
+    }
+}
+
+fn createBinding(self: *Parser) !void {
+    try self.ast.append(.{
+        .kind = .binding,
+        .token = self.current_token.?,
+        .data = undefined
+    });
+    try self.advance();
+
+    try self.ast.append(.{
+        .kind = .identifier,
+        .token = self.current_token.?,
+        .data = undefined
+    });
+
+    if (self.peek_token.?.kind != .assign) {
+        try self.createError(try std.fmt.allocPrint(
+            self.arena.allocator(), 
+            "Expected '=', found {s}", 
+            .{self.peek_token.?.kind.toStr()}
+        ));
+    }
+
+    try self.advance();
+}
+
+pub fn createError(self: *Parser, msg: []const u8) !void {
+    try self.errors.append(self.allocator, .{
+        .file = self.file,
+        .kind = "parser",
+        .msg = msg,
+        .pos = self.scanner.current_pos
+    });
 }
 
 test "parser modules" {

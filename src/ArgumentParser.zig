@@ -3,7 +3,6 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const ArrayList = std.ArrayList;
 const LinearFifo = std.fifo.LinearFifo;
 
 const libruka = @import("prelude.zig");
@@ -58,12 +57,11 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
     errdefer argument_parser.deinit();
 
     const stderr = std.io.getStdErr();
+
     argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
-
-        .transport = try .initWithFile(allocator, stderr),
-
+        .transport = try .initFile(allocator, stderr),
         .allocator = allocator
     };
 
@@ -141,11 +139,3 @@ pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
 pub fn getOption(self: *ArgumentParser) ?Option {
     return self.options.readItem();
 }
-
-test "argumentParser" {
-    _ = tests;
-}
-
-const tests = struct {
-
-};

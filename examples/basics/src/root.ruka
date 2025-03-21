@@ -7,9 +7,9 @@ const io = @import("basics/io.ruka")
 
 pub const Vector = module {
     pub const t = record {
-        x: u8,
-        y: u8,
-        private z: u8
+        pub x: u8,
+        pub y: u8,
+        z: u8
     }
 
     pub const init = (x, y) do

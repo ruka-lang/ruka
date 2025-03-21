@@ -20,4 +20,3 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
     - Interfaces for shared functionality
     - Named arguments
     - Pattern matching
-    - Record for a structure which defaults to public, Struct for a structure which defaults to private

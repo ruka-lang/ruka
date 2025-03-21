@@ -21,15 +21,15 @@ const options_display =
     \\        --change_dir, -C [subpath] : Changes the directory to a subdirectory of the cwd
 ;
 
-pub const version_str = std.fmt.comptimePrint("{}", .{project_options.version});
+pub const version_str = std.fmt.comptimePrint("{}", .{project_options.semver});
 
-pub const version = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
+pub const version_and_date = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
     version_str,
-    std.mem.trim(u8, project_options.version_date, "'")
+    std.mem.trim(u8, project_options.build_date, "'")
 });
 
 pub const help = std.fmt.comptimePrint("{s}{s}\n\n{s}\n{s}\n{s}\n", .{
-    version,
+    version_and_date,
     project_options.description,
     usage,
     subcommands_display,

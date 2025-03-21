@@ -35,15 +35,14 @@ pub fn init(allocator: Allocator, reader: ?AnyReader, writer: ?AnyWriter) !*Tran
     return transport;
 }
 
-pub fn initWithFile(allocator: Allocator, file: File) !*Transport {
+pub fn initFile(allocator: Allocator, file: File) !*Transport {
     const transport = try allocator.create(Transport);
+
     transport.* = .{
         .file = file,
         .br = std.io.bufferedReader(file.reader().any()),
         .bw = std.io.bufferedWriter(file.writer().any()),
-
         .allocator = allocator,
-
         .mutex = .{}
     };
 
@@ -76,12 +75,25 @@ pub fn readByte(self: *Transport) !u8 {
     return try self.br.?.reader().readByte();
 }
 
-pub fn write(self: *Transport, msg: []const u8) !void {
+
+pub fn write(self: *Transport, msg: []const u8) !usize {
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    _ = try self.bw.?.writer().write(msg);
+    const count = try self.bw.?.writer().write(msg);
     try self.bw.?.flush();
+
+    return count;
+}
+
+pub fn writeFlush(self: *Transport, msg: []const u8) !usize {
+    self.mutex.lock();
+    defer self.mutex.unlock();
+
+    const count = try self.bw.?.writer().write(msg);
+    try self.bw.?.flush();
+
+    return count;
 }
 
 pub fn writeAll(self: *Transport, msg: []const u8) !void {
@@ -89,14 +101,14 @@ pub fn writeAll(self: *Transport, msg: []const u8) !void {
     defer self.mutex.unlock();
 
     try self.bw.?.writer().writeAll(msg);
-    try self.bw.flush();
 }
 
-pub fn writeAllNoFlush(self: *Transport, msg: []const u8) !void {
+pub fn writeAllFlush(self: *Transport, msg: []const u8) !void {
     self.mutex.lock();
     defer self.mutex.unlock();
 
     try self.bw.?.writer().writeAll(msg);
+    try self.bw.?.flush();
 }
 
 pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
@@ -104,20 +116,12 @@ pub fn print(self: *Transport, comptime msg: []const u8, args: anytype) !void {
     defer self.mutex.unlock();
 
     try self.bw.?.writer().print(msg, args);
-    try self.bw.?.flush();
 }
 
-pub fn printNoFlush(self: *Transport, comptime msg: []const u8, args: anytype) !void {
+pub fn printFlush(self: *Transport, comptime msg: []const u8, args: anytype) !void {
     self.mutex.lock();
     defer self.mutex.unlock();
 
     try self.bw.?.writer().print(msg, args);
+    try self.bw.?.flush();
 }
-
-test "transport modules" {
-    _ = tests;
-}
-
-const tests = struct {
-
-};

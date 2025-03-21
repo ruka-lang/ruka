@@ -13,27 +13,35 @@ const Transport = ruka.Transport;
 const constants = @import("constants.zig");
 const logging = @import("logging.zig");
 
-pub const std_options = logging.options;
+pub const std_options = logging.std_options;
+
+var debug_allocator = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}).init;
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    const allocator, const is_debug = gpa: {
+        break :gpa switch (@import("builtin").mode) {
+            .Debug, .ReleaseSafe => .{debug_allocator.allocator(), true},
+            .ReleaseFast, .ReleaseSmall => .{std.heap.smp_allocator, false}
+        };
+    };
+    defer if (is_debug) {
+        _ = debug_allocator.deinit();
+    };
 
     const stderr = std.io.getStdErr();
-    var transport = try Transport.initWithFile(allocator, stderr);
+    var transport = try Transport.initFile(allocator, stderr);
     defer transport.deinit();
 
     try logging.init();
-    std.log.scoped(.bin).info("starting ruka", .{});
+    logging.log(.bin, "starting ruka", .{});
 
-    var arg_parser = try ArgumentParser.init(allocator);
-    defer arg_parser.deinit();
+    var args = try ArgumentParser.init(allocator);
+    defer args.deinit();
 
-    arg_parser.parse() catch |err| {
+    args.parse() catch |err| {
         switch (err) {
             error.MissingSubcommand => {
-                try transport.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
+                try transport.printFlush("{s}\n{s}\n\nExpected subcommand argument\n", .{
                     constants.usage,
                     constants.subcommands_display
                 });
@@ -44,9 +52,9 @@ pub fn main() !void {
         }
     };
 
-    switch (arg_parser.getSubcommand().?) {
+    switch (args.getSubcommand().?) {
         .new => try newProject(),
-        .build => try buildProject(arg_parser, allocator),
+        .build => try buildProject(args, allocator),
         .@"test" => try testProject(),
         .run => try runProject(),
         .repl => try startRepl(allocator),
@@ -56,11 +64,11 @@ pub fn main() !void {
 }
 
 fn displayHelp(transport: *Transport) !void {
-    try transport.write(constants.help);
+    try transport.writeAllFlush(constants.help);
 }
 
 fn displayVersion(transport: *Transport) !void {
-    try transport.write(constants.version);
+    try transport.writeAllFlush(constants.version_and_date);
 }
 
 fn newProject() !void {
@@ -71,11 +79,11 @@ fn isProperProject() void {
 
 }
 
-fn buildProject(arg_parser: *ArgumentParser, allocator: Allocator) !void {
+fn buildProject(args: *ArgumentParser, allocator: Allocator) !void {
     var compiler = try Compiler.init(allocator);
     defer compiler.deinit();
 
-    if (arg_parser.getOption()) |option| {
+    if (args.getOption()) |option| {
         switch (option) {
             .change_dir => |path| {
                 compiler.cwd = try compiler.cwd.openDir(path, .{});
@@ -100,8 +108,4 @@ fn startRepl(allocator: Allocator) !void {
     defer repl.deinit();
 
     try repl.run();
-}
-
-test "ruka modules" {
-    _ = ruka;
 }

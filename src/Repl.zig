@@ -3,9 +3,7 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const AnyWriter = std.io.AnyWriter;
 const Termios = std.posix.termios;
-const builtin = @import("builtin");
 
 const ruka = @import("prelude.zig");
 const Transport = ruka.Transport;
@@ -29,7 +27,7 @@ pub fn init(allocator: Allocator) !*Repl {
     errdefer allocator.destroy(terminal);
 
     const stdin = std.io.getStdIn();
-    transport = try Transport.initWithFile(allocator, stdin);
+    transport = try .initFile(allocator, stdin);
     errdefer transport.deinit();
 
     terminal.* = .{
@@ -219,93 +217,93 @@ fn render() !void {
 fn draw_border() !void {
     for (0..size.height - 1) |i| {
         try move_cursor(i, 0);
-        try transport.writeAllNoFlush("\u{2502}");
+        try transport.writeAll("\u{2502}");
 
         try move_cursor(i, size.width);
-        try transport.writeAllNoFlush("\u{2502}");
+        try transport.writeAll("\u{2502}");
     }
 
     for (0..size.width) |i| {
         try move_cursor(0, i);
-        try transport.writeAllNoFlush("\u{2500}");
+        try transport.writeAll("\u{2500}");
 
         try move_cursor(size.height - 1, i);
-        try transport.writeAllNoFlush("\u{2500}");
+        try transport.writeAll("\u{2500}");
     }
 
     try move_cursor(0, 0);
-    try transport.writeAllNoFlush("\u{250c}");
+    try transport.writeAll("\u{250c}");
     try move_cursor(0, size.width);
-    try transport.writeAllNoFlush("\u{2510}");
+    try transport.writeAll("\u{2510}");
     try move_cursor(size.height - 1, 0);
-    try transport.writeAllNoFlush("\u{2514}");
+    try transport.writeAll("\u{2514}");
     try move_cursor(size.height - 1, size.width);
-    try transport.writeAllNoFlush("\u{2518}");
+    try transport.writeAll("\u{2518}");
 
     try move_cursor(size.height, 0);
-    try transport.writeAllNoFlush("  q: Quit");
+    try transport.writeAll("  q: Quit");
 
     try move_cursor(0, 2);
-    try transport.writeAllNoFlush("Menu");
+    try transport.writeAll("Menu");
 }
 
 fn draw_cursor() !void {
     try move_cursor(position.row, position.col);
     try white_background();
-    try transport.writeAllNoFlush(" ");
+    try transport.writeAll(" ");
     try reset_attribute();
 }
 
 fn blue_background() !void {
-    try transport.writeAllNoFlush("\x1B[44m");
+    try transport.writeAll("\x1B[44m");
 }
 
 fn white_background() !void {
-    try transport.writeAllNoFlush("\x1B[47m");
+    try transport.writeAll("\x1B[47m");
 }
 
 fn move_cursor(row: usize, col: usize) !void {
-    try transport.printNoFlush("\x1B[{};{}H", .{row + 1, col + 1});
+    try transport.print("\x1B[{};{}H", .{row + 1, col + 1});
 }
 
 fn hide_cursor() !void {
-    try transport.writeAllNoFlush("\x1B[?25l"); // Hide the cursor.
+    try transport.writeAll("\x1B[?25l"); // Hide the cursor.
 }
 
 fn show_cursor() !void {
-    try transport.writeAllNoFlush("\x1B[?25h"); // Shows the cursor.
+    try transport.writeAll("\x1B[?25h"); // Shows the cursor.
 }
 
 fn save_cursor() !void {
-    try transport.writeAllNoFlush("\x1B[s"); // Save cursor position.
+    try transport.writeAll("\x1B[s"); // Save cursor position.
 }
 
 fn restore_cursor() !void {
-    try transport.writeAllNoFlush("\x1B[u"); // Restore cursor position.
+    try transport.writeAll("\x1B[u"); // Restore cursor position.
 }
 
 fn save_screen() !void {
-    try transport.writeAllNoFlush("\x1B[?47h"); // Save screen.
+    try transport.writeAll("\x1B[?47h"); // Save screen.
 }
 
 fn restore_screen() !void {
-    try transport.writeAllNoFlush("\x1B[?47l"); // Restore screen.
+    try transport.writeAll("\x1B[?47l"); // Restore screen.
 }
 
 fn enable_alt_buffer() !void {
-    try transport.writeAllNoFlush("\x1B[?1049h"); // Enable alternative buffer.
+    try transport.writeAll("\x1B[?1049h"); // Enable alternative buffer.
 }
 
 fn disable_alt_buffer() !void {
-    try transport.writeAllNoFlush("\x1B[?1049l"); // Disable alternative buffer.
+    try transport.writeAll("\x1B[?1049l"); // Disable alternative buffer.
 }
 
 fn clear() !void {
-    try transport.writeAllNoFlush("\x1B[H\x1B[J"); // Clear.
+    try transport.writeAll("\x1B[H\x1B[J"); // Clear.
 }
 
 fn reset_attribute() !void {
-    try transport.writeAllNoFlush("\x1B[0m"); // Attribute reset.
+    try transport.writeAll("\x1B[0m"); // Attribute reset.
 }
 
 fn resize() !Size {

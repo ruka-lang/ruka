@@ -4,7 +4,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
-const ArrayList = std.ArrayList;
+const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
 const LinearFifo = std.fifo.LinearFifo;
 const Mutex = std.Thread.Mutex;
@@ -14,15 +14,13 @@ const WaitGroup = std.Thread.WaitGroup;
 const ruka = @import("prelude.zig");
 const Ast = ruka.Ast;
 const Error = ruka.Error;
-const Scanner = ruka.Scanner;
 const Transport = ruka.Transport;
 
 cwd: Dir,
-errors: ArrayList(Error),
+errors: ArrayListUnmanaged(Error),
 transport: *Transport,
 
-root: *Ast,
-unprocessed_asts: ArrayList(*Ast),
+unprocessed: ArrayListUnmanaged(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -73,20 +71,15 @@ pub fn init(allocator: Allocator) !*Compiler {
     const compiler = try allocator.create(Compiler);
     errdefer compiler.deinit();
 
-    const stdin = std.io.getStdIn().reader();
-    const stderr = std.io.getStdErr().writer();
+    const stderr = std.io.getStdErr();
 
     compiler.* = .{
         .cwd = std.fs.cwd(),
-        .errors = .init(allocator),
-        .transport = try .init(allocator, stdin.any(), stderr.any()),
-
-        .root = undefined,
-        .unprocessed_asts = .init(allocator),
-
+        .errors = .{},
+        .transport = try .initFile(allocator, stderr),
+        .unprocessed = .{},
         .allocator = allocator,
         .arena = .init(allocator),
-
         .mutex = .{},
         .thread_pool = undefined,
         .wait_group = .{},
@@ -106,13 +99,13 @@ pub fn deinit(self: *Compiler) void {
     self.thread_pool.deinit();
     while (self.job_queue.readItem()) |job| job.deinit(self.allocator);
     self.job_queue.deinit();
-    self.errors.deinit();
+    self.errors.deinit(self.allocator);
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed_asts.items) |ast| {
+    for (self.unprocessed.items) |ast| {
         ast.deinit();
     }
-    self.unprocessed_asts.deinit();
+    self.unprocessed.deinit(self.allocator);
     self.allocator.destroy(self);
 }
 
@@ -178,8 +171,8 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
                 if (!isProperExtension(item.path)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, item.path, ".");
                     log.err(
-                        "Invalid file extension, expected .ruka, got: .{s}\n",
-                        .{path_iter.first()}
+                        "Invalid file extension, expected .ruka, got: {s}, {s}\n",
+                        .{path_iter.first(), item.path}
                     );
 
                     continue;
@@ -235,25 +228,32 @@ fn parseFile(
         .output = out orelse "no output",
         .reader = input.reader().any(),
         .writer = output.writer().any(),
-        .allocator = self.allocator
+        .allocator = self.allocator,
+        .arena = &self.arena
     });
     defer unit.deinit();
 
-    const ast = try unit.compile();
-    errdefer ast.deinit();
+    const parsed = try unit.compile();
+    errdefer parsed.deinit();
+
+    for (parsed.nodes.items(.kind)) |kind| {
+        std.debug.print("{}\n", .{kind});
+    }
 
     self.mutex.lock();
     defer self.mutex.unlock();
 
-    try self.unprocessed_asts.append(ast);
-    try self.errors.appendSlice(unit.errors.items);
+    try self.unprocessed.append(self.allocator, parsed);
+    try self.errors.appendSlice(self.allocator, unit.errors.items);
 }
 
-fn combineAsts(_: *Compiler) !void {
+fn combineAsts(self: *Compiler) !void {
+    _ = self;
     std.debug.print("\ncombining asts\n", .{});
 }
 
-fn checkAstSemantics(_: *Compiler) !void {
+fn checkAstSemantics(self: *Compiler) !void {
+    _ = self;
     std.debug.print("\nverifying ast\n", .{});
 }
 
