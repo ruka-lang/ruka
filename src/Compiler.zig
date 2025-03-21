@@ -4,6 +4,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
 const LinearFifo = std.fifo.LinearFifo;
@@ -13,6 +14,8 @@ const WaitGroup = std.Thread.WaitGroup;
 
 const ruka = @import("prelude.zig");
 const Ast = ruka.Ast;
+const Node = ruka.Node;
+const Index = ruka.Index;
 const Error = ruka.Error;
 const Transport = ruka.Transport;
 
@@ -20,7 +23,7 @@ cwd: Dir,
 errors: ArrayListUnmanaged(Error),
 transport: *Transport,
 
-unprocessed: ArrayListUnmanaged(*Ast),
+unprocessed: ArrayListUnmanaged(Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -102,8 +105,12 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit(self.allocator);
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed.items) |ast| {
-        ast.deinit();
+    for (self.unprocessed.items) |*parsed| {
+        for (parsed.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        parsed.nodes.deinit(self.allocator);
+        self.allocator.free(parsed.extra_data);
     }
     self.unprocessed.deinit(self.allocator);
     self.allocator.destroy(self);
@@ -233,8 +240,14 @@ fn parseFile(
     });
     defer unit.deinit();
 
-    const parsed = try unit.compile();
-    errdefer parsed.deinit();
+    var parsed = try unit.compile();
+    errdefer {
+        for (parsed.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        parsed.nodes.deinit(self.allocator);
+        self.allocator.free(parsed.extra_data);
+    }
 
     for (parsed.nodes.items(.kind)) |kind| {
         std.debug.print("{}\n", .{kind});

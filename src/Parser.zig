@@ -4,6 +4,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 
 const ruka = @import("prelude.zig");
@@ -15,7 +16,8 @@ const Transport = ruka.Transport;
 current_token: ?Token,
 peek_token: ?Token,
 
-ast: *Ast,
+nodes: MultiArrayList(Node),
+extra_data: ArrayListUnmanaged(Index),
 errors: ArrayListUnmanaged(Error),
 
 file: []const u8,
@@ -26,9 +28,57 @@ arena: *ArenaAllocator,
 
 const Parser = @This();
 
-pub const Ast = @import("parser/Ast.zig");
-const Index = Ast.Index;
-const Node = Ast.Node;
+pub const Index = u32;
+pub const Node = struct {
+    kind: Kind,
+    token: Token,
+
+    data: struct {
+        lhs: Index,
+        rhs: Index,
+    },
+
+    pub const Kind = enum {
+        unit,
+        identifier,
+        integer,
+        float,
+        boolean,
+        string,
+        block,
+        @"if",
+        match,
+        fn_def,
+        closure,
+        fn_call,
+        meth_call,
+        prefix,
+        infix,
+        postfix,
+        binding,
+        @"type",
+        module,
+        interpet,
+        @"return"
+    };
+
+    pub fn init(kind: Kind, token: Token) Node {
+        return .{
+            .kind = kind,
+            .token = token,
+            .data = undefined
+        };
+    }
+
+    pub fn deinit(self: Node, _: Allocator) void {
+        self.token.deinit();
+    }
+};
+
+pub const Ast = struct {
+    nodes: MultiArrayList(Node).Slice,
+    extra_data: []Index
+};
 
 pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
     const parser = try allocator.create(Parser);
@@ -37,7 +87,8 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
     parser.* = .{
         .current_token = null,
         .peek_token = null,
-        .ast = try .init(allocator),
+        .nodes = .{},
+        .extra_data = .{},
         .errors = .{},
         .file = file,
         .scanner = try .init(allocator, arena, transport, file),
@@ -50,6 +101,11 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
 
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
+    for (self.nodes.items(.token)) |token| {
+        token.deinit();
+    }
+    self.nodes.deinit(self.allocator);
+    self.extra_data.deinit(self.allocator);
     self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }
@@ -69,10 +125,13 @@ fn discard(self: *Parser) !void {
     self.peek_token = try self.scanner.nextToken();
 }
 
-pub fn parse(self: *Parser) !*Ast {
+pub fn parse(self: *Parser) !Ast {
     errdefer {
-        self.ast.deinit();
-        self.allocator.destroy(self.ast);
+        for (self.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        self.nodes.deinit(self.allocator);
+        self.extra_data.deinit(self.allocator);
     }
 
     try self.advance();
@@ -92,7 +151,10 @@ pub fn parse(self: *Parser) !*Ast {
 
     try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
 
-    return self.ast;
+    return .{
+        .nodes = self.nodes.toOwnedSlice(),
+        .extra_data = try self.extra_data.toOwnedSlice(self.allocator)
+    };
 }
 
 fn parseBeginsWithKeyword(self: *Parser, keyword: Token.Keyword) !void {
@@ -114,15 +176,19 @@ fn parseBeginsWithMode(self: *Parser, mode: Token.Mode) !void {
     }
 }
 
+fn appendAst(self: *Parser, node: Node) !void {
+    try self.nodes.append(self.allocator, node);
+}
+
 fn createBinding(self: *Parser) !void {
-    try self.ast.append(.{
+    try self.appendAst(.{
         .kind = .binding,
         .token = self.current_token.?,
         .data = undefined
     });
     try self.advance();
 
-    try self.ast.append(.{
+    try self.appendAst(.{
         .kind = .identifier,
         .token = self.current_token.?,
         .data = undefined
@@ -130,8 +196,8 @@ fn createBinding(self: *Parser) !void {
 
     if (self.peek_token.?.kind != .assign) {
         try self.createError(try std.fmt.allocPrint(
-            self.arena.allocator(), 
-            "Expected '=', found {s}", 
+            self.arena.allocator(),
+            "Expected '=', found {s}",
             .{self.peek_token.?.kind.toStr()}
         ));
     }
@@ -150,7 +216,6 @@ pub fn createError(self: *Parser, msg: []const u8) !void {
 
 test "parser modules" {
     _ = tests;
-    _ = Ast;
 }
 
 const tests = struct {

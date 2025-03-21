@@ -6,10 +6,13 @@ const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 
 const ruka = @import("../prelude.zig");
 const Ast = ruka.Ast;
+const Node = ruka.Node;
+const Index = ruka.Index;
 const Error = ruka.Error;
 const Parser = ruka.Parser;
 const Transport = ruka.Transport;
@@ -55,20 +58,26 @@ pub fn deinit(self: *Unit) void {
     self.allocator.destroy(self);
 }
 
-pub fn compile(self: *Unit) !*Ast {
+pub fn compile(self: *Unit) !Ast {
     var parser = try Parser.init(
-        self.allocator, 
+        self.allocator,
         self.arena,
-        self.transport, 
+        self.transport,
         self.input
     );
 
     defer parser.deinit();
 
-    const ast = try parser.parse();
-    errdefer ast.deinit();
+    var parsed = try parser.parse();
+    errdefer {
+        for (parsed.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        parsed.nodes.deinit(self.allocator);
+        self.allocator.free(parsed.extra_data);
+    }
 
     try self.errors.appendSlice(self.allocator, parser.errors.items);
 
-    return ast;
+    return parsed;
 }
