@@ -68,6 +68,10 @@ pub fn read(self: *Transport, buffer: []u8) !usize {
     return try self.br.?.reader().read(buffer);
 }
 
+pub fn readNoLock(self: *Transport, buffer: []u8) !usize {
+    return try self.br.?.reader().read(buffer);
+}
+
 pub fn readByte(self: *Transport) !u8 {
     self.mutex.lock();
     defer self.mutex.unlock();

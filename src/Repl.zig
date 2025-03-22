@@ -52,20 +52,28 @@ fn tty_setup(self: *Repl) !void {
     self.original = try std.posix.tcgetattr(transport.getHandle());
     self.raw = self.original;
 
-    self.raw.lflag.ECHO = false;
-    self.raw.lflag.ICANON = false;
-    self.raw.lflag.ISIG = false;
-    self.raw.lflag.IEXTEN = false;
+    self.raw.lflag = .{
+        .ECHO = false,
+        .ICANON = false,
+        .ISIG = false,
+        .IEXTEN = false
+    };
 
-    self.raw.iflag.IXON = false;
-    self.raw.iflag.ICRNL = false;
-    self.raw.iflag.BRKINT = false;
-    self.raw.iflag.INPCK = false;
-    self.raw.iflag.ISTRIP = false;
+    self.raw.iflag = .{
+        .BRKINT = false,
+        .INPCK = false,
+        .ISTRIP = false,
+        .ICRNL = false,
+        .IXON = false
+    };
 
-    self.raw.oflag.OPOST = false;
+    self.raw.oflag = .{
+        .OPOST = false
+    };
 
-    self.raw.cflag.CSIZE = .CS8;
+    self.raw.cflag = .{
+        .CSIZE = .CS8
+    };
 
     self.raw.cc[@intFromEnum(std.posix.system.V.TIME)] = 0;
     self.raw.cc[@intFromEnum(std.posix.system.V.MIN)] = 1;
@@ -113,7 +121,7 @@ pub fn run(self: *Repl) !void {
     if (self.status == .uninitialized) return error.UninitializedTTY;
 
     try self.uncook();
-    defer self.cook() catch {};
+    defer self.cook() catch { std.debug.print("Cook error\n", .{}); };
 
     var buffer: [1]u8 = undefined;
 
@@ -127,7 +135,8 @@ pub fn run(self: *Repl) !void {
 
     outer: while(true) {
         try render();
-        _ = try transport.read(&buffer);
+        // Read w/ lock causes deadlock
+        _ = try transport.readNoLock(&buffer);
 
         switch (buffer[0]) {
             'q' => break,
@@ -306,6 +315,7 @@ fn reset_attribute() !void {
     try transport.writeAll("\x1B[0m"); // Attribute reset.
 }
 
+// Resize the terminal. Causing crash currently. TODO
 fn resize() !Size {
     var win_size = std.mem.zeroes(std.posix.winsize);
     const err = std.posix.system.ioctl(transport.getHandle(), std.posix.system.T.IOCGWINSZ, @intFromPtr(&win_size));
