@@ -4,7 +4,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
-const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
 const LinearFifo = std.fifo.LinearFifo;
@@ -23,7 +22,7 @@ cwd: Dir,
 errors: ArrayListUnmanaged(Error),
 transport: *Transport,
 
-unprocessed: ArrayListUnmanaged(Ast),
+unprocessed: ArrayListUnmanaged(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
@@ -105,12 +104,8 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit(self.allocator);
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed.items) |*parsed| {
-        for (parsed.nodes.items(.token)) |token| {
-            token.deinit();
-        }
-        parsed.nodes.deinit(self.allocator);
-        self.allocator.free(parsed.extra_data);
+    for (self.unprocessed.items) |parsed| {
+        parsed.deinit();
     }
     self.unprocessed.deinit(self.allocator);
     self.allocator.destroy(self);
@@ -241,13 +236,7 @@ fn parseFile(
     defer unit.deinit();
 
     var parsed = try unit.compile();
-    errdefer {
-        for (parsed.nodes.items(.token)) |token| {
-            token.deinit();
-        }
-        parsed.nodes.deinit(self.allocator);
-        self.allocator.free(parsed.extra_data);
-    }
+    errdefer parsed.deinit();
 
     for (parsed.nodes.items(.kind)) |kind| {
         std.debug.print("{}\n", .{kind});

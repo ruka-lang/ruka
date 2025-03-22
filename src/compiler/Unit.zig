@@ -6,7 +6,6 @@ const Allocator = std.mem.Allocator;
 const AnyReader = std.io.AnyReader;
 const AnyWriter = std.io.AnyWriter;
 const ArenaAllocator = std.heap.ArenaAllocator;
-const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 
 const ruka = @import("../prelude.zig");
@@ -58,7 +57,7 @@ pub fn deinit(self: *Unit) void {
     self.allocator.destroy(self);
 }
 
-pub fn compile(self: *Unit) !Ast {
+pub fn compile(self: *Unit) !*Ast {
     var parser = try Parser.init(
         self.allocator,
         self.arena,
@@ -69,13 +68,7 @@ pub fn compile(self: *Unit) !Ast {
     defer parser.deinit();
 
     var parsed = try parser.parse();
-    errdefer {
-        for (parsed.nodes.items(.token)) |token| {
-            token.deinit();
-        }
-        parsed.nodes.deinit(self.allocator);
-        self.allocator.free(parsed.extra_data);
-    }
+    errdefer parsed.deinit();
 
     try self.errors.appendSlice(self.allocator, parser.errors.items);
 

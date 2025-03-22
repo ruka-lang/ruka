@@ -16,8 +16,7 @@ const Transport = ruka.Transport;
 current_token: ?Token,
 peek_token: ?Token,
 
-nodes: MultiArrayList(Node),
-extra_data: ArrayListUnmanaged(Index),
+ast: *Ast,
 errors: ArrayListUnmanaged(Error),
 
 file: []const u8,
@@ -76,8 +75,35 @@ pub const Node = struct {
 };
 
 pub const Ast = struct {
-    nodes: MultiArrayList(Node).Slice,
-    extra_data: []Index
+    nodes: MultiArrayList(Node) = .{},
+    extra_data: ArrayListUnmanaged(Index) = .{},
+    allocator: Allocator,
+
+    pub fn init(allocator: Allocator) !*Ast {
+        const ast = try allocator.create(Ast);
+
+        ast.* = .{
+            .nodes = .{},
+            .extra_data = .{},
+            .allocator = allocator
+        };
+
+        return ast;
+    }
+
+    pub fn deinit(self: *Ast) void {
+        for (self.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        self.nodes.deinit(self.allocator);
+        self.extra_data.deinit(self.allocator);
+
+        self.allocator.destroy(self);
+    }
+
+    pub fn append(self: *Ast, node: Node) !void {
+        try self.nodes.append(self.allocator, node);
+    }
 };
 
 pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
@@ -87,8 +113,7 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
     parser.* = .{
         .current_token = null,
         .peek_token = null,
-        .nodes = .{},
-        .extra_data = .{},
+        .ast = try .init(allocator),
         .errors = .{},
         .file = file,
         .scanner = try .init(allocator, arena, transport, file),
@@ -101,11 +126,7 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
 
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
-    for (self.nodes.items(.token)) |token| {
-        token.deinit();
-    }
-    self.nodes.deinit(self.allocator);
-    self.extra_data.deinit(self.allocator);
+    //self.ast.deinit();
     self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }
@@ -125,14 +146,9 @@ fn discard(self: *Parser) !void {
     self.peek_token = try self.scanner.nextToken();
 }
 
-pub fn parse(self: *Parser) !Ast {
-    errdefer {
-        for (self.nodes.items(.token)) |token| {
-            token.deinit();
-        }
-        self.nodes.deinit(self.allocator);
-        self.extra_data.deinit(self.allocator);
-    }
+// Caller owns returned memory
+pub fn parse(self: *Parser) !*Ast {
+    errdefer self.ast.deinit();
 
     try self.advance();
 
@@ -151,10 +167,7 @@ pub fn parse(self: *Parser) !Ast {
 
     try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
 
-    return .{
-        .nodes = self.nodes.toOwnedSlice(),
-        .extra_data = try self.extra_data.toOwnedSlice(self.allocator)
-    };
+    return self.ast;
 }
 
 fn parseBeginsWithKeyword(self: *Parser, keyword: Token.Keyword) !void {
@@ -176,19 +189,15 @@ fn parseBeginsWithMode(self: *Parser, mode: Token.Mode) !void {
     }
 }
 
-fn appendAst(self: *Parser, node: Node) !void {
-    try self.nodes.append(self.allocator, node);
-}
-
 fn createBinding(self: *Parser) !void {
-    try self.appendAst(.{
+    try self.ast.append(.{
         .kind = .binding,
         .token = self.current_token.?,
         .data = undefined
     });
     try self.advance();
 
-    try self.appendAst(.{
+    try self.ast.append(.{
         .kind = .identifier,
         .token = self.current_token.?,
         .data = undefined
