@@ -15,7 +15,6 @@ const Transport = ruka.Transport;
 
 current_token: ?Token,
 peek_token: ?Token,
-
 ast: *Ast,
 errors: ArrayListUnmanaged(Error),
 
@@ -27,57 +26,58 @@ arena: *ArenaAllocator,
 
 const Parser = @This();
 
-pub const Index = u32;
-pub const Node = struct {
-    kind: Kind,
-    token: Token,
-
-    data: struct {
-        lhs: Index,
-        rhs: Index,
-    },
-
-    pub const Kind = enum {
-        unit,
-        identifier,
-        integer,
-        float,
-        boolean,
-        string,
-        block,
-        @"if",
-        match,
-        fn_def,
-        closure,
-        fn_call,
-        meth_call,
-        prefix,
-        infix,
-        postfix,
-        binding,
-        @"type",
-        module,
-        interpet,
-        @"return"
-    };
-
-    pub fn init(kind: Kind, token: Token) Node {
-        return .{
-            .kind = kind,
-            .token = token,
-            .data = undefined
-        };
-    }
-
-    pub fn deinit(self: Node, _: Allocator) void {
-        self.token.deinit();
-    }
-};
-
 pub const Ast = struct {
     nodes: MultiArrayList(Node) = .{},
     extra_data: ArrayListUnmanaged(Index) = .{},
     allocator: Allocator,
+
+    pub const Index = u32;
+    pub const Node = struct {
+        kind: Kind,
+        token: Token,
+
+        data: struct {
+            lhs: Index,
+            rhs: Index,
+        },
+
+        pub const Kind = enum {
+            unit,
+            identifier,
+            integer,
+            float,
+            boolean,
+            string,
+            block,
+            @"if",
+            match,
+            fn_def,
+            closure,
+            fn_call,
+            meth_call,
+            prefix,
+            infix,
+            postfix,
+            binding,
+            @"type",
+            module,
+            interpet,
+            @"return"
+        };
+
+        pub fn init(kind: Kind, token: Token) Node {
+            return .{
+                .kind = kind,
+                .token = token,
+                .data = undefined
+            };
+        }
+
+        pub fn deinit(self: Node, _: Allocator) void {
+            self.token.deinit();
+        }
+    };
+
 
     pub fn init(allocator: Allocator) !*Ast {
         const ast = try allocator.create(Ast);
@@ -106,7 +106,12 @@ pub const Ast = struct {
     }
 };
 
-pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
+pub fn init(
+    allocator: Allocator, 
+    arena: *ArenaAllocator, 
+    transport: *Transport, 
+    file: []const u8
+) !*Parser {
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
 
@@ -126,7 +131,6 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport,
 
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
-    //self.ast.deinit();
     self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }
