@@ -9,7 +9,7 @@ const Vector = record {
     const t = record {
         x: u8,
         y: u8,
-        private z: u8
+        local z: u8
     }
 
     const new = (x, y) -> t {

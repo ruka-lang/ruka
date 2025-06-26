@@ -2,12 +2,13 @@
  *
  */
 
-use {..} = @import("root")
-use {..} = buffer
-use {..} = io
+local root = @import("root")
+local {..} = root.buffer
+local {..} = root.io
+local Vector = root.Vector
 
-/* Enum literals begin with a apostrophe which do not belong to a specific type and types 
- *  specified with enum literals are generic and decided at comptime for each call of the 
+/* Enum literals begin with a apostrophe which do not belong to a specific type and types
+ *  specified with enum literals are generic and decided at comptime for each call of the
  *  function.
  */
 const genFunc = (a: 't, b: 't) {
@@ -21,7 +22,7 @@ const mul = (x: Vector.t) {
     v.x = x.x * 2
     v.y = x.y * 3
 
-    /* Compiler error because z is private. Would be fine if defined in Vector module as 
+    /* Compiler error because z is private. Would be fine if defined in Vector module as
      *  this function would be a method.
      * v.z = x.z * 2
      */
@@ -30,38 +31,38 @@ const mul = (x: Vector.t) {
 }
 
 const main = () {
-    /* Buffer is a function which takes a integer which must be known at compile time and 
-     *  returns a module, if a var or let were passed to this function acompile error 
+    /* Buffer is a function which takes a integer which must be known at compile time and
+     *  returns a module, if a var or let were passed to this function acompile error
      *  would be thrown.
      */
     var buffer = Buffer(512).init
 
-    /* Methods are functions defined within the module the type was defined in where the 
-     *  first parameter is of that type, only the type or module needs to be in scope to 
+    /* Methods are functions defined within the module the type was defined in where the
+     *  first parameter is of that type, only the type or module needs to be in scope to
      *  call the methods.
      */
 
-    /* Alternatively any function can be called as a method but it should be imported 
-     *  directly into scope as variable.std.function() would be quite verbose unless 
+    /* Alternatively any function can be called as a method but it should be imported
+     *  directly into scope as variable.std.function() would be quite verbose unless
      *  split onto multiple lines, any ambiguity would result in a compile error.
-     * In the proceeding example each step in the method chain is a method except for mul 
+     * In the proceeding example each step in the method chain is a method except for mul
      *  which is defined above.
      */
 
     Vector.new(1, 2)
-        .add(.new(3, 4))
+        .add(Vector.new(3, 4))
         .mul()
         .write ~writer: buffer.writer()
         .?
 
-    /* Although may just stick with reverse function application pipelines "|>", as 
+    /* Although may just stick with reverse function application pipelines "|>", as
      *  opposed to UFCS.
      */
 
-    /* Can call methods in pipelines. In the case where some steps are methods and other 
+    /* Can call methods in pipelines. In the case where some steps are methods and other
      *  are not, can be written like this for consistency.
      * Vector.new(1, 2)
-     *     |> .add(.new(3, 4))
+     *     |> .add(Vector.new(3, 4))
      *     |> mul()
      *     |> .write ~writer: buffer.writer()
      *     |> .?

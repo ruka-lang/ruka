@@ -1,5 +1,5 @@
-use std = @import("std")
-use {Vector} = @import("basics")
+local const std = @import("std")
+local const {Vector} = @import("basics")
 
 const Buffer = (# size: usize) {
     return record {
