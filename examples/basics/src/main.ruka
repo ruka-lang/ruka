@@ -2,7 +2,9 @@
  *
  */
 
-const {Buffer, Vector, ..} = @import("basics")
+use {..} = @import("root")
+use {..} = buffer
+use {..} = io
 
 // enum literals begin with a apostrophe which do not belong to a specific type
 // and types specified with enum literals are generic

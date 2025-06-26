@@ -1,9 +1,9 @@
-const std = @import("std")
-const {Vector, ..} = @import("basics")
+use std = @import("std")
+use {Vector} = @import("basics")
 
-pub const Buffer = (% size: usize) do
-    module {
-        pub const t = record {
+const Buffer = (# size: usize) do
+    return record {
+        const t = record {
             buf: [size]u8,
             front: usize,
             back: usize,
@@ -13,9 +13,9 @@ pub const Buffer = (% size: usize) do
             rem: std.sync.CV
         }
 
-        pub const init = () do
-            {
-                buf = []{},
+        const init = () do
+            return {
+                buf = {},
                 front = 0,
                 back = 0,
 
@@ -25,36 +25,36 @@ pub const Buffer = (% size: usize) do
             }
         end
 
-        const Writer = record {
+        private const Writer = record {
             buf: *t
         }
 
-        pub const writeRecord = (self: Writer, val: Vector.t) do
+        const writeRecord = (self: Writer, val: Vector.t) do
             self.buf.put(val.x)
             self.buf.put(val.y)
         end
 
-        const Reader = record {
+        private const Reader = record {
             buf: *t
         }
 
-        pub const readByte = (self: Reader) do
+        const readByte = (self: Reader) do
             self.buf.get()
         end
 
-        pub const writer = (self: t) do
-            writer.{
+        const writer = (self: t) do
+            return writer.{
                 buf = self.&
             }
         end
 
-        pub const reader = (self: t) do
-            reader.{
+        const reader = (self: t) do
+            return reader.{
                 buf = self.&
             }
         end
 
-        pub const put = (self: *t, value) do
+        const put = (self: *t, value) do
             self.mtx.lock()
             defer self.mtx.unlock()
 
@@ -63,12 +63,12 @@ pub const Buffer = (% size: usize) do
             end
 
             self.buf[self.front % 10] = value
-            self.front += 1;
+            self.front += 1
 
             self.add.signal()
         end
 
-        pub const get = (self: *t) do
+        const get = (self: *t) do
             self.mtx.lock()
             defer self.mtx.unlock()
 
@@ -79,7 +79,7 @@ pub const Buffer = (% size: usize) do
             self.back += 1
             self.removed.signal()
 
-            self.buf[self.back % 10];
+            return self.buf[self.back % 10]
         end
     }
 end

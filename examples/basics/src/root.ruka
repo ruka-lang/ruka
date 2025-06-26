@@ -2,29 +2,29 @@
  *
  */
 
-pub const {Buffer, ..} = @import("basics/buffer.ruka")
+const buffer = @import("basics/buffer.ruka")
 const io = @import("basics/io.ruka")
 
-pub const Vector = module {
-    pub const t = record {
-        pub x: u8,
-        pub y: u8,
-        z: u8
+const Vector = record {
+    const t = record {
+        x: u8,
+        y: u8,
+        private z: u8
     }
 
-    pub const init = (x, y) do
-        { x, y, z = 0 }
+    const init = (x, y) do
+        return t.{ x, y, z = 0 }
     end
 
-    pub const add = (self: t, other: t) do
-        {
+    const add = (self: t, other: t) do
+        return {
             x = self.x + other.x,
             y = self.y + other.y,
             z = self.z + other.z
         }
     end
 
-    pub const write = (self: t, writer: any io.Writer) do
+    const write = (self: t, writer: any io.Writer) do
         writer.writeRecord(self).?
     end
 
