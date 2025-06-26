@@ -13,6 +13,8 @@ const WaitGroup = std.Thread.WaitGroup;
 
 const ruka = @import("prelude.zig");
 const Ast = ruka.Ast;
+const Node = ruka.Node;
+const Index = ruka.Index;
 const Error = ruka.Error;
 const Transport = ruka.Transport;
 
@@ -102,8 +104,8 @@ pub fn deinit(self: *Compiler) void {
     self.errors.deinit(self.allocator);
     self.arena.deinit();
     self.transport.deinit();
-    for (self.unprocessed.items) |ast| {
-        ast.deinit();
+    for (self.unprocessed.items) |parsed| {
+        parsed.deinit();
     }
     self.unprocessed.deinit(self.allocator);
     self.allocator.destroy(self);
@@ -233,7 +235,7 @@ fn parseFile(
     });
     defer unit.deinit();
 
-    const parsed = try unit.compile();
+    var parsed = try unit.compile();
     errdefer parsed.deinit();
 
     for (parsed.nodes.items(.kind)) |kind| {

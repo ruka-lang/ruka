@@ -4,6 +4,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
+const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 
 const ruka = @import("prelude.zig");
@@ -14,7 +15,6 @@ const Transport = ruka.Transport;
 
 current_token: ?Token,
 peek_token: ?Token,
-
 ast: *Ast,
 errors: ArrayListUnmanaged(Error),
 
@@ -26,11 +26,92 @@ arena: *ArenaAllocator,
 
 const Parser = @This();
 
-pub const Ast = @import("parser/Ast.zig");
-const Index = Ast.Index;
-const Node = Ast.Node;
+pub const Ast = struct {
+    nodes: MultiArrayList(Node) = .{},
+    extra_data: ArrayListUnmanaged(Index) = .{},
+    allocator: Allocator,
 
-pub fn init(allocator: Allocator, arena: *ArenaAllocator, transport: *Transport, file: []const u8) !*Parser {
+    pub const Index = u32;
+    pub const Node = struct {
+        kind: Kind,
+        token: Token,
+
+        data: struct {
+            lhs: Index,
+            rhs: Index,
+        },
+
+        pub const Kind = enum {
+            unit,
+            identifier,
+            integer,
+            float,
+            boolean,
+            string,
+            block,
+            @"if",
+            match,
+            fn_def,
+            closure,
+            fn_call,
+            meth_call,
+            prefix,
+            infix,
+            postfix,
+            binding,
+            @"type",
+            module,
+            interpet,
+            @"return"
+        };
+
+        pub fn init(kind: Kind, token: Token) Node {
+            return .{
+                .kind = kind,
+                .token = token,
+                .data = undefined
+            };
+        }
+
+        pub fn deinit(self: Node, _: Allocator) void {
+            self.token.deinit();
+        }
+    };
+
+
+    pub fn init(allocator: Allocator) !*Ast {
+        const ast = try allocator.create(Ast);
+
+        ast.* = .{
+            .nodes = .{},
+            .extra_data = .{},
+            .allocator = allocator
+        };
+
+        return ast;
+    }
+
+    pub fn deinit(self: *Ast) void {
+        for (self.nodes.items(.token)) |token| {
+            token.deinit();
+        }
+        self.nodes.deinit(self.allocator);
+        self.extra_data.deinit(self.allocator);
+
+        self.allocator.destroy(self);
+    }
+
+    pub fn append(self: *Ast, node: Node) !void {
+        try self.nodes.append(self.allocator, node);
+    }
+};
+
+pub fn init(
+    allocator: Allocator, 
+    arena: *ArenaAllocator, 
+    transport: *Transport, 
+    file: []const u8
+) !*Parser {
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
 
@@ -69,11 +150,9 @@ fn discard(self: *Parser) !void {
     self.peek_token = try self.scanner.nextToken();
 }
 
+// Caller owns returned memory
 pub fn parse(self: *Parser) !*Ast {
-    errdefer {
-        self.ast.deinit();
-        self.allocator.destroy(self.ast);
-    }
+    errdefer self.ast.deinit();
 
     try self.advance();
 
@@ -130,8 +209,8 @@ fn createBinding(self: *Parser) !void {
 
     if (self.peek_token.?.kind != .assign) {
         try self.createError(try std.fmt.allocPrint(
-            self.arena.allocator(), 
-            "Expected '=', found {s}", 
+            self.arena.allocator(),
+            "Expected '=', found {s}",
             .{self.peek_token.?.kind.toStr()}
         ));
     }
@@ -150,7 +229,6 @@ pub fn createError(self: *Parser, msg: []const u8) !void {
 
 test "parser modules" {
     _ = tests;
-    _ = Ast;
 }
 
 const tests = struct {
