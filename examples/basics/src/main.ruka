@@ -8,11 +8,11 @@ use {..} = io
 
 // enum literals begin with a apostrophe which do not belong to a specific type
 // and types specified with enum literals are generic
-const genFunc = (a: 't, b: 't) do
+const genFunc = (a: 't, b: 't) {
     @expect(@typeOf(a) == @typeOf(b))
-end
+}
 
-const mul = (x: Vector.t) do
+const mul = (x: Vector.t) {
     var v = Vector.init(0, 0)
 
     // Okay because x, y is public
@@ -24,12 +24,12 @@ const mul = (x: Vector.t) do
     //v.z = x.z * 2
 
     v
-end
+}
 
-const main = () do
+const main = () {
     // Buffer is a function which takes a integer which must be known at compile time
     // and returns a module, if a var or let were passed to this function a compile error would be thrown
-    var buffer = Buffer(512).init()
+    var buffer = Buffer(512).init
 
     // Methods are functions defined within the module the type was
     // defined in where the first parameter is of that type, only the
@@ -71,4 +71,4 @@ const main = () do
 
     let string: @arrayList(u8).t = @fmtToString("x: #{values[0]}, y: #{values[1]}")
     @println(string)
-end
+}

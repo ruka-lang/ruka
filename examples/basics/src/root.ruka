@@ -12,21 +12,21 @@ const Vector = record {
         private z: u8
     }
 
-    const init = (x, y) do
-        return t.{ x, y, z = 0 }
-    end
+    const new = (x, y) -> t {
+        return { x, y, z = 0 }
+    }
 
-    const add = (self: t, other: t) do
+    const add = (self: t, other: t) -> t {
         return {
             x = self.x + other.x,
             y = self.y + other.y,
             z = self.z + other.z
         }
-    end
+    }
 
-    const write = (self: t, writer: any io.Writer) do
+    const write = (self: t, writer: any io.Writer) {
         writer.writeRecord(self).?
-    end
+    }
 
     test "addition" {
         const testcase = record {
@@ -43,10 +43,10 @@ const Vector = record {
             }
         }
 
-        for k, v in tests do
+        for k, v in tests {
             let result = v.a.add(v.b)
             @expect(result == v.want).?
             @println("test: #{k} passed")
-        end
+        }
     }
 }

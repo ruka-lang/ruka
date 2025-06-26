@@ -1,7 +1,7 @@
 use std = @import("std")
 use {Vector} = @import("basics")
 
-const Buffer = (# size: usize) do
+const Buffer = (# size: usize) {
     return record {
         const t = record {
             buf: [size]u8,
@@ -13,52 +13,50 @@ const Buffer = (# size: usize) do
             rem: std.sync.CV
         }
 
-        const init = () do
-            return {
-                buf = {},
-                front = 0,
-                back = 0,
+        const init = {
+            buf = {},
+            front = 0,
+            back = 0,
 
-                mtx = .init,
-                add = .init,
-                rem = .init
-            }
-        end
+            mtx = .init,
+            add = .init,
+            rem = .init
+        }
 
         private const Writer = record {
             buf: *t
         }
 
-        const writeRecord = (self: Writer, val: Vector.t) do
+        const writeRecord = (self: Writer, val: Vector.t) {
             self.buf.put(val.x)
             self.buf.put(val.y)
-        end
+        }
 
         private const Reader = record {
             buf: *t
         }
 
-        const readByte = (self: Reader) do
-            self.buf.get()
-        end
+        const readByte = (self: Reader) {
+            return self.buf.get()
+        }
 
-        const writer = (self: t) do
+        const writer = (self: t) {
             return writer.{
                 buf = self.&
             }
-        end
+        }
 
-        const reader = (self: t) do
+        const reader = (self: t) {
             return reader.{
                 buf = self.&
             }
-        end
+        }
 
-        const put = (self: *t, value) do
+        const put = (self: *t, value) {
             self.mtx.lock()
             defer self.mtx.unlock()
 
-            while self.front -| self.back == 10 do
+            while self.front -| self.back == 10 {
                 self.rem.wait(&self.mtx)
             end
 
@@ -66,20 +64,20 @@ const Buffer = (# size: usize) do
             self.front += 1
 
             self.add.signal()
-        end
+        }
 
-        const get = (self: *t) do
+        const get = (self: *t) {
             self.mtx.lock()
             defer self.mtx.unlock()
 
-            while self.back == self.front do
+            while self.back == self.front {
                 self.add.wait(&self.mtx)
-            end
+            }
 
             self.back += 1
             self.removed.signal()
 
             return self.buf[self.back % 10]
-        end
+        }
     }
-end
+}

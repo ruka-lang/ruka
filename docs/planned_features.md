@@ -25,3 +25,6 @@ Features being considered:
             in scope where called.
     - Borrow by default, with modes to control lifetimes.
     - Garbage collected by default with ability to control memory as needed.
+    - Implicit returns.
+    - Optional type annotations.
+    - Do end for scope, { } for defining and instancing types.
