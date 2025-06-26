@@ -26,7 +26,7 @@ const mul = (x: Vector.t) {
      * v.z = x.z * 2
      */
 
-    v
+    return v
 }
 
 const main = () {
