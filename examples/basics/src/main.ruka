@@ -18,8 +18,8 @@ local {Writer} = io // Writer is an interface and must be in scope to be used.
 
 /* Enum literals (called literal in type annotations) begin with a apostrophe which all 
  *  belong to the literal type. Types specified with enum literals are generic and 
- *  decided at comptime for each call of the function, as shorthand for using the 
- *  built-in @type(literal) in the type annotation.
+ *  decided at comptime for each call of the function, as using the built-in `type` in 
+ *  the type annotation would not enforce them being the same type.
  */
 const genFunc = (a: 'a, b: 'a) {
     @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @, as to not clog 

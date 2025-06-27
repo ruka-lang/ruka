@@ -1,0 +1,46 @@
+functions:
+- @print()
+- @println(string)
+- @import([]u8)
+- @arrayList(type)
+- @hashMap()
+- @typeOf('a)
+- 
+types:
+- uint
+- u# # arbitray size unsigned integer
+- int
+- i# # arbitray size signed integer
+- float
+- f# # arbitrary size float
+- string
+- bool
+- unit or ()
+- type
+- pointer
+    - annotation: *type
+- reference
+    - annotation: &type
+- function
+    - annotation: (parameters) -> return
+    - instance: (parameters) -> return {}
+- array
+    - annotation: [size]element 
+    - instance: [size]{val, ...}
+- static map
+    - annotation: [key, value]
+    - instance: [key, value]{key: val, ...}
+- tuple
+    - annotation: tuple {type, type, ...}
+    - instance: {val, val, ...}
+- record
+    - annotation: record {field: type, field: type, ...}
+    - instance: {field: val, field: val, ...}
+- enum
+    - annotation: enum {name: type, name: type, ...}
+    - instance: enum.variant(val)
+- literal
+    - annotation: literal
+    - instance: 'identifier
+        - 'a
+        - 'fast
