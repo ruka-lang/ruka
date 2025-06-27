@@ -1,0 +1,7 @@
+- Standardize and define nomeclature for language features like:
+  - Attributes vs. members vs. fields vs. properties, etc.
+  - Methods vs. functions vs. procedures, etc.
+- Finalized decisions on language features to be implemented as displayed in planned_features.md.
+- Create design documents for the build system, package manager, compiler, repl; detailing their functions and features.
+- Create more example projects.
+- Actually write the code...

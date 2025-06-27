@@ -1,5 +1,4 @@
-use std = @import("std")
-use {Vector} = @import("basics")
+local const std = @import("std")
 
 const Buffer = (# size: usize) {
     return record {
@@ -24,20 +23,20 @@ const Buffer = (# size: usize) {
         }
 
         private const Writer = record {
-            buf: *t
+            buf: &t
         }
 
-        const writeRecord = (self: Writer, val: Vector.t) {
-            self.buf.put(val.x)
-            self.buf.put(val.y)
+        const writeByte = (self: &Writer, byte: u8) -> @result(()) {
+            self.buf.put(byte)
+            return .ok(())
         }
 
         private const Reader = record {
-            buf: *t
+            buf: &t
         }
 
-        const readByte = (self: Reader) {
-            return self.buf.get()
+        const readByte = (self: &Reader) -> @result(u8) {
+            return .ok(self.buf.get())
         }
 
         const writer = (self: t) {
@@ -52,26 +51,26 @@ const Buffer = (# size: usize) {
             }
         }
 
-        const put = (self: *t, value) {
+        const put = (self: &t, byte) {
             self.mtx.lock()
             defer self.mtx.unlock()
 
             while self.front -| self.back == 10 {
-                self.rem.wait(&self.mtx)
+                self.rem.wait(self.mtx.&)
             end
 
-            self.buf[self.front % 10] = value
+            self.buf[self.front % 10] = byte
             self.front += 1
 
             self.add.signal()
         }
 
-        const get = (self: *t) {
+        const get = (self: &t) {
             self.mtx.lock()
             defer self.mtx.unlock()
 
             while self.back == self.front {
-                self.add.wait(&self.mtx)
+                self.add.wait(self.mtx.&)
             }
 
             self.back += 1

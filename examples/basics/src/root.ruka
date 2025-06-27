@@ -9,7 +9,7 @@ const Vector = record {
     const t = record {
         x: u8,
         y: u8,
-        private z: u8
+        local z: u8
     }
 
     const new = (x, y) -> t {
@@ -37,16 +37,18 @@ const Vector = record {
 
         let tests = [string, testcase]{
             "addition" = {
-                num = init(1, 2),
-                div = init(3, 4),
-                want = init(4, 6)
+                num = .new(1, 2),
+                div = .new(3, 4),
+                want = .new(4, 6)
             }
         }
 
-        for k, v in tests {
-            let result = v.a.add(v.b)
-            @expect(result == v.want).?
-            @println("test: #{k} passed")
+        for test, data in tests {
+            if test == "addition" {
+                let result = data.num.add(data.div)
+                @expect(result == data.want).?
+            }
+            @println("test: #{test} passed")
         }
     }
 }

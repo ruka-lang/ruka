@@ -1,13 +1,20 @@
 /*
- *
+ * In Ruka, files are imported directly as records (a la Zig), and so can have attributes and members.
  */
 
-use {..} = @import("root")
-use {..} = buffer
-use {..} = io
+local {Buffer, Vector, io} = @import("root") /* Destructures the record imported from "root"
+                                              *  and stores Buffer, vector, and io in local
+                                              *  bindings (which are constants private to this
+                                              *  file.) If root had any other members, they
+                                              *  would not be imported. {..} or {member, ..} can
+                                              *  be used to import all members of a record.
+                                              * Public attributes can also be imported but must
+                                              *  be done explicitly.
+                                              */
+local {Writer} = io // Writer is an interface and must be in scope to be used.
 
-/* Enum literals begin with a apostrophe which do not belong to a specific type and types 
- *  specified with enum literals are generic and decided at comptime for each call of the 
+/* Enum literals begin with a apostrophe which do not belong to a specific type and types
+ *  specified with enum literals are generic and decided at comptime for each call of the
  *  function.
  */
 const genFunc = (a: 't, b: 't) {
@@ -21,53 +28,49 @@ const mul = (x: Vector.t) {
     v.x = x.x * 2
     v.y = x.y * 3
 
-    /* Compiler error because z is private. Would be fine if defined in Vector module as 
+    /* Compiler error because z is private. Would be fine if defined in Vector module as
      *  this function would be a method.
      * v.z = x.z * 2
      */
 
-    v
+    return v
 }
 
 const main = () {
-    /* Buffer is a function which takes a integer which must be known at compile time and 
-     *  returns a module, if a var or let were passed to this function acompile error 
+    /* Buffer is a function which takes a integer which must be known at compile time and
+     *  returns a record, if a var or let were passed to this function a compile error
      *  would be thrown.
      */
-    var buffer = Buffer(512).init
+    var buffer: Buffer(512) = .init
 
-    /* Methods are functions defined within the module the type was defined in where the 
-     *  first parameter is of that type, only the type or module needs to be in scope to 
+    /* Methods are functions defined within the module the type was defined in, where the
+     *  first parameter is of that type. Only the type or module needs to be in scope to
      *  call the methods.
      */
 
-    /* Alternatively any function can be called as a method but it should be imported 
-     *  directly into scope as variable.std.function() would be quite verbose unless 
-     *  split onto multiple lines, any ambiguity would result in a compile error.
-     * In the proceeding example each step in the method chain is a method except for mul 
-     *  which is defined above.
+    /* Alternatively any function can be called as a method using UFCS but it should be
+     *  imported directly into scope as variable.std.function() would be too verbose,
+     *  any ambiguity will result in a compile error.
+     * In the proceeding example each step in the method chain is a method call except for mul
+     *  which is defined above, but called using UFCS.
      */
 
     Vector.new(1, 2)
-        .add(.new(3, 4))
+        .add(Vector.new(3, 4))
         .mul()
         .write ~writer: buffer.writer()
         .?
 
-    /* Although may just stick with reverse function application pipelines "|>", as 
-     *  opposed to UFCS.
-     */
-
-    /* Can call methods in pipelines. In the case where some steps are methods and other 
-     *  are not, can be written like this for consistency.
+    /* Can call methods in pipelines. In the case where some steps are methods and other
+     *  are not, can be written like this.
      * Vector.new(1, 2)
-     *     |> .add(.new(3, 4))
+     *     |> .add(Vector.new(3, 4))
      *     |> mul()
      *     |> .write ~writer: buffer.writer()
      *     |> .?
      */
 
-    let values = []{
+    let values = []{ // An array literal, with infered type and length.
         buffer.get(),
         buffer.get()
     }
