@@ -28,8 +28,8 @@ const mul = (x: Vector.t) {
     v.x = x.x * 2
     v.y = x.y * 3
 
-    /* Compiler error because z is private. Would be fine if defined in Vector module as
-     *  this function would be a method.
+    /* This would generate a compiler error because z is private. Would be fine if defined in
+     * the Vector record as this function would be a method.
      * v.z = x.z * 2
      */
 
@@ -78,6 +78,12 @@ const main = () {
     @expectEq(values[0], 8).?
     @expectEq(values[1], 15).?
 
-    let string: @arrayList(u8).t = @fmtToString("x: #{values[0]}, y: #{values[1]}")
+    /* Multiline strings start with `"|` and end with `|"` with each line inbetween beginning with `|`.
+     * Formatting can be specified directly in the string using `#{}`.
+     */
+    let string = @fmtToString(
+        "|x: #{values[0]},
+         |y: #{values[1]}
+         |")
     @println(string)
 }
