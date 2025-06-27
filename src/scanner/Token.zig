@@ -303,20 +303,19 @@ pub const Keyword = enum {
     @"const",
     let,
     @"var",
-    @"pub",
     local,
-    interpret,
     @"return",
     do,
     end,
-    module,
     record,
     tuple,
     @"enum",
+    literal,
     interface,
     any,
     @"error",
     @"defer",
+    interpret,
     true,
     false,
     @"for",
@@ -324,23 +323,25 @@ pub const Keyword = enum {
     @"break",
     @"continue",
     match,
-    with,
     @"if",
     @"else",
     @"and",
     @"or",
     not,
     @"test",
-    @"fn",
     in,
     // Reserved
     @"inline",
     derive,
+    module,
     static,
     macro,
+    @"pub",
+    @"fn",
     from,
     impl,
     when,
+    with,
     use,
     as,
 
@@ -360,20 +361,19 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"const", .@"const"},
     .{"let", .let},
     .{"var", .@"var"},
-    .{"pub", .@"pub"},
     .{"local", .local},
-    .{"interpret", .interpret},
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
-    .{"module", .module},
     .{"record", .record},
     .{"tuple", .tuple},
     .{"enum", .@"enum"},
+    .{"literal", .literal},
     .{"interface", .interface},
     .{"any", .any},
     .{"error", .@"error"},
     .{"defer", .@"defer"},
+    .{"interpret", .interpret},
     .{"true", .true},
     .{"false", .false},
     .{"for", .@"for"},
@@ -381,23 +381,25 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"break", .@"break"},
     .{"continue", .@"continue"},
     .{"match", .match},
-    .{"with", .with},
     .{"if", .@"if"},
     .{"else", .@"else"},
     .{"and", .@"and"},
     .{"or", .@"or"},
     .{"not", .not},
     .{"test", .@"test"},
-    .{"fn", .@"fn"},
     .{"in", .in},
     // Reserved
     .{"inline", .@"inline"},
     .{"derive", .derive},
+    .{"module", .module},
     .{"static", .static},
     .{"macro", .macro},
+    .{"pub", .@"pub"},
+    .{"fn", .@"fn"},
     .{"from", .from},
     .{"impl", .impl},
     .{"when", .when},
+    .{"with", .with},
     .{"use", .use},
     .{"as", .as}
 });
@@ -422,10 +424,11 @@ comptime {
 
 /// Represent various parameter modes
 pub const Mode = enum {
-    @"comptime",
-    loc,
-    mov,
-    mut,
+    @"interpreted", // Parameter is constant and must be known at compile time and the value is interpreted during compilation.
+    loc,            // Immutable reference which cannot escape the function scope.
+    mov,            // Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
+    mut,            // Mutable reference, parameter can be changed, but the reference cannot escape the function scope.
+    ref,            // Immutable refernce which can escape the function scope, default mode.
 
     /// Converts a mode into a string slice
     pub fn toStr(self: *const Mode) []const u8 {
@@ -440,10 +443,11 @@ pub const Mode = enum {
 
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
-    .{"comptime", .@"comptime"},
+    .{"#", .@"interpreted"},
     .{"loc", .loc},
     .{"mov", .mov},
-    .{"mut", .mut}
+    .{"mut", .mut},
+    .{"ref", .ref}
 });
 
 // Compile time assert no missing or extra entries in modes

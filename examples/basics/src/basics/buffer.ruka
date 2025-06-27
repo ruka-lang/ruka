@@ -1,6 +1,6 @@
 local const std = @import("std")
 
-const Buffer = (# size: usize) {
+const Buffer = (size: #usize) {
     return record {
         const t = record {
             buf: [size]u8,
@@ -26,7 +26,7 @@ const Buffer = (# size: usize) {
             buf: &t
         }
 
-        const writeByte = (self: &Writer, byte: u8) -> @result(()) {
+        const writeByte = (self: mut Writer, byte: u8) -> @result(()) {
             self.buf.put(byte)
             return .ok(())
         }
@@ -35,7 +35,7 @@ const Buffer = (# size: usize) {
             buf: &t
         }
 
-        const readByte = (self: &Reader) -> @result(u8) {
+        const readByte = (self: mut Reader) -> @result(u8) {
             return .ok(self.buf.get())
         }
 
@@ -51,7 +51,7 @@ const Buffer = (# size: usize) {
             }
         }
 
-        const put = (self: &t, byte) {
+        const put = (self: mut t, byte) {
             self.mtx.lock()
             defer self.mtx.unlock()
 
@@ -65,7 +65,7 @@ const Buffer = (# size: usize) {
             self.add.signal()
         }
 
-        const get = (self: &t) {
+        const get = (self: mut t) {
             self.mtx.lock()
             defer self.mtx.unlock()
 

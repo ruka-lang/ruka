@@ -2,33 +2,34 @@
  * In Ruka, files are imported directly as records (a la Zig), and so can have attributes and members.
  */
 
-local {Buffer, Vector, io} = @import("root") /* Destructures the record imported from "root"
-                                              *  and stores Buffer, vector, and io in local
-                                              *  bindings (which are constants private to this
-                                              *  file.) If root had any other members, they
-                                              *  would not be imported. {..} or {member, ..} can
-                                              *  be used to import all members of a record.
-                                              * Public attributes can also be imported but must
-                                              *  be done explicitly.
-                                              */
-local {Writer} = io // Writer is an interface and must be in scope to be used.
-
-/* Enum literals begin with a apostrophe which do not belong to a specific type and types
- *  specified with enum literals are generic and decided at comptime for each call of the
- *  function.
+local std = @import("std")
+local {Buffer, Vector, io} = @import("root")
+/* Destructures the record imported from "root"
+ *  and stores Buffer, vector, and io in local
+ *  bindings (which are constants private to this
+ *  file.) If root had any other members, they
+ *  would not be imported. {..} or {member, ..} can
+ *  be used to import all members of a record.
  */
-const genFunc = (a: 't, b: 't) {
-    @expect(@typeOf(a) == @typeOf(b))
+local {Writer} = io // Writer is an interface and must be in scope to be used.
+// Files can be imported without specifying a path if they exist within the same directory,
+//  or if a folder containing a root.ruka file exists in the same directory.
+
+/* Enum literals (just called literals) begin with a apostrophe which do not belong to a specific type. Types
+ *  specified with enum literals are generic and decided at comptime for each call of the
+ *  function, as shorthand for using the built-in @type(literal) in the type annotation.
+ */
+const genFunc = (a: 'a, b: 'a) {
+    @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @, as to not clog up the user namespace.
 }
 
 const mul = (x: Vector.t) {
     var v = Vector.init(0, 0)
 
-    // Okay because x, y is public
     v.x = x.x * 2
     v.y = x.y * 3
 
-    /* This would generate a compiler error because z is private. Would be fine if defined in
+    /* This would generate a compiler error because z is local. Would be fine if defined in
      * the Vector record as this function would be a method.
      * v.z = x.z * 2
      */
@@ -36,7 +37,7 @@ const mul = (x: Vector.t) {
     return v
 }
 
-const main = () {
+const main = () -> @result(()) { // The return annotation is not necessary, it can be inferred.
     /* Buffer is a function which takes a integer which must be known at compile time and
      *  returns a record, if a var or let were passed to this function a compile error
      *  would be thrown.
@@ -58,15 +59,15 @@ const main = () {
     Vector.new(1, 2)
         .add(Vector.new(3, 4))
         .mul()
-        .write ~writer: buffer.writer()
-        .?
+        .write ~writer: mut buffer.writer()
+        .? // The `.?` at the end is used to unwrap the result of the last method call, which is a @result type.
 
     /* Can call methods in pipelines. In the case where some steps are methods and other
      *  are not, can be written like this.
      * Vector.new(1, 2)
      *     |> .add(Vector.new(3, 4))
      *     |> mul()
-     *     |> .write ~writer: buffer.writer()
+     *     |> .write ~writer: mut buffer.writer()
      *     |> .?
      */
 
@@ -86,4 +87,5 @@ const main = () {
          |y: #{values[1]}
          |")
     @println(string)
+    return .ok(()) // Because we unwrapped a result earlier this function must return a result at the end.
 }

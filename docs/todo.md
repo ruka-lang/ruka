@@ -3,6 +3,11 @@
   - Methods vs. functions vs. procedures, etc.
   - Module vs. namespace vs. record, etc.
 - Finalized decisions on language features to be implemented as displayed in planned_features.md.
+- Write up formal language grammar.
+- Start LSP and tree-sitter work early on, plugins for VSCode, Zed, and Neovim being high priority.
+- Write up formal language specifications.
 - Create design documents for the build system, package manager, compiler, repl; detailing their functions and features.
 - Create more example projects.
+- Write more formal documentation.
+- Build basic website to host documentation on www.ruka-lang.org.
 - Actually write the code...
