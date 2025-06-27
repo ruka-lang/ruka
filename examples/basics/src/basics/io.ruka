@@ -2,6 +2,8 @@ const Reader = interface {
     readByte: (*) () -> @result(u8)
 }
 
-const Writer = interface {
-    writeRecord: (*) (any) -> @result(())
+const Writer = (t: 'a) {
+    interface {
+        writeRecord: (*) (t) -> @result(())
+    }
 }

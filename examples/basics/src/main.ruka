@@ -3,8 +3,7 @@
  */
 
 local root = @import("root")
-local {..} = root.buffer
-local {..} = root.io
+local {..} = root.buffer // Destructure buffer module to bring into scope all its public members
 local Vector = root.Vector
 
 /* Enum literals begin with a apostrophe which do not belong to a specific type and types
@@ -37,8 +36,8 @@ const main = () {
      */
     var buffer = Buffer(512).init
 
-    /* Methods are functions defined within the module the type was defined in where the
-     *  first parameter is of that type, only the type or module needs to be in scope to
+    /* Methods are functions defined within the module the type was defined in, where the
+     *  first parameter is of that type. Only the type or module needs to be in scope to
      *  call the methods.
      */
 
@@ -46,7 +45,7 @@ const main = () {
      *  directly into scope as variable.std.function() would be quite verbose unless
      *  split onto multiple lines, any ambiguity would result in a compile error.
      * In the proceeding example each step in the method chain is a method except for mul
-     *  which is defined above.
+     *  which is defined above, but called using UFCS.
      */
 
     Vector.new(1, 2)
