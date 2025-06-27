@@ -3,7 +3,7 @@
  */
 
 local root = @import("root")
-local {..} = root.buffer // Destructure buffer module to bring into scope all its public members
+local {..} = root.buffer // Destructures the buffer record to bring into scope all its public members
 local Vector = root.Vector
 
 /* Enum literals begin with a apostrophe which do not belong to a specific type and types
