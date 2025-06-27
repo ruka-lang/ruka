@@ -1,9 +1,8 @@
 const Reader = interface {
-    readByte: (*) () -> @result(u8)
+    readByte: (&) () -> @result(u8)
 }
 
-const Writer = (t: 'a) {
-    interface {
-        writeRecord: (*) (t) -> @result(())
+const Writer = interface {
+        writeByte: (&) (u8) -> @result(())
     }
 }
