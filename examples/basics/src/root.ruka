@@ -24,7 +24,7 @@ const Vector = record {
         }
     }
 
-    const write = (self: t, writer: any io.Writer) {
+    const write = (self: t, writer: any mut io.Writer) {
         writer.writeRecord(self).?
     }
 

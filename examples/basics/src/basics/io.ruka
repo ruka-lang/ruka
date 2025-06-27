@@ -1,8 +1,8 @@
 const Reader = interface {
-    readByte: (&) () -> @result(u8)
+    readByte: (mut) () -> @result(u8)
 }
 
 const Writer = interface {
-        writeByte: (&) (u8) -> @result(())
+        writeByte: (mut) (u8) -> @result(())
     }
 }
