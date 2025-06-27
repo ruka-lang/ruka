@@ -1,26 +1,29 @@
 /*
- * In Ruka, files are imported directly as records (a la Zig), and so can have attributes and members.
+ * In Ruka, files are imported directly as records (a la Zig), and so can have attributes 
+ *  and members.
  */
 
 local std = @import("std")
 local {Buffer, Vector, io} = @import("root")
-/* Destructures the record imported from "root"
- *  and stores Buffer, vector, and io in local
- *  bindings (which are constants private to this
- *  file.) If root had any other members, they
- *  would not be imported. {..} or {member, ..} can
- *  be used to import all members of a record.
+/* Destructures the record imported from "root" and stores Buffer, vector, and io in 
+ *  local bindings (which are constants private to this file.) If root had any other 
+ *  members, they would not be imported. {..} or {member, ..} can be used to import all 
+ *  members of a record.
  */
 local {Writer} = io // Writer is an interface and must be in scope to be used.
-// Files can be imported without specifying a path if they exist within the same directory,
-//  or if a folder containing a root.ruka file exists in the same directory.
 
-/* Enum literals (just called literals) begin with a apostrophe which do not belong to a specific type. Types
- *  specified with enum literals are generic and decided at comptime for each call of the
- *  function, as shorthand for using the built-in @type(literal) in the type annotation.
+/* Files can be imported without specifying a path if they exist within the same 
+ *  directory, or if a folder containing a root.ruka file exists in the same directory.
+ */
+
+/* Enum literals (called literal in type annotations) begin with a apostrophe which all 
+ *  belong to the literal type. Types specified with enum literals are generic and 
+ *  decided at comptime for each call of the function, as using the built-in `type` in 
+ *  the type annotation would not enforce them being the same type.
  */
 const genFunc = (a: 'a, b: 'a) {
-    @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @, as to not clog up the user namespace.
+    @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @, as to not clog 
+                                      //  up the user namespace.
 }
 
 const mul = (x: Vector.t) {
@@ -28,11 +31,6 @@ const mul = (x: Vector.t) {
 
     v.x = x.x * 2
     v.y = x.y * 3
-
-    /* This would generate a compiler error because z is local. Would be fine if defined in
-     * the Vector record as this function would be a method.
-     * v.z = x.z * 2
-     */
 
     return v
 }
@@ -52,15 +50,16 @@ const main = () -> @result(()) { // The return annotation is not necessary, it c
     /* Alternatively any function can be called as a method using UFCS but it should be
      *  imported directly into scope as variable.std.function() would be too verbose,
      *  any ambiguity will result in a compile error.
-     * In the proceeding example each step in the method chain is a method call except for mul
-     *  which is defined above, but called using UFCS.
+     * In the proceeding example each step in the method chain is a method call except 
+     *  for mul which is defined above, but called using UFCS.
      */
 
     Vector.new(1, 2)
         .add(Vector.new(3, 4))
         .mul()
         .write ~writer: mut buffer.writer()
-        .? // The `.?` at the end is used to unwrap the result of the last method call, which is a @result type.
+        .? // The `.?` at the end is used to unwrap the result of the last method call, 
+           //  which returned a @result type.
 
     /* Can call methods in pipelines. In the case where some steps are methods and other
      *  are not, can be written like this.
@@ -79,13 +78,20 @@ const main = () -> @result(()) { // The return annotation is not necessary, it c
     @expectEq(values[0], 8).?
     @expectEq(values[1], 15).?
 
-    /* Multiline strings start with `"|` and end with `|"` with each line inbetween beginning with `|`.
-     * Formatting can be specified directly in the string using `#{}`.
+    /* Multiline strings start with `"|` and end with `|"` with each line in-between 
+     *  beginning with `|`.
+     * Formatting can be specified directly in the string if the values are constants
+     *  using `#{}`.
+     * If the values are not constant and they are being passed to formatting built-ins,
+     *  a loc reference will be encoded and used by the formatting functions to get those 
+     *  values, otherwise you must use empty #{} and pass the values in the tuple afterwards.
      */
     let string = @fmtToString(
         "|x: #{values[0]},
          |y: #{values[1]}
-         |")
+         |", 
+         {}
+    )
     @println(string)
     return .ok(()) // Because we unwrapped a result earlier this function must return a result at the end.
 }
