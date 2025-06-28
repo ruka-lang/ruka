@@ -3,39 +3,42 @@
  *  and members.
  */
 
+/* Files can be imported without specifying a path if they exist within the same 
+ *  directory, or if a folder containing a root.ruka file exists in the same directory,
+ *  the std library is always importable using "std".
+ */
 local std = @import("std")
-local {Buffer, Vector, io} = @import("root")
+
 /* Destructures the record imported from "root" and stores Buffer, vector, and io in 
  *  local bindings (which are constants private to this file.) If root had any other 
  *  members, they would not be imported. {..} or {member, ..} can be used to import all 
  *  members of a record.
  */
-local {Writer} = io // Writer is an interface and must be in scope to be used.
+local {Buffer, Vector, io} = @import("root")
 
-/* Files can be imported without specifying a path if they exist within the same 
- *  directory, or if a folder containing a root.ruka file exists in the same directory.
- */
+// Writer is an interface and must be in scope to be used.
+local {Writer} = io 
 
 /* Enum literals (called literal in type annotations) begin with a apostrophe which all 
  *  belong to the literal type. Types specified with enum literals are generic and 
  *  decided at comptime for each call of the function, as using the built-in `type` in 
  *  the type annotation would not enforce them being the same type.
  */
-const genFunc = (a: 'a, b: 'a) {
+const genFunc = (a: 'a, b: 'a) do
     @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @, as to not clog 
                                       //  up the user namespace.
-}
+end
 
-const mul = (x: Vector.t) {
+const mul = (x: Vector.t) do
     var v = Vector.init(0, 0)
 
     v.x = x.x * 2
     v.y = x.y * 3
 
     return v
-}
+end
 
-const main = () -> @result(()) { // The return annotation is not necessary, it can be inferred.
+const main = () do 
     /* Buffer is a function which takes a integer which must be known at compile time and
      *  returns a record, if a var or let were passed to this function a compile error
      *  would be thrown.
@@ -94,4 +97,4 @@ const main = () -> @result(()) { // The return annotation is not necessary, it c
     )
     @println(string)
     return .ok(()) // Because we unwrapped a result earlier this function must return a result at the end.
-}
+end
