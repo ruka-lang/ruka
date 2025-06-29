@@ -4,11 +4,11 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Build system, package manager, compiler, repl, and lsp integrated into one tool.
 - Compiled.
 - Garbage collected by default with ability to control lifetimes and manually manage memory as needed.
-- Borrow by default, with parameter modes to control reference lifetimes:
-  - ref: Immutable reference which can escape the function scope, default mode.
-  - loc: Immutable reference which cannot escape the function scope, referenced value still valid after the function.
-  - mov: Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
-  - mut: Mutable reference, parameter can be changed, but the reference cannot escape the function scope.
+- Immutable borrow (reference without taking ownership) by default, with binding and parameter modes to control lifetimes:
+  - stk: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
+  - loc: Immutable borrow which cannot escape the function scope, does not take ownership.
+  - mov: Function takes ownership of the parameter, parameter cannot escape the function scope. Similar to a stk parameter in behaviour but without a copy.
+  - mut: Mutable borrow, parameter can be changed, the reference cannot escape the function scope and ownership is not taken.
   - `#` (Interpreted): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
 - Records (structures) used for namespaces as well as data structures.
 - Types (records, unions, enums, built-ins), and fuctions are first class values, but must be known at compile time and stored in const or local bindings.
