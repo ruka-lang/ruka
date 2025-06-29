@@ -21,9 +21,18 @@ types:
     - annotation: &type
 - function
     - annotation: (parameters) -> return
-    - instance: (parameters) -> return {}
+    - instance: (parameters) -> return {
+      code
+    }
+    - one-liner: (parameters) -> return => code
+- closure
+    - annotation: (parameters) -> return
+    - instance: (parameters) -> return { |captures|
+      code
+    }
+    - one-liner: (parameters) -> return => |captures| code
 - array
-    - annotation: \[size]element
+    - annotation: \[size\]element
     - instance: \[size\]{val, ...}
 - static map
     - annotation: \[key, value\]
