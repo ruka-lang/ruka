@@ -33,7 +33,7 @@ pub fn deinit(self: Token) void {
 pub const Kind = union(enum) {
     // Literals
     identifier: ArrayList(u8),
-    @"enum": ArrayList(u8),
+    @"enum": ArrayList(u8), // Change to variant
     string: ArrayList(u8),
     character: ArrayList(u8),
     integer: ArrayList(u8),
@@ -309,7 +309,7 @@ pub const Keyword = enum {
     end,
     record,
     tuple,
-    @"enum",
+    variant,
     literal,
     interface,
     any,
@@ -367,7 +367,7 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"end", .end},
     .{"record", .record},
     .{"tuple", .tuple},
-    .{"enum", .@"enum"},
+    .{"variant", .variant},
     .{"literal", .literal},
     .{"interface", .interface},
     .{"any", .any},

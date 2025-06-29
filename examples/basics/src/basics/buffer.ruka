@@ -1,6 +1,6 @@
 local const std = @import("std")
 
-const Buffer = (size: #usize) {
+const Buffer = (size: #usize) do
     return record {
         const t = record {
             buf: [size]u8,
@@ -26,36 +26,36 @@ const Buffer = (size: #usize) {
             buf: &t
         }
 
-        const writeByte = (self: mut Writer, byte: u8) -> @result(()) {
+        const writeByte = (self: mut Writer, byte: u8) -> @result(()) do
             self.buf.put(byte)
             return .ok(())
-        }
+        end
 
         private const Reader = record {
             buf: &t
         }
 
-        const readByte = (self: mut Reader) -> @result(u8) {
+        const readByte = (self: mut Reader) -> @result(u8) do
             return .ok(self.buf.get())
-        }
+        end
 
-        const writer = (self: t) {
+        const writer = (self: t) do
             return writer.{
                 buf = self.&
             }
-        }
+        end
 
-        const reader = (self: t) {
+        const reader = (self: t) do
             return reader.{
                 buf = self.&
             }
-        }
+        end
 
-        const put = (self: mut t, byte) {
+        const put = (self: mut t, byte) do
             self.mtx.lock()
             defer self.mtx.unlock()
 
-            while self.front -| self.back == 10 {
+            while self.front -| self.back == 10 do
                 self.rem.wait(self.mtx.&)
             end
 
@@ -63,20 +63,20 @@ const Buffer = (size: #usize) {
             self.front += 1
 
             self.add.signal()
-        }
+        end
 
-        const get = (self: mut t) {
+        const get = (self: mut t) do
             self.mtx.lock()
             defer self.mtx.unlock()
 
-            while self.back == self.front {
+            while self.back == self.front do
                 self.add.wait(self.mtx.&)
-            }
+            end
 
             self.back += 1
             self.removed.signal()
 
             return self.buf[self.back % 10]
-        }
+        end
     }
-}
+end
