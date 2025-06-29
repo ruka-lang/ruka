@@ -22,11 +22,12 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Expression based language (a la Rust).
 
 Features being considered:
-- Manual memory management with allocators (a la Zig) or
 - Garbage collected by default with ability to control memory as needed (a la Jane Street's Ocaml compiler).
+- Manual memory management with allocators (a la Zig) or
 - A combination of Methods and Uniform Function Call Syntax (UFCS):
   - fn defined in the same record whose first parameter is the type in question will be callable as a method and have access to private fields and the type only needs to be in scope where the method is called, appearing like typical OO.
   - and fn defined in a different record whose first parameter is the type in question will be callable with UFCS but only have access to public fields and the function name must be in scope where called.
   - or use UFCS but functions defined in the same record as the type will be treated as "methods" for the sake of LSP autocomplete.
 - Implicit returns.
 - Do end for scope, { } for defining and instancing types.
+- If strictly manual memory management, some system like Context from Odin that would help handle closure (and anonymous function) lifetime and memory management.
