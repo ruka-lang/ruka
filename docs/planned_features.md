@@ -7,7 +7,7 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Immutable borrow (reference without taking ownership) by default, with binding and parameter modes to control lifetimes:
   - stk: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
   - loc: Immutable borrow which cannot escape the function scope, does not take ownership.
-  - mov: Function takes ownership of the parameter, parameter cannot escape the function scope. Similar to a stk parameter in behaviour but without a copy.
+  - mov: Function takes ownership of the parameter and can use it however. Similar to a stk parameter in behaviour but without a copy.
   - mut: Mutable borrow, parameter can be changed, the reference cannot escape the function scope and ownership is not taken.
   - `#` (Interpreted): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
 - Records (structures) used for namespaces as well as data structures.
