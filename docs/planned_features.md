@@ -6,8 +6,8 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Garbage collected by default with ability to control lifetimes and manually manage memory as needed.
 - Borrow by default, with parameter modes to control reference lifetimes:
   - ref: Immutable reference which can escape the function scope, default mode.
-  - loc: Immutable reference which cannot escape the function scope.
-  - mov:  Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
+  - loc: Immutable reference which cannot escape the function scope, referenced value still valid after the function.
+  - mov: Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
   - mut: Mutable reference, parameter can be changed, but the reference cannot escape the function scope.
   - `#` (Interpreted): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
 - Records (structures) used for namespaces as well as data structures.
