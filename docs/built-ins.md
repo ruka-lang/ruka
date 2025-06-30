@@ -23,11 +23,14 @@ types:
     - annotation: type&
     - instance: variable.&
 - array
-    - annotation: \[size\]element
-    - instance: \[size\]{val, ...}
+    - annotation: \[size]type
+    - instance: \[size]{val, ...}
+- dynamic array
+    - annotation: \[|size|]type
+    - instance: \[|size|]{val, val, ...}
 - static map
-    - annotation: \[key, value\]
-    - instance: \[key, value\]{key: val, ...}
+    - annotation: \[key, value]
+    - instance: \[key, value]{key = val, ...}
 - tuple
     - annotation: tuple {type, type, ...}
     - instance: {val, val, ...}
@@ -41,7 +44,7 @@ types:
     - sugar for variant {some: type, none}
 - function
     - annotation: (parameters) -> return
-    - instance: (parameters) do |optional captures| // |..| to capture all
+    - instance: (parameters, |optional captures|) do // |..| to capture all
       code
     end
     - one-liner: (parameters) => |optional captures| code
