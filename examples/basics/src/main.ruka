@@ -29,7 +29,7 @@ const main = () do
     let name = dog.species match {
         .dog(name) => name,
         .cat(name) => name,
-        .bird => "clarence"
+        .bird => "Gustave"
     }
 
     @print("#{name}'s species is #{dog.species} and their age is #{dog.age}\n")
