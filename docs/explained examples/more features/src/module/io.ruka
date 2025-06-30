@@ -1,0 +1,7 @@
+const Reader = interface {
+    readByte: (mut) () -> u8?
+}
+
+const Writer = interface {
+    writeByte: (mut) (u8) -> ()?
+}

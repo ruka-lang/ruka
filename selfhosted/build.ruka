@@ -1,5 +1,5 @@
 const project = {
-    name = "basics",
+    name = "ruka",
     version = "0.0.0",
     ruka_version = "0.0.0"
 }
@@ -7,6 +7,11 @@ const project = {
 const executable = {
     name = project.name,
     path = "src/main.ruka"
+}
+
+const library = {
+    name = project.name,
+    path = "src/root.ruka"
 }
 
 const dependencies = {

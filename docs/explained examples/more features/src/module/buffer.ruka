@@ -1,7 +1,7 @@
 local const std = @import("std")
 
 const Buffer = (size: #usize) do
-    return record {
+    return module {
         const t = record {
             buf: [size]u8,
             front: usize,
@@ -21,35 +21,6 @@ const Buffer = (size: #usize) do
             add = .init,
             rem = .init
         }
-
-        private const Writer = record {
-            buf: &t
-        }
-
-        const writeByte = (self: mut Writer, byte: u8) -> @result(()) do
-            self.buf.put(byte)
-            return .ok(())
-        end
-
-        private const Reader = record {
-            buf: &t
-        }
-
-        const readByte = (self: mut Reader) -> @result(u8) do
-            return .ok(self.buf.get())
-        end
-
-        const writer = (self: t) do
-            return writer.{
-                buf = self.&
-            }
-        end
-
-        const reader = (self: t) do
-            return reader.{
-                buf = self.&
-            }
-        end
 
         const put = (self: mut t, byte) do
             self.mtx.lock()
@@ -76,7 +47,36 @@ const Buffer = (size: #usize) do
             self.back += 1
             self.removed.signal()
 
-            return self.buf[self.back % 10]
+            self.buf[self.back % 10]
+        end
+
+        const writer = (self: mut t) do
+            return writer {
+                buf = mut self
+            }
+        end
+
+        local Writer = record {
+            buf: mut t
+        }
+
+        const writeByte = (self: mut Writer, byte: u8) -> ()? do
+            self.buf.put(byte)
+            ok(())
+        end
+
+        const reader = (self: mut t) do
+            return reader {
+                buf = mut self
+            }
+        end
+
+        local Reader = record {
+            buf: mut t
+        }
+
+        const readByte = (self: mut Reader) -> u8? do
+            ok(self.buf.get())
         end
     }
 end

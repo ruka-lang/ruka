@@ -1,0 +1,46 @@
+local std = @package("std")
+local {Buffer, Vector, io} = @package("root")
+local {Writer} = io
+
+const genFunc = (# : type, a: t, b: t) do
+    std.testing.expect(@typeOf(a) == @typeOf(b))
+    ()
+end
+
+const mul = (x: Vector.t) do
+    var v = Vector.init(0, 0)
+
+    v.x = x.x * 2
+    v.y = x.y * 3
+
+    v
+end
+
+const main = () do
+    var buffer = Buffer(512).init
+
+    Vector.new(1, 2)
+        .add(Vector.new(3, 4))
+        .mul()
+        .write ~writer: mut buffer.writer()
+        .?
+
+    var reader = buffer.reader()
+    let values = []{
+        reader.readByte().?,
+        reader.readByte().?
+    }
+
+    std.testing.expectEq(values[0], 8).?
+    std.testing.expectEq(values[1], 15).?
+
+    let string = std.fmt.toString(
+        "|x: #{values[0]},
+         |y: #{values[1]}
+         |",
+         {}
+    ).?
+    @println(string)
+
+    ok(())
+end

@@ -1,9 +1,10 @@
 functions:
-- @print()
+- @print(string)
 - @println(string)
 - @import(string)
-- @typeOf('a)
--
+- @typeOf(type)
+- @this()
+
 types:
 - uint
 - u# # arbitray size unsigned integer
@@ -16,21 +17,11 @@ types:
 - unit or ()
 - type
 - pointer
-    - annotation: *type
+    - annotation: type*
+    - instance: variable.*
 - reference
-    - annotation: &type
-- function
-    - annotation: (parameters) -> return
-    - instance: (parameters) -> return {
-      code
-    }
-    - one-liner: (parameters) -> return => code
-- closure
-    - annotation: (parameters) -> return
-    - instance: (parameters) -> return { |captures|
-      code
-    }
-    - one-liner: (parameters) -> return => |captures| code
+    - annotation: type&
+    - instance: variable.&
 - array
     - annotation: \[size\]element
     - instance: \[size\]{val, ...}
@@ -40,14 +31,31 @@ types:
 - tuple
     - annotation: tuple {type, type, ...}
     - instance: {val, val, ...}
+- result
+    - annotation: type?
+    - unwrap: variable.?
+    - sugar for variant {ok: type, error: atom}
+- option
+    - annotation: type!
+    - unwrap: variable.!
+    - sugar for variant {some: type, none}
+- function
+    - annotation: (parameters) -> return
+    - instance: (parameters) do |optional captures| // |..| to capture all
+      code
+    end
+    - one-liner: (parameters) => |optional captures| code
+- module
+    - annotation: module {name: type, name: type, ...} // Requires passed in module to have consts with matching name: type, can have any local bindings
+    - instance: module {const name = , local name = , ...}
 - record
     - annotation: record {field: type, field: type, ...}
     - instance: {field: val, field: val, ...}
 - variant (tagged union)
     - annotation: variant {name: type, name: type, ...}
     - instance: variant.kind(val)
-- literal
-    - annotation: literal
+- atom
+    - annotation: atom
     - instance: 'identifier
         - 'a
         - 'fast
