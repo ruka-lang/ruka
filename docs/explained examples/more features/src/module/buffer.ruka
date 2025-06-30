@@ -47,7 +47,7 @@ const Buffer = (size: #usize) do
             self.back += 1
             self.removed.signal()
 
-            return self.buf[self.back % 10]
+            self.buf[self.back % 10]
         end
 
         const writer = (self: mut t) do

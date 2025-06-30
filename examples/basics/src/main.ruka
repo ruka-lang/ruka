@@ -1,46 +1,18 @@
-/* `const` and `local` are both used to define constant values.
- * `const` has public (outside of file) visibility while `local` has private (file only) visibilty.
- */
-
-/* External packages are brought into scope using the `@package` built-in.
- * Project files are brought into scope using the `@import` built-in.
- * In either case they will be stored as a record (structure).
- */
 local std = @package("std")
 local otherStuff = @import("otherStuff")
-
-// Records can be destructured into variables and constants.
-// Since otherStuff contains other public fields which we are not using,
-//  `, ..` must be used to ignore the rest of the record.
 local {message, animal, ..} = otherStuff
 
 const main = () do
-    /* The compiler will infer the type of dog to be `animal` as it is the only record in scope with matching fields.
-     *  If ambiguity exists or for clarity, the type can be annotated as `let dog = animal {..}`
-     *
-     * `let` and `var` are used to define variables. `let` is immutable while `var` is mutable.
-     */
     let dog = {
-        species = .dog("Ruka"),
+        species = dog("Ruka"),
         age = 5
     }
 
-    // The `match` expression can be used to extract values from variants.
-    let name = dog.species match {
-        .dog(name) => name,
-        .cat(name) => name,
-        .bird => "Gustave"
-    }
+    let name = match dog.species do
+        dog(name) => name,
+        cat(name) => name,
+        bird => "Gustave"
+    end
 
     @print("#{name}'s species is #{dog.species} and their age is #{dog.age}\n")
 end
-
-test "useful test" {
-    let result = @expect!(message() == "Hello, world!")
-
-    if let .ok(v) = result {
-        @println("Test passed!")
-    } else {
-        @println("Test failed: #{result}")
-    }
-}

@@ -10,8 +10,7 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
   - mov: Function takes ownership of the parameter and can use it however. Similar to a stk parameter in behaviour but without a copy.
   - mut: Mutable borrow, parameter can be changed, the reference cannot escape the function scope and ownership is not taken.
   - `#` (Interpreted): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
-- Records (structures) used for namespaces as well as data structures.
-- Types (records, unions, enums, built-ins), and fuctions are first class values, but must be known at compile time and stored in const or local bindings.
+- Types(records, variants, built-ins, types, modules, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
 - Mutable semantics.
 - Pattern matching.
 - Strong static typing.

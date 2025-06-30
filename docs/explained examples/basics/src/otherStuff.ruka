@@ -11,6 +11,8 @@ local species = variant {
     bird
 }
 
+// The last expression of a function is returned, although the return keyword can
+// be used for explicitness or early returns.
 const message = () do
     "Hello, world!"
 end

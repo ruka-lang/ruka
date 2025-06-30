@@ -1,0 +1,7 @@
+local std = @package("std")
+local ruka = @package("ruka")
+
+const main = () do
+    let message = "Hello, world!"
+    @println(message)
+end

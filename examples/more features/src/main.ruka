@@ -1,11 +1,9 @@
 local std = @package("std")
 local {Buffer, Vector, io} = @package("root")
-
-// Writer is an interface and must be in scope to be used.
 local {Writer} = io
 
 const genFunc = (# : type, a: t, b: t) do
-    @expect(@typeOf(a) == @typeOf(b))
+    std.testing.expect(@typeOf(a) == @typeOf(b))
     ()
 end
 
@@ -19,63 +17,30 @@ const mul = (x: Vector.t) do
 end
 
 const main = () do
-    /* Buffer is a function which takes a integer which must be known at compile time and
-     *  returns a record, if a var or let were passed to this function a compile error
-     *  would be thrown.
-     */
-    var buffer: Buffer(512) = .init
-
-    /* Methods are functions defined within the module the type was defined in, where the
-     *  first parameter is of that type. Only the type or module needs to be in scope to
-     *  call the methods.
-     */
-
-    /* Alternatively any function can be called as a method using UFCS but it should be
-     *  imported directly into scope as variable.std.function() would be too verbose,
-     *  any ambiguity will result in a compile error.
-     * In the proceeding example each step in the method chain is a method call except
-     *  for mul which is defined above, but called using UFCS.
-     */
+    var buffer = Buffer(512).init
 
     Vector.new(1, 2)
         .add(Vector.new(3, 4))
         .mul()
-        .write! ~writer: mut buffer.writer()
-        .! // The `.!` at the end is used to unwrap the result of the last method call,
-           //  which returned a @result type.
-
-    /* Can call methods in pipelines. In the case where some steps are methods and other
-     *  are not, can be written like this.
-     * Vector.new(1, 2)
-     *     |> .add(Vector.new(3, 4))
-     *     |> mul()
-     *     |> .write ~writer: mut buffer.writer()
-     *     |> .?
-     */
+        .write ~writer: mut buffer.writer()
+        .?
 
     var reader = buffer.reader()
-    let values = []{ // An array literal, with infered type and length.
-        reader.readByte!().!,
-        reader.readByte!().!
+    let values = []{
+        reader.readByte().?,
+        reader.readByte().?
     }
 
-    @expectEq!(values[0], 8).!
-    @expectEq!(values[1], 15).!
+    std.testing.expectEq(values[0], 8).?
+    std.testing.expectEq(values[1], 15).?
 
-    /* Multiline strings start with `"|` and end with `|"` with each line in-between
-     *  beginning with `|`.
-     * Formatting can be specified directly in the string if the values are constants
-     *  using `#{}`.
-     * If the values are not constant and they are being passed to formatting built-ins,
-     *  a loc reference will be encoded and used by the formatting functions to get those
-     *  values, otherwise you must use empty #{} and pass the values in the tuple afterwards.
-     */
-    let string = std.fmt.toString!(
+    let string = std.fmt.toString(
         "|x: #{values[0]},
          |y: #{values[1]}
          |",
          {}
-    ).!
+    ).?
     @println(string)
-    .ok(())
+
+    ok(())
 end
