@@ -1,9 +1,5 @@
-/*
- *
- */
-
-const buffer = @import("basics/buffer.ruka")
-const io = @import("basics/io.ruka")
+const buffer = @import("module").buffer
+const io = @import("module").io
 
 const Vector = record {
     const t = record {
@@ -12,12 +8,12 @@ const Vector = record {
         local z: u8
     }
 
-    const new = (x, y) -> t do
-        return { x, y, z = 0 }
+    const new = (x, y) do
+        { x, y, z = 0 }
     end
 
-    const add = (self: t, other: t) -> t do
-        return {
+    const add = (self: t, other: t) do
+        {
             x = self.x + other.x,
             y = self.y + other.y,
             z = self.z + other.z
@@ -25,7 +21,8 @@ const Vector = record {
     end
 
     const write = (self: t, writer: any mut io.Writer) do
-        writer.writeRecord(self).?
+        writer.writeByte!(self.x).!
+        writer.writeByte!(self.y)
     end
 
     test "addition" do
@@ -46,7 +43,7 @@ const Vector = record {
         for test, data in tests do
             if test == "addition" do
                 let result = data.num.add(data.div)
-                @expect(result == data.want).?
+                @expect!(result == data.want).!
             end
             @println("test: #{test} passed")
         end

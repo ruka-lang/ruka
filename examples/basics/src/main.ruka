@@ -1,99 +1,46 @@
-/*
- * In Ruka, files are imported directly as records (a la Zig), and so can have attributes
- *  and members.
+/* `const` and `local` are both used to define constant values.
+ * `const` has public (outside of file) visibility while `local` has private (file only) visibilty.
  */
 
-/* Files can be imported without specifying a path if they exist within the same
- *  directory, or if a folder containing a root.ruka file exists in the same directory,
- *  the std library is always importable using "std".
+/* External packages are brought into scope using the `@package` built-in.
+ * Project files are brought into scope using the `@import` built-in.
+ * In either case they will be stored as a record (structure).
  */
-local std = @import("std")
+local std = @package("std")
+local otherStuff = @import("otherStuff")
 
-/* Destructures the record imported from "root" and stores Buffer, vector, and io in
- *  local bindings (which are constants private to this file.) If root had any other
- *  members, they would not be imported. {..} or {member, ..} can be used to import all
- *  members of a record.
- */
-local {Buffer, Vector, io} = @import("root")
-
-// Writer is an interface and must be in scope to be used.
-local {Writer} = io
-
-/* Enum literals (called literal in type annotations) begin with a apostrophe which all
- *  belong to the literal type. Types specified with enum literals are generic and
- *  decided at comptime for each call of the function, as using the built-in `type` in
- *  the type annotation would not enforce them being the same type.
- */
-const genFunc = (a: 'a, b: 'a) do
-    @expect(@typeOf(a) == @typeOf(b)) // Built-in functions begin with @.
-end
-
-const mul = (x: Vector.t) do
-    var v = Vector.init(0, 0)
-
-    v.x = x.x * 2
-    v.y = x.y * 3
-
-    return v
-end
+// Records can be destructured into variables and constants.
+// Since otherStuff contains other public fields which we are not using,
+//  `, ..` must be used to ignore the rest of the record.
+local {message, animal, ..} = otherStuff
 
 const main = () do
-    /* Buffer is a function which takes a integer which must be known at compile time and
-     *  returns a record, if a var or let were passed to this function a compile error
-     *  would be thrown.
+    /* The compiler will infer the type of dog to be `animal` as it is the only record in scope with matching fields.
+     *  If ambiguity exists or for clarity, the type can be annotated as `let dog = animal {..}`
+     *
+     * `let` and `var` are used to define variables. `let` is immutable while `var` is mutable.
      */
-    var buffer: Buffer(512) = .init
-
-    /* Methods are functions defined within the module the type was defined in, where the
-     *  first parameter is of that type. Only the type or module needs to be in scope to
-     *  call the methods.
-     */
-
-    /* Alternatively any function can be called as a method using UFCS but it should be
-     *  imported directly into scope as variable.std.function() would be too verbose,
-     *  any ambiguity will result in a compile error.
-     * In the proceeding example each step in the method chain is a method call except
-     *  for mul which is defined above, but called using UFCS.
-     */
-
-    Vector.new(1, 2)
-        .add(Vector.new(3, 4))
-        .mul()
-        .write ~writer: mut buffer.writer()
-        .? // The `.?` at the end is used to unwrap the result of the last method call,
-           //  which returned a @result type.
-
-    /* Can call methods in pipelines. In the case where some steps are methods and other
-     *  are not, can be written like this.
-     * Vector.new(1, 2)
-     *     |> .add(Vector.new(3, 4))
-     *     |> mul()
-     *     |> .write ~writer: mut buffer.writer()
-     *     |> .?
-     */
-
-    let values = []{ // An array literal, with infered type and length.
-        buffer.get(),
-        buffer.get()
+    let dog = {
+        species = .dog("Ruka"),
+        age = 5
     }
 
-    @expectEq(values[0], 8).?
-    @expectEq(values[1], 15).?
+    // The `match` expression can be used to extract values from variants.
+    let name = dog.species match {
+        .dog(name) => name,
+        .cat(name) => name,
+        .bird => "clarence"
+    }
 
-    /* Multiline strings start with `"|` and end with `|"` with each line in-between
-     *  beginning with `|`.
-     * Formatting can be specified directly in the string if the values are constants
-     *  using `#{}`.
-     * If the values are not constant and they are being passed to formatting built-ins,
-     *  a loc reference will be encoded and used by the formatting functions to get those
-     *  values, otherwise you must use empty #{} and pass the values in the tuple afterwards.
-     */
-    let string = @fmtToString(
-        "|x: #{values[0]},
-         |y: #{values[1]}
-         |",
-         {}
-    )
-    @println(string)
-    return .ok(()) // Because we unwrapped a result earlier this function must return a result at the end.
+    @print("#{name}'s species is #{dog.species} and their age is #{dog.age}\n")
 end
+
+test "useful test" {
+    let result = @expect!(message() == "Hello, world!")
+
+    if let .ok(v) = result {
+        @println("Test passed!")
+    } else {
+        @println("Test failed: #{result}")
+    }
+}

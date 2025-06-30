@@ -2,7 +2,7 @@
 /project                  !! Required
     /src                  !! Required
         main.ruka         !! Required, entry point of executable
-        root.ruka         !! Required, used like a prelude.rs in Rust
+        root.ruka         !! Required (if creating a package to share), entry point of a ruka package. Controls the package's public API.
         etc.ruka          -- Source files used for the project
         ...
         /module           --

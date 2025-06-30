@@ -1,0 +1,23 @@
+// `@this()` can be used to refer to the record it is called in directly.
+local file = @this()
+
+const unused = 0
+
+const animal = record {
+    species: file.species,
+    age: usize,
+
+    local this = @this() // Here `@this()` will not refer to the file but to `animal`.
+}
+
+local species = variant {
+    dog: string,
+    cat: string,
+    bird
+}
+
+// The last expression of a function is returned, although the return keyword can
+// be used for explicitness or early returns.
+const message = () do
+    "Hello, world!"
+end

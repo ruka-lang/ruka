@@ -1,5 +1,5 @@
 functions:
-- @print()
+- @print(string)
 - @println(string)
 - @import(string)
 - @typeOf('a)
@@ -46,8 +46,9 @@ types:
 - variant (tagged union)
     - annotation: variant {name: type, name: type, ...}
     - instance: variant.kind(val)
-- literal
-    - annotation: literal
+- atom
+    - annotation: atom
     - instance: 'identifier
         - 'a
         - 'fast
+- type
