@@ -1,5 +1,5 @@
 local std = @package("std")
-local ruka = @package("ruka")
+local ruka = @include("root")
 
 const main = () do
     let message = "Hello, world!"

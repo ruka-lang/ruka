@@ -1,5 +1,5 @@
 local std = @package("std")
-local {Buffer, Vector, io} = @package("root")
+local {Buffer, Vector, io} = @include("root")
 
 // Writer is an interface and must be in scope to be used.
 local {Writer} = io

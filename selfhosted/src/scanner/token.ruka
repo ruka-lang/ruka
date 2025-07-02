@@ -1,0 +1,29 @@
+local ruka = @import("root")
+local utils = ruka.utils
+
+const t = record {
+    type: type,
+    owner: string,
+    pos: utils.pos
+}
+
+const newToken = (type, owner, pos) do
+    { type, owner, pos }
+end
+
+const type = variant {
+
+}
+
+const mode = variant {
+    ref,
+    eva,
+    loc,
+    mov,
+    mut,
+    stc
+}
+
+const keyword = variant {
+
+}

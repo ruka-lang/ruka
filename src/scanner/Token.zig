@@ -315,7 +315,7 @@ pub const Keyword = enum {
     any,
     @"error",
     @"defer",
-    interpret,
+    evaluate,
     true,
     false,
     @"for",
@@ -372,7 +372,7 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"any", .any},
     .{"error", .@"error"},
     .{"defer", .@"defer"},
-    .{"interpret", .interpret},
+    .{"eva", .evaluate},
     .{"true", .true},
     .{"false", .false},
     .{"for", .@"for"},
@@ -422,11 +422,12 @@ comptime {
 
 /// Represent various parameter modes
 pub const Mode = enum {
-    @"interpreted", // Parameter is constant and must be known at compile time and the value is interpreted during compilation.
-    loc,            // Immutable reference which cannot escape the function scope.
-    mov,            // Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
-    mut,            // Mutable reference, parameter can be changed, but the reference cannot escape the function scope.
-    ref,            // Immutable refernce which can escape the function scope, default mode.
+    ref,
+    eva,
+    loc,
+    mov,
+    mut,
+    stc,
 
     /// Converts a mode into a string slice
     pub fn toStr(self: *const Mode) []const u8 {
@@ -441,11 +442,12 @@ pub const Mode = enum {
 
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
-    .{"#", .@"interpreted"},
+    .{"ref", .ref},
+    .{"eva", .eva},
     .{"loc", .loc},
     .{"mov", .mov},
     .{"mut", .mut},
-    .{"ref", .ref}
+    .{"stc", .stc},
 });
 
 // Compile time assert no missing or extra entries in modes

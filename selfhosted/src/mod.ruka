@@ -2,3 +2,5 @@ const scanner = @import("scanner")
 const parser = @import("parser")
 const interpreter = @import("interpreter")
 const compiler = @import("compiler")
+
+const utils = @import("utils")
