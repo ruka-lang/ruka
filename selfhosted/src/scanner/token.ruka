@@ -2,7 +2,7 @@ local ruka = @import("root")
 local utils = ruka.utils
 
 const t = record {
-    type: type,
+    type: kind,
     owner: string,
     pos: utils.pos
 }
@@ -11,19 +11,120 @@ const newToken = (type, owner, pos) do
     { type, owner, pos }
 end
 
-const type = variant {
+const kind = variant {
+    ident: string,
+    atom: string,
+    string: string,
+    char: string,
+    int: string,
+    float: string,
+    keyword: keyword,
+    mode: mode,
 
-}
-
-const mode = variant {
-    ref,
-    eva,
-    loc,
-    mov,
-    mut,
-    stc
+    //Assigment
+    assign,          // =
+    assign_exp,      // :=
+    // Punctuation
+    dot,             // .
+    comma,           // ,
+    semicolon,       // ;
+    colon,           // :
+    lparen,          // (
+    rparen,          // )
+    lbracket,        // [
+    rbracket,        // ]
+    lsquirly,        // {
+    rsquirly,        // }
+    quote,           // '
+    double_quote,    // "
+    backtick,        // `
+    backslash,       // \
+    arrow,           // ->
+    wide_arrow,      // =>
+    // Operators
+    address,         // @
+    cash,            // $
+    pound,           // #
+    bang,            // !
+    question,        // ?
+    range,           // ..
+    range_inclusive, // ..=
+    forward_apply,   // <|
+    reverse_apply,   // |>
+    concat,          // <>
+    // Arithmetic
+    plus,            // +
+    minus,           // -
+    asterisk,        // *
+    slash,           // /
+    percent,         // %
+    increment,       // ++
+    decrement,       // --
+    square,          // **
+    // Bitwise
+    ampersand,       // &
+    pipe,            // |
+    caret,           // ^
+    tilde,           // ~
+    lshift,          // <<
+    rshift,          // >>
+    // Comparators
+    equal,           // ==
+    not_equal,       // !=
+    lesser,          // <
+    lesser_equal,    // <=
+    greater,         // >
+    greater_equal,   // >=
+    // Miscelaneous
+    newline,         // \n
+    illegal,
+    eof              // \x00
 }
 
 const keyword = variant {
+    // Bindings
+    const,
+    local,
+    let,
+    var,
+    // Scope
+    do,
+    end,
+    // Types
+    module,
+    record,
+    tuple,
+    variant,
+    interface,
+    error,
+    any,
+    // Bitwise
+    true,
+    false,
+    and,
+    or,
+    not,
+    // Control flow
+    for,
+    in,
+    while,
+    break,
+    continue,
+    match,
+    if,
+    else
+    return,
+    defer,
+    // Miscelaneous
+    evaluate,
+    test
+}
 
+const mode = variant {
+    ref, // Default mode, immutable reference
+    eva, // Evaluate mode, varible is evaluated during compilation
+    loc, // Local mode, immutable reference with is local to the function scope, cannot escape
+    mov, // Move mode, variable is moved to the function scope
+    mut, // Mutable mode, variable can be modified
+    stc  // Stack mode, variable is allocated in the stack, argument is passed by value
 }
