@@ -122,7 +122,7 @@ const keyword = variant {
 
 const mode = variant {
     ref, // Default mode, immutable reference
-    eva, // Evaluate mode, varible is evaluated during compilation
+    eva, // Evaluate mode, varible is evaluated during compilation !TODO consider calling emu (emulate)
     loc, // Local mode, immutable reference with is local to the function scope, cannot escape
     mov, // Move mode, variable is moved to the function scope
     mut, // Mutable mode, variable can be modified
