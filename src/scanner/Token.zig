@@ -33,7 +33,6 @@ pub fn deinit(self: Token) void {
 pub const Kind = union(enum) {
     // Literals
     identifier: ArrayList(u8),
-    @"enum": ArrayList(u8), // Change to variant
     atom: ArrayList(u8),
     string: ArrayList(u8),
     character: ArrayList(u8),
@@ -115,15 +114,6 @@ pub const Kind = union(enum) {
 
         return Kind {
             .atom = atom
-        };
-    }
-
-    pub fn initEnum(source: []const u8, allocator: Allocator) !Kind {
-        var enum_literal = ArrayList(u8).init(allocator);
-        try enum_literal.appendSlice(source);
-
-        return Kind {
-            .@"enum" = enum_literal
         };
     }
 
@@ -214,7 +204,6 @@ pub const Kind = union(enum) {
         switch (self) {
             .identifier   => |id| id.deinit(),
             .atom         => |at| at.deinit(),
-            .@"enum"      => |en| en.deinit(),
             .string       => |st| st.deinit(),
             .character    => |ch| ch.deinit(),
             .integer      => |in| in.deinit(),
@@ -229,7 +218,6 @@ pub const Kind = union(enum) {
             // Kinds with associated values
             .identifier   => |id| id.items,
             .atom         => |at| at.items,
-            .@"enum"      => |en| en.items,
             .string       => |st| st.items,
             .character    => |ch| ch.items,
             .integer      => |in| in.items,
