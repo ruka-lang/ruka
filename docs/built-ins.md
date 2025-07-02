@@ -5,7 +5,7 @@ functions:
 - @typeOf(type)
 - @this()
 
-types:
+primatives:
 - uint
 - u# # arbitray size unsigned integer
 - int
@@ -15,7 +15,7 @@ types:
 - string
 - bool
 - unit or ()
-- type
+- type (form or kind)
 - pointer
     - annotation: type*
     - instance: variable.*

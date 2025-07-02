@@ -1,14 +1,15 @@
 local ruka = @import("root")
 local utils = ruka.utils
 
+local this = @this()
 const t = record {
-    type: kind,
+    kind: kind,
     owner: string,
     pos: utils.pos
 }
 
-const newToken = (type, owner, pos) do
-    { type, owner, pos }
+const newToken = (kind, owner, pos) do
+    { kind, owner, pos }
 end
 
 const kind = variant {
