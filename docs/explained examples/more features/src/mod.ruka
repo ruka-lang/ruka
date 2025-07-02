@@ -1,6 +1,6 @@
 local std = @package("std")
-const buffer = @import("module").buffer
-const io = @import("module").io
+const buffer = @import("module/buffer")
+const io = @import("module/io")
 
 const Vector = module {
     const t = record {
