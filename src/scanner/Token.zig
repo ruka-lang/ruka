@@ -34,6 +34,7 @@ pub const Kind = union(enum) {
     // Literals
     identifier: ArrayList(u8),
     @"enum": ArrayList(u8), // Change to variant
+    atom: ArrayList(u8),
     string: ArrayList(u8),
     character: ArrayList(u8),
     integer: ArrayList(u8),
@@ -105,6 +106,15 @@ pub const Kind = union(enum) {
 
         return Kind {
             .identifier = identifier
+        };
+    }
+
+    pub fn initAtom(source: []const u8, allocator: Allocator) !Kind {
+        var atom = ArrayList(u8).init(allocator);
+        try atom.appendSlice(source);
+
+        return Kind {
+            .atom = atom
         };
     }
 
@@ -203,6 +213,7 @@ pub const Kind = union(enum) {
     pub fn deinit(self: Kind) void {
         switch (self) {
             .identifier   => |id| id.deinit(),
+            .atom         => |at| at.deinit(),
             .@"enum"      => |en| en.deinit(),
             .string       => |st| st.deinit(),
             .character    => |ch| ch.deinit(),
@@ -217,6 +228,7 @@ pub const Kind = union(enum) {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
+            .atom         => |at| at.items,
             .@"enum"      => |en| en.items,
             .string       => |st| st.items,
             .character    => |ch| ch.items,
