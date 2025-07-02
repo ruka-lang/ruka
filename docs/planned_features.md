@@ -1,7 +1,8 @@
 # Ruka
 
 Ruka is planned to be a general use, programming language. Ruka's planned features include:
-- Build system, package manager, compiler, repl, and lsp integrated into one tool.
+- Build system, package manager, compiler, and repl integrated into one tool.
+  - Packages are called `Root`s and are managed with the Branch package manager.
 - Compiled.
 - Garbage collected by default with ability to control lifetimes and manually manage memory as needed.
 - Immutable borrow (reference without taking ownership) by default, with binding and parameter modes to control lifetimes:
