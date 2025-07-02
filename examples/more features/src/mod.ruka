@@ -22,8 +22,8 @@ const Vector = module {
     end
 
     const write = (self: mut t, writer: any mut io.Writer) do
-        writer.writeByte!(self.x).?
-        writer.writeByte!(self.y)
+        writer.writeByte?(self.x).?
+        writer.writeByte?(self.y)
     end
 
     test "addition" do
