@@ -1,22 +1,24 @@
 local std = @package("std")
 
-const GeneticAlgorithm = (genome: module {
+const Genome = interface {
     Individual: module { const t: any type, new: () -> t }
     fitness:   ([]Genome) -> float
     selection: ([]Genome) -> []Genome
     crossover: ([]Genome) -> []Genome
     mutation:  ([]Genome) -> []Genome
     termination: () -> bool
-}) do
+}
+
+const GeneticAlgorithm = (genome: any Genome) do
     genome <> module {
         const t = record {
-            population: [10]Individual.t
+            pop: [10]Individual.t
         }
 
         const init = () do
-            t {
-                population = [10]{ Genome.new(), .. }
-            }
+            var state = t {}
+            t.pop = [10]{ Individual.new(), .. }
+            state
         end
 
         const run (self: t) = () do
