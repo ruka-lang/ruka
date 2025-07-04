@@ -1,7 +1,7 @@
 local std = @package("std")
 
 const GeneticAlgorithm = (genome: module {
-    const Individual: module { const t: any record, new: () -> t }
+    const Individual: module { const t: any type, new: () -> t }
     const fitness:   ([]Genome) -> float
     const selection: ([]Genome) -> []Genome
     const crossover: ([]Genome) -> []Genome
