@@ -51,7 +51,7 @@ const Buffer = (size: eva usize) do
         end
 
         const writer (self: mut t) = () do
-            return writer {
+            Writer {
                 buf = mut self
             }
         end
@@ -70,7 +70,7 @@ const Buffer = (size: eva usize) do
         end
 
         const reader (self: mut t) = () do
-            return reader {
+            Reader {
                 buf = mut self
             }
         end
