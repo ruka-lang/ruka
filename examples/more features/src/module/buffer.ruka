@@ -22,7 +22,23 @@ const Buffer = (size: #usize) do
             rem = .init
         }
 
+        // If using implicit methods
         const put = (self: mut t, byte) do
+            self.mtx.lock()
+            defer self.mtx.unlock()
+
+            while self.front -| self.back == 10 do
+                self.rem.wait(self.mtx.&)
+            end
+
+            self.buf[self.front % 10] = byte
+            self.front += 1
+
+            self.add.signal()
+        end
+
+        // If using explicit methods
+        const put (self: mut t) = (byte) do
             self.mtx.lock()
             defer self.mtx.unlock()
 

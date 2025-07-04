@@ -24,6 +24,7 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Expression based language.
 - Do end for scope, { } for defining and instancing types.
 - Hybrid of Methods and Uniform Function Call Syntax (UFCS):
-  - fn defined in the same scope as the type whose first parameter is that type in question will have access to private fields. Only the type needs to be in scope for the function is called (this last bit would be for importing ease as with pure UFCS you would have to import each method or just bulk import everything from that file which may not be desired/cause naming conflicts).
-  - and fn defined in a different scope whose first parameter is the type in question will be callable with UFCS but only have access to public fields and the function must be in scope where called.
+  1) (implicit methods) functions defined in the same scope as the type whose first parameter is that type in question will have access to private fields. Only the type needs to be in scope for the function is called (this last bit would be for importing ease as with pure UFCS you would have to import each method or just bulk import everything from that file which may not be desired/cause naming conflicts).
+  2) and functions defined in a different scope whose first parameter is the type in question will be callable with UFCS but only have access to public fields and the function must be in scope where called.
+  3) or (traditional) explicit methods with private access and UFCS with public access.
 - Last line in functions is returned (maybe).
