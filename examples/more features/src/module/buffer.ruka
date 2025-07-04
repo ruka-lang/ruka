@@ -1,6 +1,6 @@
 local const std = @import("std")
 
-const Buffer = (size: #usize) do
+const Buffer = (size: eva usize) do
     return module {
         const t = record {
             buf: [size]u8,
