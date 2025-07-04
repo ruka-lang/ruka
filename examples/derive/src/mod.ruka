@@ -1,23 +1,16 @@
 local std = @package("std")
 
-const GeneticAlgorithm = (mod: module {
-    const Genome: module { const t: any record, new: () -> t }
-    const FitnessFunction: ([]Genome) -> float
-    const SelectionMethod: ([]Genome) -> []Genome
-    const CrossoverMethod: ([]Genome) -> []Genome
-    const MutationMethod:  ([]Genome) -> []Genome
-    const TerminationCondition: () -> bool
+const GeneticAlgorithm = (genome: module {
+    const Individual: module { const t: any record, new: () -> t }
+    const fitness:   ([]Genome) -> float
+    const selection: ([]Genome) -> []Genome
+    const crossover: ([]Genome) -> []Genome
+    const mutation:  ([]Genome) -> []Genome
+    const termination: () -> bool
 }) do
-    module {
-        local Genome = mod.Genome
-        local fitnessFunction = mod.FitnessFunction
-        local crossoverMethod = mod.CrossoverMethod
-        local mutationMethod = mod.MutationMethod
-        local selectionMethod = mod.SelectionMethod
-        local terminationCondition = mod.TerminationCondition
-
+    genome <> module {
         const t = record {
-            population: [10]Genome.t
+            population: [10]Individual.t
         }
 
         const init = () do
@@ -26,8 +19,8 @@ const GeneticAlgorithm = (mod: module {
             }
         end
 
-        const (self: t) = () do
-            while not self.termination_condition(self.population[..]) do
+        const run (self: t) = () do
+            while not termination(self.population[..]) do
                 // Perform selection, crossover, and mutation
             end
         end
