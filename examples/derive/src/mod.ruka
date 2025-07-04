@@ -1,30 +1,46 @@
 local std = @package("std")
 
 const Genome = interface {
-    Individual: record { t: any type, new: () -> t }
-    fitness:   ([]Genome) -> float
-    selection: ([]Genome) -> []Genome
-    crossover: ([]Genome) -> []Genome
-    mutation:  ([]Genome) -> []Genome
-    termination: () -> bool
+    Population: any type
+    fitness:   (Population) -> float
+    selection: (Population) -> Population
+    crossover: (Population) -> Population
+    mutation:  (Population) -> Population
+    termination: (Population) -> bool
 }
 
 const GeneticAlgorithm = (genome: any Genome) do
     genome <> record { // Can concatenate records
         const t = record {
-            pop: [10]Individual.t
+            pop: Population
         }
 
         const init = () do
-            var state = t {}
-            t.pop = [10]{ Individual.new(), .. }
-            state
+            t { pop = {} }
         end
 
         const run (self: t) = () do
-            while not termination(self.population[..]) do
+            while not termination(self.pop) do
                 // Perform selection, crossover, and mutation
             end
         end
     }
+end
+
+test "" do
+    const example = record {
+        const Population = [10; float]
+        const fitness = (p: Population) {
+            var sum = 0.0
+            for i in p do
+                sum += i
+            end
+
+            sum
+        }
+        // ...
+    }
+
+    const algo = GeneticAlgorithm(example).init()
+    algo.run()
 end

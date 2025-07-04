@@ -23,19 +23,19 @@ primatives:
     - annotation: type&
     - instance: variable.&
 - array
-    - annotation: \[size]type
+    - annotation: \[size; type]
     - instance: \[size]{val, ...}
 - slice
-    - annotation: \[]type
+    - annotation: \[type]
     - instance: array[..]
 - dynamic array
-    - annotation: \[!]type
+    - annotation: \[!type]
     - instance: \[!]{val, val, ...}
 - static map
     - annotation: \[key, value]
     - instance: \[key, value]{key = val, ...}
 - tuple
-    - annotation: tuple {type, type, ...}
+    - annotation: {type, type, ...}
     - instance: {val, val, ...}
 - result
     - annotation: type?
