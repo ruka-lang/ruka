@@ -15,7 +15,7 @@ primatives:
 - string
 - bool
 - unit or ()
-- type (form or kind)
+- type (records, variants, primatives)
 - pointer
     - annotation: type*
     - instance: variable.*
@@ -25,9 +25,12 @@ primatives:
 - array
     - annotation: \[size]type
     - instance: \[size]{val, ...}
+- slice
+    - annotation: \[]type
+    - instance: array[..]
 - dynamic array
-    - annotation: \[|size|]type
-    - instance: \[|size|]{val, val, ...}
+    - annotation: \[!]type
+    - instance: \[!]{val, val, ...}
 - static map
     - annotation: \[key, value]
     - instance: \[key, value]{key = val, ...}
@@ -49,7 +52,7 @@ primatives:
     end
     - one-liner: (parameters) => |optional captures| code
 - module
-    - annotation: module {name: type, name: type, ...} // Requires passed in module to have consts with matching name: type, can have any local bindings
+    - annotation: module {name: type, name: type, ...}
     - instance: module {const name = , local name = , ...}
 - record
     - annotation: record {field: type, field: type, ...}

@@ -122,10 +122,11 @@ const keyword = variant {
 }
 
 const mode = variant {
-    ref, // Default mode, immutable reference
-    eva, // Evaluate mode, varible is evaluated during compilation !TODO consider calling emu (emulate)
-    loc, // Local mode, immutable reference with is local to the function scope, cannot escape
+    loc, // Local borrow mode, immutable borrow which cannot escape function scope
+    mut, // Mutable borrow mode, mutable borrow which cannot escape function scope
+    ref, // Reference borrow mode, immutable and can escape function scope
+    ptr, // Pointer borrow mode, mutable and can escape function scope
     mov, // Move mode, variable is moved to the function scope
-    mut, // Mutable mode, variable can be modified
-    stc  // Stack mode, variable is allocated in the stack, argument is passed by value
+    stc, // Stack mode, variable is allocated in the stack, argument is passed by value
+    eva  // Evaluate mode, varible is evaluated during compilation. Default mode when storing or passing types
 }

@@ -2,7 +2,7 @@ local std = @package("std")
 local {Buffer, Vector, io} = @package("root")
 local {Writer} = io
 
-const genFunc = (# : type, a: t, b: t) do
+const genFunc = (t: type, a: t, b: t) do
     std.testing.expect(@typeOf(a) == @typeOf(b))
     ()
 end

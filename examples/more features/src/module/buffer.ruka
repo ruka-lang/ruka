@@ -22,22 +22,6 @@ const Buffer = (size: eva usize) do
             rem = .init
         }
 
-        // If using implicit methods
-        const put = (self: mut t, byte) do
-            self.mtx.lock()
-            defer self.mtx.unlock()
-
-            while self.front -| self.back == 10 do
-                self.rem.wait(self.mtx.&)
-            end
-
-            self.buf[self.front % 10] = byte
-            self.front += 1
-
-            self.add.signal()
-        end
-
-        // If using explicit methods
         const put (self: mut t) = (byte) do
             self.mtx.lock()
             defer self.mtx.unlock()
@@ -52,7 +36,7 @@ const Buffer = (size: eva usize) do
             self.add.signal()
         end
 
-        const get = (self: mut t) do
+        const get (self: mut t) = () do
             self.mtx.lock()
             defer self.mtx.unlock()
 
@@ -66,7 +50,7 @@ const Buffer = (size: eva usize) do
             return self.buf[self.back % 10]
         end
 
-        const writer = (self: mut t) do
+        const writer (self: mut t) = () do
             return writer {
                 buf = mut self
             }
@@ -76,12 +60,16 @@ const Buffer = (size: eva usize) do
             buf: mut t
         }
 
-        const writeByte = (self: mut Writer, byte: u8) -> ()? do
+        const write (self: mut Writer) = (byte: u8) do
             self.buf.put(byte)
             ok(())
         end
 
-        const reader = (self: mut t) do
+        const writeByte (self: mut Writer) = (byte: u8) do
+            self.write(byte)
+        end
+
+        const reader (self: mut t) = () do
             return reader {
                 buf = mut self
             }
@@ -91,8 +79,12 @@ const Buffer = (size: eva usize) do
             buf: mut t
         }
 
-        const readByte = (self: mut Reader) -> u8? do
+        const read (self: mut Reader) = () do
             ok(self.buf.get())
+        end
+
+        const readByte (self) = () do // Self would be inferred as mut Reader
+            self.read()
         end
     }
 end

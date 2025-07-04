@@ -13,7 +13,7 @@ const Vector = module {
         { x, y, z = 0 }
     end
 
-    const add = (self: t, other: t) do
+    const add (self: t) = (other: t) do
         {
             x = self.x + other.x,
             y = self.y + other.y,
@@ -21,7 +21,7 @@ const Vector = module {
         }
     end
 
-    const write = (self: mut t, writer: any mut io.Writer) do
+    const write (self: mut t) = (writer: any mut io.Writer) do
         writer.writeByte?(self.x).?
         writer.writeByte?(self.y)
     end
