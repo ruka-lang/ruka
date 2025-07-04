@@ -92,7 +92,7 @@ const keyword = variant {
     do,
     end,
     // Types
-    module,
+    //module,
     record,
     tuple,
     variant,

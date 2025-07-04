@@ -1,7 +1,7 @@
 local std = @package("std")
 
 const Genome = interface {
-    Individual: module { const t: any type, new: () -> t }
+    Individual: record { t: any type, new: () -> t }
     fitness:   ([]Genome) -> float
     selection: ([]Genome) -> []Genome
     crossover: ([]Genome) -> []Genome
@@ -10,7 +10,7 @@ const Genome = interface {
 }
 
 const GeneticAlgorithm = (genome: any Genome) do
-    genome <> module {
+    genome <> record { // Can concatenate records
         const t = record {
             pop: [10]Individual.t
         }
