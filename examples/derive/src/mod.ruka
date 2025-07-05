@@ -1,11 +1,11 @@
 local std = @package("std")
 
 const Genome = interface {
-    Population: any type
-    fitness:   (Population) -> float
-    selection: (Population) -> Population
-    crossover: (Population) -> Population
-    mutation:  (Population) -> Population
+    Population: any type,
+    fitness:   (Population) -> float,
+    selection: (Population) -> Population,
+    crossover: (Population) -> Population,
+    mutation:  (Population) -> Population,
     termination: (Population) -> bool
 }
 

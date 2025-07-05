@@ -52,7 +52,7 @@ primatives:
     }
     - one-liner: (parameters) => |optional captures| code
 - record
-    - annotation: record {const attribute: type, field: type, field: type, ...}
+    - annotation: record {field: type, field: type, ...}
     - instance: {field: val, field: val, ...}
 - variant (tagged union)
     - annotation: variant {name, name: type, name: type, ...}
