@@ -1,31 +1,19 @@
-/*
- *
- */
 const project = {
     name = "more features",
     version = "0.0.0",
     ruka_version = "0.0.0"
 }
 
-/*
- *
- */
 const executable = {
     name = project.name,
     path = "src/main.ruka"
 }
 
-/*
- *
- */
 const package = {
     name = project.name,
     path = "src/root.ruka"
 }
 
-/*
- *
- */
 const dependencies = {
     std = { version = project.ruka_version, features = [] }
 }

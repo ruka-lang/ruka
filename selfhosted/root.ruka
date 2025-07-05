@@ -9,7 +9,7 @@ const executable = {
     path = "src/main.ruka"
 }
 
-const library = {
+const package = {
     name = project.name,
     path = "src/root.ruka"
 }

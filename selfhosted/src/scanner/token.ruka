@@ -8,9 +8,9 @@ const t = record {
     pos: utils.pos
 }
 
-const newToken = (kind, owner, pos) do
-    { kind, owner, pos }
-end
+const new = (kind, owner, pos) {
+    t { kind, owner, pos }
+}
 
 const kind = variant {
     ident: string,

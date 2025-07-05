@@ -47,18 +47,15 @@ primatives:
     - sugar for variant {some: type, none}
 - function
     - annotation: (parameters) -> return
-    - instance: (parameters, |optional captures|) do // |..| to capture all
+    - instance: (parameters, |optional captures|) {} // |..| to capture all
       code
-    end
+    }
     - one-liner: (parameters) => |optional captures| code
-- module
-    - annotation: module {name: type, name: type, ...}
-    - instance: module {const name = , local name = , ...}
 - record
-    - annotation: record {field: type, field: type, ...}
+    - annotation: record {const attribute: type, field: type, field: type, ...}
     - instance: {field: val, field: val, ...}
 - variant (tagged union)
-    - annotation: variant {name: type, name: type, ...}
+    - annotation: variant {name, name: type, name: type, ...}
     - instance: variant.kind(val)
 - atom
     - annotation: atom
