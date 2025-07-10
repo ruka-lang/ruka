@@ -16,15 +16,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize
     });
 
-    const logging = b.option(bool, "logging", "Build executable with logging") orelse false;
-
     b.installArtifact(bin);
 
     var options = b.addOptions();
     options.addOption(std.SemanticVersion, "semver", getVersion(b));
     options.addOption([]const u8, "build_date", getDate(b));
     options.addOption([]const u8, "description", description);
-    options.addOption(bool, "logging", logging);
     bin.root_module.addOptions("options", options);
 
     const run_cmd = b.addRunArtifact(bin);
@@ -38,14 +35,14 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     // Tests
-    const test_runner = std.Build.Step.Compile.TestRunner { 
-        .path = .{ 
-            .src_path = .{ 
-                .owner = b, 
-                .sub_path = "runners/test.zig" 
+    const test_runner = std.Build.Step.Compile.TestRunner {
+        .path = .{
+            .src_path = .{
+                .owner = b,
+                .sub_path = "runners/test.zig"
             }
-        }, 
-        .mode = .simple 
+        },
+        .mode = .simple
     };
 
     const ruka_unit_tests = b.addTest(.{

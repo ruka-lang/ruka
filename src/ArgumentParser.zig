@@ -5,14 +5,11 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const LinearFifo = std.fifo.LinearFifo;
 
-const libruka = @import("prelude.zig");
-const Transport = libruka.Transport;
-const constants = @import("constants.zig");
+const ruka = @import("prelude.zig");
+const constants = ruka.constants;
 
 subcommands: LinearFifo(Subcommand, .Dynamic),
 options: LinearFifo(Option, .Dynamic),
-
-transport: *Transport,
 
 allocator: Allocator,
 
@@ -23,7 +20,6 @@ const Subcommand = enum {
     build,
     @"test",
     run,
-    repl,
     version,
     help
 };
@@ -33,7 +29,6 @@ const subcommandsMap = std.StaticStringMap(Subcommand).initComptime(.{
     .{"build", .build},
     .{"test", .@"test"},
     .{"run", .run},
-    .{"repl", .repl},
     .{"version", .version},
     .{"help", .help}
 });
@@ -56,12 +51,9 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
     const argument_parser = try allocator.create(ArgumentParser);
     errdefer argument_parser.deinit();
 
-    const stderr = std.io.getStdErr();
-
     argument_parser.* = .{
         .subcommands = .init(allocator),
         .options = .init(allocator),
-        .transport = try .initFile(allocator, stderr),
         .allocator = allocator
     };
 
@@ -71,7 +63,6 @@ pub fn init(allocator: Allocator) !*ArgumentParser {
 pub fn deinit(self: *ArgumentParser) void {
     self.subcommands.deinit();
     self.options.deinit();
-    self.transport.deinit();
     self.allocator.destroy(self);
 }
 
@@ -89,7 +80,7 @@ pub fn parse(self: *ArgumentParser) !void {
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {
         try self.subcommands.writeItem(subcommand);
     } else {
-        try self.transport.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
+        std.debug.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,
             constants.subcommands_display,
             subcommand_arg.?
@@ -114,7 +105,7 @@ pub fn parse(self: *ArgumentParser) !void {
         }
 
         // Unrecognized argument
-        try self.transport.print("unrecognized argument: {s}\n", .{arg});
+        std.debug.print("unrecognized argument: {s}\n", .{arg});
         return error.UnrecognizedArgument;
     }
 }
@@ -123,7 +114,7 @@ fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCoun
     if (Option.init(arg[dashCount..], value)) |option| {
         try self.options.writeItem(option);
     } else {
-        try self.transport.print("{s}\n{s}\n\nInvalid option: {s}\n", .{
+        std.debug.print("{s}\n{s}\n\nInvalid option: {s}\n", .{
             constants.usage,
             constants.subcommands_display,
             arg

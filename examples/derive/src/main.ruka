@@ -1,0 +1,5 @@
+local derive = @import("root")
+
+const main = () do
+
+end

@@ -11,16 +11,16 @@ local species = variant {
     bird
 }
 
-const message = () do
+const message = () {
     "Hello, world!"
-end
+}
 
-test "useful test" do
+test "useful test" {
     let result = std.testing.expect(message() == "Hello, world!")
 
-    if let ok(_) = result do
+    if let ok(_) = result {
         @println("Test passed!")
-    else do
+    } else {
         @println("Test failed.")
-    end
-end
+    }
+}

@@ -1,5 +1,5 @@
 const project = {
-    name = "ruka",
+    name = "more features",
     version = "0.0.0",
     ruka_version = "0.0.0"
 }
@@ -9,7 +9,7 @@ const executable = {
     path = "src/main.ruka"
 }
 
-const library = {
+const package = {
     name = project.name,
     path = "src/root.ruka"
 }

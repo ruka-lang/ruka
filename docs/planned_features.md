@@ -1,16 +1,19 @@
 # Ruka
 
 Ruka is planned to be a general use, programming language. Ruka's planned features include:
-- Build system, package manager, compiler, repl, and lsp integrated into one tool.
+- Build system, package manager, compiler, and repl integrated into one tool.
+  - Packages are called `Root`s and are managed with the `Branch` package manager.
 - Compiled.
 - Garbage collected by default with ability to control lifetimes and manually manage memory as needed.
-- Immutable borrow (reference without taking ownership) by default, with binding and parameter modes to control lifetimes:
+- Borrow (not ownership change) by default, with parameter modes to control lifetimes and ownership:
+  - loc: Defualt, immutable borrow which cannot escape the scope.
+  - mut: Mutable borrow which cannot escape the function scope.
+  - ref: Immutable borrow which can escape function scope. (&)
+  - ptr: Mutabe borrow which can escape function scope. (*)
+  - mov: Function takes ownership and responiblity of the parameter. Similar to a stk parameter in behaviour but without a copy.
   - stk: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
-  - loc: Immutable borrow which cannot escape the function scope, does not take ownership.
-  - mov: Function takes ownership of the parameter and can use it however. Similar to a stk parameter in behaviour but without a copy.
-  - mut: Mutable borrow, parameter can be changed, the reference cannot escape the function scope and ownership is not taken.
-  - `#` (Interpreted): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
-- Types(records, variants, built-ins, types, modules, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
+  - eva (evaluated): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
+- Types(records, variants, built-ins, types, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
 - Mutable semantics.
 - Pattern matching.
 - Strong static typing.
@@ -22,6 +25,6 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
 - Expression based language.
 - Do end for scope, { } for defining and instancing types.
 - Hybrid of Methods and Uniform Function Call Syntax (UFCS):
-  - fn defined in the same scope as the type whose first parameter is that type in question will have access to private fields. Only the type needs to be in scope for the function is called (this last bit would be for importing ease as with pure UFCS you would have to import each method or just bulk import everything from that file which may not be desired/cause naming conflicts).
-  - and fn defined in a different scope whose first parameter is the type in question will be callable with UFCS but only have access to public fields and the function must be in scope where called.
-- Last line in functions is returned (maybe).
+  1) (implicit methods) functions defined in the same scope as the type whose first parameter is that type in question will have access to private fields. Only the type needs to be in scope for the function is called (this last bit would be for importing ease as with pure UFCS you would have to import each method or just bulk import everything from that file which may not be desired/cause naming conflicts).
+  2) and functions defined in a different scope whose first parameter is the type in question will be callable with UFCS but only have access to public fields and the function must be in scope where called.
+  3) or (traditional) explicit methods with private access and UFCS with public access.

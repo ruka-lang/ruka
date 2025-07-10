@@ -1,0 +1,52 @@
+local std = @package("std")
+const buffer = @import("module/buffer")
+const io = @import("module/io")
+
+const Vector = record {
+    const t = record {
+        x: u8,
+        y: u8,
+        local z: u8
+    }
+
+    const new = (x, y) {
+        { x, y, z = 0 }
+    }
+
+    const add (self: t) = (other: t) {
+        {
+            x = self.x + other.x,
+            y = self.y + other.y,
+            z = self.z + other.z
+        }
+    }
+
+    const write (self: mut t) = (writer: any mut io.Writer) {
+        writer.writeByte?(self.x).?
+        writer.writeByte?(self.y)
+    }
+
+    test "addition" {
+        const testcase = record {
+            num: t,
+            div: t,
+            want: t
+        }
+
+        let tests = [string, testcase] {
+            "addition" = {
+                num = new(1, 2),
+                div = new(3, 4),
+                want = new(4, 6)
+            }
+        }
+
+        for {test, data} in tests {
+            if test == "addition" {
+                let result = data.num.add(data.div)
+                std.testing.expect(result == data.want).?
+            }
+            @println("test: #{test} passed")
+        }
+    }
+}

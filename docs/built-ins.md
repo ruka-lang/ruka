@@ -5,7 +5,7 @@ functions:
 - @typeOf(type)
 - @this()
 
-types:
+primatives:
 - uint
 - u# # arbitray size unsigned integer
 - int
@@ -15,7 +15,7 @@ types:
 - string
 - bool
 - unit or ()
-- type
+- type (records, variants, primatives)
 - pointer
     - annotation: type*
     - instance: variable.*
@@ -23,13 +23,19 @@ types:
     - annotation: type&
     - instance: variable.&
 - array
-    - annotation: \[size\]element
-    - instance: \[size\]{val, ...}
+    - annotation: \[size; type]
+    - instance: \[size]{val, ...}
+- slice
+    - annotation: \[type]
+    - instance: array[..]
+- dynamic array
+    - annotation: \[!type]
+    - instance: \[!]{val, val, ...}
 - static map
-    - annotation: \[key, value\]
-    - instance: \[key, value\]{key: val, ...}
+    - annotation: \[key, value]
+    - instance: \[key, value]{key = val, ...}
 - tuple
-    - annotation: tuple {type, type, ...}
+    - annotation: {type, type, ...}
     - instance: {val, val, ...}
 - result
     - annotation: type?
@@ -41,18 +47,15 @@ types:
     - sugar for variant {some: type, none}
 - function
     - annotation: (parameters) -> return
-    - instance: (parameters) do |optional captures| // |..| to capture all
+    - instance: (parameters, |optional captures|) {} // |..| to capture all
       code
-    end
+    }
     - one-liner: (parameters) => |optional captures| code
-- module
-    - annotation: module {name: type, name: type, ...} // Requires passed in module to have consts with matching name: type, can have any local bindings
-    - instance: module {const name = , local name = , ...}
 - record
     - annotation: record {field: type, field: type, ...}
     - instance: {field: val, field: val, ...}
 - variant (tagged union)
-    - annotation: variant {name: type, name: type, ...}
+    - annotation: variant {name, name: type, name: type, ...}
     - instance: variant.kind(val)
 - atom
     - annotation: atom

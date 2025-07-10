@@ -2,17 +2,17 @@ local std = @package("std")
 local otherStuff = @import("otherStuff")
 local {message, animal, ..} = otherStuff
 
-const main = () do
+const main = () {
     let dog = {
         species = dog("Ruka"),
         age = 5
     }
 
-    let name = match dog.species do
+    let name = match dog.species {
         dog(name) => name,
         cat(name) => name,
         bird => "Gustave"
-    end
+    }
 
     @print("#{name}'s species is #{dog.species} and their age is #{dog.age}\n")
-end
+}

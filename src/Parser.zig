@@ -11,7 +11,9 @@ const ruka = @import("prelude.zig");
 const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Token = ruka.Token;
-const Transport = ruka.Transport;
+
+buf: std.io.BufferedReader(4096, std.io.AnyReader),
+handle: std.fs.File,
 
 current_token: ?Token,
 peek_token: ?Token,
@@ -107,13 +109,20 @@ pub const Ast = struct {
 };
 
 pub fn init(
-    allocator: Allocator, 
-    arena: *ArenaAllocator, 
-    transport: *Transport, 
+    allocator: Allocator,
+    arena: *ArenaAllocator,
     file: []const u8
 ) !*Parser {
     const parser = try allocator.create(Parser);
     errdefer parser.deinit();
+
+    var src = try std.fs.cwd().openDir("src", .{});
+    defer src.close();
+    const input = try src.openFile(file, .{});
+    errdefer input.close();
+
+    var buf = std.io.bufferedReader(input.reader().any());
+    const reader = buf.reader().any();
 
     parser.* = .{
         .current_token = null,
@@ -121,7 +130,9 @@ pub fn init(
         .ast = try .init(allocator),
         .errors = .{},
         .file = file,
-        .scanner = try .init(allocator, arena, transport, file),
+        .handle = input,
+        .buf = buf,
+        .scanner = try .init(allocator, arena, reader, file),
         .allocator = allocator,
         .arena = arena
     };
@@ -131,6 +142,7 @@ pub fn init(
 
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
+    self.handle.close();
     self.errors.deinit(self.allocator);
     self.allocator.destroy(self);
 }

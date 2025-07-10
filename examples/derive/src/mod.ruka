@@ -1,0 +1,46 @@
+local std = @package("std")
+
+const Genome = interface {
+    Population: any type,
+    fitness:   (Population) -> float,
+    selection: (Population) -> Population,
+    crossover: (Population) -> Population,
+    mutation:  (Population) -> Population,
+    termination: (Population) -> bool
+}
+
+const GeneticAlgorithm = (genome: any Genome) {
+    genome <> record {
+        const t = record {
+            pop: Population
+        }
+
+        const init = () {
+            t {}
+        }
+
+        const run (self: t) = () {
+            while not termination(self.pop) {
+                // ...
+            }
+        }
+    }
+}
+
+test "algorithm" {
+    const example = record {
+        const Population = [10; float]
+        const fitness = (p: Population) {
+            var sum = 0.0
+            for i in p {
+                sum += i
+            }
+
+            sum
+        }
+        // ...
+    }
+
+    const algo = GeneticAlgorithm(example).init()
+    algo.run()
+}

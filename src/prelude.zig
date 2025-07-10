@@ -2,12 +2,8 @@
 // @created: 2024-09-12
 
 pub const ArgumentParser = @import("ArgumentParser.zig");
-pub const Chrono = @import("Chrono.zig");
-pub const Repl = @import("Repl.zig");
-pub const Transport = @import("Transport.zig");
 
 pub const constants = @import("constants.zig");
-pub const logging = @import("logging.zig");
 
 pub const utilities = @import("utilities.zig");
 pub const Error = utilities.Error;
@@ -19,7 +15,6 @@ pub const isNumeric = utilities.isNumeric;
 
 pub const Compiler = @import("Compiler.zig");
 pub const Job = Compiler.Job;
-pub const Unit = Compiler.Unit;
 
 pub const Scanner = @import("Scanner.zig");
 pub const Token = Scanner.Token;
@@ -34,7 +29,6 @@ pub const Node = Ast.Node;
 pub const Interpreter = @import("Interpreter.zig");
 
 test "ruka modules" {
-    _ = Chrono;
     _ = Compiler;
     _ = Scanner;
     _ = Parser;

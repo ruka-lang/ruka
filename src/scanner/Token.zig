@@ -33,7 +33,7 @@ pub fn deinit(self: Token) void {
 pub const Kind = union(enum) {
     // Literals
     identifier: ArrayList(u8),
-    @"enum": ArrayList(u8), // Change to variant
+    atom: ArrayList(u8),
     string: ArrayList(u8),
     character: ArrayList(u8),
     integer: ArrayList(u8),
@@ -108,12 +108,12 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn initEnum(source: []const u8, allocator: Allocator) !Kind {
-        var enum_literal = ArrayList(u8).init(allocator);
-        try enum_literal.appendSlice(source);
+    pub fn initAtom(source: []const u8, allocator: Allocator) !Kind {
+        var atom = ArrayList(u8).init(allocator);
+        try atom.appendSlice(source);
 
         return Kind {
-            .@"enum" = enum_literal
+            .atom = atom
         };
     }
 
@@ -203,7 +203,7 @@ pub const Kind = union(enum) {
     pub fn deinit(self: Kind) void {
         switch (self) {
             .identifier   => |id| id.deinit(),
-            .@"enum"      => |en| en.deinit(),
+            .atom         => |at| at.deinit(),
             .string       => |st| st.deinit(),
             .character    => |ch| ch.deinit(),
             .integer      => |in| in.deinit(),
@@ -217,7 +217,7 @@ pub const Kind = union(enum) {
         return switch(self.*) {
             // Kinds with associated values
             .identifier   => |id| id.items,
-            .@"enum"      => |en| en.items,
+            .atom         => |at| at.items,
             .string       => |st| st.items,
             .character    => |ch| ch.items,
             .integer      => |in| in.items,
@@ -307,15 +307,15 @@ pub const Keyword = enum {
     @"return",
     do,
     end,
+    //module,
     record,
     tuple,
     variant,
-    literal,
     interface,
     any,
     @"error",
     @"defer",
-    interpret,
+    evaluate,
     true,
     false,
     @"for",
@@ -331,19 +331,18 @@ pub const Keyword = enum {
     @"test",
     in,
     // Reserved
-    @"inline",
-    derive,
-    module,
-    static,
-    macro,
-    @"pub",
-    @"fn",
-    from,
-    impl,
-    when,
-    with,
-    use,
-    as,
+    //@"inline",
+    //derive,
+    //static,
+    //macro,
+    //@"pub",
+    //@"fn",
+    //from,
+    //impl,
+    //when,
+    //with,
+    //use,
+    //as,
 
     /// Converts a keyword into a string slice
     pub fn toStr(self: *const Keyword) []const u8 {
@@ -365,15 +364,15 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"return", .@"return"},
     .{"do", .do},
     .{"end", .end},
+    //.{"module", .module},
     .{"record", .record},
     .{"tuple", .tuple},
     .{"variant", .variant},
-    .{"literal", .literal},
     .{"interface", .interface},
     .{"any", .any},
     .{"error", .@"error"},
     .{"defer", .@"defer"},
-    .{"interpret", .interpret},
+    .{"eva", .evaluate},
     .{"true", .true},
     .{"false", .false},
     .{"for", .@"for"},
@@ -389,19 +388,18 @@ const keywords = std.StaticStringMap(Keyword).initComptime(.{
     .{"test", .@"test"},
     .{"in", .in},
     // Reserved
-    .{"inline", .@"inline"},
-    .{"derive", .derive},
-    .{"module", .module},
-    .{"static", .static},
-    .{"macro", .macro},
-    .{"pub", .@"pub"},
-    .{"fn", .@"fn"},
-    .{"from", .from},
-    .{"impl", .impl},
-    .{"when", .when},
-    .{"with", .with},
-    .{"use", .use},
-    .{"as", .as}
+    //.{"inline", .@"inline"},
+    //.{"derive", .derive},
+    //.{"static", .static},
+    //.{"macro", .macro},
+    //.{"pub", .@"pub"},
+    //.{"fn", .@"fn"},
+    //.{"from", .from},
+    //.{"impl", .impl},
+    //.{"when", .when},
+    //.{"with", .with},
+    //.{"use", .use},
+    //.{"as", .as}
 });
 
 // Compile time assert no missing or extra entries in keywords
@@ -424,11 +422,12 @@ comptime {
 
 /// Represent various parameter modes
 pub const Mode = enum {
-    @"interpreted", // Parameter is constant and must be known at compile time and the value is interpreted during compilation.
-    loc,            // Immutable reference which cannot escape the function scope.
-    mov,            // Function takes ownership of the parameter, parameter cannot escape the function scope, 'by value'.
-    mut,            // Mutable reference, parameter can be changed, but the reference cannot escape the function scope.
-    ref,            // Immutable refernce which can escape the function scope, default mode.
+    ref,
+    eva,
+    loc,
+    mov,
+    mut,
+    stc,
 
     /// Converts a mode into a string slice
     pub fn toStr(self: *const Mode) []const u8 {
@@ -443,11 +442,12 @@ pub const Mode = enum {
 
 // Map representing Keywords and their string representation
 const modes = std.StaticStringMap(Mode).initComptime(.{
-    .{"#", .@"interpreted"},
+    .{"ref", .ref},
+    .{"eva", .eva},
     .{"loc", .loc},
     .{"mov", .mov},
     .{"mut", .mut},
-    .{"ref", .ref}
+    .{"stc", .stc},
 });
 
 // Compile time assert no missing or extra entries in modes
