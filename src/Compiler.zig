@@ -15,28 +15,18 @@ const ruka = @import("prelude.zig");
 const Ast = ruka.Ast;
 const Node = ruka.Node;
 const Index = ruka.Index;
+const Parser = ruka.Parser;
 const Error = ruka.Error;
-const Transport = ruka.Transport;
 
-cwd: Dir,
 errors: ArrayListUnmanaged(Error),
-transport: *Transport,
-
 unprocessed: ArrayListUnmanaged(*Ast),
 
 allocator: Allocator,
 arena: ArenaAllocator,
 
-mutex: Mutex,
-thread_pool: Pool,
-wait_group: WaitGroup,
 job_queue: LinearFifo(Job, .Dynamic),
 
 const Compiler = @This();
-
-const log = std.log.scoped(.compiler);
-
-pub const Unit = @import("compiler/Unit.zig");
 
 const Status = enum {
 
@@ -47,25 +37,11 @@ pub const Job = union(enum) {
     combine_asts,
     check_ast_semantics,
 
-    const SynchronizationMode = enum {
-        exclusive,
-        shared,
-        atomic
-    };
-
     pub fn deinit(self: Job, allocator: Allocator) void {
         switch (self) {
             .parse_file => |file| allocator.free(file),
             else => {}
         }
-    }
-
-    fn syncMode(self: Job) SynchronizationMode {
-        return switch (self) {
-            .parse_file => |_| .shared,
-            .combine_asts => .exclusive,
-            .check_ast_semantics => .exclusive,
-        };
     }
 };
 
@@ -73,37 +49,22 @@ pub fn init(allocator: Allocator) !*Compiler {
     const compiler = try allocator.create(Compiler);
     errdefer compiler.deinit();
 
-    const stderr = std.io.getStdErr();
-
     compiler.* = .{
-        .cwd = std.fs.cwd(),
         .errors = .{},
-        .transport = try .initFile(allocator, stderr),
         .unprocessed = .{},
         .allocator = allocator,
         .arena = .init(allocator),
-        .mutex = .{},
-        .thread_pool = undefined,
-        .wait_group = .{},
         .job_queue = .init(allocator)
     };
-
-    try compiler.thread_pool.init(.{
-        .allocator = allocator,
-        .n_jobs = 4
-    });
 
     return compiler;
 }
 
 pub fn deinit(self: *Compiler) void {
-    self.wait_group.wait();
-    self.thread_pool.deinit();
     while (self.job_queue.readItem()) |job| job.deinit(self.allocator);
     self.job_queue.deinit();
     self.errors.deinit(self.allocator);
     self.arena.deinit();
-    self.transport.deinit();
     for (self.unprocessed.items) |parsed| {
         parsed.deinit();
     }
@@ -112,35 +73,16 @@ pub fn deinit(self: *Compiler) void {
 }
 
 pub fn buildProject(self: *Compiler) !void {
-    try self.verifyProject(self.cwd);
-    try self.sendProject(self.cwd);
+    try self.verifyProject();
+    try self.sendProject();
 
     try self.job_queue.ensureUnusedCapacity(2);
     try self.job_queue.writeItem(.combine_asts);
     try self.job_queue.writeItem(.check_ast_semantics);
 
     while (self.job_queue.readItem()) |job| {
-        switch (job.syncMode()) {
-            .exclusive => {
-                self.waitAndWork();
-                self.processJob(job, null);
-            },
-            .shared => {
-                self.wait_group.start();
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, &self.wait_group});
-            },
-            .atomic => {
-                errdefer job.deinit(self.allocator);
-                try self.thread_pool.spawn(processJob, .{self, job, null});
-            }
-        }
+        self.processJob(job);
     }
-}
-
-fn waitAndWork(self: *Compiler) void {
-    self.thread_pool.waitAndWork(&self.wait_group);
-    self.wait_group.reset();
 }
 
 fn sendFile(self: *Compiler, file: []const u8) !void {
@@ -150,9 +92,8 @@ fn sendFile(self: *Compiler, file: []const u8) !void {
     try self.job_queue.writeItem(.{ .parse_file = file });
 }
 
-fn verifyProject(self: *Compiler, dir: Dir) !void {
+fn verifyProject(self: *Compiler) !void {
     _ = self;
-    _ = dir;
 }
 
 fn isProperExtension(file: []const u8) bool {
@@ -162,8 +103,9 @@ fn isProperExtension(file: []const u8) bool {
     return std.mem.eql(u8, "ruka", extension);
 }
 
-fn sendProject(self: *Compiler, dir: Dir) !void {
-    const src = try dir.openDir("src", .{.iterate = true});
+fn sendProject(self: *Compiler) !void {
+    var src = try std.fs.cwd().openDir("src", .{.iterate = true});
+    defer src.close();
     var iter = try src.walk(self.allocator);
     defer iter.deinit();
 
@@ -172,10 +114,7 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
             .file => {
                 if (!isProperExtension(item.path)) {
                     var path_iter = std.mem.splitBackwardsSequence(u8, item.path, ".");
-                    log.err(
-                        "Invalid file extension, expected .ruka, got: {s}, {s}\n",
-                        .{path_iter.first(), item.path}
-                    );
+                    std.debug.print("Invalid file extension, expected .ruka, got: {s}, {s}\n", .{path_iter.first(), item.path});
 
                     continue;
                 }
@@ -190,24 +129,21 @@ fn sendProject(self: *Compiler, dir: Dir) !void {
     }
 }
 
-fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
-    defer if (wait_group != null) wait_group.?.finish();
-    defer job.deinit(self.allocator);
-
+fn processJob(self: *Compiler, job: Job) void {
     switch (job) {
         .parse_file => |file| {
-            self.parseFile(file, null) catch |err| {
-                log.err("Failed to compile file: {}", .{err});
+            self.parseFile(file) catch |err| {
+                std.debug.print("Failed to compile file: {}", .{err});
             };
         },
         .combine_asts => {
             self.combineAsts() catch |err| {
-                log.err("Failed to combine asts: {}", .{err});
+                std.debug.print("Failed to combine asts: {}", .{err});
             };
         },
         .check_ast_semantics => {
             self.checkAstSemantics() catch |err| {
-                log.err("Failed to check ast semantics: {}", .{err});
+                std.debug.print("Failed to check ast semantics: {}", .{err});
             };
         }
     }
@@ -215,38 +151,25 @@ fn processJob(self: *Compiler, job: Job, wait_group: ?*WaitGroup) void {
 
 fn parseFile(
     self: *Compiler,
-    in: []const u8,
-    out: ?[]const u8
+    in: []const u8
 ) !void {
-    const src = try self.cwd.openDir("src", .{});
-    const input = try src.openFile(in, .{});
-    defer input.close();
+    var parser = try Parser.init(
+        self.allocator,
+        &self.arena,
+        in
+    );
 
-    var buf: [10]u8 = undefined;
-    var output = std.io.fixedBufferStream(&buf);
+    defer parser.deinit();
 
-    var unit = try Unit.init(.{
-        .input = in,
-        .output = out orelse "no output",
-        .reader = input.reader().any(),
-        .writer = output.writer().any(),
-        .allocator = self.allocator,
-        .arena = &self.arena
-    });
-    defer unit.deinit();
-
-    var parsed = try unit.compile();
+    var parsed = try parser.parse();
     errdefer parsed.deinit();
 
     for (parsed.nodes.items(.kind)) |kind| {
         std.debug.print("{}\n", .{kind});
     }
 
-    self.mutex.lock();
-    defer self.mutex.unlock();
-
     try self.unprocessed.append(self.allocator, parsed);
-    try self.errors.appendSlice(self.allocator, unit.errors.items);
+    try self.errors.appendSlice(self.allocator, parser.errors.items);
 }
 
 fn combineAsts(self: *Compiler) !void {
@@ -261,7 +184,6 @@ fn checkAstSemantics(self: *Compiler) !void {
 
 test "compiler modules" {
     _ = tests;
-    _ = Unit;
 }
 
 const tests = struct {
