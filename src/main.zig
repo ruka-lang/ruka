@@ -73,8 +73,9 @@ fn buildProject(args: *ArgumentParser, allocator: Allocator) !void {
     if (args.getOption()) |option| {
         switch (option) {
             .change_dir => |path| {
-                try std.posix.chdir(path);
-                const new_dir = try std.fs.cwd().openDir(path, .{});
+                var new_dir = try std.fs.cwd().openDir(path, .{});
+                defer new_dir.close();
+
                 try std.posix.fchdir(new_dir.fd);
             }
         }
