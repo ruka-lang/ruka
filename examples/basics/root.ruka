@@ -12,3 +12,4 @@ const executable = {
 const dependencies = {
     std = { version = project.ruka_version, features = [] }
 }
+

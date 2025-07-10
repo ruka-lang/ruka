@@ -12,7 +12,6 @@ const Error = ruka.Error;
 const Scanner = ruka.Scanner;
 const Token = ruka.Token;
 
-buf: std.io.BufferedReader(4096, std.io.AnyReader),
 handle: std.fs.File,
 
 current_token: ?Token,
@@ -121,9 +120,6 @@ pub fn init(
     const input = try src.openFile(file, .{});
     errdefer input.close();
 
-    var buf = std.io.bufferedReader(input.reader().any());
-    const reader = buf.reader().any();
-
     parser.* = .{
         .current_token = null,
         .peek_token = null,
@@ -131,8 +127,7 @@ pub fn init(
         .errors = .{},
         .file = file,
         .handle = input,
-        .buf = buf,
-        .scanner = try .init(allocator, arena, reader, file),
+        .scanner = try .init(allocator, arena, input.reader().any(), file),
         .allocator = allocator,
         .arena = arena
     };

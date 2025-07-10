@@ -104,8 +104,12 @@ fn isProperExtension(file: []const u8) bool {
 }
 
 fn sendProject(self: *Compiler) !void {
-    var src = try std.fs.cwd().openDir("src", .{.iterate = true});
+    var src = std.fs.cwd().openDir("src", .{.iterate = true}) catch {
+        std.debug.print("Failed to open src directory\n", .{});
+        return error.FailedToOpenSrcDir;
+    };
     defer src.close();
+
     var iter = try src.walk(self.allocator);
     defer iter.deinit();
 
@@ -153,20 +157,24 @@ fn parseFile(
     self: *Compiler,
     in: []const u8
 ) !void {
+    defer self.allocator.free(in);
+
     var parser = try Parser.init(
         self.allocator,
         &self.arena,
         in
     );
-
     defer parser.deinit();
 
     var parsed = try parser.parse();
     errdefer parsed.deinit();
 
+    std.debug.print("Parsed: {s}\n", .{in});
     for (parsed.nodes.items(.kind)) |kind| {
-        std.debug.print("{}\n", .{kind});
+        std.debug.print("\t{}\n", .{kind});
     }
+    std.debug.print("Errors: {}\n\n", .{parser.errors.items.len});
+
 
     try self.unprocessed.append(self.allocator, parsed);
     try self.errors.appendSlice(self.allocator, parser.errors.items);
@@ -174,12 +182,12 @@ fn parseFile(
 
 fn combineAsts(self: *Compiler) !void {
     _ = self;
-    std.debug.print("\ncombining asts\n", .{});
+    std.debug.print("combining asts\n", .{});
 }
 
 fn checkAstSemantics(self: *Compiler) !void {
     _ = self;
-    std.debug.print("\nverifying ast\n", .{});
+    std.debug.print("verifying ast\n", .{});
 }
 
 test "compiler modules" {

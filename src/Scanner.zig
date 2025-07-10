@@ -35,7 +35,6 @@ const Scanner = @This();
 pub fn init(allocator: Allocator, arena: *ArenaAllocator, reader: std.io.AnyReader, file: []const u8) !*Scanner {
     const scanner = try allocator.create(Scanner);
 
-
     scanner.* = .{
         .prev_char = undefined,
         .read_char = reader.readByte() catch '\x00',
