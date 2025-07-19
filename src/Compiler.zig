@@ -153,10 +153,7 @@ fn processJob(self: *Compiler, job: Job) void {
     }
 }
 
-fn parseFile(
-    self: *Compiler,
-    in: []const u8
-) !void {
+fn parseFile(self: *Compiler, in: []const u8) !void {
     defer self.allocator.free(in);
 
     var parser = try Parser.init(
