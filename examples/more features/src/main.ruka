@@ -2,21 +2,21 @@ local std = @package("std")
 local {Buffer, Vector, io} = @package("root")
 local {Writer} = io
 
-const genFunc = (t: type, a: t, b: t) {
+const genFunc = (t: type, a: t, b: t) do
     std.testing.expect(@typeOf(a) == @typeOf(b))
     ()
-}
+end
 
-const mul = (x: Vector.t) {
+const mul = (x: Vector.t) do
     var v = Vector.init(0, 0)
 
     v.x = x.x * 2
     v.y = x.y * 3
 
     v
-}
+end
 
-const main = () {
+const main = () do
     var buffer = Buffer(512).init
 
     Vector.new(1, 2)
@@ -43,4 +43,4 @@ const main = () {
     @println(string)
 
     ok(())
-}
+end
