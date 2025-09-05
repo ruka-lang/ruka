@@ -13,7 +13,7 @@ const constants = @import("constants.zig");
 var debug_allocator = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
 
 pub fn main() !void {
-    const allocator, const is_debug = gpa: {
+    const gpa, const is_debug = gpa: {
         break :gpa switch (@import("builtin").mode) {
             .Debug, .ReleaseSafe => .{debug_allocator.allocator(), true},
             .ReleaseFast, .ReleaseSmall => .{std.heap.smp_allocator, false}
@@ -23,7 +23,7 @@ pub fn main() !void {
         _ = debug_allocator.deinit();
     };
 
-    var args = try ArgumentParser.init(allocator);
+    var args = try ArgumentParser.init(gpa);
     defer args.deinit();
 
     args.parse() catch |err| {
@@ -42,7 +42,7 @@ pub fn main() !void {
 
     switch (args.getSubcommand().?) {
         .new => try newProject(),
-        .build => try buildProject(args, allocator),
+        .build => try buildProject(args, gpa),
         .@"test" => try testProject(),
         .run => try runProject(),
         .version => displayVersion(),
@@ -66,8 +66,8 @@ fn isProperProject() void {
 
 }
 
-fn buildProject(args: *ArgumentParser, allocator: Allocator) !void {
-    var compiler = try Compiler.init(allocator);
+fn buildProject(args: *ArgumentParser, gpa: Allocator) !void {
+    var compiler = try Compiler.init(gpa);
     defer compiler.deinit();
 
     if (args.getOption()) |option| {

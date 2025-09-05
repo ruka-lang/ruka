@@ -6,23 +6,23 @@ const Allocator = std.mem.Allocator;
 
 const ruka = @import("prelude.zig");
 
-allocator: Allocator,
+gpa: Allocator,
 
 const Interpreter = @This();
 
-pub fn init(allocator: Allocator) !*Interpreter {
-    const interpreter = try allocator.create(Interpreter);
+pub fn init(gpa: Allocator) !*Interpreter {
+    const interpreter = try gpa.create(Interpreter);
     errdefer interpreter.deinit();
 
     interpreter.* = .{
-        .allocator = allocator
+        .gpa = gpa
     };
 
     return interpreter;
 }
 
 pub fn deinit(self: *Interpreter) void {
-    self.allocator.destroy(self);
+    self.gpa.destroy(self);
 }
 
 test "interpreter modules" {

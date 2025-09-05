@@ -21,8 +21,7 @@ const Results = struct {
 };
 
 pub fn main() !void {
-    var allocator = std.heap.GeneralPurposeAllocator(.{ .stack_trace_frames = 12 }){};
-    const gpa = allocator.allocator();
+    const gpa = std.heap.smp_allocator;
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_file = std.fs.File.stdout().writer(&stdout_buffer);
@@ -54,7 +53,7 @@ pub fn main() !void {
 
     wstatus(stdout, status, "\nTest{s} finished ", .{ if (results.count != 1) "s" else "" });
     fmt(stdout, "in {d}.{d:03}s. ", .{ seconds, @as(u64, @intCast(milliseconds)) });
-    fmt(stdout, "{d} of {d} passed\n", .{ results.ok, results.count});
+    fmt(stdout, "{d} of {d} passed\n\n", .{ results.ok, results.count});
 
     if (results.skip > 0) {
         wstatus(stdout, .skip, "{d} test{s} skipped\n", .{ results.skip, if (results.skip != 1) "s" else "" });

@@ -30,7 +30,7 @@ const Parser = @This();
 pub const Ast = struct {
     nodes: MultiArrayList(Node) = .{},
     extra_data: ArrayListUnmanaged(Index) = .{},
-    allocator: Allocator,
+    gpa: Allocator,
 
     pub const Index = u32;
     pub const Node = struct {
@@ -80,13 +80,13 @@ pub const Ast = struct {
     };
 
 
-    pub fn init(allocator: Allocator) !*Ast {
-        const ast = try allocator.create(Ast);
+    pub fn init(gpa: Allocator) !*Ast {
+        const ast = try gpa.create(Ast);
 
         ast.* = .{
             .nodes = .{},
             .extra_data = .{},
-            .allocator = allocator
+            .gpa = gpa
         };
 
         return ast;
@@ -94,25 +94,25 @@ pub const Ast = struct {
 
     pub fn deinit(self: *Ast) void {
         for (self.nodes.items(.token)) |token| {
-            token.deinit(self.allocator);
+            token.deinit(self.gpa);
         }
-        self.nodes.deinit(self.allocator);
-        self.extra_data.deinit(self.allocator);
+        self.nodes.deinit(self.gpa);
+        self.extra_data.deinit(self.gpa);
 
-        self.allocator.destroy(self);
+        self.gpa.destroy(self);
     }
 
     pub fn append(self: *Ast, node: Node) !void {
-        try self.nodes.append(self.allocator, node);
+        try self.nodes.append(self.gpa, node);
     }
 };
 
 pub fn init(
-    allocator: Allocator,
+    gpa: Allocator,
     arena: *ArenaAllocator,
     file: []const u8
 ) !*Parser {
-    const parser = try allocator.create(Parser);
+    const parser = try gpa.create(Parser);
     errdefer parser.deinit();
 
     var src = try std.fs.cwd().openDir("src", .{});
@@ -123,12 +123,12 @@ pub fn init(
     parser.* = .{
         .current_token = null,
         .peek_token = null,
-        .ast = try .init(allocator),
+        .ast = try .init(gpa),
         .errors = .{},
         .file = file,
         .handle = input,
-        .scanner = try .init(allocator, arena, input.reader(), file),
-        .gpa = allocator,
+        .scanner = try .init(gpa, arena, input.reader(), file),
+        .gpa = gpa,
         .arena = arena
     };
 
