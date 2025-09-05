@@ -3,8 +3,6 @@ name: Test
 on:
   pull_request:
     branches: [ "main" ]
-  push:
-    branches: [ "main" ]
 
 jobs:
   test:
@@ -16,6 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: goto-bus-stop/setup-zig@v2
+      with:
+        version: "0.15.1"
 
     - name: Test
       run: zig build test --summary all

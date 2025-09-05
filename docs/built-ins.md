@@ -59,6 +59,6 @@ primatives:
     - instance: variant.kind(val)
 - atom
     - annotation: atom
-    - instance: 'identifier
-        - 'a
-        - 'fast
+    - instance: \`identifier
+        - \`a
+        - \`fast

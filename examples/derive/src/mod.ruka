@@ -9,38 +9,38 @@ const Genome = interface {
     termination: (Population) -> bool
 }
 
-const GeneticAlgorithm = (genome: any Genome) {
+const GeneticAlgorithm = (genome: any Genome) do
     genome <> record {
         const t = record {
             pop: Population
         }
 
-        const init = () {
+        const init = () do
             t {}
-        }
+        end
 
-        const run (self: t) = () {
-            while not termination(self.pop) {
+        const run (self: t) = () do
+            while not termination(self.pop) do
                 // ...
-            }
-        }
+            end
+        end
     }
-}
+end
 
-test "algorithm" {
+test "algorithm" do
     const example = record {
         const Population = [10; float]
-        const fitness = (p: Population) {
+        const fitness = (p: Population) do
             var sum = 0.0
-            for i in p {
+            for i in p do
                 sum += i
-            }
+            end
 
             sum
-        }
+        end
         // ...
     }
 
     const algo = GeneticAlgorithm(example).init()
     algo.run()
-}
+end

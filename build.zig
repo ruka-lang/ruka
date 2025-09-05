@@ -11,9 +11,11 @@ pub fn build(b: *std.Build) void {
     // Binary
     const bin = b.addExecutable(.{
         .name = "ruka",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize
+        }),
     });
 
     b.installArtifact(bin);
@@ -47,10 +49,12 @@ pub fn build(b: *std.Build) void {
 
     const ruka_unit_tests = b.addTest(.{
         .name = "ruka_test",
-        .root_source_file = b.path("src/prelude.zig"),
-        .target = target,
-        .test_runner = test_runner,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/prelude.zig"),
+            .target = target,
+            .optimize = optimize
+        }),
+        .test_runner = test_runner
     });
 
     const run_bin_unit_tests = b.addRunArtifact(ruka_unit_tests);
@@ -97,7 +101,7 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
     switch (std.mem.count(u8, git_describe, "-")) {
         0 => {
             // Tagged release (e.g. 0.1.0).
-            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{}", .{ruka_version})));
+            std.debug.assert(std.mem.eql(u8, git_describe, b.fmt("{f}", .{ruka_version})));
             return ruka_version;
         },
         2 => {

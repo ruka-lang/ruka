@@ -9,24 +9,24 @@ const Vector = record {
         local z: u8
     }
 
-    const new = (x, y) {
+    const new = (x, y) do
         { x, y, z = 0 }
-    }
+    end
 
-    const add (self: t) = (other: t) {
+    const add (self: t) = (other: t) do
         {
             x = self.x + other.x,
             y = self.y + other.y,
             z = self.z + other.z
         }
-    }
+    end
 
-    const write (self: mut t) = (writer: any mut io.Writer) {
+    const write (self: mut t) = (writer: any mut io.Writer) do
         writer.writeByte?(self.x).?
         writer.writeByte?(self.y)
-    }
+    end
 
-    test "addition" {
+    test "addition" do
         const testcase = record {
             num: t,
             div: t,
@@ -41,12 +41,12 @@ const Vector = record {
             }
         }
 
-        for {test, data} in tests {
-            if test == "addition" {
+        for {test, data} in tests do
+            if test == "addition" do
                 let result = data.num.add(data.div)
                 std.testing.expect(result == data.want).?
-            }
+            end
             @println("test: #{test} passed")
-        }
-    }
+        end
+    end
 }

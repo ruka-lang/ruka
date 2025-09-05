@@ -25,8 +25,8 @@ pub fn init(kind: Kind, file: []const u8, pos: Position) Token {
 }
 
 ///
-pub fn deinit(self: Token) void {
-    self.kind.deinit();
+pub fn deinit(self: *Token, gpa: Allocator) void {
+    self.kind.deinit(gpa);
 }
 
 /// Represents the kind of lexeme and corresponding value when applicable
@@ -99,54 +99,54 @@ pub const Kind = union(enum) {
     illegal,
     eof,           // \x00
 
-    pub fn initIdentifier(source: []const u8, allocator: Allocator) !Kind {
-        var identifier = ArrayList(u8).init(allocator);
-        try identifier.appendSlice(source);
+    pub fn initIdentifier(source: []const u8, gpa: Allocator) !Kind {
+        var identifier: ArrayList(u8) = .empty;
+        try identifier.appendSlice(gpa, source);
 
         return Kind {
             .identifier = identifier
         };
     }
 
-    pub fn initAtom(source: []const u8, allocator: Allocator) !Kind {
-        var atom = ArrayList(u8).init(allocator);
-        try atom.appendSlice(source);
+    pub fn initAtom(source: []const u8, gpa: Allocator) !Kind {
+        var atom: ArrayList(u8) = .empty;
+        try atom.appendSlice(gpa, source);
 
         return Kind {
             .atom = atom
         };
     }
 
-    pub fn initString(source: []const u8, allocator: Allocator) !Kind {
-        var string = ArrayList(u8).init(allocator);
-        try string.appendSlice(source);
+    pub fn initString(source: []const u8, gpa: Allocator) !Kind {
+        var string: ArrayList(u8) = .empty;
+        try string.appendSlice(gpa, source);
 
         return Kind {
             .string = string
         };
     }
 
-    pub fn initCharacter(source: []const u8, allocator: Allocator) !Kind {
-        var character = ArrayList(u8).init(allocator);
-        try character.appendSlice(source);
+    pub fn initCharacter(source: []const u8, gpa: Allocator) !Kind {
+        var character: ArrayList(u8) = .empty;
+        try character.appendSlice(gpa, source);
 
         return Kind {
             .character = character
         };
     }
 
-    pub fn initInteger(source: []const u8, allocator: Allocator) !Kind {
-        var integer = ArrayList(u8).init(allocator);
-        try integer.appendSlice(source);
+    pub fn initInteger(source: []const u8, gpa: Allocator) !Kind {
+        var integer: ArrayList(u8) = .empty;
+        try integer.appendSlice(gpa, source);
 
         return Kind {
             .integer = integer
         };
     }
 
-    pub fn initFloat(source: []const u8, allocator: Allocator) !Kind {
-        var float = ArrayList(u8).init(allocator);
-        try float.appendSlice(source);
+    pub fn initFloat(source: []const u8, gpa: Allocator) !Kind {
+        var float: ArrayList(u8) = .empty;
+        try float.appendSlice(gpa, source);
 
         return Kind {
             .float = float
@@ -200,14 +200,14 @@ pub const Kind = union(enum) {
         };
     }
 
-    pub fn deinit(self: Kind) void {
-        switch (self) {
-            .identifier   => |id| id.deinit(),
-            .atom         => |at| at.deinit(),
-            .string       => |st| st.deinit(),
-            .character    => |ch| ch.deinit(),
-            .integer      => |in| in.deinit(),
-            .float        => |fl| fl.deinit(),
+    pub fn deinit(self: *Kind, gpa: Allocator) void {
+        switch (self.*) {
+            .identifier   => |*id| id.deinit(gpa),
+            .atom         => |*at| at.deinit(gpa),
+            .string       => |*st| st.deinit(gpa),
+            .character    => |*ch| ch.deinit(gpa),
+            .integer      => |*in| in.deinit(gpa),
+            .float        => |*fl| fl.deinit(gpa),
             else => {}
         }
     }

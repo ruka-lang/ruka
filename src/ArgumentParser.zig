@@ -3,15 +3,15 @@
 
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const LinearFifo = std.fifo.LinearFifo;
 
 const ruka = @import("prelude.zig");
 const constants = ruka.constants;
+const LinearFifo = ruka.LinearFifo;
 
-subcommands: LinearFifo(Subcommand, .Dynamic),
-options: LinearFifo(Option, .Dynamic),
+subcommands: LinearFifo(Subcommand),
+options: LinearFifo(Option),
 
-allocator: Allocator,
+gpa: Allocator,
 
 const ArgumentParser = @This();
 
@@ -47,27 +47,27 @@ const Option = union(enum) {
     }
 };
 
-pub fn init(allocator: Allocator) !*ArgumentParser {
-    const argument_parser = try allocator.create(ArgumentParser);
+pub fn init(gpa: Allocator) !*ArgumentParser {
+    const argument_parser = try gpa.create(ArgumentParser);
     errdefer argument_parser.deinit();
 
     argument_parser.* = .{
-        .subcommands = .init(allocator),
-        .options = .init(allocator),
-        .allocator = allocator
+        .subcommands = .empty,
+        .options = .empty,
+        .gpa = gpa
     };
 
     return argument_parser;
 }
 
 pub fn deinit(self: *ArgumentParser) void {
-    self.subcommands.deinit();
-    self.options.deinit();
-    self.allocator.destroy(self);
+    self.subcommands.deinit(self.gpa);
+    self.options.deinit(self.gpa);
+    self.gpa.destroy(self);
 }
 
 pub fn parse(self: *ArgumentParser) !void {
-    var args = try std.process.argsWithAllocator(self.allocator);
+    var args = try std.process.argsWithAllocator(self.gpa);
     defer args.deinit();
 
     std.debug.assert(args.skip());
@@ -78,7 +78,7 @@ pub fn parse(self: *ArgumentParser) !void {
     }
 
     if (subcommandsMap.get(subcommand_arg.?)) |subcommand| {
-        try self.subcommands.writeItem(subcommand);
+        try self.subcommands.writeItem(self.gpa, subcommand);
     } else {
         std.debug.print("{s}\n{s}\n\nInvalid subcommand: {s}\n", .{
             constants.usage,
@@ -112,7 +112,7 @@ pub fn parse(self: *ArgumentParser) !void {
 
 fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCount: usize) !void {
     if (Option.init(arg[dashCount..], value)) |option| {
-        try self.options.writeItem(option);
+        try self.options.writeItem(self.gpa, option);
     } else {
         std.debug.print("{s}\n{s}\n\nInvalid option: {s}\n", .{
             constants.usage,
@@ -124,9 +124,9 @@ fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCoun
 }
 
 pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
-    return self.subcommands.readItem();
+    return self.subcommands.readItem(self.gpa);
 }
 
 pub fn getOption(self: *ArgumentParser) ?Option {
-    return self.options.readItem();
+    return self.options.readItem(self.gpa);
 }

@@ -6,6 +6,7 @@ const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
+const Reader = std.fs.File.Reader;
 
 const ruka = @import("prelude.zig");
 const Error = ruka.Error;
@@ -13,6 +14,8 @@ const Scanner = ruka.Scanner;
 const Token = ruka.Token;
 
 handle: std.fs.File,
+buf: [1024]u8 = undefined,
+reader: Reader,
 
 current_token: ?Token,
 peek_token: ?Token,
@@ -22,7 +25,7 @@ errors: ArrayListUnmanaged(Error),
 file: []const u8,
 scanner: *Scanner,
 
-allocator: Allocator,
+gpa: Allocator,
 arena: *ArenaAllocator,
 
 const Parser = @This();
@@ -30,7 +33,7 @@ const Parser = @This();
 pub const Ast = struct {
     nodes: MultiArrayList(Node) = .{},
     extra_data: ArrayListUnmanaged(Index) = .{},
-    allocator: Allocator,
+    gpa: Allocator,
 
     pub const Index = u32;
     pub const Node = struct {
@@ -74,45 +77,45 @@ pub const Ast = struct {
             };
         }
 
-        pub fn deinit(self: Node, _: Allocator) void {
-            self.token.deinit();
+        pub fn deinit(self: Node, gpa: Allocator) void {
+            self.token.deinit(gpa);
         }
     };
 
 
-    pub fn init(allocator: Allocator) !*Ast {
-        const ast = try allocator.create(Ast);
+    pub fn init(gpa: Allocator) !*Ast {
+        const ast = try gpa.create(Ast);
 
         ast.* = .{
             .nodes = .{},
             .extra_data = .{},
-            .allocator = allocator
+            .gpa = gpa
         };
 
         return ast;
     }
 
     pub fn deinit(self: *Ast) void {
-        for (self.nodes.items(.token)) |token| {
-            token.deinit();
+        for (self.nodes.items(.token)) |*token| {
+            token.deinit(self.gpa);
         }
-        self.nodes.deinit(self.allocator);
-        self.extra_data.deinit(self.allocator);
+        self.nodes.deinit(self.gpa);
+        self.extra_data.deinit(self.gpa);
 
-        self.allocator.destroy(self);
+        self.gpa.destroy(self);
     }
 
     pub fn append(self: *Ast, node: Node) !void {
-        try self.nodes.append(self.allocator, node);
+        try self.nodes.append(self.gpa, node);
     }
 };
 
 pub fn init(
-    allocator: Allocator,
+    gpa: Allocator,
     arena: *ArenaAllocator,
     file: []const u8
 ) !*Parser {
-    const parser = try allocator.create(Parser);
+    const parser = try gpa.create(Parser);
     errdefer parser.deinit();
 
     var src = try std.fs.cwd().openDir("src", .{});
@@ -123,12 +126,13 @@ pub fn init(
     parser.* = .{
         .current_token = null,
         .peek_token = null,
-        .ast = try .init(allocator),
+        .ast = try .init(gpa),
         .errors = .{},
         .file = file,
         .handle = input,
-        .scanner = try .init(allocator, arena, input.reader().any(), file),
-        .allocator = allocator,
+        .reader = input.reader(&parser.buf),
+        .scanner = try .init(gpa, arena, &parser.reader.interface, file),
+        .gpa = gpa,
         .arena = arena
     };
 
@@ -138,20 +142,19 @@ pub fn init(
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
     self.handle.close();
-    self.errors.deinit(self.allocator);
-    self.allocator.destroy(self);
+    self.errors.deinit(self.gpa);
+    self.gpa.destroy(self);
 }
 
 fn advance(self: *Parser) !void {
-    const token = self.current_token;
-    errdefer if (token) |t| t.deinit();
+    errdefer if (self.current_token) |*token| token.deinit(self.gpa);
 
     self.current_token = self.peek_token orelse try self.scanner.nextToken();
     self.peek_token = try self.scanner.nextToken();
 }
 
 fn discard(self: *Parser) !void {
-    if (self.current_token) |token| token.deinit();
+    if (self.current_token) |*token| token.deinit(self.gpa);
 
     self.current_token = self.peek_token orelse try self.scanner.nextToken();
     self.peek_token = try self.scanner.nextToken();
@@ -176,7 +179,7 @@ pub fn parse(self: *Parser) !*Ast {
     self.current_token = null;
     self.peek_token = null;
 
-    try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
+    try self.errors.appendSlice(self.gpa, self.scanner.errors.items);
 
     return self.ast;
 }
@@ -226,7 +229,7 @@ fn createBinding(self: *Parser) !void {
 }
 
 pub fn createError(self: *Parser, msg: []const u8) !void {
-    try self.errors.append(self.allocator, .{
+    try self.errors.append(self.gpa, .{
         .file = self.file,
         .kind = "parser",
         .msg = msg,
