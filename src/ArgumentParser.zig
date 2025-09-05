@@ -124,9 +124,9 @@ fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCoun
 }
 
 pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
-    return self.subcommands.readItem();
+    return self.subcommands.readItem(self.gpa);
 }
 
 pub fn getOption(self: *ArgumentParser) ?Option {
-    return self.options.readItem();
+    return self.options.readItem(self.gpa);
 }

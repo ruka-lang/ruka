@@ -61,7 +61,7 @@ pub fn init(gpa: Allocator) !*Compiler {
 }
 
 pub fn deinit(self: *Compiler) void {
-    while (self.job_queue.readItem()) |job| job.deinit(self.gpa);
+    while (self.job_queue.readItem(self.gpa)) |job| job.deinit(self.gpa);
     self.job_queue.deinit(self.gpa);
     self.errors.deinit(self.gpa);
     self.arena.deinit();
@@ -80,7 +80,7 @@ pub fn buildProject(self: *Compiler) !void {
     try self.job_queue.writeItem(self.gpa, .combine_asts);
     try self.job_queue.writeItem(self.gpa, .check_ast_semantics);
 
-    while (self.job_queue.readItem()) |job| {
+    while (self.job_queue.readItem(self.gpa)) |job| {
         self.processJob(job);
     }
 }
@@ -170,7 +170,16 @@ fn parseFile(self: *Compiler, in: []const u8) !void {
     for (parsed.nodes.items(.kind)) |kind| {
         std.debug.print("\t{}\n", .{kind});
     }
-    std.debug.print("Errors: {}\n\n", .{parser.errors.items.len});
+    const errors = parser.errors.items.len;
+    std.debug.print("Errors: {}\n", .{errors});
+
+    if (errors > 0) {
+        // Print errors
+        for (parser.errors.items) |err| {
+            std.debug.print("\t{s}:{}:{}: {s}\n", .{err.file, err.pos.line, err.pos.col, err.msg});
+        }
+        std.debug.print("\n", .{});
+    }
 
 
     try self.unprocessed.append(self.gpa, parsed);

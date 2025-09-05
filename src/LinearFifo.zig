@@ -34,6 +34,7 @@ pub fn LinearFifo(t: type) type {
 
         pub fn writeItem(self: *Fifo, gpa: Allocator, item: t) !void {
             const new_node = try gpa.create(Node);
+            // print address of new_node to debug
             new_node.* = .{
                 .item = item,
                 .next = null,
@@ -42,16 +43,21 @@ pub fn LinearFifo(t: type) type {
             if (self.tail) |old_tail| {
                 old_tail.next = new_node;
             } else {
+                if (self.head) |head| {
+                    gpa.destroy(head);
+                    self.head = null;
+                }
                 self.head = new_node;
             }
             self.tail = new_node;
             self.len += 1;
         }
 
-        pub fn readItem(self: *Fifo) ?t {
+        pub fn readItem(self: *Fifo, gpa: Allocator) ?t {
             if (self.head) |old_head| {
                 const item = old_head.item;
                 self.head = old_head.next;
+                gpa.destroy(old_head);
                 if (self.head == null) {
                     self.tail = null;
                 }

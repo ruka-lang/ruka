@@ -6,6 +6,7 @@ const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const MultiArrayList = std.MultiArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
+const Reader = std.fs.File.Reader;
 
 const ruka = @import("prelude.zig");
 const Error = ruka.Error;
@@ -13,6 +14,8 @@ const Scanner = ruka.Scanner;
 const Token = ruka.Token;
 
 handle: std.fs.File,
+buf: [1024]u8 = undefined,
+reader: Reader,
 
 current_token: ?Token,
 peek_token: ?Token,
@@ -93,7 +96,7 @@ pub const Ast = struct {
     }
 
     pub fn deinit(self: *Ast) void {
-        for (self.nodes.items(.token)) |token| {
+        for (self.nodes.items(.token)) |*token| {
             token.deinit(self.gpa);
         }
         self.nodes.deinit(self.gpa);
@@ -127,7 +130,8 @@ pub fn init(
         .errors = .{},
         .file = file,
         .handle = input,
-        .scanner = try .init(gpa, arena, input.reader(), file),
+        .reader = input.reader(&parser.buf),
+        .scanner = try .init(gpa, arena, &parser.reader.interface, file),
         .gpa = gpa,
         .arena = arena
     };
@@ -143,15 +147,14 @@ pub fn deinit(self: *Parser) void {
 }
 
 fn advance(self: *Parser) !void {
-    const token = self.current_token;
-    errdefer if (token) |t| t.deinit();
+    errdefer if (self.current_token) |*token| token.deinit(self.gpa);
 
     self.current_token = self.peek_token orelse try self.scanner.nextToken();
     self.peek_token = try self.scanner.nextToken();
 }
 
 fn discard(self: *Parser) !void {
-    if (self.current_token) |token| token.deinit();
+    if (self.current_token) |*token| token.deinit(self.gpa);
 
     self.current_token = self.peek_token orelse try self.scanner.nextToken();
     self.peek_token = try self.scanner.nextToken();
