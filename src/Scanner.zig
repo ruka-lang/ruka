@@ -7,6 +7,7 @@ const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayList = std.ArrayList;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const eql = std.mem.eql;
+const Reader = std.io.Reader;
 
 const ruka = @import("prelude.zig");
 const Error = ruka.Error;
@@ -22,31 +23,31 @@ current_pos: Position,
 token_pos: Position,
 index: usize,
 
-reader: std.io.AnyReader,
+reader: *Reader,
 errors: ArrayListUnmanaged(Error),
 
-allocator: Allocator,
+gpa: Allocator,
 arena: *ArenaAllocator,
 
 pub const Token = @import("scanner/Token.zig");
 
 const Scanner = @This();
 
-pub fn init(allocator: Allocator, arena: *ArenaAllocator, reader: std.io.AnyReader, file: []const u8) !*Scanner {
-    const scanner = try allocator.create(Scanner);
+pub fn init(gpa: Allocator, arena: *ArenaAllocator, reader: *Reader, file: []const u8) !*Scanner {
+    const scanner = try gpa.create(Scanner);
 
     scanner.* = .{
         .prev_char = undefined,
-        .read_char = reader.readByte() catch '\x00',
-        .peek_char = reader.readByte() catch '\x00',
-        .peep_char = reader.readByte() catch '\x00',
+        .read_char = reader.takeByte() catch '\x00',
+        .peek_char = reader.takeByte() catch '\x00',
+        .peep_char = reader.takeByte() catch '\x00',
         .file = file,
         .current_pos = .init(1, 1),
         .token_pos = .init(1, 1),
         .index = 0,
         .reader = reader,
         .errors = .{},
-        .allocator = allocator,
+        .gpa = gpa,
         .arena = arena
     };
 
@@ -54,8 +55,8 @@ pub fn init(allocator: Allocator, arena: *ArenaAllocator, reader: std.io.AnyRead
 }
 
 pub fn deinit(self: *Scanner) void {
-    self.errors.deinit(self.allocator);
-    self.allocator.destroy(self);
+    self.errors.deinit(self.gpa);
+    self.gpa.destroy(self);
 }
 
 /// Returns the next token from the files, when eof is reached,
@@ -259,7 +260,7 @@ fn advance(self: *Scanner, count: usize) void {
         self.prev_char = self.read_char;
         self.read_char = self.peek_char;
         self.peek_char = self.peep_char;
-        self.peep_char = self.reader.readByte() catch '\x00';
+        self.peep_char = self.reader.takeByte() catch '\x00';
 
         self.index = self.index + 1;
 
@@ -281,7 +282,7 @@ fn createToken(self: *Scanner, kind: Token.Kind) Token {
 }
 
 fn createError(self: *Scanner, msg: []const u8) !void {
-    try self.errors.append(self.allocator, .{
+    try self.errors.append(self.gpa, .{
         .file = self.file,
         .kind = "scanner",
         .msg = msg,
@@ -338,8 +339,8 @@ fn skipMultiComment(self: *Scanner) !void {
 }
 
 fn readCharacterAtom(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     if (self.peep() != '\'' and self.peek() != '\\') {
         // A character follows the forms "'a'" where a is any single character
@@ -350,13 +351,12 @@ fn readCharacterAtom(self: *Scanner) !Token {
     }
 
     while (self.peek() != '\'' and self.peek() != '\x00') {
-        try string.append(self.peek());
+        try string.append(self.gpa, self.peek());
         self.advance(1);
     }
 
     string = try self.handleEscapeCharacters(
-        try string.toOwnedSlice(),
-        self.allocator
+        try string.toOwnedSlice(self.gpa)
     );
 
     if (string.items.len > 1) {
@@ -370,13 +370,13 @@ fn readCharacterAtom(self: *Scanner) !Token {
 }
 
 fn readAtom(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     self.advance(1);
     var byte = self.read();
     while (ruka.isAlphanumerical(byte)) {
-        try string.append(byte);
+        try string.append(self.gpa, byte);
         self.advance(1);
         byte = self.read();
     }
@@ -387,18 +387,18 @@ fn readAtom(self: *Scanner) !Token {
 const Match = std.meta.Tuple(&.{usize, []const u8, Token.Kind});
 // Tries to create a token.Kind based on the passed in tuple of tuples
 fn tryCompoundOperator(self: *Scanner, comptime matches: anytype) !?Token.Kind {
-    var string = ArrayList(u8).init(self.allocator);
-    defer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    defer string.deinit(self.gpa);
 
-    try string.append(self.read());
-    try string.append(self.peek());
+    try string.append(self.gpa, self.read());
+    try string.append(self.gpa, self.peek());
 
     // Iterate through each passed in sub-tuple, checking if the second
     // element matches the following chars in the file, if it does
     // return the third element of the sub-tuple
     inline for (matches) |match| {
         if (match[0] == 3) {
-            try string.append(self.peep());
+            try string.append(self.gpa, self.peep());
         }
 
         if (eql(u8, string.items[0..match[1].len], match[1])) {
@@ -431,12 +431,11 @@ const escapes = std.StaticStringMap(u8).initComptime(.{
 // Replaces escape characters
 fn handleEscapeCharacters(
     self: *Scanner,
-    slice: [] const u8,
-    allocator: Allocator
+    slice: [] const u8
 ) !std.ArrayList(u8) {
-    defer self.allocator.free(slice);
-    var string = ArrayList(u8).init(allocator);
-    errdefer string.deinit();
+    defer self.gpa.free(slice);
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     var i: usize = 0;
     while (i < slice.len) {
@@ -447,17 +446,17 @@ fn handleEscapeCharacters(
 
                 if (esc_ch) |esc| {
                     i = i + 2;
-                    try string.append(esc);
+                    try string.append(self.gpa, esc);
                 } else {
                     try self.createEscapeError(i, slice);
 
                     i = i + 1;
-                    try string.append('\\');
+                    try string.append(self.gpa, '\\');
                 }
             },
             else => |ch| {
                 i = i + 1;
-                try string.append(ch);
+                try string.append(self.gpa, ch);
             }
         }
     }
@@ -466,25 +465,25 @@ fn handleEscapeCharacters(
 }
 
 fn readIdentifierKeywordMode(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     var byte = self.read();
     while (ruka.isAlphanumerical(byte)) {
-        try string.append(byte);
+        try string.append(self.gpa, byte);
         self.advance(1);
         byte = self.read();
     }
 
     var kind = Token.Kind.tryMode(string.items);
     if (kind) |k| {
-        string.deinit();
+        string.deinit(self.gpa);
         return self.createToken(k);
     }
 
     kind = Token.Kind.tryKeyword(string.items);
     if (kind) |k| {
-        string.deinit();
+        string.deinit(self.gpa);
         return self.createToken(k);
     }
 
@@ -494,8 +493,8 @@ fn readIdentifierKeywordMode(self: *Scanner) !Token {
 }
 
 fn readIntegerFloat(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     // Iterate while self.read() is numeric, if self.read() is a '.',
     // read only integer values afterwards
@@ -503,13 +502,13 @@ fn readIntegerFloat(self: *Scanner) !Token {
     var byte = self.read();
     while (ruka.isNumeric(byte)) {
         if (byte == '.') {
-            try string.append(byte);
+            try string.append(self.gpa, byte);
             try self.readMantissa(&string);
             float = true;
             break;
         }
 
-        try string.append(byte);
+        try string.append(self.gpa, byte);
         self.advance(1);
         byte = self.read();
     }
@@ -528,23 +527,23 @@ fn readMantissa(self: *Scanner, string: *ArrayList(u8)) !void {
     var byte = self.read();
 
     if (!ruka.isIntegral(byte)) {
-        try string.append('0');
+        try string.append(self.gpa, '0');
         return;
     }
 
     while (ruka.isIntegral(byte)) {
-        try string.append(byte);
+        try string.append(self.gpa, byte);
         self.advance(1);
         byte = self.read();
     }
 }
 
 fn readSingleString(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     while (self.peek() != '"' and self.peek() != '\x00') {
-        try string.append(self.peek());
+        try string.append(self.gpa, self.peek());
         self.advance(1);
     }
 
@@ -555,21 +554,20 @@ fn readSingleString(self: *Scanner) !Token {
     }
 
     string = try self.handleEscapeCharacters(
-        try string.toOwnedSlice(),
-        self.allocator
+        try string.toOwnedSlice(self.gpa)
     );
     return self.createToken(.{ .string = string });
 }
 
 fn readMultiString(self: *Scanner) !Token {
-    var string = ArrayList(u8).init(self.allocator);
-    errdefer string.deinit();
+    var string: ArrayList(u8) = .empty;
+    errdefer string.deinit(self.gpa);
 
     self.advance(1);
     while (self.peek() != '"' and self.peek() != '\x00') {
         switch (self.peek()) {
             '\n' => {
-                try string.append('\n');
+                try string.append(self.gpa, '\n');
                 self.advance(2);
                 self.skipWhitespace();
 
@@ -577,13 +575,13 @@ fn readMultiString(self: *Scanner) !Token {
                     '|' => {
                         switch (self.peek()) {
                             '"' => break,
-                            else => |ch| try string.append(ch)
+                            else => |ch| try string.append(self.gpa, ch)
                         }
                     },
                     else => try self.createError("missing start of line delimiter '|'")
                 }
             },
-            else => |ch| try string.append(ch)
+            else => |ch| try string.append(self.gpa, ch)
         }
 
         self.advance(1);
@@ -596,8 +594,7 @@ fn readMultiString(self: *Scanner) !Token {
     }
 
     string = try self.handleEscapeCharacters(
-        try string.toOwnedSlice(),
-        self.allocator
+        try string.toOwnedSlice(self.gpa)
     );
     return self.createToken(.{ .string = string });
 }
@@ -662,7 +659,7 @@ const tests = struct {
         while (token.kind != .eof): (token = try scanner.nextToken()) {
             try compareTokens(&e[i], &token);
             i = i + 1;
-            token.deinit();
+            token.deinit(scanner.gpa);
         }
 
         try compareTokens(&e[i], &token);
@@ -671,23 +668,23 @@ const tests = struct {
 
     test "next token" {
         const source = "let x = 12_000 12_000.50 '\\n'";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initInteger("12_000", allocator), "test source", .init(1, 9)),
-            .init(try .initFloat("12_000.50", allocator), "test source", .init(1, 16)),
-            .init(try .initCharacter("\n", allocator), "test source", .init(1, 26)),
+            .init(try .initInteger("12_000", gpa), "test source", .init(1, 9)),
+            .init(try .initFloat("12_000.50", gpa), "test source", .init(1, 16)),
+            .init(try .initCharacter("\n", gpa), "test source", .init(1, 26)),
             .init(.eof, "test source", .init(1, 30)),
         };
 
@@ -696,12 +693,12 @@ const tests = struct {
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
@@ -730,21 +727,21 @@ const tests = struct {
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("Hello, world!", allocator), "test source", .init(1, 9)),
+            .init(try .initString("Hello, world!", gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 24)),
         };
 
@@ -756,21 +753,21 @@ const tests = struct {
                        \\         | Hello, world!
                        \\         |"
                        ;
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("\n Hello, world!\n", allocator), "test source", .init(1, 9)),
+            .init(try .initString("\n Hello, world!\n", gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(3, 12)),
         };
 
@@ -779,21 +776,21 @@ const tests = struct {
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("Hello, \n\\sworld!", allocator), "test source", .init(1, 9)),
+            .init(try .initString("Hello, \n\\sworld!", gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 28)),
         };
 
@@ -802,21 +799,21 @@ const tests = struct {
 
     test "charater literals" {
         const source = "let x = '\\n'";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initCharacter("\n", allocator), "test source", .init(1, 9)),
+            .init(try .initCharacter("\n", gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 13)),
         };
 
@@ -825,26 +822,26 @@ const tests = struct {
 
     test "atoms" {
         const source = "let x = {'b', 'a, 'hello}";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
             .init(.lsquirly, "test source", .init(1, 9)),
-            .init(try .initCharacter("b", allocator), "test source", .init(1, 10)),
+            .init(try .initCharacter("b", gpa), "test source", .init(1, 10)),
             .init(.comma, "test source", .init(1, 13)),
-            .init(try .initAtom("a", allocator), "test source", .init(1, 15)),
+            .init(try .initAtom("a", gpa), "test source", .init(1, 15)),
             .init(.comma, "test source", .init(1, 17)),
-            .init(try .initAtom("hello", allocator), "test source", .init(1, 19)),
+            .init(try .initAtom("hello", gpa), "test source", .init(1, 19)),
             .init(.rsquirly, "test source", .init(1, 25)),
             .init(.eof, "test source", .init(1, 26)),
         };
@@ -854,21 +851,21 @@ const tests = struct {
 
     test "read function identifier" {
         const source = "let x = hello()";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initIdentifier("hello", allocator), "test source", .init(1, 9)),
+            .init(try .initIdentifier("hello", gpa), "test source", .init(1, 9)),
             .init(.lparen, "test source", .init(1, 14)),
             .init(.rparen, "test source", .init(1, 15)),
             .init(.eof, "test source", .init(1, 16))
@@ -879,19 +876,19 @@ const tests = struct {
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
             .init(.eof, "test source", .init(1, 27))
         };
@@ -904,19 +901,19 @@ const tests = struct {
                        \\12_000 12_000.50
                        \\*/
                        ;
-        var input = std.io.fixedBufferStream(source);
+        var reader = Reader.fixed(source);
 
         var arena = std.heap.ArenaAllocator.init(testing.allocator);
         defer arena.deinit();
 
-        const allocator = arena.allocator();
+        const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, input.reader().any(), "test source");
+        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
         defer scanner.deinit();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", allocator), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7 )),
             .init(.eof, "test source", .init(3, 3))
         };

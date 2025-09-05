@@ -21,7 +21,7 @@ const options_display =
     \\        --change_dir, -C [subpath] : Changes the directory to a subdirectory of the cwd
 ;
 
-pub const version_str = std.fmt.comptimePrint("{}", .{project_options.semver});
+pub const version_str = std.fmt.comptimePrint("{f}", .{project_options.semver});
 
 pub const version_and_date = std.fmt.comptimePrint("ruka {s} (released {s})\n", .{
     version_str,

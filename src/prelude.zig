@@ -13,6 +13,8 @@ pub const isAlphanumerical = utilities.isAlphanumerical;
 pub const isIntegral = utilities.isIntegral;
 pub const isNumeric = utilities.isNumeric;
 
+pub const LinearFifo = @import("LinearFifo.zig").LinearFifo;
+
 pub const Compiler = @import("Compiler.zig");
 pub const Job = Compiler.Job;
 

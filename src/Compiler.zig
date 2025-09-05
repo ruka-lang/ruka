@@ -6,7 +6,6 @@ const Allocator = std.mem.Allocator;
 const ArenaAllocator = std.heap.ArenaAllocator;
 const ArrayListUnmanaged = std.ArrayListUnmanaged;
 const Dir = std.fs.Dir;
-const LinearFifo = std.fifo.LinearFifo;
 const Mutex = std.Thread.Mutex;
 const Pool = std.Thread.Pool;
 const WaitGroup = std.Thread.WaitGroup;
@@ -17,14 +16,15 @@ const Node = ruka.Node;
 const Index = ruka.Index;
 const Parser = ruka.Parser;
 const Error = ruka.Error;
+const LinearFifo = ruka.LinearFifo;
 
 errors: ArrayListUnmanaged(Error),
 unprocessed: ArrayListUnmanaged(*Ast),
 
-allocator: Allocator,
+gpa: Allocator,
 arena: ArenaAllocator,
 
-job_queue: LinearFifo(Job, .Dynamic),
+job_queue: LinearFifo(Job),
 
 const Compiler = @This();
 
@@ -45,40 +45,40 @@ pub const Job = union(enum) {
     }
 };
 
-pub fn init(allocator: Allocator) !*Compiler {
-    const compiler = try allocator.create(Compiler);
+pub fn init(gpa: Allocator) !*Compiler {
+    const compiler = try gpa.create(Compiler);
     errdefer compiler.deinit();
 
     compiler.* = .{
         .errors = .{},
         .unprocessed = .{},
-        .allocator = allocator,
-        .arena = .init(allocator),
-        .job_queue = .init(allocator)
+        .gpa = gpa,
+        .arena = .init(gpa),
+        .job_queue = .empty
     };
 
     return compiler;
 }
 
 pub fn deinit(self: *Compiler) void {
-    while (self.job_queue.readItem()) |job| job.deinit(self.allocator);
-    self.job_queue.deinit();
-    self.errors.deinit(self.allocator);
+    while (self.job_queue.readItem()) |job| job.deinit(self.gpa);
+    self.job_queue.deinit(self.gpa);
+    self.errors.deinit(self.gpa);
     self.arena.deinit();
     for (self.unprocessed.items) |parsed| {
         parsed.deinit();
     }
-    self.unprocessed.deinit(self.allocator);
-    self.allocator.destroy(self);
+    self.unprocessed.deinit(self.gpa);
+    self.gpa.destroy(self);
 }
 
 pub fn buildProject(self: *Compiler) !void {
     try self.verifyProject();
     try self.sendProject();
 
-    try self.job_queue.ensureUnusedCapacity(2);
-    try self.job_queue.writeItem(.combine_asts);
-    try self.job_queue.writeItem(.check_ast_semantics);
+    //try self.job_queue.ensureUnusedCapacity(2);
+    try self.job_queue.writeItem(self.gpa, .combine_asts);
+    try self.job_queue.writeItem(self.gpa, .check_ast_semantics);
 
     while (self.job_queue.readItem()) |job| {
         self.processJob(job);
@@ -86,10 +86,10 @@ pub fn buildProject(self: *Compiler) !void {
 }
 
 fn sendFile(self: *Compiler, file: []const u8) !void {
-    errdefer self.allocator.free(file);
+    errdefer self.gpa.free(file);
 
-    try self.job_queue.ensureUnusedCapacity(1);
-    try self.job_queue.writeItem(.{ .parse_file = file });
+    //try self.job_queue.ensureUnusedCapacity(1);
+    try self.job_queue.writeItem(self.gpa, .{ .parse_file = file });
 }
 
 fn verifyProject(self: *Compiler) !void {
@@ -110,7 +110,7 @@ fn sendProject(self: *Compiler) !void {
     };
     defer src.close();
 
-    var iter = try src.walk(self.allocator);
+    var iter = try src.walk(self.gpa);
     defer iter.deinit();
 
     while (try iter.next()) |item| {
@@ -123,8 +123,8 @@ fn sendProject(self: *Compiler) !void {
                     continue;
                 }
 
-                const path = try self.allocator.dupe(u8, item.path);
-                errdefer self.allocator.free(path);
+                const path = try self.gpa.dupe(u8, item.path);
+                errdefer self.gpa.free(path);
 
                 try self.sendFile(path);
             },
@@ -154,10 +154,10 @@ fn processJob(self: *Compiler, job: Job) void {
 }
 
 fn parseFile(self: *Compiler, in: []const u8) !void {
-    defer self.allocator.free(in);
+    defer self.gpa.free(in);
 
     var parser = try Parser.init(
-        self.allocator,
+        self.gpa,
         &self.arena,
         in
     );
@@ -173,8 +173,8 @@ fn parseFile(self: *Compiler, in: []const u8) !void {
     std.debug.print("Errors: {}\n\n", .{parser.errors.items.len});
 
 
-    try self.unprocessed.append(self.allocator, parsed);
-    try self.errors.appendSlice(self.allocator, parser.errors.items);
+    try self.unprocessed.append(self.gpa, parsed);
+    try self.errors.appendSlice(self.gpa, parser.errors.items);
 }
 
 fn combineAsts(self: *Compiler) !void {

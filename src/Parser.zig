@@ -22,7 +22,7 @@ errors: ArrayListUnmanaged(Error),
 file: []const u8,
 scanner: *Scanner,
 
-allocator: Allocator,
+gpa: Allocator,
 arena: *ArenaAllocator,
 
 const Parser = @This();
@@ -74,8 +74,8 @@ pub const Ast = struct {
             };
         }
 
-        pub fn deinit(self: Node, _: Allocator) void {
-            self.token.deinit();
+        pub fn deinit(self: Node, gpa: Allocator) void {
+            self.token.deinit(gpa);
         }
     };
 
@@ -94,7 +94,7 @@ pub const Ast = struct {
 
     pub fn deinit(self: *Ast) void {
         for (self.nodes.items(.token)) |token| {
-            token.deinit();
+            token.deinit(self.allocator);
         }
         self.nodes.deinit(self.allocator);
         self.extra_data.deinit(self.allocator);
@@ -127,8 +127,8 @@ pub fn init(
         .errors = .{},
         .file = file,
         .handle = input,
-        .scanner = try .init(allocator, arena, input.reader().any(), file),
-        .allocator = allocator,
+        .scanner = try .init(allocator, arena, input.reader(), file),
+        .gpa = allocator,
         .arena = arena
     };
 
@@ -138,8 +138,8 @@ pub fn init(
 pub fn deinit(self: *Parser) void {
     self.scanner.deinit();
     self.handle.close();
-    self.errors.deinit(self.allocator);
-    self.allocator.destroy(self);
+    self.errors.deinit(self.gpa);
+    self.gpa.destroy(self);
 }
 
 fn advance(self: *Parser) !void {
@@ -176,7 +176,7 @@ pub fn parse(self: *Parser) !*Ast {
     self.current_token = null;
     self.peek_token = null;
 
-    try self.errors.appendSlice(self.allocator, self.scanner.errors.items);
+    try self.errors.appendSlice(self.gpa, self.scanner.errors.items);
 
     return self.ast;
 }
@@ -226,7 +226,7 @@ fn createBinding(self: *Parser) !void {
 }
 
 pub fn createError(self: *Parser, msg: []const u8) !void {
-    try self.errors.append(self.allocator, .{
+    try self.errors.append(self.gpa, .{
         .file = self.file,
         .kind = "parser",
         .msg = msg,
