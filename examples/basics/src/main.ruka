@@ -3,7 +3,7 @@ local otherStuff = @import("otherStuff")
 local {message, animal, ..} = otherStuff
 
 const main = () do
-    let dog = {
+    let dog = animal {
         species = dog("Ruka"),
         age = 5
     }

@@ -13,7 +13,7 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
   - mov: Function takes ownership and responiblity of the parameter. Similar to a stk parameter in behaviour but without a copy.
   - stk: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
   - eva (evaluated): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
-- Types(records, variants, built-ins, types, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
+- Types(records, modules, variants, built-ins, types, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
 - Mutable semantics.
 - Pattern matching.
 - Strong static typing.
