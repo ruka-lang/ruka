@@ -57,6 +57,9 @@ pub fn init(gpa: Allocator) !*ArgumentParser {
         .gpa = gpa
     };
 
+    try argument_parser.subcommands.init(gpa);
+    try argument_parser.options.init(gpa);
+
     return argument_parser;
 }
 
@@ -124,9 +127,9 @@ fn addOption(self: *ArgumentParser, arg: []const u8, value: []const u8, dashCoun
 }
 
 pub fn getSubcommand(self: *ArgumentParser) ?Subcommand {
-    return self.subcommands.readItem(self.gpa);
+    return self.subcommands.readItem();
 }
 
 pub fn getOption(self: *ArgumentParser) ?Option {
-    return self.options.readItem(self.gpa);
+    return self.options.readItem();
 }
