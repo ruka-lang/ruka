@@ -1,4 +1,5 @@
 const { Page } = @import("Page")
+// @import reads a file as a struct with each declaration becoming an attribute
 
 const Home = () do
     <Page ~params={ body = "This is a paragraph." } />

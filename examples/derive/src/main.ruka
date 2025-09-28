@@ -1,4 +1,4 @@
-local derive = @import("root")
+local derive = @package("root")
 
 const main = () do
 

@@ -1,6 +1,5 @@
 local std = @package("std")
-local otherStuff = @import("otherStuff")
-local {message, animal, ..} = otherStuff
+local { animal } = @import("otherStuff")
 
 const main = () do
     let dog = animal {

@@ -1,5 +1,5 @@
-const Router = @import("some router")
-const Home = @import("Home")
+local Router = @package("some router")
+local Home = @import("Home")
 
 const main = () do
     let router = Router.new() 
