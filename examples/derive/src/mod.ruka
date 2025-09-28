@@ -15,7 +15,7 @@ const GeneticAlgorithm = (genome: any Genome) do
             pop: Population
         }
 
-        const init = () do
+        const new = () do
             t {}
         end
 
@@ -41,6 +41,6 @@ test "algorithm" do
         // ...
     }
 
-    const algo = GeneticAlgorithm(example).init()
+    const algo = GeneticAlgorithm(example).new()
     algo.run()
 end
