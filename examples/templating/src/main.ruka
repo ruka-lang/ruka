@@ -1,0 +1,10 @@
+const Router = @import("some router")
+const Home = @import("Home")
+
+const main = () do
+    let router = Router.init() 
+
+    router.routers({
+        "/" = <Home />
+    })
+end

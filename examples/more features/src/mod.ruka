@@ -2,7 +2,7 @@ local std = @package("std")
 const buffer = @import("module/buffer")
 const io = @import("module/io")
 
-const Vector = module {
+const Vector = record {
     const t = record {
         x: u8,
         y: u8,

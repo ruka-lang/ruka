@@ -11,12 +11,16 @@ local species = variant {
     bird
 }
 
+const method (self: animal) = (arg) do
+    self.age = arg
+end
+
 const message = () do
     "Hello, world!"
 end
 
 test "useful test" do
-    let result = std.testing.expect(message() == "Hello, world!")
+    let result = std.testing.expect(message() == "Hello, world!").?
 
     if let ok(_) = result {
         @println("Test passed!")

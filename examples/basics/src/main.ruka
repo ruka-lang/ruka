@@ -8,6 +8,9 @@ const main = () do
         age = 5
     }
 
+    dog.method(12)
+    @assertEq(dog.age == 12).?
+
     let name = match dog.species {
         dog(name) => name,
         cat(name) => name,

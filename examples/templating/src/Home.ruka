@@ -1,0 +1,5 @@
+const { Page } = @import("Page")
+
+const Home = () do
+    <Page ~params={ body = "This is a paragraph." } />
+end

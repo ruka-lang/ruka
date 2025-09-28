@@ -3,7 +3,7 @@ local {Buffer, Vector, io} = @package("root")
 local {Writer} = io
 
 const genFunc = (t: type, a: t, b: t) do
-    std.testing.expect(@typeOf(a) == @typeOf(b))
+    std.testing.expect(@typeOf(a) == @typeOf(b)).?
 end
 
 const mul = (x: Vector.t) do
