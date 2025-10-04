@@ -1,14 +1,17 @@
+// Type definition
 local Dog = record {
     name: string,
     breed: string
 }
 
-const new () = (name, breed) do
+// Static function definition
+const new (Dog) = (name, breed) do
     { name, breed }
 end
 
+// Method definition
 const about (self: Dog) = () do
-    "My name's ${self.name}. I'm a ${self.breed}"
+    string.new("My name's ${self.name}. I'm a ${self.breed}")
 end
 
 const main = () do
