@@ -7,7 +7,7 @@
 The `Ruka` programming language
 
 # Brief Overview
-`Ruka` is a lowish-level full-stack programming language with a focus on simplicity, and easy of use for a *prophesized* future where programmable logic becomes more ubiquitous. Allowing FPGA hardware, front-end UI, and back-end servers to be written primarily in the `Ruka`, treating all three as first-class citizens, with all the complexity handled on your behalf by the compiler.
+`Ruka` is a lowish-level full-stack programming language with a focus on simplicity, and easy of use for a *prophesized* future where programmable logic becomes more ubiquitous. Allowing FPGA hardware, front-end UI, and back-end servers to be written primarily in `Ruka`, treating all three as first-class citizens, with all the complexity handled on your behalf by the compiler.
 
 # Installation
 When `Ruka` reaches a usable state, the instructions for installing and using the tools will live here.
