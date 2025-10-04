@@ -20,3 +20,6 @@ When `Ruka` reaches a usable state, the instructions for installing and using th
 - [Toolchain](https://www.github.com/ruka-lang/rukaup)
 - [Standard Library](https://www.github.com/ruka-lang/ruka-std)
 - [Language Server](https://www.github.com/ruka-lang/ruka-ls)
+
+# License
+`Ruka` is distributed under the terms of both the MIT license and the Apache License (Version 2.0). See license-apache and license-mit for details.
