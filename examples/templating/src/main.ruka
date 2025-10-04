@@ -1,10 +1,10 @@
-local Router = @package("some router")
-local Home = @import("Home")
+local Router = from "some router"
+local Home = from "Home"
 
 const main = () do
     let router = Router.new() 
 
-    router.routes({
+    router.routes([]{
         "/" = <Home />
     })
 end
