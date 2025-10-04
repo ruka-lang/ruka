@@ -1,6 +1,6 @@
 const Page = (params) do
     <div>
         <h1>Content</h1>
-        <p> #params.body </p>
+        <p> { params.body } </p>
     </div>
 end
