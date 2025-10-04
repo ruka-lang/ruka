@@ -57,11 +57,13 @@ pub fn init(gpa: Allocator) !*Compiler {
         .job_queue = .empty
     };
 
+    try compiler.job_queue.init(gpa);
+
     return compiler;
 }
 
 pub fn deinit(self: *Compiler) void {
-    while (self.job_queue.readItem(self.gpa)) |job| job.deinit(self.gpa);
+    while (self.job_queue.readItem()) |job| job.deinit(self.gpa);
     self.job_queue.deinit(self.gpa);
     self.errors.deinit(self.gpa);
     self.arena.deinit();
@@ -76,11 +78,11 @@ pub fn buildProject(self: *Compiler) !void {
     try self.verifyProject();
     try self.sendProject();
 
-    //try self.job_queue.ensureUnusedCapacity(2);
+    try self.job_queue.ensureUnusedCapacity(self.gpa, 2);
     try self.job_queue.writeItem(self.gpa, .combine_asts);
     try self.job_queue.writeItem(self.gpa, .check_ast_semantics);
 
-    while (self.job_queue.readItem(self.gpa)) |job| {
+    while (self.job_queue.readItem()) |job| {
         self.processJob(job);
     }
 }
@@ -88,7 +90,7 @@ pub fn buildProject(self: *Compiler) !void {
 fn sendFile(self: *Compiler, file: []const u8) !void {
     errdefer self.gpa.free(file);
 
-    //try self.job_queue.ensureUnusedCapacity(1);
+    try self.job_queue.ensureUnusedCapacity(self.gpa, 1);
     try self.job_queue.writeItem(self.gpa, .{ .parse_file = file });
 }
 
@@ -174,7 +176,6 @@ fn parseFile(self: *Compiler, in: []const u8) !void {
     std.debug.print("Errors: {}\n", .{errors});
 
     if (errors > 0) {
-        // Print errors
         for (parser.errors.items) |err| {
             std.debug.print("\t{s}:{}:{}: {s}\n", .{err.file, err.pos.line, err.pos.col, err.msg});
         }

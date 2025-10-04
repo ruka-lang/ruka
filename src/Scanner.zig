@@ -666,40 +666,71 @@ const tests = struct {
         try expectEqual(e.len, i + 1);
     }
 
-    test "next token" {
-        const source = "let x = 12_000 12_000.50 '\\n'";
-        var reader = Reader.fixed(source);
+    const Test = struct{
+        source: []const u8,
+        scanner: *Scanner,
+        reader: *Reader,
+        arena: *ArenaAllocator,
+        gpa: Allocator,
 
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
+    fn setup(source: []const u8) !*Test {
+        const reader = try testing.allocator.create(Reader); 
+        reader.* = Reader.fixed(source);
+
+        var arena = try testing.allocator.create(ArenaAllocator);
+        arena.* = std.heap.ArenaAllocator.init(testing.allocator);
+        errdefer arena.deinit();
 
         const gpa = arena.allocator();
 
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        const scanner = try Scanner.init(testing.allocator, arena, reader, "test source");
+
+
+        const self = try testing.allocator.create(Test);
+        self.* = .{
+            .source = source,
+            .scanner = scanner,
+            .reader = reader,
+            .arena = arena,
+            .gpa = gpa
+        };
+
+        return self;
+    }
+
+        fn teardown(self: *Test) void {
+            self.scanner.deinit();
+            self.arena.deinit();
+            testing.allocator.destroy(self.arena);
+            testing.allocator.destroy(self.reader);
+            testing.allocator.destroy(self);
+        }
+
+    };
+
+
+    test "next token" {
+        const source = "let x = 12_000 12_000.50 '\\n'";
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initInteger("12_000", gpa), "test source", .init(1, 9)),
-            .init(try .initFloat("12_000.50", gpa), "test source", .init(1, 16)),
-            .init(try .initCharacter("\n", gpa), "test source", .init(1, 26)),
+            .init(try .initInteger("12_000", t.gpa), "test source", .init(1, 9)),
+            .init(try .initFloat("12_000.50", t.gpa), "test source", .init(1, 16)),
+            .init(try .initCharacter("\n", t.gpa), "test source", .init(1, 26)),
             .init(.eof, "test source", .init(1, 30)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.equal, "test source", .init(1, 1)),
@@ -722,30 +753,23 @@ const tests = struct {
             .init(.eof, "test source", .init(1, 52))
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("Hello, world!", gpa), "test source", .init(1, 9)),
+            .init(try .initString("Hello, world!", t.gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 24)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "multi string reading" {
@@ -753,147 +777,105 @@ const tests = struct {
                        \\         | Hello, world!
                        \\         |"
                        ;
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("\n Hello, world!\n", gpa), "test source", .init(1, 9)),
+            .init(try .initString("\n Hello, world!\n", t.gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(3, 12)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initString("Hello, \n\\sworld!", gpa), "test source", .init(1, 9)),
+            .init(try .initString("Hello, \n\\sworld!", t.gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 28)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "charater literals" {
         const source = "let x = '\\n'";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initCharacter("\n", gpa), "test source", .init(1, 9)),
+            .init(try .initCharacter("\n", t.gpa), "test source", .init(1, 9)),
             .init(.eof, "test source", .init(1, 13)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "atoms" {
         const source = "let x = {'b', 'a, 'hello}";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
             .init(.lsquirly, "test source", .init(1, 9)),
-            .init(try .initCharacter("b", gpa), "test source", .init(1, 10)),
+            .init(try .initCharacter("b", t.gpa), "test source", .init(1, 10)),
             .init(.comma, "test source", .init(1, 13)),
-            .init(try .initAtom("a", gpa), "test source", .init(1, 15)),
+            .init(try .initAtom("a", t.gpa), "test source", .init(1, 15)),
             .init(.comma, "test source", .init(1, 17)),
-            .init(try .initAtom("hello", gpa), "test source", .init(1, 19)),
+            .init(try .initAtom("hello", t.gpa), "test source", .init(1, 19)),
             .init(.rsquirly, "test source", .init(1, 25)),
             .init(.eof, "test source", .init(1, 26)),
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "read function identifier" {
         const source = "let x = hello()";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
-            .init(try .initIdentifier("hello", gpa), "test source", .init(1, 9)),
+            .init(try .initIdentifier("hello", t.gpa), "test source", .init(1, 9)),
             .init(.lparen, "test source", .init(1, 14)),
             .init(.rparen, "test source", .init(1, 15)),
             .init(.eof, "test source", .init(1, 16))
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let }, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7)),
             .init(.eof, "test source", .init(1, 27))
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 
     test "skip multi comment" {
@@ -901,23 +883,16 @@ const tests = struct {
                        \\12_000 12_000.50
                        \\*/
                        ;
-        var reader = Reader.fixed(source);
-
-        var arena = std.heap.ArenaAllocator.init(testing.allocator);
-        defer arena.deinit();
-
-        const gpa = arena.allocator();
-
-        var scanner = try Scanner.init(testing.allocator, &arena, &reader, "test source");
-        defer scanner.deinit();
+        var t = try Test.setup(source); 
+        defer t.teardown();
 
         const expected = [_]Token{
             .init(.{ .keyword = .let}, "test source", .init(1, 1)),
-            .init(try .initIdentifier("x", gpa), "test source", .init(1, 5)),
+            .init(try .initIdentifier("x", t.gpa), "test source", .init(1, 5)),
             .init(.assign, "test source", .init(1, 7 )),
             .init(.eof, "test source", .init(3, 3))
         };
 
-        try checkResults(scanner, &expected);
+        try checkResults(t.scanner, &expected);
     }
 };

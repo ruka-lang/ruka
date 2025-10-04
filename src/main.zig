@@ -12,13 +12,15 @@ const constants = @import("constants.zig");
 
 var debug_allocator = std.heap.DebugAllocator(.{.stack_trace_frames = 2}).init;
 
-pub fn main() !void {
-    const gpa, const is_debug = gpa: {
-        break :gpa switch (@import("builtin").mode) {
-            .Debug, .ReleaseSafe => .{debug_allocator.allocator(), true},
-            .ReleaseFast, .ReleaseSmall => .{std.heap.smp_allocator, false}
-        };
+fn allocatorSetup(mode: anytype) struct { Allocator, bool } {
+    return switch (mode) {
+        .Debug, .ReleaseSafe => .{debug_allocator.allocator(), true},
+        .ReleaseFast, .ReleaseSmall => .{std.heap.smp_allocator, false}
     };
+}
+
+pub fn main() !void {
+    const gpa, const is_debug = allocatorSetup(@import("builtin").mode);
     defer if (is_debug) {
         _ = debug_allocator.deinit();
     };
@@ -28,16 +30,11 @@ pub fn main() !void {
 
     args.parse() catch |err| {
         switch (err) {
-            error.MissingSubcommand => {
-                std.debug.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
-                    constants.usage,
-                    constants.subcommands_display
-                });
-
-                return;
-            },
+            error.MissingSubcommand => missingSubcommand(),
             else => return err
         }
+
+        return;
     };
 
     switch (args.getSubcommand().?) {
@@ -48,6 +45,13 @@ pub fn main() !void {
         .version => displayVersion(),
         .help => displayHelp()
     }
+}
+
+fn missingSubcommand() void {
+    std.debug.print("{s}\n{s}\n\nExpected subcommand argument\n", .{
+        constants.usage,
+        constants.subcommands_display
+    });
 }
 
 fn displayHelp() void {

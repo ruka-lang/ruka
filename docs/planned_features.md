@@ -1,7 +1,19 @@
 # Ruka
 
+Modular compiler programming language
+
+# Ruka.web
+- Frontend and backend compiler supporting Fullstack web development.
+- First class JSX-like syntax for HTML and CSS templating directly in Ruka.
+
+# Ruka.hdl
+- Hardware description language using Ruka syntax.
+- Similar to SolidJS signals, Hardware modules return interfaces which interact with the hardware.
+
+# Old
+
 Ruka is planned to be a general use, programming language. Ruka's planned features include:
-- Build system, package manager, compiler, and repl integrated into one tool.
+- Build system, package manager, and compiler integrated into one tool.
   - Packages are called `Root`s and are managed with the `Branch` package manager.
 - Compiled.
 - Garbage collected by default with ability to control lifetimes and manually manage memory as needed.
@@ -11,7 +23,7 @@ Ruka is planned to be a general use, programming language. Ruka's planned featur
   - ref: Immutable borrow which can escape function scope. (&)
   - ptr: Mutabe borrow which can escape function scope. (*)
   - mov: Function takes ownership and responiblity of the parameter. Similar to a stk parameter in behaviour but without a copy.
-  - stk: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
+  - stc: Stack-allocated, passing to a parameter which allows escaping the function scope will cause a compile error. When used on parameters, it will be passed by value (copied) and will not take ownership of the original value.
   - eva (evaluated): Parameter is constant and must be known at compile time and the value is interpreted during compilation.
 - Types(records, variants, built-ins, types, functions, etc.), are first class values, but must be known at compile time and stored in const or local bindings.
 - Mutable semantics.

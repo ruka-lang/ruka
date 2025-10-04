@@ -1,12 +1,14 @@
 local std = @package("std")
-local otherStuff = @import("otherStuff")
-local {message, animal, ..} = otherStuff
+local { animal } = @import("otherStuff")
 
 const main = () do
-    let dog = {
+    let dog = animal {
         species = dog("Ruka"),
         age = 5
     }
+
+    dog.method(12)
+    @assertEq(dog.age == 12).?
 
     let name = match dog.species {
         dog(name) => name,

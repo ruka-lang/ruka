@@ -1,0 +1,10 @@
+local Router = from "some router"
+local Home = from "Home"
+
+const main = () do
+    let router = Router.new() 
+
+    router.routes([]{
+        "/" = <Home />
+    })
+end
