@@ -16,8 +16,7 @@ end
 
 const main = () do
     local ruka = Dog.new("Ruka", "Jack Russel Terrier")
-    ruka
-        |> about()
+    ruka.about()
         |> toUpperCase()
         |> @println()
 end
