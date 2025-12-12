@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize
-        }),
+        })
     });
 
     b.installArtifact(bin);
@@ -35,6 +35,18 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    const check = b.addExecutable(.{
+        .name = "ruka",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize
+        })
+    });
+
+    const check_step = b.step("check", "check for errors");
+    check_step.dependOn(&check.step);
 
     // Tests
     const test_runner = std.Build.Step.Compile.TestRunner {

@@ -47,6 +47,7 @@ pub const Ast = struct {
 
         pub const Kind = enum {
             unit,
+            atom,
             identifier,
             integer,
             float,
@@ -58,7 +59,7 @@ pub const Ast = struct {
             fn_def,
             closure,
             fn_call,
-            meth_call,
+            field_access,
             prefix,
             infix,
             postfix,
