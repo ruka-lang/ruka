@@ -1,4 +1,4 @@
-// Type definition; types must be CamelCase
+// Type definition
 local Dog = record {
     name: string,
     breed: string,

@@ -1,0 +1,15 @@
+# Planned Features
+- Types
+	- Static
+	- Type inference
+	- Interfaces instead of inheritance
+- Expression based language
+- Pattern matching
+- Garbage collection and pass by immutable reference by default
+	- When declaring parameters, can set their mode which determines their lifetimes
+		- mut (mutable pass by reference)
+		- mov (moves ownership into function)
+		- stc (pass by copy, parameter is stack allocated)
+- Compiles to executable
+	- interpreter for compile-time code execution like zig's comptime
+- Support for html and css
