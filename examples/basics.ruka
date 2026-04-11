@@ -8,7 +8,7 @@ local Dog = record {
 // Public static function definition; variables must start with a lower case letter;
 // must provide the type that will recieve the static funcion
 const new (Dog) = (name, breed) do
-    { name, breed }
+    Dog.{ name, breed }
 end
 
 // Public method definition; must provide a name for the reciever (the object the method

@@ -1,4 +1,0 @@
-const pos = record {
-    line: uint,
-    column: uint,
-};

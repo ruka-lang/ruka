@@ -23,7 +23,7 @@ let name = "World"                    // string
 let story = |"
 			| This is a multiline string
 			|"
-let greeting = "Hello, {name}"        // String interpolation
+let greeting = "Hello, ${name}"       // String interpolation
 let day = 12                          // usize is the default integer size
 let is_okay = false                   // boolean
 let flags = 0b00010010                // usize binary literal
@@ -85,7 +85,7 @@ end
 Functions are declared by storing an anonymous function in a public or private constant. Final expression is returned from the function, can return early with `return` keyword. Builtin functions start with `@`.
 ```
 local hello = (name: string) do
-	"Hello, {name}"
+	"Hello, ${name}"
 end
 
 local abs = (x) => @abs(x)
