@@ -190,6 +190,7 @@
   <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
   <nav>
     <a href="language_reference.html">Language Reference</a>
+    <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
 </header>
@@ -242,8 +243,10 @@
       </li>
       <li>
         <strong>Methods live outside types.</strong> A type definition describes only memory layout.
-        Methods and static functions are declared separately and associated with the type via receiver
-        syntax, keeping type definitions minimal and readable.
+        Methods and static functions are declared separately in the same scope, keeping type
+        definitions minimal and readable. Co-location is also what enables type inference:
+        the compiler knows every type in scope and can resolve unannotated receivers and record
+        literals from field access alone.
       </li>
     </ul>
   </section>
@@ -254,7 +257,7 @@
     <div class="feature-grid">
       <div class="feature-card">
         <h3>Strong Static Typing</h3>
-        <p>Full type inference — annotations are only needed to resolve ambiguity.</p>
+        <p>Aggressive type inference — annotations are only written where the type cannot be uniquely determined. Ambiguity is a compile error, never a silent fallback.</p>
       </div>
       <div class="feature-card">
         <h3>Garbage Collection</h3>
@@ -419,7 +422,7 @@ end</code></pre>
 </main>
 
 <footer>
-  <p>Ruka Language &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script>
@@ -452,10 +455,30 @@ end</code></pre>
       // String
       if (code[i] === '"') {
         let j = i + 1;
-        while (j < code.length && code[j] !== '"') { if (code[j] === '\\') j++; j++; }
-        j++;
-        result += span('str', code.slice(i, j));
-        i = j;
+        let strOut = '"';
+        while (j < code.length && code[j] !== '"') {
+          if (code[j] === '\\') { strOut += code[j] + (code[j+1] ?? ''); j += 2; continue; }
+          if (code[j] === '$' && code[j+1] === '{') {
+            result += span('str', strOut);
+            strOut = '';
+            result += span('str', '${');
+            j += 2;
+            let depth = 1, inner = '';
+            while (j < code.length && depth > 0) {
+              if (code[j] === '{') depth++;
+              else if (code[j] === '}') { depth--; if (depth === 0) break; }
+              inner += code[j++];
+            }
+            result += highlightRuka(inner);
+            result += span('str', '}');
+            j++;
+            continue;
+          }
+          strOut += code[j++];
+        }
+        strOut += '"';
+        result += span('str', strOut);
+        i = j + 1;
         continue;
       }
       // Builtin

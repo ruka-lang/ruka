@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruka &mdash; Examples</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #232136;
+      --surface:  #2a273f;
+      --border:   #393552;
+      --text:     #e0def4;
+      --heading:  #e0def4;
+      --muted:    #6e6a86;
+      --link:     #c4a7e7;
+      --accent:   #3e8fb0;
+      --kw:       #eb6f92;
+      --str:      #9ccfd8;
+      --cmt:      #6e6a86;
+      --num:      #f6c177;
+      --bi:       #ea9a97;
+      --tp:       #c4a7e7;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top header ── */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-header h1 { font-size: 1.25rem; color: var(--heading); }
+    .site-header nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      padding: 2rem 0;
+    }
+    .sidebar h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 0 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .sidebar ul { list-style: none; padding: 0; }
+    .sidebar li a {
+      display: block;
+      padding: 0.3rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+    }
+    .sidebar li a:hover {
+      color: var(--heading);
+      border-left-color: var(--link);
+      text-decoration: none;
+      background: rgba(196, 167, 231, 0.05);
+    }
+
+    /* ── Main content ── */
+    main {
+      flex: 1;
+      padding: 2.5rem 3rem;
+      min-width: 0;
+    }
+
+    section {
+      margin-bottom: 4rem;
+      padding-top: 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      color: var(--heading);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--heading);
+      margin: 1.5rem 0 0.5rem;
+    }
+    h4 {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin: 1.25rem 0 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p { margin-bottom: 0.9rem; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.9rem; }
+    li { margin-bottom: 0.35rem; }
+
+    /* ── Code ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.87rem;
+      line-height: 1.65;
+    }
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    p code, li code, td code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.84em;
+      color: var(--heading);
+    }
+    .cmt { color: var(--cmt); font-style: italic; }
+    .kw  { color: var(--kw); }
+    .str { color: var(--str); }
+    .num { color: var(--num); }
+    .bi  { color: var(--bi); }
+    .tp  { color: var(--tp); }
+    .lbl { color: var(--accent); }
+
+    /* ── Callout / note ── */
+    .note {
+      background: rgba(62, 143, 176, 0.07);
+      border: 1px solid rgba(62, 143, 176, 0.3);
+      border-radius: 6px;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    .note strong { color: var(--accent); }
+
+    /* ── Label above each example ── */
+    .example-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Ruka &mdash; Examples</h1>
+  <nav>
+    <a href="overview.html">Overview</a>
+    <a href="language_reference.html">Reference</a>
+    <a href="https://github.com/ruka-lang/ruka">GitHub</a>
+  </nav>
+</header>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" aria-label="Examples">
+    <h2>Examples</h2>
+    <ul>
+      <li><a href="#hello-world">Hello World</a></li>
+      <li><a href="#fizzbuzz">FizzBuzz</a></li>
+      <li><a href="#fibonacci">Fibonacci</a></li>
+      <li><a href="#binary-tree">Binary Tree</a></li>
+      <li><a href="#stack">Stack Module</a></li>
+      <li><a href="#shapes">Shapes &amp; Interfaces</a></li>
+      <li><a href="#generics">Generic Functions</a></li>
+      <li><a href="#pipelines">Pipelines</a></li>
+      <li><a href="#named-params">Named Parameters</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- Hello World -->
+    <section id="hello-world">
+      <h2>Hello World</h2>
+      <p>
+        The entry point of every Ruka program is a public <code>const main</code> function.
+        It takes no arguments and returns <code>()</code> (unit). <code>@println</code>
+        writes a string to standard output followed by a newline.
+      </p>
+<pre><code class="ruka">const main = () do
+    @println("Hello, world!")
+end</code></pre>
+    </section>
+
+    <!-- FizzBuzz -->
+    <section id="fizzbuzz">
+      <h2>FizzBuzz</h2>
+      <p>
+        Print the numbers 1&ndash;100, replacing multiples of 3 with <em>Fizz</em>,
+        multiples of 5 with <em>Buzz</em>, and multiples of both with <em>FizzBuzz</em>.
+      </p>
+      <p>
+        <code>fizzbuzz</code> uses an <code>if/else</code> chain as an expression —
+        the whole chain evaluates to a single <code>string</code> that is returned
+        implicitly as the last expression in the block.
+      </p>
+<pre><code class="ruka">local fizzbuzz = (n: usize): string do
+    if n % 15 == 0 do "FizzBuzz"
+    else if n % 3 == 0 do "Fizz"
+    else if n % 5 == 0 do "Buzz"
+    else do "${n}"
+    end
+end
+
+const main = () do
+    for i in 1..=100 do
+        @println(fizzbuzz(i))
+    end
+end</code></pre>
+    </section>
+
+    <!-- Fibonacci -->
+    <section id="fibonacci">
+      <h2>Fibonacci</h2>
+      <p>
+        Two implementations of the Fibonacci sequence side by side. The recursive form is
+        a direct translation of the mathematical definition. The iterative form runs in
+        linear time and constant space.
+      </p>
+      <p>
+        The recursive version uses <code>if/else</code> as its return expression.
+        The iterative version uses an early <code>return</code> for the base case and
+        an implicit return of <code>b</code> at the end of the block.
+      </p>
+<pre><code class="ruka">// Recursive — mirrors the mathematical definition; exponential time
+local fib = (n: usize): usize do
+    if n &lt;= 1 do n
+    else fib(n - 1) + fib(n - 2)
+    end
+end
+
+// Iterative — O(n) time, O(1) space
+local fib_fast = (n: usize): usize do
+    if n &lt;= 1 do return n end
+    let a: usize = 0
+    let b: usize = 1
+    let i: usize = 2
+    while i &lt;= n do
+        let tmp = a + b
+        a = b
+        b = tmp
+        i = i + 1
+    end
+    b
+end
+
+const main = () do
+    for i in 0..=10 do
+        @println("fib(${i}) = ${fib_fast(i)}")
+    end
+end
+
+// fib(0) = 0
+// fib(1) = 1
+// fib(2) = 1
+// fib(3) = 2
+// ...
+// fib(10) = 55</code></pre>
+    </section>
+
+    <!-- Binary Tree -->
+    <section id="binary-tree">
+      <h2>Binary Tree</h2>
+      <p>
+        A recursive variant type where a tree is either a <code>leaf</code> holding an
+        <code>i32</code>, or a <code>branch</code> holding two sub-trees. Methods on
+        variants use pattern matching to dispatch on the active tag and recurse naturally
+        into the structure.
+      </p>
+<pre><code class="ruka">local Tree = variant {
+    leaf:   i32,
+    branch: record { left: Tree, right: Tree }
+}
+
+// Sum of all leaf values
+const sum (self: Tree) = (): i32 do
+    match self with
+        .leaf(n)   => n
+        .branch(b) => b.left.sum() + b.right.sum()
+    end
+end
+
+// Height of the tree
+const height (self: Tree) = (): usize do
+    match self with
+        .leaf(_)   => 1
+        .branch(b) do
+            let l = b.left.height()
+            let r = b.right.height()
+            1 + if l &gt; r do l else r end
+        end
+    end
+end
+
+const main = () do
+    //       branch
+    //      /      \
+    //  branch     leaf(5)
+    //  /    \
+    // leaf(1) leaf(2)
+    let tree = Tree.branch(.{
+        left = Tree.branch(.{
+            left  = Tree.leaf(1),
+            right = Tree.leaf(2)
+        }),
+        right = Tree.leaf(5)
+    })
+
+    @println("sum:    ${tree.sum()}")     // 8
+    @println("height: ${tree.height()}")  // 3
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Methods on variants follow the same receiver syntax as methods
+        on records. The variant itself is the receiver type, and <code>match</code> inside the
+        body handles each tag.
+      </div>
+    </section>
+
+    <!-- Stack Module -->
+    <section id="stack">
+      <h2>Stack Module</h2>
+      <p>
+        A last-in first-out stack built inside a module. The internal array and length counter
+        are private (<code>local</code> fields), so callers can only interact through the
+        public API. Operations that may produce no value return <code>option(T)</code>.
+      </p>
+      <p>
+        <code>.?</code> on an <code>option(T)</code> value force-unwraps the inner value,
+        panicking at runtime if the option is <code>.none</code>. Here it is safe because
+        the loop guard ensures the stack is non-empty before popping.
+      </p>
+<pre><code class="ruka">local Stack = module {
+    const t = record {
+        local data: [i32],
+        local len:  usize
+    }
+
+    const new (Stack.t) = (): Stack.t =>
+        Stack.t.{ data = .{}, len = 0 }
+
+    const push (mut self: Stack.t) = (value: i32) do
+        // append value to self.data
+        self.len = self.len + 1
+    end
+
+    const pop (mut self: Stack.t) = (): option(i32) do
+        if self.len == 0 do
+            .none
+        else do
+            self.len = self.len - 1
+            .some(self.data[self.len])
+        end
+    end
+
+    const peek (self: Stack.t) = (): option(i32) =>
+        if self.len == 0 do .none
+        else .some(self.data[self.len - 1])
+        end
+
+    const is_empty (self: Stack.t) = (): bool => self.len == 0
+
+    const size (self: Stack.t) = (): usize => self.len
+}
+
+const main = () do
+    let s = Stack.new()
+
+    s.push(10)
+    s.push(20)
+    s.push(30)
+
+    @println("size: ${s.size()}")      // 3
+    @println("peek: ${s.peek().?}")    // 30
+
+    while not s.is_empty() do
+        @println("pop: ${s.pop().?}")
+    end
+    // pop: 30
+    // pop: 20
+    // pop: 10
+end</code></pre>
+    </section>
+
+    <!-- Shapes & Interfaces -->
+    <section id="shapes">
+      <h2>Shapes &amp; Interfaces</h2>
+      <p>
+        Two unrelated record types, <code>Circle</code> and <code>Rect</code>, both satisfy
+        the <code>Shape</code> interface because they each implement the required methods.
+        No explicit declaration is needed — satisfaction is structural and implicit.
+      </p>
+      <p>
+        Because methods must be declared in the same scope as their type, the compiler can
+        infer receiver types from field access. <code>Circle</code> is the only type in scope
+        with a <code>radius</code> field, so <code>self</code> in those methods is unambiguously
+        <code>Circle</code> — no annotation needed. Record literals follow the same logic:
+        <code>.{ radius = 5.0 }</code> can only be a <code>Circle</code>.
+      </p>
+<pre><code class="ruka">const Shape = interface {
+    area(self):      (): f64
+    perimeter(self): (): f64
+    label(self):     (): string
+}
+
+local Circle = record { radius: f64 }
+local Rect   = record { width: f64, height: f64 }
+
+// self inferred as Circle — only type in scope with `radius`
+const area      (self) = () => 3.14159 * self.radius * self.radius
+const perimeter (self) = () => 2.0 * 3.14159 * self.radius
+const label     (self) = () => "Circle(r=${self.radius})"
+
+// self inferred as Rect — only type with both `width` and `height`
+const area      (self) = () => self.width * self.height
+const perimeter (self) = () => 2.0 * (self.width + self.height)
+const label     (self) = () => "Rect(${self.width}x${self.height})"
+
+// dyn must be annotated — the interface is a deliberate declaration, not inferable
+const print_info = (dyn s: Shape) do
+    @println("${s.label()}")
+    @println("  area:      ${s.area()}")
+    @println("  perimeter: ${s.perimeter()}")
+end
+
+const main = () do
+    let c = .{ radius = 5.0 }          // inferred as Circle
+    let r = .{ width = 4.0, height = 6.0 }  // inferred as Rect
+
+    print_info(c)
+    // Circle(r=5.0)
+    // area:      78.539...
+    // perimeter: 31.415...
+
+    print_info(r)
+    // Rect(4.0x6.0)
+    // area:      24.0
+    // perimeter: 20.0
+end</code></pre>
+    </section>
+
+    <!-- Generic Functions -->
+    <section id="generics">
+      <h2>Generic Functions</h2>
+      <p>
+        Parameters marked <code>eva</code> are evaluated at compile time. A function with
+        <code>eva</code> parameters is instantiated separately for each unique combination
+        of compile-time arguments — similar to monomorphisation or templates.
+      </p>
+      <p>
+        Compile-time functions can also return types, enabling parameterised type definitions.
+        <code>Pair</code> below is a function that takes two types and produces a record type,
+        which can then be used anywhere a type is expected.
+      </p>
+<pre><code class="ruka">// Generic min — a separate version is emitted for each concrete type used
+const min = (eva t: type, a: t, b: t): t => if a &lt; b do a else b end
+
+// Compile-time type constructor — returns a parameterised record type
+const Pair = (eva a: type, eva b: type) do
+    record { first: a, second: b }
+end
+
+// Swap the two fields, producing a Pair with reversed type parameters
+const swap = (eva a: type, eva b: type, p: Pair(a, b)): Pair(b, a) => Pair(b, a).{ first = p.second, second = p.first }
+
+const main = () do
+    // Each distinct type argument causes a new instantiation at compile time
+    @println("min(3, 7)     = ${min(i32, 3, 7)}")
+    @println("min(1.5, 2.0) = ${min(f64, 1.5, 2.0)}")
+
+    let p = Pair(string, i32).{ first = "score", second = 42 }
+    let q = swap(string, i32, p)
+    @println("${q.first}: ${q.second}")  // 42: score
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Only values provably known at compile time may be passed to
+        <code>eva</code> parameters. Passing a runtime value is a compile error.
+      </div>
+    </section>
+
+    <!-- Pipelines -->
+    <section id="pipelines">
+      <h2>Pipelines</h2>
+      <p>
+        The <code>|&gt;</code> operator passes the left-hand value as the <em>first argument</em>
+        of the right-hand call. This lets you write a chain of operations in the order they
+        are applied — top to bottom, left to right — rather than inside out.
+      </p>
+      <p>
+        Because <code>|&gt;</code> always inserts the left-hand value as the first argument,
+        it works uniformly with free functions, static functions, methods, and built-ins.
+        The example below passes a <code>Dog</code> value through a series of
+        transformation methods and then hands the final string to <code>@println</code>.
+      </p>
+<pre><code class="ruka">local Dog = record { name: string, breed: string, age: isize }
+
+const new (Dog) = (name: string, breed: string): Dog => Dog.{ name, breed, age = 0 }
+
+// Each method returns a new Dog so the value can flow through a pipeline
+const with_name (self: Dog) = (name: string): Dog => Dog.{ name, breed = self.breed, age = self.age }
+
+const with_age (self: Dog) = (age: isize): Dog => Dog.{ name = self.name, breed = self.breed, age }
+
+const bio (self: Dog) = (): string => "${self.name}, ${self.breed}, age ${self.age}"
+
+const main = () do
+    // Each |> feeds the result of the left side into the first parameter
+    // of the right side — Dog flows through until @println receives a string.
+    Dog.new("puppy", "Labrador")
+        |> with_name("Rex")
+        |> with_age(3)
+        |> bio()
+        |> @println()
+    // Rex, Labrador, age 3
+end</code></pre>
+    </section>
+
+    <!-- Named Parameters -->
+    <section id="named-params">
+      <h2>Named Parameters</h2>
+      <p>
+        A <code>~</code> prefix on a parameter makes it named — callers must supply it by
+        label using <code>~label=value</code> syntax. Named parameters can be passed in any
+        order and may trail after the closing parenthesis, which is especially useful for
+        passing closures to higher-order functions.
+      </p>
+      <p>
+        The example below defines <code>map</code>, <code>filter</code>, and
+        <code>reduce</code> with a named closure parameter <code>~f</code> (or
+        <code>~pred</code>) placed last. At the call site the closure appears as a trailing
+        block, making the code read like a language built-in.
+      </p>
+<pre><code class="ruka">// Higher-order functions with named closure parameters
+const map    = (eva t: type, eva u: type, arr: [t], ~f: (t): u): [u] do ... end
+const filter = (eva t: type, arr: [t], ~pred: (t): bool): [t] do ... end
+const reduce = (eva t: type, eva u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
+
+let nums = .{1, 2, 3, 4, 5}
+
+// Single-line trailing block
+let doubled = map(nums) ~f=(x) => x * 2
+// .{2, 4, 6, 8, 10}
+
+let evens = filter(nums) ~pred=(x) => x % 2 == 0
+// .{2, 4}
+
+let total = reduce(nums, 0) ~f=(acc, x) => acc + x
+// 15
+
+// Multi-line trailing block — scales naturally to complex bodies
+let results = map(nums) ~f=(x) do
+    let squared = x * x
+    squared - 1
+end
+// .{0, 3, 8, 15, 24}</code></pre>
+
+      <h3>Named Parameters for Clarity</h3>
+      <p>
+        Named parameters are also useful when a function has multiple parameters of the
+        same type and the positional order would be easy to confuse.
+      </p>
+<pre><code class="ruka">const replace = (s: string, ~from: string, ~to: string): string do ... end
+
+// The label makes the intent clear at the call site
+let result = replace("hello world", ~from="world", ~to="Ruka")
+// "hello Ruka"
+
+// Labels can be supplied in any order
+let result2 = replace("hello world", ~to="Ruka", ~from="world")
+// "hello Ruka"
+
+// Shorthand — variable name matches the label
+let from = "world"
+let to   = "Ruka"
+let result3 = replace("hello world", ~from, ~to)</code></pre>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Ruka Language &mdash; <a href="overview.html">Overview</a> &mdash; <a href="language_reference.html">Reference</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+</footer>
+
+<script>
+  function highlightRuka(raw) {
+    const KEYWORDS = new Set([
+      'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
+      'while', 'for', 'in', 'return', 'module', 'record', 'variant', 'interface',
+      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
+    ]);
+
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function span(cls, s) {
+      return '<span class="' + cls + '">' + esc(s) + '</span>';
+    }
+
+    let result = '', i = 0;
+    const code = raw;
+
+    while (i < code.length) {
+      // Comment
+      if (code[i] === '/' && i + 1 < code.length && code[i + 1] === '/') {
+        let end = code.indexOf('\n', i);
+        if (end === -1) end = code.length;
+        result += span('cmt', code.slice(i, end));
+        i = end;
+        continue;
+      }
+      // String
+      if (code[i] === '"') {
+        let j = i + 1;
+        let strOut = '"';
+        while (j < code.length && code[j] !== '"') {
+          if (code[j] === '\\') { strOut += code[j] + (code[j+1] ?? ''); j += 2; continue; }
+          if (code[j] === '$' && code[j+1] === '{') {
+            result += span('str', strOut);
+            strOut = '';
+            result += span('str', '${');
+            j += 2;
+            let depth = 1, inner = '';
+            while (j < code.length && depth > 0) {
+              if (code[j] === '{') depth++;
+              else if (code[j] === '}') { depth--; if (depth === 0) break; }
+              inner += code[j++];
+            }
+            result += highlightRuka(inner);
+            result += span('str', '}');
+            j++;
+            continue;
+          }
+          strOut += code[j++];
+        }
+        strOut += '"';
+        result += span('str', strOut);
+        i = j + 1;
+        continue;
+      }
+      // Builtin
+      if (code[i] === '@') {
+        let j = i + 1;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        result += span('bi', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (code[i] === '~') {
+        let j = i + 1;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        result += span('lbl', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      // Number
+      if (/\d/.test(code[i])) {
+        let j = i;
+        if (code[i] === '0' && i + 1 < code.length && (code[i + 1] === 'b' || code[i + 1] === 'x')) {
+          j += 2; while (j < code.length && /[\da-fA-F]/.test(code[j])) j++;
+        } else {
+          while (j < code.length && /[\d.]/.test(code[j])) j++;
+        }
+        result += span('num', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      // Identifier / keyword
+      if (/[a-zA-Z_]/.test(code[i])) {
+        let j = i;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        const word = code.slice(i, j);
+        if (KEYWORDS.has(word)) result += span('kw', word);
+        else if (/^[A-Z]/.test(word)) result += span('tp', word);
+        else result += esc(word);
+        i = j;
+        continue;
+      }
+      result += esc(code[i]);
+      i++;
+    }
+    return result;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('code.ruka').forEach(el => {
+      el.innerHTML = highlightRuka(el.textContent);
+    });
+  });
+</script>
+
+</body>
+</html>

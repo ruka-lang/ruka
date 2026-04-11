@@ -152,6 +152,7 @@
     .num { color: var(--num); }
     .bi  { color: var(--bi); }
     .tp  { color: var(--tp); }
+    .lbl { color: var(--accent); }
 
     /* ── Callout / note ── */
     .note {
@@ -198,6 +199,7 @@
   <h1>Ruka &mdash; Language Reference</h1>
   <nav>
     <a href="overview.html">Overview</a>
+    <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
 </header>
@@ -213,10 +215,12 @@
       <li><a href="#literals">Literals</a></li>
       <li><a href="#builtin-types">Built-in Types</a></li>
       <li><a href="#user-types">User-defined Types</a></li>
+      <li><a href="#type-inference">Type Inference</a></li>
       <li><a href="#functions">Functions</a></li>
       <li><a href="#static-functions">Static Functions</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
+      <li><a href="#named-params">Named Parameters</a></li>
       <li><a href="#interfaces">Interfaces</a></li>
       <li><a href="#control-flow">Control Flow</a></li>
       <li><a href="#pattern-matching">Pattern Matching</a></li>
@@ -273,11 +277,11 @@ local max_retries = 5  // private constant</code></pre>
       <h2>Literals</h2>
 
       <h3>Scalar Literals</h3>
-<pre><code class="ruka">let n    = 42          // integer  (usize by default)
+<pre><code class="ruka">let n    = 42          // integer  (isize by default)
 let neg  = -7          // signed integer
 let hex  = 0xFF        // hexadecimal integer
 let bits = 0b00101010  // binary integer
-let f    = 3.14        // float
+let f    = 3.14        // float   (float by default)
 let yes  = true        // boolean
 let no   = false</code></pre>
 
@@ -314,7 +318,7 @@ let primes: [i32] = .{2, 3, 5, 7, 11}
 let empty:  [i32] = .{}
 
 // Type context from a function parameter resolves the ambiguity
-const sum_all = (values: [i32]) -> i32 => // ...
+const sum_all = (values: [i32]): i32 => // ...
 
 sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
 
@@ -371,6 +375,26 @@ let no_val:   option(i32) = .none
 let ok_val:  result(i32, string) = .ok(100)
 let err_val: result(i32, string) = .err("something went wrong")</code></pre>
 
+      <h3>Range Literals</h3>
+      <p>
+        The <code>..</code> and <code>..=</code> operators produce range values.
+        The exclusive form <code>a..b</code> covers <code>a</code> up to but not including
+        <code>b</code>. The inclusive form <code>a..=b</code> includes both endpoints.
+      </p>
+<pre><code class="ruka">let exclusive = 0..10    // 0, 1, ..., 9
+let inclusive = 0..=10   // 0, 1, ..., 10
+
+// Variable bounds
+let start = 2
+let end   = 7
+for i in start..end do
+    @println("${i}")     // 2 3 4 5 6
+end
+
+// Slice an array with a range
+let nums: [i32] = .{10, 20, 30, 40, 50}
+let slice = nums[1..4]   // .{20, 30, 40}</code></pre>
+
       <h3>Unwrap Sugar</h3>
       <p>
         Both built-in variant types provide postfix shorthand for force-unwrapping their
@@ -402,8 +426,8 @@ let upper = find_user(id).?.name</code></pre>
       <table>
         <thead><tr><th>Type</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>usize</code></td><td>Unsigned integer, platform-native width (default integer type)</td></tr>
-          <tr><td><code>isize</code></td><td>Signed integer, platform-native width</td></tr>
+          <tr><td><code>isize</code></td><td>Signed integer, platform-native width (<strong>default integer type</strong>)</td></tr>
+          <tr><td><code>usize</code></td><td>Unsigned integer, platform-native width</td></tr>
           <tr><td><code>u8</code> &mdash; <code>u128</code></td><td>Unsigned integers of explicit bit width</td></tr>
           <tr><td><code>i8</code> &mdash; <code>i128</code></td><td>Signed integers of explicit bit width</td></tr>
           <tr><td><code>float</code></td><td>Floating-point, platform-native width (default float type)</td></tr>
@@ -441,12 +465,48 @@ let upper = find_user(id).?.name</code></pre>
         </tbody>
       </table>
 
+      <h3>Range Types</h3>
+      <p>
+        A range value is produced by the <code>..</code> and <code>..=</code> operators.
+        Both bounds must be the same numeric type (inferred from context).
+        Ranges implement the iterator interface and can be used in <code>for</code> loops
+        and as array/tuple slice indices.
+      </p>
+      <table>
+        <thead><tr><th>Literal</th><th>Bounds</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>start..end</code></td><td>start &#8804; i &lt; end</td><td>Exclusive range — end value not included</td></tr>
+          <tr><td><code>start..=end</code></td><td>start &#8804; i &#8804; end</td><td>Inclusive range — end value included</td></tr>
+        </tbody>
+      </table>
+<pre><code class="ruka">for i in 0..5 do
+    @println("${i}")     // 0 1 2 3 4
+end
+
+for i in 1..=5 do
+    @println("${i}")     // 1 2 3 4 5
+end
+
+// Ranges as slice indices
+let nums: [i32] = .{10, 20, 30, 40, 50}
+let middle = nums[1..4]   // .{20, 30, 40}
+let tail   = nums[2..=4]  // .{30, 40, 50}</code></pre>
+
       <h3>Type Annotations</h3>
-      <p>Type annotations follow a colon after the identifier. They are optional wherever the
-         type can be inferred.</p>
-<pre><code class="ruka">let x: i32 = 10
-let name: string = "Ruka"
-let scores: [f64] = .{9.5, 8.0, 7.3}
+      <p>
+        Type annotations follow a colon after the identifier. They are never required where
+        the type can be inferred — see <a href="#type-inference">Type Inference</a> for the
+        full rules. Annotations are only written to resolve genuine ambiguity or to improve
+        readability at module boundaries.
+      </p>
+<pre><code class="ruka">let x    = 10              // inferred as isize — default integer type
+let f    = 3.14            // inferred as float  — default float type
+let name = "Ruka"          // inferred as string
+
+let y: u8  = 10            // annotation required — specific integer type differs from default
+let g: f32 = 3.14          // annotation required — specific float type differs from default
+
+let scores: [f64] = .{9.5, 8.0, 7.3}   // annotation required — collection literal needs context
 let pair: [i32, string] = .{1, "one"}
 let table: [string => usize] = .{ "a" => 1 }</code></pre>
     </section>
@@ -505,6 +565,128 @@ local Cat = record {
 }</code></pre>
     </section>
 
+    <!-- Type Inference -->
+    <section id="type-inference">
+      <h2>Type Inference</h2>
+      <p>
+        Ruka uses aggressive bidirectional type inference. Type annotations are only required
+        to resolve genuine ambiguity — the compiler reports a hard error when it cannot
+        determine a unique type. There is no implicit fallback type and no silent coercion.
+      </p>
+      <p>
+        The scope restriction on methods and static functions (they must be declared in
+        the same scope or module as their type) is what makes this possible: the compiler
+        always knows the complete set of types to consider when resolving an unannotated
+        expression.
+      </p>
+
+      <h3>Method Receiver Inference</h3>
+      <p>
+        The type of a method receiver is inferred from the body. If <code>self.fieldName</code>
+        is accessed and exactly one type in scope has that field, the receiver type is
+        determined without an annotation. If the field name exists on more than one type,
+        an explicit annotation is required — and the compiler will tell you.
+      </p>
+<pre><code class="ruka">local Circle = record { radius: f64 }
+local Rect   = record { width: f64, height: f64 }
+
+// self inferred as Circle — only type in scope with `radius`
+// return type inferred as f64 from the expression
+const area (self) = () => 3.14159 * self.radius * self.radius
+
+// self inferred as Rect — only type with both `width` and `height`
+const area (self) = () => self.width * self.height
+
+// Explicit annotation required — both types have a `name` field
+local Dog = record { name: string, breed: string }
+local Cat = record { name: string, indoor: bool }
+
+const label (self: Dog) = () => "${self.name} (${self.breed})"
+const label (self: Cat) = () => "${self.name}"</code></pre>
+
+      <h3>Record Literal Inference</h3>
+      <p>
+        A record literal <code>.{ field = value, ... }</code> infers its type from the set of
+        fields provided. If exactly one type in scope has that field set, no type prefix is
+        needed. This applies to bindings, function arguments, and return expressions.
+      </p>
+<pre><code class="ruka">local Circle = record { radius: f64 }
+local Rect   = record { width: f64, height: f64 }
+
+// Inferred as Circle — only type with `radius`
+let c = .{ radius = 5.0 }
+
+// Inferred as Rect — only type with `width` and `height`
+let r = .{ width = 4.0, height = 6.0 }
+
+// Unambiguous by field set even when multiple types share some field names
+local Dog = record { name: string, breed: string }
+local Cat = record { name: string, indoor: bool }
+
+let d = .{ name = "Rex", breed = "Labrador" }  // Dog — Cat has no `breed`
+let c2 = .{ name = "Whiskers", indoor = true }  // Cat — Dog has no `indoor`</code></pre>
+
+      <h3>Return Type Inference</h3>
+      <p>
+        Return types are inferred from the last expression in a block or from the
+        expression after <code>=&gt;</code>. Explicit return type annotations are only
+        needed when the inferred type is ambiguous, or as documentation at a public API
+        boundary.
+      </p>
+<pre><code class="ruka">// Return type inferred as f64
+const circumference (self) = () => 2.0 * 3.14159 * self.radius
+
+// Return type inferred as string — interpolation always produces string
+const label (self) = () => "Circle(r=${self.radius})"
+
+// Return type inferred as option(i32) from the .some / .none arms
+const find = (values: [i32], target: i32) do
+    for i in 0..@len(values) do
+        if values[i] == target do return .some(i) end
+    end
+    .none
+end</code></pre>
+
+      <h3>Numeric Literal Defaults</h3>
+      <p>
+        Numeric literals have default types that apply when no context provides a more
+        specific type. The default is used at the point of the literal — if the surrounding
+        context (a binding annotation, a function parameter type, a return position) demands
+        a different numeric type, that type is used instead.
+      </p>
+      <table>
+        <thead><tr><th>Literal</th><th>Default type</th><th>Override example</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Integer (<code>42</code>, <code>-7</code>, <code>0xFF</code>)</td>
+            <td><code>isize</code></td>
+            <td><code>let x: u8 = 42</code></td>
+          </tr>
+          <tr>
+            <td>Float (<code>3.14</code>, <code>-0.5</code>)</td>
+            <td><code>float</code></td>
+            <td><code>let x: f32 = 3.14</code></td>
+          </tr>
+        </tbody>
+      </table>
+<pre><code class="ruka">let a = 42          // isize
+let b = 3.14        // float
+
+// Context overrides the default
+let c: u8   = 42    // u8  — annotation provides context
+let d: f64  = 3.14  // f64 — annotation provides context
+
+// Function parameter type provides context
+const double = (x: i32): i32 => x * 2
+let result = double(10)  // 10 is produced as i32, not isize</code></pre>
+
+      <div class="note">
+        <strong>Ambiguity is always a compile error.</strong> The compiler will highlight the
+        ambiguous expression and report which types are candidates. Resolve it by adding a
+        type annotation at the point of ambiguity.
+      </div>
+    </section>
+
     <!-- Functions -->
     <section id="functions">
       <h2>Functions</h2>
@@ -530,9 +712,20 @@ local greet = (name: string) do
 end</code></pre>
 
       <h4>Single-expression function (arrow)</h4>
+      <p>
+        The <code>=&gt;</code> form means the body is the rest of that same line — no closing
+        <code>end</code> is required. For bodies that span multiple lines, use <code>do…end</code>.
+      </p>
 <pre><code class="ruka">local square = (x: i32) => x * x
 
-local abs = (x: i32) => if x &lt; 0 do -x else x end</code></pre>
+local abs = (x: i32) => if x &lt; 0 do -x else x end
+
+// Multi-line body — must use do...end
+local max = (a: i32, b: i32): i32 do
+    if a &gt; b do a
+    else b
+    end
+end</code></pre>
 
       <h4>Type inference on parameters</h4>
       <p>
@@ -545,30 +738,33 @@ local max = (a: i32, b: i32) => if a &gt; b do a else b end
 // Inferred in context
 local identity = (x) => x</code></pre>
 
-      <h4>Inline return type annotation</h4>
+      <h4>Return type annotation</h4>
       <p>
-        A return type can be written after the parameter list, before the <code>=&gt;</code>
-        or <code>do</code>. This keeps the type information close to the body and avoids
-        having to annotate the binding on the left-hand side.
+        A colon after the parameter list specifies the return type. This applies whether
+        the body is a same-line <code>=&gt;</code> or a <code>do…end</code> block.
+        The same colon syntax is used when annotating the binding itself.
       </p>
-<pre><code class="ruka">// Return type placed after the parameter list
+<pre><code class="ruka">// Inline — return type after the parameter list
 local square = (x: i32): i32 => x * x
 
-// Works with do...end blocks too
+// Works identically with do...end
 local clamp = (x: i32, lo: i32, hi: i32): i32 do
     if x &lt; lo do lo else if x &gt; hi do hi else x end
 end
 
-// Equivalent binding-side annotation (older style, still valid)
-local square2: (i32) -> i32 = (x) => x * x</code></pre>
+// Binding-side annotation — function type uses the same colon syntax
+local square2: (i32): i32 = (x) => x * x</code></pre>
 
       <h4>Function type annotation</h4>
-      <p>The type of a function is written as a parameter list followed by a return type.</p>
+      <p>
+        The type of a function is written as a parameter list followed by a colon and the
+        return type. A colon is the universal separator between a value and its type.
+      </p>
 <pre><code class="ruka">// A function that takes i32 and returns i32
-let transform: (i32) -> i32 = (x) => x * 2
+let transform: (i32): i32 = (x) => x * 2
 
 // A function that takes two strings and returns bool
-const compare: (string, string) -> bool = (a, b) => a == b</code></pre>
+const compare: (string, string): bool = (a, b) => a == b</code></pre>
 
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
@@ -616,7 +812,7 @@ end</code></pre>
 }
 
 // Named constructor on a variant
-const from_str (Direction) = (s: string) -> option(Direction) do
+const from_str (Direction) = (s: string): option(Direction) do
     match s with
         "north" => .some(Direction.north)
         "south" => .some(Direction.south)
@@ -637,8 +833,10 @@ end</code></pre>
 
       <div class="note">
         <strong>Scope restriction:</strong> Static functions (and methods) may only be declared
-        in the same scope or module where the type is defined. Attaching behaviour to a type
-        from a foreign module is not permitted.
+        in the same scope or module where the type is defined. This restriction is what enables
+        type inference — the compiler knows the complete set of types in scope and can uniquely
+        resolve unannotated receivers and literals. Attaching behaviour from a foreign module
+        would break this guarantee.
       </div>
     </section>
 
@@ -707,7 +905,7 @@ end</code></pre>
 }
 
 // Method on a variant type
-const opposite (self: Direction) = () -> Direction do
+const opposite (self: Direction) = (): Direction do
     match self with
         .north => Direction.south
         .south => Direction.north
@@ -716,7 +914,7 @@ const opposite (self: Direction) = () -> Direction do
     end
 end
 
-const is_vertical (self: Direction) = () -> bool =>
+const is_vertical (self: Direction) = (): bool =>
     self == Direction.north or self == Direction.south
 
 const main = () do
@@ -726,8 +924,10 @@ end</code></pre>
 
       <div class="note">
         <strong>Scope restriction:</strong> Methods (and static functions) may only be declared
-        in the same scope or module where the type is defined. Attaching behaviour to a type
-        from a foreign module is not permitted.
+        in the same scope or module where the type is defined. This is required for type inference
+        — the compiler resolves the receiver type by checking which type in the current scope
+        has the fields accessed in the method body. Declaring methods in foreign scopes would
+        make that resolution ambiguous.
       </div>
     </section>
 
@@ -788,7 +988,7 @@ const close = (mov handle: FileHandle) do
 end
 
 // stc — stack allocated, cannot escape scope
-const hash = (stc data: [u8]) -> u64 do
+const hash = (stc data: [u8]): u64 do
     // data is on the stack, cannot be returned or stored outside
 end
 
@@ -807,6 +1007,90 @@ end</code></pre>
       </div>
     </section>
 
+    <!-- Named Parameters -->
+    <section id="named-params">
+      <h2>Named Parameters</h2>
+      <p>
+        Prepending <code>~</code> to a parameter name makes it a <em>named parameter</em>.
+        Named parameters must be passed by label at the call site using
+        <code>~label=value</code> syntax and may appear in any order, regardless of their
+        position in the parameter list. Positional and named parameters can be freely mixed.
+      </p>
+
+      <h3>Declaring Named Parameters</h3>
+<pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
+const greet = (~name: string, ~greeting: string): string =>
+    "${greeting}, ${name}!"
+
+// Mix of positional and named
+const clamp = (x: isize, ~lo: isize, ~hi: isize): isize do
+    if x &lt; lo do lo else if x &gt; hi do hi else x end
+end</code></pre>
+
+      <h3>Calling with Named Parameters</h3>
+<pre><code class="ruka">greet(~name="Ruka", ~greeting="Hello")   // "Hello, Ruka!"
+greet(~greeting="Hi", ~name="World")     // "Hi, World!" — order doesn't matter
+
+let v = clamp(42, ~lo=0, ~hi=10)         // 10 — positional first, named in any order</code></pre>
+
+      <h3>Label Shorthand</h3>
+      <p>
+        If a local variable shares the label name, the <code>=value</code> part can be omitted.
+      </p>
+<pre><code class="ruka">let name     = "Ruka"
+let greeting = "Hello"
+
+greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)</code></pre>
+
+      <h3>Trailing Block Syntax</h3>
+      <p>
+        Named parameters can be passed <em>after</em> the closing parenthesis. This is
+        most useful for higher-order functions that accept a closure — the named argument
+        reads as a block visually attached to the call rather than buried inside it.
+        Any number of named parameters may trail; by convention, closure parameters are
+        placed last in the parameter list so they trail naturally.
+      </p>
+<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize): isize): isize => f(f(x))
+
+// Named param inside the argument list — standard form
+let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
+
+// Trailing form — same result, reads like an attached block
+let r2 = apply_twice(3) ~f=(x) => x * 2     // 12
+
+// Multi-line trailing block
+let r3 = apply_twice(3) ~f=(x) do
+    let y = x * 2
+    y + 1
+end                                           // 14</code></pre>
+
+      <h4>Higher-order functions</h4>
+      <p>
+        The trailing syntax is especially readable for collection operations. Named
+        closure parameters are placed last in the definition so callers can trail them.
+      </p>
+<pre><code class="ruka">const map    = (eva t: type, eva u: type, arr: [t], ~f: (t): u): [u] do ... end
+const filter = (eva t: type, arr: [t], ~pred: (t): bool): [t] do ... end
+const reduce = (eva t: type, eva u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
+
+let nums = .{1, 2, 3, 4, 5}
+
+let doubled = map(nums) ~f=(x) => x * 2
+let evens   = filter(nums) ~pred=(x) => x % 2 == 0
+let total   = reduce(nums, 0) ~f=(acc, x) => acc + x   // 15
+
+// Multi-line body — the trailing block scales naturally
+let results = map(nums) ~f=(x) do
+    let squared = x * x
+    squared - 1
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Named parameters are always identified by label, never by
+        position. A named parameter cannot be passed without its <code>~label=</code> prefix.
+      </div>
+    </section>
+
     <!-- Interfaces -->
     <section id="interfaces">
       <h2>Interfaces</h2>
@@ -819,39 +1103,39 @@ end</code></pre>
       <p>
         Interface values are stored in bindings like any other type. Inside the braces, each
         line declares one method signature: the method name, its receiver (with optional mode),
-        a colon, then the remaining parameter list and return type.
+        a colon, then the remaining parameter list, and a colon followed by the return type.
       </p>
 
       <h3>Declaring an Interface</h3>
 <pre><code class="ruka">// A type that can be printed
 const Printable = interface {
-    print(self): () -> unit
+    print(self): (): unit
 }
 
 // A type that supports a binary add operation
 const Adder = interface {
-    add(mut self): (b: usize) -> unit
+    add(mut self): (b: usize): unit
 }
 
 // Multiple methods
 const Shape = interface {
-    area(self):     () -> f64
-    perimeter(self): () -> f64
+    area(self):      (): f64
+    perimeter(self): (): f64
 }</code></pre>
 
       <h3>Satisfying an Interface</h3>
       <p>
         A type satisfies an interface implicitly. As long as the required methods are declared
         in the same module as the type, the compiler considers the type to implement the
-        interface.
+        interface. Because methods must be co-located with the type, receiver types and return
+        types are typically inferred — annotations are only needed when the field set is ambiguous.
       </p>
 <pre><code class="ruka">local Circle = record { radius: f64 }
 
-const area (self: Circle) = () -> f64 =>
-    3.14159 * self.radius * self.radius
-
-const perimeter (self: Circle) = () -> f64 =>
-    2.0 * 3.14159 * self.radius
+// self inferred as Circle (only type in scope with `radius`);
+// return types inferred from the expressions
+const area      (self) = () => 3.14159 * self.radius * self.radius
+const perimeter (self) = () => 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape interface — no declaration needed</code></pre>
 
@@ -868,8 +1152,9 @@ end
 
 local Rect = record { w: f64, h: f64 }
 
-const area (self: Rect) = () -> f64 => self.w * self.h
-const perimeter (self: Rect) = () -> f64 => 2.0 * (self.w + self.h)
+// self inferred as Rect (only type with `w` and `h`)
+const area      (self) = () => self.w * self.h
+const perimeter (self) = () => 2.0 * (self.w + self.h)
 
 const main = () do
     let c = Circle.{ radius = 5.0 }
@@ -988,9 +1273,22 @@ while i &lt; 10 do
 end</code></pre>
 
       <h3>For Loop</h3>
-      <p>Iterates over any value that implements the iterator interface.</p>
-<pre><code class="ruka">let numbers = .{1, 2, 3, 4, 5}
+      <p>
+        Iterates over any value that implements the iterator interface. The most common
+        iterable is a range literal.
+      </p>
+<pre><code class="ruka">// Range — the common numeric loop idiom
+for i in 0..5 do
+    @println("${i}")     // 0 1 2 3 4
+end
 
+// Inclusive range
+for i in 1..=3 do
+    @println("${i}")     // 1 2 3
+end
+
+// Iterating over an array
+let numbers = .{10, 20, 30}
 for n in numbers do
     @println("${n}")
 end
@@ -1030,7 +1328,7 @@ end</code></pre>
         // append value to self.data
     end
 
-    const pop (mut self: Stack.t) = () -> option(i32) do
+    const pop (mut self: Stack.t) = (): option(i32) do
         if self.len == 0 do
             .none
         else do
@@ -1207,7 +1505,7 @@ end</code></pre>
 </div>
 
 <footer>
-  <p>Ruka Language Reference &mdash; <a href="overview.html">Overview</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language Reference &mdash; <a href="overview.html">Overview</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script>
@@ -1238,16 +1536,43 @@ end</code></pre>
       }
       if (code[i] === '"') {
         let j = i + 1;
-        while (j < code.length && code[j] !== '"') { if (code[j] === '\\') j++; j++; }
-        j++;
-        result += span('str', code.slice(i, j));
-        i = j;
+        let strOut = '"';
+        while (j < code.length && code[j] !== '"') {
+          if (code[j] === '\\') { strOut += code[j] + (code[j+1] ?? ''); j += 2; continue; }
+          if (code[j] === '$' && code[j+1] === '{') {
+            result += span('str', strOut);
+            strOut = '';
+            result += span('str', '${');
+            j += 2;
+            let depth = 1, inner = '';
+            while (j < code.length && depth > 0) {
+              if (code[j] === '{') depth++;
+              else if (code[j] === '}') { depth--; if (depth === 0) break; }
+              inner += code[j++];
+            }
+            result += highlightRuka(inner);
+            result += span('str', '}');
+            j++;
+            continue;
+          }
+          strOut += code[j++];
+        }
+        strOut += '"';
+        result += span('str', strOut);
+        i = j + 1;
         continue;
       }
       if (code[i] === '@') {
         let j = i + 1;
         while (j < code.length && /\w/.test(code[j])) j++;
         result += span('bi', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (code[i] === '~') {
+        let j = i + 1;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        result += span('lbl', code.slice(i, j));
         i = j;
         continue;
       }
