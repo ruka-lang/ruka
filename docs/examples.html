@@ -210,7 +210,7 @@
       <li><a href="#fizzbuzz">FizzBuzz</a></li>
       <li><a href="#fibonacci">Fibonacci</a></li>
       <li><a href="#binary-tree">Binary Tree</a></li>
-      <li><a href="#stack">Stack Module</a></li>
+      <li><a href="#stack">Stack</a></li>
       <li><a href="#shapes">Shapes &amp; Interfaces</a></li>
       <li><a href="#generics">Generic Functions</a></li>
       <li><a href="#pipelines">Pipelines</a></li>
@@ -369,54 +369,54 @@ end</code></pre>
       </div>
     </section>
 
-    <!-- Stack Module -->
+    <!-- Stack -->
     <section id="stack">
-      <h2>Stack Module</h2>
+      <h2>Stack</h2>
       <p>
-        A last-in first-out stack built inside a module. The internal array and length counter
-        are private (<code>local</code> fields), so callers can only interact through the
-        public API. Operations that may produce no value return <code>option(T)</code>.
+        A last-in first-out stack. The internal array and length counter are private
+        (<code>local</code> fields), so callers can only interact through the public API.
+        Static functions and methods are declared outside the type in the same scope,
+        keeping the type definition focused on memory layout. Operations that may produce
+        no value return <code>option(T)</code>.
       </p>
       <p>
         <code>.?</code> on an <code>option(T)</code> value force-unwraps the inner value,
         panicking at runtime if the option is <code>.none</code>. Here it is safe because
         the loop guard ensures the stack is non-empty before popping.
       </p>
-<pre><code class="ruka">local Stack = module {
-    const t = record {
-        local data: [i32],
-        local len:  usize
-    }
-
-    const new (t) = () => .{ data = .{}, len = 0 }
-
-    const push (mut self) = (value: i32) do
-        // append value to self.data
-        self.len = self.len + 1
-    end
-
-    const pop (mut self) = () do
-        if self.len == 0 do
-            .none
-        else do
-            self.len = self.len - 1
-            .some(self.data[self.len])
-        end
-    end
-
-    const peek (self) = () do
-        if self.len == 0 do .none
-        else .some(self.data[self.len - 1])
-        end
-    end
-
-    const is_empty (self) = () => self.len == 0
-
-    const size (self) = () => self.len
+<pre><code class="ruka">local Stack = record {
+    local data: [i32],
+    local len:  usize
 }
 
+const new (Stack) = () => .{ data = .{}, len = 0 }
+
+const push (mut self: Stack) = (value: i32) do
+    // append value to self.data
+    self.len = self.len + 1
+end
+
+const pop (mut self: Stack) = (): option(i32) do
+    if self.len == 0 do
+        .none
+    else do
+        self.len = self.len - 1
+        .some(self.data[self.len])
+    end
+end
+
+const peek (self: Stack) = () do
+    if self.len == 0 do .none
+    else .some(self.data[self.len - 1])
+    end
+end
+
+const is_empty (self: Stack) = () => self.len == 0
+
+const size (self: Stack) = () => self.len
+
 const main = () do
-    let s: Stack.t = Stack.new()
+    let s = Stack.new()
 
     s.push(10)
     s.push(20)
@@ -639,7 +639,7 @@ let result3 = replace("hello world", ~from, ~to)</code></pre>
   function highlightRuka(raw) {
     const KEYWORDS = new Set([
       'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-      'while', 'for', 'in', 'return', 'module', 'record', 'variant', 'interface',
+      'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
       'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
     ]);
 

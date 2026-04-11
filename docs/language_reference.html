@@ -271,9 +271,9 @@ count = count + 1
 const PI = 3.14159     // public constant
 local max_retries = 5  // private constant</code></pre>
       <p>
-        Functions, types, and modules are all stored as values in <code>const</code> or
-        <code>local</code> bindings. There is no separate <code>fn</code>, <code>type</code>,
-        or <code>module</code> declaration syntax — the binding keyword determines visibility.
+        Functions and types are stored as values in <code>const</code> or <code>local</code>
+        bindings. There is no separate <code>fn</code> or <code>type</code> declaration syntax —
+        the binding keyword determines visibility.
       </p>
     </section>
 
@@ -1310,49 +1310,44 @@ end</code></pre>
     <section id="modules">
       <h2>Modules</h2>
       <p>
-        Namespaces in Ruka are called modules. A module is a value like any other — it is stored
-        in a <code>const</code> or <code>local</code> binding. Importing a file converts
-        that file into a module automatically.
+        A module is a file. Every Ruka source file is automatically a module: its
+        <code>const</code> declarations form the public API and its <code>local</code>
+        declarations are private implementation details invisible to importers.
+        There is no inline module literal syntax — namespacing is achieved through files
+        and imports.
       </p>
       <p>
-        Inside a module, <code>const</code> declarations are the public API and <code>local</code>
-        declarations are private implementation details.
+        The binding keyword determines visibility at the module boundary:
+        <code>const</code> is exported, <code>local</code> is not.
       </p>
-<pre><code class="ruka">local Stack = module {
-    // The public type for this module
-    const t = record {
-        local data: [i32],
-        local len:  usize
-    }
+<pre><code class="ruka">// stack.ruka — a stack of i32 values
 
-    const new (Stack.t) = () do
-        Stack.t.{ data = .{}, len = 0 }
-    end
-
-    const push (mut self: Stack.t) = (value: i32) do
-        // append value to self.data
-    end
-
-    const pop (mut self: Stack.t) = (): option(i32) do
-        if self.len == 0 do
-            .none
-        else do
-            self.len = self.len - 1
-            .some(self.data[self.len])
-        end
-    end
+local t = record {
+    local data: [i32],
+    local len:  usize
 }
 
-const main = () do
-    let s = Stack.new()
-    s.push(10)
-    s.push(20)
+const new (t) = () => .{ data = .{}, len = 0 }
 
-    match s.pop() with
-        .some(v) => @println("Popped: ${v}")
-        .none    => @println("Empty")
+const push (mut self) = (value: i32) do
+    // append value to self.data
+    self.len = self.len + 1
+end
+
+const pop (mut self) = (): option(i32) do
+    if self.len == 0 do
+        .none
+    else do
+        self.len = self.len - 1
+        .some(self.data[self.len])
     end
 end</code></pre>
+
+      <p>
+        Callers import the file to get the module value. The type <code>Stack.t</code> and its
+        static functions and methods are all part of the module's public API because they are
+        declared with <code>const</code>.
+      </p>
     </section>
 
     <!-- Imports -->
@@ -1517,7 +1512,7 @@ end</code></pre>
   function highlightRuka(raw) {
     const KEYWORDS = new Set([
       'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-      'while', 'for', 'in', 'return', 'module', 'record', 'variant', 'interface',
+      'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
       'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
     ]);
 
