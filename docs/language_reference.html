@@ -45,6 +45,8 @@
       justify-content: space-between;
     }
     .site-header h1 { font-size: 1.25rem; color: var(--heading); }
+    .site-header .header-title { display: flex; align-items: center; gap: 0.5rem; }
+    .site-header .header-title img { height: 1.75rem; width: 1.75rem; }
     .site-header nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
 
     /* ── Layout ── */
@@ -196,9 +198,12 @@
 <body>
 
 <header class="site-header">
-  <h1>Ruka &mdash; Language Reference</h1>
+  <div class="header-title">
+    <img src="ruka-logo.svg" alt="Ruka logo">
+    <h1>Ruka &mdash; Language Reference</h1>
+  </div>
   <nav>
-    <a href="overview.html">Overview</a>
+    <a href="index.html">Overview</a>
     <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
@@ -677,7 +682,7 @@ let c: u8   = 42    // u8  — annotation provides context
 let d: f64  = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
-const double = (x: i32): i32 => x * 2
+const double = (x: i32) => x * 2
 let result = double(10)  // 10 is produced as i32, not isize</code></pre>
 
       <div class="note">
@@ -721,7 +726,7 @@ end</code></pre>
 local abs = (x: i32) => if x &lt; 0 do -x else x end
 
 // Multi-line body — must use do...end
-local max = (a: i32, b: i32): i32 do
+local max = (a: i32, b: i32) do
     if a &gt; b do a
     else b
     end
@@ -905,7 +910,7 @@ end</code></pre>
 }
 
 // Method on a variant type
-const opposite (self: Direction) = (): Direction do
+const opposite (self: Direction) = () do
     match self with
         .north => Direction.south
         .south => Direction.north
@@ -914,7 +919,7 @@ const opposite (self: Direction) = (): Direction do
     end
 end
 
-const is_vertical (self: Direction) = (): bool =>
+const is_vertical (self: Direction) = () =>
     self == Direction.north or self == Direction.south
 
 const main = () do
@@ -1019,11 +1024,11 @@ end</code></pre>
 
       <h3>Declaring Named Parameters</h3>
 <pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
-const greet = (~name: string, ~greeting: string): string =>
+const greet = (~name: string, ~greeting: string) =>
     "${greeting}, ${name}!"
 
 // Mix of positional and named
-const clamp = (x: isize, ~lo: isize, ~hi: isize): isize do
+const clamp = (x: isize, ~lo: isize, ~hi: isize) do
     if x &lt; lo do lo else if x &gt; hi do hi else x end
 end</code></pre>
 
@@ -1050,7 +1055,7 @@ greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)
         Any number of named parameters may trail; by convention, closure parameters are
         placed last in the parameter list so they trail naturally.
       </p>
-<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize): isize): isize => f(f(x))
+<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize): isize) => f(f(x))
 
 // Named param inside the argument list — standard form
 let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
@@ -1505,7 +1510,7 @@ end</code></pre>
 </div>
 
 <footer>
-  <p>Ruka Language Reference &mdash; <a href="overview.html">Overview</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script>

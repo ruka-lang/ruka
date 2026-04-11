@@ -45,6 +45,8 @@
       justify-content: space-between;
     }
     .site-header h1 { font-size: 1.25rem; color: var(--heading); }
+    .site-header .header-title { display: flex; align-items: center; gap: 0.5rem; }
+    .site-header .header-title img { height: 1.75rem; width: 1.75rem; }
     .site-header nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
 
     /* ── Layout ── */
@@ -187,9 +189,12 @@
 <body>
 
 <header class="site-header">
-  <h1>Ruka &mdash; Examples</h1>
+  <div class="header-title">
+    <img src="ruka-logo.svg" alt="Ruka logo">
+    <h1>Ruka &mdash; Examples</h1>
+  </div>
   <nav>
-    <a href="overview.html">Overview</a>
+    <a href="index.html">Overview</a>
     <a href="language_reference.html">Reference</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
@@ -241,7 +246,7 @@ end</code></pre>
         the whole chain evaluates to a single <code>string</code> that is returned
         implicitly as the last expression in the block.
       </p>
-<pre><code class="ruka">local fizzbuzz = (n: usize): string do
+<pre><code class="ruka">local fizzbuzz = (n: usize) do
     if n % 15 == 0 do "FizzBuzz"
     else if n % 3 == 0 do "Fizz"
     else if n % 5 == 0 do "Buzz"
@@ -270,14 +275,14 @@ end</code></pre>
         an implicit return of <code>b</code> at the end of the block.
       </p>
 <pre><code class="ruka">// Recursive — mirrors the mathematical definition; exponential time
-local fib = (n: usize): usize do
+local fib = (n: usize) do
     if n &lt;= 1 do n
     else fib(n - 1) + fib(n - 2)
     end
 end
 
 // Iterative — O(n) time, O(1) space
-local fib_fast = (n: usize): usize do
+local fib_fast = (n: usize) do
     if n &lt;= 1 do return n end
     let a: usize = 0
     let b: usize = 1
@@ -320,7 +325,7 @@ end
 }
 
 // Sum of all leaf values
-const sum (self: Tree) = (): i32 do
+const sum (self: Tree) = () do
     match self with
         .leaf(n)   => n
         .branch(b) => b.left.sum() + b.right.sum()
@@ -328,7 +333,7 @@ const sum (self: Tree) = (): i32 do
 end
 
 // Height of the tree
-const height (self: Tree) = (): usize do
+const height (self: Tree) = () do
     match self with
         .leaf(_)   => 1
         .branch(b) do
@@ -383,15 +388,14 @@ end</code></pre>
         local len:  usize
     }
 
-    const new (Stack.t) = (): Stack.t =>
-        Stack.t.{ data = .{}, len = 0 }
+    const new (t) = () => .{ data = .{}, len = 0 }
 
-    const push (mut self: Stack.t) = (value: i32) do
+    const push (mut self) = (value: i32) do
         // append value to self.data
         self.len = self.len + 1
     end
 
-    const pop (mut self: Stack.t) = (): option(i32) do
+    const pop (mut self) = () do
         if self.len == 0 do
             .none
         else do
@@ -400,18 +404,19 @@ end</code></pre>
         end
     end
 
-    const peek (self: Stack.t) = (): option(i32) =>
+    const peek (self) = () do
         if self.len == 0 do .none
         else .some(self.data[self.len - 1])
         end
+    end
 
-    const is_empty (self: Stack.t) = (): bool => self.len == 0
+    const is_empty (self) = () => self.len == 0
 
-    const size (self: Stack.t) = (): usize => self.len
+    const size (self) = () => self.len
 }
 
 const main = () do
-    let s = Stack.new()
+    let s: Stack.t = Stack.new()
 
     s.push(10)
     s.push(20)
@@ -500,7 +505,7 @@ end</code></pre>
         which can then be used anywhere a type is expected.
       </p>
 <pre><code class="ruka">// Generic min — a separate version is emitted for each concrete type used
-const min = (eva t: type, a: t, b: t): t => if a &lt; b do a else b end
+const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
 
 // Compile-time type constructor — returns a parameterised record type
 const Pair = (eva a: type, eva b: type) do
@@ -508,7 +513,7 @@ const Pair = (eva a: type, eva b: type) do
 end
 
 // Swap the two fields, producing a Pair with reversed type parameters
-const swap = (eva a: type, eva b: type, p: Pair(a, b)): Pair(b, a) => Pair(b, a).{ first = p.second, second = p.first }
+const swap = (eva a: type, eva b: type, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }
 
 const main = () do
     // Each distinct type argument causes a new instantiation at compile time
@@ -542,14 +547,14 @@ end</code></pre>
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string, age: isize }
 
-const new (Dog) = (name: string, breed: string): Dog => Dog.{ name, breed, age = 0 }
+const new (Dog) = (name, breed) => Dog.{ name, breed, age = 0 }
 
 // Each method returns a new Dog so the value can flow through a pipeline
-const with_name (self: Dog) = (name: string): Dog => Dog.{ name, breed = self.breed, age = self.age }
+const with_name (self) = (name: string) => Dog.{ name, breed = self.breed, age = self.age }
 
-const with_age (self: Dog) = (age: isize): Dog => Dog.{ name = self.name, breed = self.breed, age }
+const with_age (self) = (age: isize) => Dog.{ name = self.name, breed = self.breed, age }
 
-const bio (self: Dog) = (): string => "${self.name}, ${self.breed}, age ${self.age}"
+const bio (self) = () => "${self.name}, ${self.breed}, age ${self.age}"
 
 const main = () do
     // Each |> feeds the result of the left side into the first parameter
@@ -627,7 +632,7 @@ let result3 = replace("hello world", ~from, ~to)</code></pre>
 </div>
 
 <footer>
-  <p>Ruka Language &mdash; <a href="overview.html">Overview</a> &mdash; <a href="language_reference.html">Reference</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language &mdash; <a href="index.html">Overview</a> &mdash; <a href="language_reference.html">Reference</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script>
