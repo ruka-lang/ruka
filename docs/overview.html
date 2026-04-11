@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruka — Language Overview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --border:   #30363d;
+      --text:     #c9d1d9;
+      --heading:  #e6edf3;
+      --muted:    #8b949e;
+      --link:     #58a6ff;
+      --accent:   #3fb950;
+      --kw:       #ff7b72;
+      --str:      #a5d6ff;
+      --cmt:      #8b949e;
+      --num:      #f2cc60;
+      --bi:       #ffa657;
+      --tp:       #79c0ff;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 0;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 3rem;
+      color: var(--heading);
+      letter-spacing: 0.05em;
+    }
+    header p.tagline {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    header nav {
+      margin-top: 1.25rem;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    header nav a {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.9rem;
+      transition: border-color 0.15s;
+    }
+    header nav a:hover { border-color: var(--link); text-decoration: none; }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    section { margin-bottom: 3.5rem; }
+
+    h2 {
+      font-size: 1.5rem;
+      color: var(--heading);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--heading);
+      margin-bottom: 0.5rem;
+    }
+    p { margin-bottom: 0.9rem; }
+    p:last-child { margin-bottom: 0; }
+
+    ul, ol { padding-left: 1.4rem; }
+    li { margin-bottom: 0.4rem; }
+
+    /* ── Code ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    p code, li code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.85em;
+      color: var(--heading);
+    }
+    .cmt { color: var(--cmt); font-style: italic; }
+    .kw  { color: var(--kw); }
+    .str { color: var(--str); }
+    .num { color: var(--num); }
+    .bi  { color: var(--bi); }
+    .tp  { color: var(--tp); }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+    }
+    .feature-card h3 { font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .feature-card p { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      background: var(--surface);
+      color: var(--heading);
+    }
+    td:first-child code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--bi);
+      font-size: 0.9em;
+    }
+
+    /* ── Roadmap ── */
+    .roadmap-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .roadmap-item h3 { font-size: 1rem; color: var(--heading); }
+    .roadmap-item p  { font-size: 0.88rem; color: var(--muted); margin-top: 0.3rem; }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Ruka</h1>
+  <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
+  <nav>
+    <a href="language_reference.html">Language Reference</a>
+    <a href="https://github.com/dwclake/ruka-lang">GitHub</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ── Introduction ── -->
+  <section id="intro">
+    <h2>What is Ruka?</h2>
+    <p>
+      Ruka is a general-purpose compiled programming language designed around clarity and expressiveness.
+      It is statically typed with pervasive type inference, garbage collected by default, and
+      expression-based — nearly every construct produces a value.
+    </p>
+    <p>
+      Ruka takes inspiration from a range of languages: the module and interface system of <strong>Go</strong>,
+      the type inference and functional style of <strong>OCaml</strong>, the compile-time metaprogramming
+      of <strong>Zig</strong>, and the uniform declaration syntax of <strong>JavaScript</strong>.
+      It combines these ideas into a language that is pleasant to read and safe to write.
+    </p>
+    <p>
+      Declarations in Ruka are uniform: functions, types, and modules are all anonymous values
+      stored in named bindings. There is no special declaration syntax — only <code>const</code>,
+      <code>local</code>, and <code>let</code>.
+    </p>
+  </section>
+
+  <!-- ── Design Principles ── -->
+  <section id="philosophy">
+    <h2>Design Principles</h2>
+    <ul>
+      <li>
+        <strong>Uniform declarations.</strong> Functions, types, and modules are all values stored
+        in bindings. There is one syntax for naming things.
+      </li>
+      <li>
+        <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies
+        all evaluate to a value. The last expression in a block is its result.
+      </li>
+      <li>
+        <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default.
+        When precise lifetime management is needed, parameter modes give the programmer explicit control
+        without abandoning the GC model entirely.
+      </li>
+      <li>
+        <strong>Compile-time as a first-class feature.</strong> Types, functions, and modules are
+        first-class values in compile-time contexts. The <code>eva</code> parameter mode marks values
+        that must be known at compile time, enabling generic programming via static dispatch.
+      </li>
+      <li>
+        <strong>Interfaces over inheritance.</strong> Ruka has no inheritance. Shared behaviour is
+        expressed through interfaces, similar to Go and TypeScript.
+      </li>
+      <li>
+        <strong>Builtins are namespaced.</strong> All built-in functions begin with <code>@</code>
+        so they never conflict with user-defined names.
+      </li>
+      <li>
+        <strong>Methods live outside types.</strong> A type definition describes only memory layout.
+        Methods and static functions are declared separately and associated with the type via receiver
+        syntax, keeping type definitions minimal and readable.
+      </li>
+    </ul>
+  </section>
+
+  <!-- ── Core Features ── -->
+  <section id="features">
+    <h2>Core Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Strong Static Typing</h3>
+        <p>Full type inference — annotations are only needed to resolve ambiguity.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Garbage Collection</h3>
+        <p>Memory is managed automatically. Parameter modes allow opt-in lifetime control.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Expression-Based</h3>
+        <p>Blocks, if/else, and match all return values. No statement/expression split.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Pattern Matching</h3>
+        <p>Exhaustive <code>match</code> over variants, literals, and guard conditions.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Records &amp; Variants</h3>
+        <p>Product types (records) and sum types (tagged union variants).</p>
+      </div>
+      <div class="feature-card">
+        <h3>Interfaces</h3>
+        <p>Structural typing via interfaces. No inheritance hierarchy.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Compile-Time Evaluation</h3>
+        <p>Ruka code is interpreted at compile time to generate types and instantiate generics.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Pipelines</h3>
+        <p>The <code>|&gt;</code> operator chains function calls by passing the left value as the first argument.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Module System</h3>
+        <p>Files are modules. Inline modules can be declared as values. Imports via <code>@import</code>.</p>
+      </div>
+      <div class="feature-card">
+        <h3>First-Class Types</h3>
+        <p>Types and modules are values that can be passed to compile-time (<code>eva</code>) parameters.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Built-in Collections</h3>
+        <p>Arrays, tuples, and hashmaps are built into the type system with literal syntax.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Namespaced Builtins</h3>
+        <p>Built-in functions use an <code>@</code> prefix and never occupy the user namespace.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Quick Look ── -->
+  <section id="example">
+    <h2>A Quick Look</h2>
+    <p>
+      The example below defines a <code>Dog</code> record type, a public static constructor,
+      a public method, a private mutable method, and a <code>main</code> entry point.
+      Note that methods are declared outside the type definition.
+    </p>
+<pre><code class="ruka">// Type definition — describes memory layout only
+local Dog = record {
+    name:  string,
+    breed: string,
+    age:   isize
+}
+
+// Public static function — receiver type in parentheses before `=`
+const new (Dog) = (name, breed) do
+    Dog.{ name, breed, age = 0 }
+end
+
+// Public method — named receiver with type annotation
+const about (self: Dog) = () do
+    "My name's ${self.name}. I'm a ${self.breed}."
+end
+
+// Private mutable method — `mut` mode before the receiver identifier
+local age_up (mut self: Dog) = () do
+    self.age = self.age + 1
+end
+
+const main = () do
+    local ruka = Dog.new("Ruka", "Jack Russell Terrier")
+
+    // Pipeline: passes left-hand value as first argument to the next function
+    ruka.about()
+        |> @println()
+end</code></pre>
+  </section>
+
+  <!-- ── Parameter Modes ── -->
+  <section id="modes">
+    <h2>Parameter Modes</h2>
+    <p>
+      By default all values are passed as immutable references managed by the garbage collector.
+      A mode keyword placed before a parameter identifier changes how the compiler treats the
+      lifetime and ownership of that value.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Mode</th><th>Behaviour</th><th>Use case</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>mut</code></td>
+          <td>Mutable reference. Changes are visible to the caller.</td>
+          <td>In-place mutation of a value or collection.</td>
+        </tr>
+        <tr>
+          <td><code>mov</code></td>
+          <td>Transfers ownership into the function. The caller can no longer use the value.</td>
+          <td>Resource transfer, unique ownership patterns.</td>
+        </tr>
+        <tr>
+          <td><code>stc</code></td>
+          <td>Stack-allocated copy. Cannot escape the function scope.</td>
+          <td>Small, short-lived values where GC overhead is undesirable.</td>
+        </tr>
+        <tr>
+          <td><code>eva</code></td>
+          <td>Value must be known at compile time. Evaluated by the compiler interpreter.</td>
+          <td>Generic programming, compile-time type generation.</td>
+        </tr>
+      </tbody>
+    </table>
+<pre><code class="ruka">const push (self: List) = (mut item: i32) do
+    // item is a mutable reference
+end
+
+const consume = (mov resource: Resource) do
+    // resource ownership transferred here
+end
+
+const process = (stc buf: Buffer) do
+    // buf is a stack-allocated copy; cannot escape this scope
+end
+
+// eva enables generic programming — instantiated once per unique set of compile-time arguments
+const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
+
+const main = () do
+    local x = min(i32, 3, 7)    // compiler instantiates min for i32
+    local y = min(f64, 1.5, 2.0) // compiler instantiates min for f64
+end</code></pre>
+  </section>
+
+  <!-- ── Roadmap ── -->
+  <section id="roadmap">
+    <h2>Future Plans</h2>
+    <p>
+      The current focus is on the core language. The following extensions are planned for the future.
+    </p>
+
+    <div class="roadmap-item">
+      <h3>Ruka.web</h3>
+      <p>
+        First-class JSX-like syntax for HTML and CSS directly in Ruka source, enabling server-side
+        rendering without a template engine. Components would be ordinary Ruka functions.
+      </p>
+    </div>
+
+    <div class="roadmap-item">
+      <h3>Ruka.hdl</h3>
+      <p>
+        A hardware description language using Ruka syntax, targeting FPGA development on
+        SoC boards such as the Xilinx Zynq family. Hardware modules expose getter and setter
+        interfaces, allowing the same language to describe both the software and the hardware it runs on.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Ruka Language &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="https://github.com/dwclake/ruka-lang">GitHub</a></p>
+</footer>
+
+<script>
+  function highlightRuka(raw) {
+    const KEYWORDS = new Set([
+      'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
+      'while', 'for', 'in', 'return', 'module', 'record', 'variant',
+      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false'
+    ]);
+
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function span(cls, s) {
+      return '<span class="' + cls + '">' + esc(s) + '</span>';
+    }
+
+    let result = '', i = 0;
+    const code = raw;
+
+    while (i < code.length) {
+      // Comment
+      if (code[i] === '/' && i + 1 < code.length && code[i + 1] === '/') {
+        let end = code.indexOf('\n', i);
+        if (end === -1) end = code.length;
+        result += span('cmt', code.slice(i, end));
+        i = end;
+        continue;
+      }
+      // String
+      if (code[i] === '"') {
+        let j = i + 1;
+        while (j < code.length && code[j] !== '"') { if (code[j] === '\\') j++; j++; }
+        j++;
+        result += span('str', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      // Builtin
+      if (code[i] === '@') {
+        let j = i + 1;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        result += span('bi', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      // Number
+      if (/\d/.test(code[i])) {
+        let j = i;
+        if (code[i] === '0' && i + 1 < code.length && code[i + 1] === 'b') {
+          j += 2; while (j < code.length && /[01]/.test(code[j])) j++;
+        } else {
+          while (j < code.length && /[\d.]/.test(code[j])) j++;
+        }
+        result += span('num', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      // Identifier / keyword
+      if (/[a-zA-Z_]/.test(code[i])) {
+        let j = i;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        const word = code.slice(i, j);
+        if (KEYWORDS.has(word)) result += span('kw', word);
+        else if (/^[A-Z]/.test(word)) result += span('tp', word);
+        else result += esc(word);
+        i = j;
+        continue;
+      }
+      result += esc(code[i]);
+      i++;
+    }
+    return result;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('code.ruka').forEach(el => {
+      el.innerHTML = highlightRuka(el.textContent);
+    });
+  });
+</script>
+
+</body>
+</html>

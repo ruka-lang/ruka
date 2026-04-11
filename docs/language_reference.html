@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruka — Language Reference</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --border:   #30363d;
+      --text:     #c9d1d9;
+      --heading:  #e6edf3;
+      --muted:    #8b949e;
+      --link:     #58a6ff;
+      --accent:   #3fb950;
+      --kw:       #ff7b72;
+      --str:      #a5d6ff;
+      --cmt:      #8b949e;
+      --num:      #f2cc60;
+      --bi:       #ffa657;
+      --tp:       #79c0ff;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top header ── */
+    .site-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-header h1 { font-size: 1.25rem; color: var(--heading); }
+    .site-header nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      padding: 2rem 0;
+    }
+    .sidebar h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      padding: 0 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .sidebar ul { list-style: none; padding: 0; }
+    .sidebar li a {
+      display: block;
+      padding: 0.3rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+    }
+    .sidebar li a:hover {
+      color: var(--heading);
+      border-left-color: var(--link);
+      text-decoration: none;
+      background: rgba(88, 166, 255, 0.05);
+    }
+
+    /* ── Main content ── */
+    main {
+      flex: 1;
+      padding: 2.5rem 3rem;
+      min-width: 0;
+    }
+
+    section {
+      margin-bottom: 4rem;
+      padding-top: 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      color: var(--heading);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: var(--heading);
+      margin: 1.5rem 0 0.5rem;
+    }
+    h4 {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin: 1.25rem 0 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p { margin-bottom: 0.9rem; }
+    p:last-child { margin-bottom: 0; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 0.9rem; }
+    li { margin-bottom: 0.35rem; }
+
+    /* ── Code ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-size: 0.87rem;
+      line-height: 1.65;
+    }
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    p code, li code, td code {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.84em;
+      color: var(--heading);
+    }
+    .cmt { color: var(--cmt); font-style: italic; }
+    .kw  { color: var(--kw); }
+    .str { color: var(--str); }
+    .num { color: var(--num); }
+    .bi  { color: var(--bi); }
+    .tp  { color: var(--tp); }
+
+    /* ── Callout / note ── */
+    .note {
+      background: rgba(88, 166, 255, 0.07);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      border-radius: 6px;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    .note strong { color: var(--link); }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 1rem 0;
+    }
+    th, td {
+      padding: 0.55rem 1rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--surface);
+      color: var(--heading);
+    }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Ruka &mdash; Language Reference</h1>
+  <nav>
+    <a href="overview.html">Overview</a>
+    <a href="https://github.com/dwclake/ruka-lang">GitHub</a>
+  </nav>
+</header>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar" aria-label="Reference sections">
+    <h2>Contents</h2>
+    <ul>
+      <li><a href="#comments">Comments</a></li>
+      <li><a href="#bindings">Bindings</a></li>
+      <li><a href="#literals">Literals</a></li>
+      <li><a href="#builtin-types">Built-in Types</a></li>
+      <li><a href="#user-types">User-defined Types</a></li>
+      <li><a href="#functions">Functions</a></li>
+      <li><a href="#static-functions">Static Functions</a></li>
+      <li><a href="#methods">Methods</a></li>
+      <li><a href="#parameter-modes">Parameter Modes</a></li>
+      <li><a href="#control-flow">Control Flow</a></li>
+      <li><a href="#pattern-matching">Pattern Matching</a></li>
+      <li><a href="#loops">Loops</a></li>
+      <li><a href="#modules">Modules</a></li>
+      <li><a href="#imports">Imports</a></li>
+      <li><a href="#pipelines">Pipelines</a></li>
+      <li><a href="#builtins">Built-in Functions</a></li>
+      <li><a href="#comptime">Compile-Time Evaluation</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- Comments -->
+    <section id="comments">
+      <h2>Comments</h2>
+      <p>Single-line comments begin with <code>//</code> and run to the end of the line.
+         Block comments are not currently supported.</p>
+<pre><code class="ruka">// This is a comment
+let x = 12  // Inline comment</code></pre>
+    </section>
+
+    <!-- Bindings -->
+    <section id="bindings">
+      <h2>Bindings</h2>
+      <p>
+        Ruka has three binding forms. All bindings are declared with an initial value;
+        there are no uninitialized variables.
+      </p>
+      <table>
+        <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>let</code></td><td>Mutable</td><td>Scoped to the enclosing block</td></tr>
+          <tr><td><code>const</code></td><td>Immutable</td><td>Public — exported from its module</td></tr>
+          <tr><td><code>local</code></td><td>Immutable</td><td>Private — not exported</td></tr>
+        </tbody>
+      </table>
+<pre><code class="ruka">let count = 0          // mutable
+count = count + 1
+
+const PI = 3.14159     // public constant
+local max_retries = 5  // private constant</code></pre>
+      <p>
+        Functions, types, and modules are all stored as values in <code>const</code> or
+        <code>local</code> bindings. There is no separate <code>fn</code>, <code>type</code>,
+        or <code>module</code> declaration syntax — the binding keyword determines visibility.
+      </p>
+    </section>
+
+    <!-- Literals -->
+    <section id="literals">
+      <h2>Literals</h2>
+
+      <h3>Scalar Literals</h3>
+<pre><code class="ruka">let n    = 42          // integer  (usize by default)
+let neg  = -7          // signed integer
+let hex  = 0xFF        // hexadecimal integer
+let bits = 0b00101010  // binary integer
+let f    = 3.14        // float
+let yes  = true        // boolean
+let no   = false</code></pre>
+
+      <h3>String Literals</h3>
+      <p>Strings use double quotes. String interpolation embeds expressions with <code>${...}</code>.</p>
+<pre><code class="ruka">let name     = "Ruka"
+let greeting = "Hello, ${name}!"</code></pre>
+
+      <p>Multiline strings use the pipe-quote form. Each content line begins with <code>|</code>,
+         which is stripped from the resulting string.</p>
+<pre><code class="ruka">let poem = |"
+           | Roses are red,
+           | Violets are blue.
+           |"</code></pre>
+
+      <h3>Tuple and Array Literals</h3>
+      <p>
+        Tuples are fixed-length, heterogeneous sequences. Arrays are homogeneous sequences.
+        Both use the same dot-brace literal syntax <code>.{...}</code>. The compiler resolves
+        which type to produce using <em>result location semantics</em>: it inspects the
+        expected type from the surrounding context (the left-hand side of a binding, a record
+        field type, or a function parameter type) and produces the appropriate collection.
+      </p>
+      <p>
+        When there is no type context, <code>.{...}</code> is inferred as a tuple by default.
+        An explicit type annotation on the binding is the most common way to request an array.
+      </p>
+<pre><code class="ruka">// No type context — inferred as a tuple
+let point  = .{10, 20}            // [i32, i32]
+let triple = .{1, "hello", true}  // [i32, string, bool]
+
+// Explicit array annotation — compiler produces an array
+let primes: [i32] = .{2, 3, 5, 7, 11}
+let empty:  [i32] = .{}
+
+// Type context from a function parameter resolves the ambiguity
+const sum_all = (values: [i32]) -> i32 => // ...
+
+sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
+
+      <h3>Hashmap Literals</h3>
+      <p>
+        Hashmaps use dot-brace notation with <code>=&gt;</code> to separate keys from values.
+        This distinguishes them from record literals (which use <code>=</code>).
+      </p>
+<pre><code class="ruka">let scores = .{
+    "alice" => 95,
+    "bob"   => 87,
+    "carol" => 91
+}
+
+let lookup = .{ 1 => "one", 2 => "two", 3 => "three" }</code></pre>
+
+      <h3>Record Literals</h3>
+      <p>
+        Record literals use dot-brace notation with <code>=</code> for named fields.
+        If a local variable shares the name of a field, the field can be omitted (shorthand).
+      </p>
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
+
+let v = Vector.{ x = 1.0, y = 2.0 }
+
+// Field shorthand — variable name matches field name
+let x = 3.0
+let y = 4.0
+let w = Vector.{ x, y }  // equivalent to .{ x = x, y = y }</code></pre>
+
+      <h3>Variant Constructors</h3>
+      <p>Variant values are constructed using dot-prefix notation on the variant tag name.</p>
+<pre><code class="ruka">local Color = variant {
+    red,
+    green,
+    blue,
+    custom: [u8, u8, u8]
+}
+
+let c1 = Color.red
+let c2 = Color.custom(.{255, 128, 0})</code></pre>
+
+      <h3>Option and Result Literals</h3>
+      <p>
+        <code>option(T)</code> and <code>result(T, E)</code> are built-in variant types with
+        their own constructors.
+      </p>
+<pre><code class="ruka">let some_val: option(i32) = .some(42)
+let no_val:   option(i32) = .none
+
+let ok_val:  result(i32, string) = .ok(100)
+let err_val: result(i32, string) = .err("something went wrong")</code></pre>
+    </section>
+
+    <!-- Built-in Types -->
+    <section id="builtin-types">
+      <h2>Built-in Types</h2>
+
+      <h3>Numeric Types</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>usize</code></td><td>Unsigned integer, platform-native width (default integer type)</td></tr>
+          <tr><td><code>isize</code></td><td>Signed integer, platform-native width</td></tr>
+          <tr><td><code>u8</code> &mdash; <code>u128</code></td><td>Unsigned integers of explicit bit width</td></tr>
+          <tr><td><code>i8</code> &mdash; <code>i128</code></td><td>Signed integers of explicit bit width</td></tr>
+          <tr><td><code>float</code></td><td>Floating-point, platform-native width (default float type)</td></tr>
+          <tr><td><code>f32</code>, <code>f64</code></td><td>IEEE 754 floats of explicit width</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Other Primitive Types</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>string</code></td><td>UTF-8 string</td></tr>
+          <tr><td><code>bool</code></td><td>Boolean — <code>true</code> or <code>false</code></td></tr>
+          <tr><td><code>()</code></td><td>Unit type — the type of expressions with no meaningful value</td></tr>
+          <tr><td><code>type</code></td><td>The type of types — used in compile-time contexts</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Collection Types</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Literal syntax</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>[T]</code></td><td rowspan="2"><code>.{v, v, ...}</code> (shared — resolved by context)</td><td>Homogeneous array</td></tr>
+          <tr><td><code>[T, U, ...]</code></td><td>Fixed-length heterogeneous tuple (default when no context)</td></tr>
+          <tr><td><code>[K =&gt; V]</code></td><td><code>.{k =&gt; v, ...}</code></td><td>Hashmap</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Generic Types</h3>
+      <table>
+        <thead><tr><th>Type</th><th>Variants</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>option(T)</code></td><td><code>.some(T)</code>, <code>.none</code></td><td>A value that may be absent</td></tr>
+          <tr><td><code>result(T, E)</code></td><td><code>.ok(T)</code>, <code>.err(E)</code></td><td>A value that may be an error</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Type Annotations</h3>
+      <p>Type annotations follow a colon after the identifier. They are optional wherever the
+         type can be inferred.</p>
+<pre><code class="ruka">let x: i32 = 10
+let name: string = "Ruka"
+let scores: [f64] = .{9.5, 8.0, 7.3}
+let pair: [i32, string] = .{1, "one"}
+let table: [string => usize] = .{ "a" => 1 }</code></pre>
+    </section>
+
+    <!-- User-defined Types -->
+    <section id="user-types">
+      <h2>User-defined Types</h2>
+      <p>
+        Types are values stored in <code>const</code> or <code>local</code> bindings.
+        A type definition describes the memory layout only — behaviour (methods and static
+        functions) is declared separately.
+      </p>
+
+      <h3>Records</h3>
+      <p>Records are product types (similar to structs). Fields are separated by commas.
+         A field can be made private with the <code>local</code> keyword.</p>
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
+
+local User = record {
+    name:  string,
+    email: string,
+    local password_hash: string  // private field
+}
+
+// Inline (anonymous) record types are also valid
+let origin: record { x: f64, y: f64 } = .{ x = 0.0, y = 0.0 }</code></pre>
+
+      <h3>Variants (Tagged Unions)</h3>
+      <p>
+        Variants are sum types. Each tag can optionally carry a payload. A tag with no payload
+        has the unit type.
+      </p>
+<pre><code class="ruka">local Shape = variant {
+    circle:    f64,            // payload: radius
+    rectangle: [f64, f64],    // payload: width, height
+    point                      // no payload
+}
+
+// Variants can be nested or reference other types
+local Tree = variant {
+    leaf: i32,
+    node: record { left: Tree, right: Tree }
+}
+
+// Inline variants inside a record field
+local Cat = record {
+    name: string,
+    colour: variant {
+        black,
+        white,
+        grey
+    }
+}</code></pre>
+    </section>
+
+    <!-- Functions -->
+    <section id="functions">
+      <h2>Functions</h2>
+      <p>
+        Functions are anonymous values stored in bindings. There is no special
+        <code>fn</code> keyword — a function is written as a parameter list followed by
+        a body block or single expression.
+      </p>
+      <p>
+        The last expression in a block is returned. An early return can be written with
+        the <code>return</code> keyword.
+      </p>
+
+      <h4>Multiline function (do…end block)</h4>
+<pre><code class="ruka">local add = (a: i32, b: i32) do
+    a + b
+end
+
+local greet = (name: string) do
+    let msg = "Hello, ${name}!"
+    @println(msg)
+    // last expression is (), the unit value
+end</code></pre>
+
+      <h4>Single-expression function (arrow)</h4>
+<pre><code class="ruka">local square = (x: i32) => x * x
+
+local abs = (x: i32) => if x &lt; 0 do -x else x end</code></pre>
+
+      <h4>Type inference on parameters</h4>
+      <p>
+        Parameter types may be omitted when they can be inferred from context, for example
+        inside a type's method where the receiver type is known.
+      </p>
+<pre><code class="ruka">// Full annotation
+local max = (a: i32, b: i32) => if a &gt; b do a else b end
+
+// Inferred in context
+local identity = (x) => x</code></pre>
+
+      <h4>Function type annotation</h4>
+      <p>The type of a function is written as a parameter list followed by a return type.</p>
+<pre><code class="ruka">// A function that takes i32 and returns i32
+let transform: (i32) -> i32 = (x) => x * 2
+
+// A function that takes two strings and returns bool
+const compare: (string, string) -> bool = (a, b) => a == b</code></pre>
+
+      <h4>Entry point</h4>
+      <p>The program entry point is a public constant named <code>main</code>.</p>
+<pre><code class="ruka">const main = () do
+    @println("Hello, world!")
+end</code></pre>
+    </section>
+
+    <!-- Static Functions -->
+    <section id="static-functions">
+      <h2>Static Functions</h2>
+      <p>
+        A static function is associated with a type but called on the type itself rather than
+        on an instance. It is declared by placing the type name in parentheses between the
+        binding name and the <code>=</code> sign.
+      </p>
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
+
+// Public static function — called as Vector.new(...)
+const new (Vector) = (x: f64, y: f64) do
+    Vector.{ x, y }
+end
+
+// Private static function
+local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
+
+const main = () do
+    let v = Vector.new(1.0, 2.0)
+    let origin = Vector.zero()
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> The receiver in parentheses is the <em>type</em>, not an instance.
+        For methods (called on an instance), the receiver is given a name — see the next section.
+      </div>
+    </section>
+
+    <!-- Methods -->
+    <section id="methods">
+      <h2>Methods</h2>
+      <p>
+        Methods are declared similarly to static functions, except the receiver is given a name.
+        That name becomes the implicit first argument — the instance the method is called on.
+      </p>
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
+
+// Public method — `self` is the receiver instance
+const add (self: Vector) = (other: Vector) do
+    Vector.{ x = self.x + other.x, y = self.y + other.y }
+end
+
+const length (self: Vector) = () do
+    @sqrt(self.x * self.x + self.y * self.y)
+end
+
+// Private method
+local negate (self: Vector) = () => Vector.{ x = -self.x, y = -self.y }
+
+const main = () do
+    let a = Vector.new(1.0, 0.0)
+    let b = Vector.new(0.0, 1.0)
+    let c = a.add(b)
+    @println("Length: ${c.length()}")
+end</code></pre>
+
+      <h3>Mutable Methods</h3>
+      <p>
+        To mutate the receiver inside a method, apply the <code>mut</code> mode before
+        the receiver identifier. The caller must hold a mutable binding for the receiver.
+      </p>
+<pre><code class="ruka">local Counter = record { value: i32 }
+
+const new (Counter) = () => Counter.{ value = 0 }
+
+// `mut self` — the receiver is a mutable reference
+const increment (mut self: Counter) = () do
+    self.value = self.value + 1
+end
+
+const main = () do
+    let c = Counter.new()
+    c.increment()         // value is now 1
+    c.increment()         // value is now 2
+    @println("${c.value}")
+end</code></pre>
+    </section>
+
+    <!-- Parameter Modes -->
+    <section id="parameter-modes">
+      <h2>Parameter Modes</h2>
+      <p>
+        By default, all arguments are passed as immutable references managed by the garbage
+        collector. A <em>mode keyword</em> placed before the parameter identifier changes
+        how the compiler treats the lifetime and ownership of that value.
+      </p>
+      <p>
+        Modes apply to any parameter, including method receivers.
+        The mode appears before the identifier, and before the optional type annotation.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>mut</code></td>
+            <td><code>(mut x: T)</code></td>
+            <td>Mutable reference. Changes to <code>x</code> are visible to the caller.</td>
+          </tr>
+          <tr>
+            <td><code>mov</code></td>
+            <td><code>(mov x: T)</code></td>
+            <td>Ownership is transferred into this function. The caller cannot use the value after the call.</td>
+          </tr>
+          <tr>
+            <td><code>stc</code></td>
+            <td><code>(stc x: T)</code></td>
+            <td>Stack-allocated copy. The value cannot escape the function scope.</td>
+          </tr>
+          <tr>
+            <td><code>eva</code></td>
+            <td><code>(eva x: T)</code></td>
+            <td>Compile-time constant. The value must be known at compile time and is evaluated by the compiler.</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code class="ruka">// mut — in-place mutation
+const fill (mut self: Buffer) = (value: u8) do
+    // modifies caller's buffer
+end
+
+// mov — consume / transfer ownership
+const close = (mov handle: FileHandle) do
+    // handle is invalid for the caller after this call
+end
+
+// stc — stack allocated, cannot escape scope
+const hash = (stc data: [u8]) -> u64 do
+    // data is on the stack, cannot be returned or stored outside
+end
+
+// eva — compile-time value
+const repeat = (eva times: usize, msg: string) do
+    let i = 0
+    while i &lt; times do
+        @println(msg)
+        i = i + 1
+    end
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> <code>eva</code> is covered in detail in the
+        <a href="#comptime">Compile-Time Evaluation</a> section.
+      </div>
+    </section>
+
+    <!-- Control Flow -->
+    <section id="control-flow">
+      <h2>Control Flow</h2>
+      <p>
+        All control flow constructs in Ruka are expressions — they produce a value.
+        Logical operators use keywords: <code>and</code>, <code>or</code>, <code>not</code>.
+      </p>
+
+      <h3>If / Else</h3>
+      <p>
+        Multiline branches use <code>do…end</code>. A single-expression branch uses <code>=&gt;</code>.
+        If an <code>if</code> expression is used as a value, all branches must return the same type.
+      </p>
+<pre><code class="ruka">// Multiline
+if x &gt; 0 do
+    @println("positive")
+else if x &lt; 0 do
+    @println("negative")
+else do
+    @println("zero")
+end
+
+// Single-expression branches
+if ready => go() else => wait()
+
+// Used as a value
+let label = if score &gt;= 90 do "A" else if score &gt;= 80 do "B" else "C" end
+
+// Logical operators
+if condition and not other_condition do
+    // ...
+end
+
+if a or b do
+    // ...
+end</code></pre>
+    </section>
+
+    <!-- Pattern Matching -->
+    <section id="pattern-matching">
+      <h2>Pattern Matching</h2>
+      <p>
+        The <code>match</code> expression compares a value against a series of arms.
+        Arms are tested in order. The result of a <code>match</code> is the value of
+        the matched arm.
+      </p>
+      <p>
+        Multiline arms use <code>do…end</code>. Single-expression arms use <code>=&gt;</code>.
+        The <code>else</code> arm is the catch-all default.
+      </p>
+
+      <h4>Matching literals and conditions</h4>
+<pre><code class="ruka">match status_code with
+    200 => @println("OK")
+    404 => @println("Not Found")
+    500 do
+        @println("Internal Server Error")
+        log_error()
+    end
+    else => @println("Unknown status")
+end</code></pre>
+
+      <h4>Matching and binding variant payloads</h4>
+<pre><code class="ruka">local Shape = variant {
+    circle:    f64,
+    rectangle: [f64, f64],
+    point
+}
+
+let area = match shape with
+    .circle(r)           => 3.14159 * r * r
+    .rectangle(.{w, h})  => w * h
+    .point               => 0.0
+end
+
+// option(T)
+match maybe_name with
+    .some(name) => @println("Hello, ${name}")
+    .none       => @println("No name provided")
+end</code></pre>
+
+      <h4>Guard conditions</h4>
+      <p>Arms may use boolean conditions involving the matched value or any in-scope variable.</p>
+<pre><code class="ruka">match n with
+    0          => "zero"
+    n &lt; 0      => "negative"
+    n &gt; 100    => "large"
+    else       => "other"
+end</code></pre>
+    </section>
+
+    <!-- Loops -->
+    <section id="loops">
+      <h2>Loops</h2>
+
+      <h3>While Loop</h3>
+<pre><code class="ruka">let i = 0
+while i &lt; 10 do
+    @println("${i}")
+    i = i + 1
+end</code></pre>
+
+      <h3>For Loop</h3>
+      <p>Iterates over any value that implements the iterator interface.</p>
+<pre><code class="ruka">let numbers = .{1, 2, 3, 4, 5}
+
+for n in numbers do
+    @println("${n}")
+end
+
+// Destructuring a tuple in a for loop
+let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
+
+for .{k, v} in pairs do
+    @println("${k} = ${v}")
+end</code></pre>
+    </section>
+
+    <!-- Modules -->
+    <section id="modules">
+      <h2>Modules</h2>
+      <p>
+        Namespaces in Ruka are called modules. A module is a value like any other — it is stored
+        in a <code>const</code> or <code>local</code> binding. Importing a file converts
+        that file into a module automatically.
+      </p>
+      <p>
+        Inside a module, <code>const</code> declarations are the public API and <code>local</code>
+        declarations are private implementation details.
+      </p>
+<pre><code class="ruka">local Stack = module {
+    // The public type for this module
+    const t = record {
+        local data: [i32],
+        local len:  usize
+    }
+
+    const new (Stack.t) = () do
+        Stack.t.{ data = .{}, len = 0 }
+    end
+
+    const push (mut self: Stack.t) = (value: i32) do
+        // append value to self.data
+    end
+
+    const pop (mut self: Stack.t) = () -> option(i32) do
+        if self.len == 0 do
+            .none
+        else do
+            self.len = self.len - 1
+            .some(self.data[self.len])
+        end
+    end
+}
+
+const main = () do
+    let s = Stack.new()
+    s.push(10)
+    s.push(20)
+
+    match s.pop() with
+        .some(v) => @println("Popped: ${v}")
+        .none    => @println("Empty")
+    end
+end</code></pre>
+    </section>
+
+    <!-- Imports -->
+    <section id="imports">
+      <h2>Imports</h2>
+      <p>
+        Files are implicitly modules. Importing a file with <code>@import</code> returns
+        a module value. The path is relative to the current file.
+      </p>
+<pre><code class="ruka">// Import the whole module
+local math = @import("math")
+
+local main = () do
+    @println("${math.sqrt(2.0)}")
+end</code></pre>
+
+      <p>Specific names can be destructured from an import at the binding site.</p>
+<pre><code class="ruka">// Destructured import — only bring specific names into scope
+local { sqrt, pow } = @import("math")
+local { Dog, Cat }  = @import("animals")</code></pre>
+    </section>
+
+    <!-- Pipelines -->
+    <section id="pipelines">
+      <h2>Pipelines</h2>
+      <p>
+        The pipeline operator <code>|&gt;</code> passes the left-hand value as the
+        <em>first argument</em> to the right-hand function. It allows chaining operations
+        in the order they are applied, which is easier to read than deeply nested calls.
+      </p>
+<pre><code class="ruka">// Without pipeline
+@println(trim(toUpperCase(getName(user))))
+
+// With pipeline — reads top to bottom, left to right
+getName(user)
+    |> toUpperCase()
+    |> trim()
+    |> @println()</code></pre>
+
+      <p>
+        The pipeline works with any function — free functions, static functions, and methods
+        called in function position. It always inserts the left-hand value as the first argument.
+      </p>
+<pre><code class="ruka">local Dog = record { name: string, breed: string }
+
+const about (self: Dog) = () => "I'm ${self.name}, a ${self.breed}."
+
+const main = () do
+    let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
+
+    // Method call followed by pipeline into a free function
+    ruka.about()
+        |> @println()
+end</code></pre>
+    </section>
+
+    <!-- Built-in Functions -->
+    <section id="builtins">
+      <h2>Built-in Functions</h2>
+      <p>
+        Built-in functions begin with <code>@</code> to distinguish them from user-defined
+        names. They are available in all scopes without any import.
+      </p>
+      <table>
+        <thead><tr><th>Function</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>@print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
+          <tr><td><code>@println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
+          <tr><td><code>@import(path)</code></td><td>Import a file as a module. Returns the module value.</td></tr>
+          <tr><td><code>@typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>@abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>@sqrt(number)</code></td><td>Square root.</td></tr>
+          <tr><td><code>@assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+        </tbody>
+      </table>
+<pre><code class="ruka">@println("Hello!")                       // Hello!
+@println("${@typeOf(42)}")               // usize
+@assertEq(@abs(-5), 5)
+</code></pre>
+    </section>
+
+    <!-- Compile-Time Evaluation -->
+    <section id="comptime">
+      <h2>Compile-Time Evaluation</h2>
+      <p>
+        Ruka includes a compile-time interpreter. Functions with <code>eva</code> parameters
+        are evaluated at compile time rather than at runtime. This enables generic programming
+        through static dispatch and the generation of complex types that cannot be expressed
+        as simple literals.
+      </p>
+      <p>
+        Types, functions, and modules are first-class values in compile-time contexts. They
+        can be passed to <code>eva</code> parameters and returned from compile-time functions.
+      </p>
+
+      <h3>Generics via eva</h3>
+      <p>
+        A function with an <code>eva t: type</code> parameter is instantiated separately for
+        each unique set of compile-time arguments, similar to monomorphisation in Rust or
+        comptime in Zig.
+      </p>
+<pre><code class="ruka">// Generic min — instantiated once per type at call site
+const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
+
+const main = () do
+    local x = min(i32, 3, 7)     // compiler emits an i32 version
+    local y = min(f64, 1.5, 2.0) // compiler emits an f64 version
+end</code></pre>
+
+      <h3>Generating types at compile time</h3>
+      <p>
+        Compile-time functions can return types, enabling parameterized type definitions.
+      </p>
+<pre><code class="ruka">// Returns a record type parameterized by element type and capacity
+const FixedArray = (eva t: type, eva cap: usize) do
+    record {
+        data: [t],
+        len:  usize
+    }
+end
+
+// Instantiate at compile time — these are concrete types
+local IntBuf  = FixedArray(i32, 64)
+local FloatBuf = FixedArray(f64, 16)
+
+const main = () do
+    let buf = IntBuf.{ data = .{}, len = 0 }
+end</code></pre>
+
+      <h3>Compile-time reflection</h3>
+      <p>
+        <code>@typeOf</code> returns the type of any expression as a compile-time value,
+        which can be passed to <code>eva</code> parameters or compared at compile time.
+      </p>
+<pre><code class="ruka">const assertSameType = (eva a: type, eva b: type) do
+    if not (a == b) do
+        @compileError("type mismatch: expected ${a}, got ${b}")
+    end
+end
+
+const main = () do
+    let x: i32 = 10
+    let y: i32 = 20
+    assertSameType(@typeOf(x), @typeOf(y))  // ok — both i32
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Only values that are provably known at compile time may be
+        passed to <code>eva</code> parameters. Passing a runtime value to an <code>eva</code>
+        parameter is a compile error.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>Ruka Language Reference &mdash; <a href="overview.html">Overview</a> &mdash; <a href="https://github.com/dwclake/ruka-lang">GitHub</a></p>
+</footer>
+
+<script>
+  function highlightRuka(raw) {
+    const KEYWORDS = new Set([
+      'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
+      'while', 'for', 'in', 'return', 'module', 'record', 'variant',
+      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false'
+    ]);
+
+    function esc(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function span(cls, s) {
+      return '<span class="' + cls + '">' + esc(s) + '</span>';
+    }
+
+    let result = '', i = 0;
+    const code = raw;
+
+    while (i < code.length) {
+      if (code[i] === '/' && i + 1 < code.length && code[i + 1] === '/') {
+        let end = code.indexOf('\n', i);
+        if (end === -1) end = code.length;
+        result += span('cmt', code.slice(i, end));
+        i = end;
+        continue;
+      }
+      if (code[i] === '"') {
+        let j = i + 1;
+        while (j < code.length && code[j] !== '"') { if (code[j] === '\\') j++; j++; }
+        j++;
+        result += span('str', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (code[i] === '@') {
+        let j = i + 1;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        result += span('bi', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (/\d/.test(code[i])) {
+        let j = i;
+        if (code[i] === '0' && i + 1 < code.length && (code[i + 1] === 'b' || code[i + 1] === 'x')) {
+          j += 2; while (j < code.length && /[\da-fA-F]/.test(code[j])) j++;
+        } else {
+          while (j < code.length && /[\d.]/.test(code[j])) j++;
+        }
+        result += span('num', code.slice(i, j));
+        i = j;
+        continue;
+      }
+      if (/[a-zA-Z_]/.test(code[i])) {
+        let j = i;
+        while (j < code.length && /\w/.test(code[j])) j++;
+        const word = code.slice(i, j);
+        if (KEYWORDS.has(word)) result += span('kw', word);
+        else if (/^[A-Z]/.test(word)) result += span('tp', word);
+        else result += esc(word);
+        i = j;
+        continue;
+      }
+      result += esc(code[i]);
+      i++;
+    }
+    return result;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('code.ruka').forEach(el => {
+      el.innerHTML = highlightRuka(el.textContent);
+    });
+  });
+</script>
+
+</body>
+</html>
