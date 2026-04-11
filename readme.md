@@ -14,9 +14,10 @@ When `Ruka` reaches a usable state, the instructions for installing and using th
 
 # Documentation
 <!--[Read the docs](https://www.ruka-lang.org)-->
-- [Language Overview](https://ruka-lang.github.io/ruka/overview.html) — Design philosophy, core features, and a quick introduction to the syntax.
+[Read the docs](https://www.ruka-lang.github.io/ruka)
+<!--- [Language Overview](https://ruka-lang.github.io/ruka) — Design philosophy, core features, and a quick introduction to the syntax.-->
 - [Language Reference](https://ruka-lang.github.io/ruka/language_reference.html) — Full reference covering all language features with examples.
-- [Ruka Examples](https://ruka-lang.github.io/ruka/examples.html) - Ruka language example programs
+- [Examples](https://ruka-lang.github.io/ruka/examples.html) - Ruka language example programs
 
 ## Important Repositories
 - [Toolchain](https://www.github.com/ruka-lang/rukaup)
