@@ -7,23 +7,19 @@
 The `Ruka` programming language
 
 # Brief Overview
-`Ruka` is a compiled, full-stack, programming language with a focus on simplicity and easy of use. For now, targeting arm64 and wasm for the backend, and javascript and wasm for the frontend.
-
-In a *prophesized* future where processors with programmable logic (ie. Xilinx Zync, Intel Cyclone SoCs) becomes more ubiquitous; Ruka will also allow designing and interfacing FPGA hardware, combined with frontend UI and backend servers all written primarily in `Ruka`; treating all three as first-class citizens with all the complexity handled on your behalf by the compiler.
+`Ruka` is a compiled, (maybe) full-stack, programming language with a focus on simplicity and ease of use.
 
 # Installation
 When `Ruka` reaches a usable state, the instructions for installing and using the tools will live here.
 
 # Documentation
-
-[Read the docs](https://www.ruka-lang.org)
-
+<!--[Read the docs](https://www.ruka-lang.org)-->
 - [Language Overview](https://ruka-lang.github.io/ruka/overview.html) — Design philosophy, core features, and a quick introduction to the syntax.
 - [Language Reference](https://ruka-lang.github.io/ruka/language_reference.html) — Full reference covering all language features with examples.
 
 ## Important Repositories
 - [Toolchain](https://www.github.com/ruka-lang/rukaup)
-- [Standard Library](https://www.github.com/ruka-lang/ruka-std)
+<!--- [Standard Library](https://www.github.com/ruka-lang/ruka-std)-->
 
 # License
 `Ruka` is distributed under the terms of both the MIT license and the Apache License (Version 2.0). See license-apache and license-mit for details.

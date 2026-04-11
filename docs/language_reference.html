@@ -8,20 +8,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0d1117;
-      --surface:  #161b22;
-      --border:   #30363d;
-      --text:     #c9d1d9;
-      --heading:  #e6edf3;
-      --muted:    #8b949e;
-      --link:     #58a6ff;
-      --accent:   #3fb950;
-      --kw:       #ff7b72;
-      --str:      #a5d6ff;
-      --cmt:      #8b949e;
-      --num:      #f2cc60;
-      --bi:       #ffa657;
-      --tp:       #79c0ff;
+      --bg:       #232136;
+      --surface:  #2a273f;
+      --border:   #393552;
+      --text:     #e0def4;
+      --heading:  #e0def4;
+      --muted:    #6e6a86;
+      --link:     #c4a7e7;
+      --accent:   #3e8fb0;
+      --kw:       #eb6f92;
+      --str:      #9ccfd8;
+      --cmt:      #6e6a86;
+      --num:      #f6c177;
+      --bi:       #ea9a97;
+      --tp:       #c4a7e7;
     }
 
     body {
@@ -217,6 +217,7 @@
       <li><a href="#static-functions">Static Functions</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
+      <li><a href="#interfaces">Interfaces</a></li>
       <li><a href="#control-flow">Control Flow</a></li>
       <li><a href="#pattern-matching">Pattern Matching</a></li>
       <li><a href="#loops">Loops</a></li>
@@ -369,6 +370,28 @@ let no_val:   option(i32) = .none
 
 let ok_val:  result(i32, string) = .ok(100)
 let err_val: result(i32, string) = .err("something went wrong")</code></pre>
+
+      <h3>Unwrap Sugar</h3>
+      <p>
+        Both built-in variant types provide postfix shorthand for force-unwrapping their
+        inner value. These operators panic at runtime if the value is absent or an error.
+      </p>
+      <table>
+        <thead><tr><th>Syntax</th><th>Type</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr><td><code>expr.?</code></td><td><code>option(T)</code></td><td>Returns the inner <code>T</code>; panics if <code>.none</code>.</td></tr>
+          <tr><td><code>expr.!</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
+        </tbody>
+      </table>
+<pre><code class="ruka">let name: option(string) = .some("Ruka")
+let s = name.?               // "Ruka" — panics if .none
+
+let res: result(i32, string) = .ok(42)
+let n = res.!                // 42 — panics if .err
+
+// Common in chains where failure is considered a programmer error
+let count = parse_int(input).!
+let upper = find_user(id).?.name</code></pre>
     </section>
 
     <!-- Built-in Types -->
@@ -522,6 +545,23 @@ local max = (a: i32, b: i32) => if a &gt; b do a else b end
 // Inferred in context
 local identity = (x) => x</code></pre>
 
+      <h4>Inline return type annotation</h4>
+      <p>
+        A return type can be written after the parameter list, before the <code>=&gt;</code>
+        or <code>do</code>. This keeps the type information close to the body and avoids
+        having to annotate the binding on the left-hand side.
+      </p>
+<pre><code class="ruka">// Return type placed after the parameter list
+local square = (x: i32): i32 => x * x
+
+// Works with do...end blocks too
+local clamp = (x: i32, lo: i32, hi: i32): i32 do
+    if x &lt; lo do lo else if x &gt; hi do hi else x end
+end
+
+// Equivalent binding-side annotation (older style, still valid)
+local square2: (i32) -> i32 = (x) => x * x</code></pre>
+
       <h4>Function type annotation</h4>
       <p>The type of a function is written as a parameter list followed by a return type.</p>
 <pre><code class="ruka">// A function that takes i32 and returns i32
@@ -563,9 +603,42 @@ const main = () do
     let origin = Vector.zero()
 end</code></pre>
 
+      <h3>Static Functions on Variants</h3>
+      <p>
+        Static functions can be attached to variant types using the same receiver syntax.
+        This is useful for named constructors and factory helpers.
+      </p>
+<pre><code class="ruka">local Direction = variant {
+    north,
+    south,
+    east,
+    west
+}
+
+// Named constructor on a variant
+const from_str (Direction) = (s: string) -> option(Direction) do
+    match s with
+        "north" => .some(Direction.north)
+        "south" => .some(Direction.south)
+        "east"  => .some(Direction.east)
+        "west"  => .some(Direction.west)
+        else    => .none
+    end
+end
+
+const main = () do
+    let d = Direction.from_str("east")
+end</code></pre>
+
       <div class="note">
         <strong>Note:</strong> The receiver in parentheses is the <em>type</em>, not an instance.
         For methods (called on an instance), the receiver is given a name — see the next section.
+      </div>
+
+      <div class="note">
+        <strong>Scope restriction:</strong> Static functions (and methods) may only be declared
+        in the same scope or module where the type is defined. Attaching behaviour to a type
+        from a foreign module is not permitted.
       </div>
     </section>
 
@@ -620,6 +693,42 @@ const main = () do
     c.increment()         // value is now 2
     @println("${c.value}")
 end</code></pre>
+
+      <h3>Methods on Variants</h3>
+      <p>
+        Methods can also be attached to variant types. The receiver is an instance of the
+        variant, and pattern matching can be used inside the body.
+      </p>
+<pre><code class="ruka">local Direction = variant {
+    north,
+    south,
+    east,
+    west
+}
+
+// Method on a variant type
+const opposite (self: Direction) = () -> Direction do
+    match self with
+        .north => Direction.south
+        .south => Direction.north
+        .east  => Direction.west
+        .west  => Direction.east
+    end
+end
+
+const is_vertical (self: Direction) = () -> bool =>
+    self == Direction.north or self == Direction.south
+
+const main = () do
+    let d = Direction.north
+    @println("${d.opposite().is_vertical()}")  // true
+end</code></pre>
+
+      <div class="note">
+        <strong>Scope restriction:</strong> Methods (and static functions) may only be declared
+        in the same scope or module where the type is defined. Attaching behaviour to a type
+        from a foreign module is not permitted.
+      </div>
     </section>
 
     <!-- Parameter Modes -->
@@ -660,6 +769,11 @@ end</code></pre>
             <td><code>(eva x: T)</code></td>
             <td>Compile-time constant. The value must be known at compile time and is evaluated by the compiler.</td>
           </tr>
+          <tr>
+            <td><code>dyn</code></td>
+            <td><code>(dyn x: I)</code></td>
+            <td>Dynamic dispatch. The argument may be any value whose type implements interface <code>I</code>. See <a href="#interfaces">Interfaces</a>.</td>
+          </tr>
         </tbody>
       </table>
 
@@ -690,6 +804,84 @@ end</code></pre>
       <div class="note">
         <strong>Note:</strong> <code>eva</code> is covered in detail in the
         <a href="#comptime">Compile-Time Evaluation</a> section.
+      </div>
+    </section>
+
+    <!-- Interfaces -->
+    <section id="interfaces">
+      <h2>Interfaces</h2>
+      <p>
+        An interface defines a set of method signatures that a type must satisfy. Interfaces
+        describe behaviour only — they carry no fields or state. Any type that implements all
+        of an interface's methods automatically satisfies it; there is no explicit
+        <em>implements</em> declaration.
+      </p>
+      <p>
+        Interface values are stored in bindings like any other type. Inside the braces, each
+        line declares one method signature: the method name, its receiver (with optional mode),
+        a colon, then the remaining parameter list and return type.
+      </p>
+
+      <h3>Declaring an Interface</h3>
+<pre><code class="ruka">// A type that can be printed
+const Printable = interface {
+    print(self): () -> unit
+}
+
+// A type that supports a binary add operation
+const Adder = interface {
+    add(mut self): (b: usize) -> unit
+}
+
+// Multiple methods
+const Shape = interface {
+    area(self):     () -> f64
+    perimeter(self): () -> f64
+}</code></pre>
+
+      <h3>Satisfying an Interface</h3>
+      <p>
+        A type satisfies an interface implicitly. As long as the required methods are declared
+        in the same module as the type, the compiler considers the type to implement the
+        interface.
+      </p>
+<pre><code class="ruka">local Circle = record { radius: f64 }
+
+const area (self: Circle) = () -> f64 =>
+    3.14159 * self.radius * self.radius
+
+const perimeter (self: Circle) = () -> f64 =>
+    2.0 * 3.14159 * self.radius
+
+// Circle now satisfies the Shape interface — no declaration needed</code></pre>
+
+      <h3>The <code>dyn</code> Parameter Mode</h3>
+      <p>
+        The <code>dyn</code> mode on a parameter means the function accepts any value whose
+        type satisfies the named interface. The concrete type is resolved at the call site;
+        dispatch is dynamic at runtime.
+      </p>
+<pre><code class="ruka">const print_shape_info = (dyn s: Shape) do
+    @println("area:      ${s.area()}")
+    @println("perimeter: ${s.perimeter()}")
+end
+
+local Rect = record { w: f64, h: f64 }
+
+const area (self: Rect) = () -> f64 => self.w * self.h
+const perimeter (self: Rect) = () -> f64 => 2.0 * (self.w + self.h)
+
+const main = () do
+    let c = Circle.{ radius = 5.0 }
+    let r = Rect.{ w = 4.0, h = 6.0 }
+
+    print_shape_info(c)   // Circle satisfies Shape
+    print_shape_info(r)   // Rect satisfies Shape
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Interfaces specify only methods. Fields cannot appear in an
+        interface definition. To share field access across types, expose it through methods.
       </div>
     </section>
 
@@ -1022,8 +1214,8 @@ end</code></pre>
   function highlightRuka(raw) {
     const KEYWORDS = new Set([
       'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-      'while', 'for', 'in', 'return', 'module', 'record', 'variant',
-      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false'
+      'while', 'for', 'in', 'return', 'module', 'record', 'variant', 'interface',
+      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
     ]);
 
     function esc(s) {
