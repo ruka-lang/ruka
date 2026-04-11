@@ -1,5 +1,0 @@
-local derive = @package("root")
-
-const main = () do
-
-end
