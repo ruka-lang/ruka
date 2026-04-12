@@ -317,8 +317,7 @@ end</code></pre>
         <code>Pair</code> below is a function that takes two types and produces a record type,
         which can then be used anywhere a type is expected.
       </p>
-<pre><code class="ruka">// Generic min — Using parameter `t` for type annotating implies `t: type` which implies eva;
-// a separate version is emitted per concrete type
+<pre><code class="ruka">// Generic min
 const min = (t, a: t, b: t) => if a &lt; b do a else b end
 
 // Compile-time type constructor — returns a parameterised record type
