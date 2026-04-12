@@ -111,6 +111,31 @@
       el.innerHTML = highlight(el.textContent);
     });
 
+    // ── Hero nav toggle (index page) ──
+    var navToggle = document.querySelector('.nav-toggle');
+    var heroNav   = document.querySelector('header.hero nav');
+
+    if (navToggle && heroNav) {
+      navToggle.addEventListener('click', function () {
+        var isOpen = heroNav.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+      heroNav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          if (window.innerWidth <= 768) {
+            heroNav.classList.remove('open');
+            navToggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          heroNav.classList.remove('open');
+          navToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
     // ── Mobile sidebar toggle ──
     var toggle  = document.querySelector('.sidebar-toggle');
     var sidebar = document.querySelector('.sidebar');

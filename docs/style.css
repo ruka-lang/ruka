@@ -488,9 +488,10 @@ main.docs-main { flex: 1; padding: 2.5rem 3rem; min-width: 0; }
 main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
 
 /* ════════════════════════════════════════════════
-   MOBILE — Sidebar toggle
+   MOBILE — Sidebar toggle & nav toggle
    ════════════════════════════════════════════════ */
-.sidebar-toggle {
+.sidebar-toggle,
+.nav-toggle {
   display: none;
   background: none;
   border: 1px solid var(--overlay);
@@ -502,7 +503,54 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
   line-height: 1;
   transition: color .12s, border-color .12s;
 }
-.sidebar-toggle:hover { color: var(--gold); border-color: var(--gold); }
+.sidebar-toggle:hover,
+.nav-toggle:hover { color: var(--gold); border-color: var(--gold); }
+
+/* Hero nav-toggle sits inline with the rest of the hero content */
+.nav-toggle {
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--overlay);
+  border-radius: 6px;
+  color: var(--foam);
+  font-size: 1.2rem;
+  padding: .35rem .9rem;
+}
+
+/* Page-nav section at the top of the sidebar drawer (mobile only) */
+.sidebar-page-nav {
+  border-bottom: 1px solid var(--overlay);
+  padding-bottom: .6rem;
+  margin-bottom: .6rem;
+  display: none;
+}
+.sidebar-page-nav a {
+  display: block;
+  padding: .28rem 1.25rem .28rem 2rem;
+  font-family: 'Poller One', cursive;
+  font-size: .82rem;
+  letter-spacing: .02em;
+  color: var(--muted);
+  border-left: 2px solid transparent;
+  position: relative;
+  transition: all .12s;
+}
+.sidebar-page-nav a::before {
+  content: '>';
+  position: absolute;
+  left: .85rem;
+  color: var(--border);
+  font-family: monospace;
+  font-size: .9rem;
+}
+.sidebar-page-nav a:hover {
+  color: var(--foam);
+  border-left-color: var(--foam);
+  background: rgba(156,207,216,.05);
+  text-shadow: var(--glow-foam);
+  text-decoration: none;
+}
+.sidebar-page-nav a:hover::before { color: var(--foam); }
 
 .sidebar-overlay {
   display: none;
@@ -538,7 +586,10 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
 
   main.docs-main { padding: 1.5rem 1rem 4rem; }
 
-  /* ── Sticky site header (reference/examples pages) ── */
+  /* ── Show page-nav section in sidebar drawer ── */
+  .sidebar-page-nav { display: block; }
+
+  /* ── Sticky site header — hide nav links, keep only hamburger ── */
   .site-header {
     padding: .45rem 1rem;
   }
@@ -550,14 +601,10 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
     width: 1.35rem;
   }
   .site-header nav {
-    gap: .4rem;
-  }
-  .site-header nav a {
-    font-size: .72rem;
-    padding: .1rem .35rem;
+    display: none;
   }
 
-  /* ── Hero header (index page) ── */
+  /* ── Hero header — collapse nav behind toggle button ── */
   header.hero {
     padding: 2rem 1rem 1.75rem;
   }
@@ -568,10 +615,17 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
     height: 2.4rem;
     width: 2.4rem;
   }
+  .nav-toggle { display: block; margin-top: 1.25rem; }
   header.hero nav {
-    gap: .6rem;
+    display: none;
+    flex-direction: row;
     flex-wrap: wrap;
-    margin-top: 1.25rem;
+    justify-content: center;
+    gap: .6rem;
+    margin-top: .6rem;
+  }
+  header.hero nav.open {
+    display: flex;
   }
   header.hero nav a {
     font-size: .85rem;

@@ -15,6 +15,7 @@
     <h1>Ruka<span class="blink-cursor"></span></h1>
   </div>
   <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
+  <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
   <nav>
     <a href="language_reference.html">Language Reference</a>
     <a href="grammar.html">Grammar</a>
@@ -160,62 +161,6 @@ const main = () do
     // Pipeline: passes left-hand value as first argument to the next function
     ruka.about()
         |> @println()
-end</code></pre>
-  </section>
-
-  <!-- ── Parameter Modes ── -->
-  <section id="modes">
-    <h2>Parameter Modes</h2>
-    <p>
-      By default all values are passed as immutable references managed by the garbage collector.
-      A mode keyword placed before a parameter identifier changes how the compiler treats the
-      lifetime and ownership of that value.
-    </p>
-    <table>
-      <thead>
-        <tr><th>Mode</th><th>Behaviour</th><th>Use case</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><code>mut</code></td>
-          <td>Mutable reference. Changes are visible to the caller.</td>
-          <td>In-place mutation of a value or collection.</td>
-        </tr>
-        <tr>
-          <td><code>mov</code></td>
-          <td>Transfers ownership into the function. The caller can no longer use the value.</td>
-          <td>Resource transfer, unique ownership patterns.</td>
-        </tr>
-        <tr>
-          <td><code>stc</code></td>
-          <td>Stack-allocated copy.</td>
-          <td>Small, short-lived values where GC overhead is undesirable.</td>
-        </tr>
-        <tr>
-          <td><code>eva</code></td>
-          <td>Value must be known at compile time. Evaluated by the compiler interpreter.</td>
-          <td>Generic programming, compile-time type generation.</td>
-        </tr>
-      </tbody>
-    </table>
-<pre><code class="ruka">const push (self: List) = (mut item: i32) do
-    // item is a mutable reference
-end
-
-const consume = (mov resource: Resource) do
-    // resource ownership transferred here
-end
-
-const process = (stc buf: Buffer) do
-    // buf is a stack-allocated copy; cannot escape this scope
-end
-
-// generic function, instantiated per concrete type
-const min = (t, a: t, b: t) => if a &lt; b do a else b end
-
-const main = () do
-    local x = min(i32, 3, 7)     // compiler instantiates min for i32
-    local y = min(f64, 1.5, 2.0) // compiler instantiates min for f64
 end</code></pre>
   </section>
 
