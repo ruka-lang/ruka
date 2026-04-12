@@ -97,7 +97,7 @@ local max_retries = 5  // private constant</code></pre>
 
       <h3>Binding Modes</h3>
       <p>
-        The same mode keywords available on function parameters can also be applied to bindings.
+        By default variables and non-eva constants are allocated by the GC. Binding modes allows the user to adjust this behaviour.
         A mode is placed between the binding keyword and the identifier.
       </p>
       <table>
@@ -1006,8 +1006,8 @@ end</code></pre>
         By default, all arguments are passed as immutable references managed by the garbage
         collector. A <em>mode keyword</em> placed before the parameter identifier changes
         how the compiler treats the lifetime and ownership of that value.
-        Modes apply to any parameter, including method receivers, and also to
-        <a href="#bindings">bindings</a>.
+        Modes apply to any parameter, including method receivers. Some are shared with
+        <a href="#bindings">binding</a> modes.
       </p>
 
       <table>
@@ -1048,9 +1048,9 @@ const close = (mov handle: FileHandle) do
     // handle is invalid for the caller after this call
 end
 
-// stc — stack allocated, cannot escape scope
+// stc — stack allocated pass-by-copy
 const hash = (stc data: [u8]) -> u64 do
-    // data is on the stack, cannot be returned or stored outside
+    // data is on the stack, cannot be returned without a copy
 end
 
 // eva — compile-time value (explicit annotation)
