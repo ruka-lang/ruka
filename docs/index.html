@@ -4,200 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ruka — Language Overview</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #232136;
-      --surface:  #2a273f;
-      --border:   #393552;
-      --text:     #e0def4;
-      --heading:  #e0def4;
-      --muted:    #6e6a86;
-      --link:     #c4a7e7;
-      --accent:   #3e8fb0;
-      --kw:       #eb6f92;
-      --str:      #9ccfd8;
-      --cmt:      #6e6a86;
-      --num:      #f6c177;
-      --bi:       #ea9a97;
-      --tp:       #c4a7e7;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-      font-size: 16px;
-    }
-
-    a { color: var(--link); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ── Layout ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 0;
-      text-align: center;
-    }
-    .header-title {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-    .header-title img {
-      height: 3.5rem;
-      width: 3.5rem;
-    }
-    header h1 {
-      font-size: 3rem;
-      color: var(--heading);
-      letter-spacing: 0.05em;
-    }
-    header p.tagline {
-      margin-top: 0.5rem;
-      color: var(--muted);
-      font-size: 1.1rem;
-    }
-    header nav {
-      margin-top: 1.25rem;
-      display: flex;
-      gap: 1.5rem;
-      justify-content: center;
-    }
-    header nav a {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.9rem;
-      transition: border-color 0.15s;
-    }
-    header nav a:hover { border-color: var(--link); text-decoration: none; }
-
-    main {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 5rem;
-    }
-
-    section { margin-bottom: 3.5rem; }
-
-    h2 {
-      font-size: 1.5rem;
-      color: var(--heading);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
-    h3 {
-      font-size: 1.1rem;
-      color: var(--heading);
-      margin-bottom: 0.5rem;
-    }
-    p { margin-bottom: 0.9rem; }
-    p:last-child { margin-bottom: 0; }
-
-    ul, ol { padding-left: 1.4rem; }
-    li { margin-bottom: 0.4rem; }
-
-    /* ── Code ── */
-    pre {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.25rem 1.5rem;
-      overflow-x: auto;
-      margin: 1rem 0;
-      font-size: 0.88rem;
-      line-height: 1.6;
-    }
-    code {
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    }
-    p code, li code {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.1em 0.4em;
-      font-size: 0.85em;
-      color: var(--heading);
-    }
-    .cmt { color: var(--cmt); font-style: italic; }
-    .kw  { color: var(--kw); }
-    .str { color: var(--str); }
-    .num { color: var(--num); }
-    .bi  { color: var(--bi); }
-    .tp  { color: var(--tp); }
-
-    /* ── Feature grid ── */
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
-    }
-    .feature-card h3 { font-size: 0.95rem; margin-bottom: 0.3rem; }
-    .feature-card p { font-size: 0.85rem; color: var(--muted); margin: 0; }
-
-    /* ── Table ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-    th, td {
-      padding: 0.6rem 1rem;
-      border: 1px solid var(--border);
-      text-align: left;
-    }
-    th {
-      background: var(--surface);
-      color: var(--heading);
-    }
-    td:first-child code {
-      background: none;
-      border: none;
-      padding: 0;
-      color: var(--bi);
-      font-size: 0.9em;
-    }
-
-    /* ── Roadmap ── */
-    .roadmap-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.75rem;
-    }
-    .roadmap-item h3 { font-size: 1rem; color: var(--heading); }
-    .roadmap-item p  { font-size: 0.88rem; color: var(--muted); margin-top: 0.3rem; }
-
-    footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <style>/* page-specific overrides go here */</style>
 </head>
 <body>
 
-<header>
+<header class="hero">
   <div class="header-title">
     <img src="ruka-logo.svg" alt="Ruka logo">
-    <h1>Ruka</h1>
+    <h1>Ruka<span class="blink-cursor"></span></h1>
   </div>
   <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
   <nav>
@@ -207,7 +22,7 @@
   </nav>
 </header>
 
-<main>
+<main class="index-main">
 
   <!-- ── Introduction ── -->
   <section id="intro">
@@ -289,7 +104,7 @@
       </div>
       <div class="feature-card">
         <h3>Interfaces</h3>
-        <p>Structural typing via interfaces. Any type matching the method signatures satisfies an interface implicitly. The <code>dyn</code> mode enables dynamic dispatch at call sites.</p>
+        <p>Structural typing via interfaces. Any type matching the method signatures satisfies an interface implicitly. Parameters typed with an interface use dynamic dispatch automatically.</p>
       </div>
       <div class="feature-card">
         <h3>Compile-Time Evaluation</h3>
@@ -378,11 +193,6 @@ end</code></pre>
           <td>Value must be known at compile time. Evaluated by the compiler interpreter.</td>
           <td>Generic programming, compile-time type generation.</td>
         </tr>
-        <tr>
-          <td><code>dyn</code></td>
-          <td>Dynamic dispatch. Accepts any value whose type satisfies the named interface.</td>
-          <td>Polymorphism without inheritance — pass any conforming type.</td>
-        </tr>
       </tbody>
     </table>
 <pre><code class="ruka">const push (self: List) = (mut item: i32) do
@@ -397,11 +207,11 @@ const process = (stc buf: Buffer) do
     // buf is a stack-allocated copy; cannot escape this scope
 end
 
-// eva enables generic programming — instantiated once per unique set of compile-time arguments
-const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
+// `t: type` implies eva — generic function, instantiated per concrete type
+const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
 
 const main = () do
-    local x = min(i32, 3, 7)    // compiler instantiates min for i32
+    local x = min(i32, 3, 7)     // compiler instantiates min for i32
     local y = min(f64, 1.5, 2.0) // compiler instantiates min for f64
 end</code></pre>
   </section>
@@ -437,105 +247,7 @@ end</code></pre>
   <p>Ruka Language &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
-<script>
-  function highlightRuka(raw) {
-    const KEYWORDS = new Set([
-      'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-      'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
-      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
-    ]);
-
-    function esc(s) {
-      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    function span(cls, s) {
-      return '<span class="' + cls + '">' + esc(s) + '</span>';
-    }
-
-    let result = '', i = 0;
-    const code = raw;
-
-    while (i < code.length) {
-      // Comment
-      if (code[i] === '/' && i + 1 < code.length && code[i + 1] === '/') {
-        let end = code.indexOf('\n', i);
-        if (end === -1) end = code.length;
-        result += span('cmt', code.slice(i, end));
-        i = end;
-        continue;
-      }
-      // String
-      if (code[i] === '"') {
-        let j = i + 1;
-        let strOut = '"';
-        while (j < code.length && code[j] !== '"') {
-          if (code[j] === '\\') { strOut += code[j] + (code[j+1] ?? ''); j += 2; continue; }
-          if (code[j] === '$' && code[j+1] === '{') {
-            result += span('str', strOut);
-            strOut = '';
-            result += span('str', '${');
-            j += 2;
-            let depth = 1, inner = '';
-            while (j < code.length && depth > 0) {
-              if (code[j] === '{') depth++;
-              else if (code[j] === '}') { depth--; if (depth === 0) break; }
-              inner += code[j++];
-            }
-            result += highlightRuka(inner);
-            result += span('str', '}');
-            j++;
-            continue;
-          }
-          strOut += code[j++];
-        }
-        strOut += '"';
-        result += span('str', strOut);
-        i = j + 1;
-        continue;
-      }
-      // Builtin
-      if (code[i] === '@') {
-        let j = i + 1;
-        while (j < code.length && /\w/.test(code[j])) j++;
-        result += span('bi', code.slice(i, j));
-        i = j;
-        continue;
-      }
-      // Number
-      if (/\d/.test(code[i])) {
-        let j = i;
-        if (code[i] === '0' && i + 1 < code.length && code[i + 1] === 'b') {
-          j += 2; while (j < code.length && /[01]/.test(code[j])) j++;
-        } else {
-          while (j < code.length && /[\d.]/.test(code[j])) j++;
-        }
-        result += span('num', code.slice(i, j));
-        i = j;
-        continue;
-      }
-      // Identifier / keyword
-      if (/[a-zA-Z_]/.test(code[i])) {
-        let j = i;
-        while (j < code.length && /\w/.test(code[j])) j++;
-        const word = code.slice(i, j);
-        if (KEYWORDS.has(word)) result += span('kw', word);
-        else if (/^[A-Z]/.test(word)) result += span('tp', word);
-        else result += esc(word);
-        i = j;
-        continue;
-      }
-      result += esc(code[i]);
-      i++;
-    }
-    return result;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('code.ruka').forEach(el => {
-      el.innerHTML = highlightRuka(el.textContent);
-    });
-  });
-</script>
+<script src="highlight.js"></script>
 
 </body>
 </html>

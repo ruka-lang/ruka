@@ -4,196 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ruka — Language Reference</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #232136;
-      --surface:  #2a273f;
-      --border:   #393552;
-      --text:     #e0def4;
-      --heading:  #e0def4;
-      --muted:    #6e6a86;
-      --link:     #c4a7e7;
-      --accent:   #3e8fb0;
-      --kw:       #eb6f92;
-      --str:      #9ccfd8;
-      --cmt:      #6e6a86;
-      --num:      #f6c177;
-      --bi:       #ea9a97;
-      --tp:       #c4a7e7;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.7;
-      font-size: 16px;
-    }
-
-    a { color: var(--link); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ── Top header ── */
-    .site-header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .site-header h1 { font-size: 1.25rem; color: var(--heading); }
-    .site-header .header-title { display: flex; align-items: center; gap: 0.5rem; }
-    .site-header .header-title img { height: 1.75rem; width: 1.75rem; }
-    .site-header nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
-
-    /* ── Layout ── */
-    .layout {
-      display: flex;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 220px;
-      flex-shrink: 0;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      border-right: 1px solid var(--border);
-      padding: 2rem 0;
-    }
-    .sidebar h2 {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      padding: 0 1.25rem;
-      margin-bottom: 0.75rem;
-    }
-    .sidebar ul { list-style: none; padding: 0; }
-    .sidebar li a {
-      display: block;
-      padding: 0.3rem 1.25rem;
-      font-size: 0.875rem;
-      color: var(--muted);
-      border-left: 2px solid transparent;
-    }
-    .sidebar li a:hover {
-      color: var(--heading);
-      border-left-color: var(--link);
-      text-decoration: none;
-      background: rgba(88, 166, 255, 0.05);
-    }
-
-    /* ── Main content ── */
-    main {
-      flex: 1;
-      padding: 2.5rem 3rem;
-      min-width: 0;
-    }
-
-    section {
-      margin-bottom: 4rem;
-      padding-top: 0.5rem;
-    }
-
-    h2 {
-      font-size: 1.6rem;
-      color: var(--heading);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.5rem;
-      margin-bottom: 1.25rem;
-    }
-    h3 {
-      font-size: 1.1rem;
-      color: var(--heading);
-      margin: 1.5rem 0 0.5rem;
-    }
-    h4 {
-      font-size: 0.95rem;
-      color: var(--muted);
-      margin: 1.25rem 0 0.4rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    p { margin-bottom: 0.9rem; }
-    p:last-child { margin-bottom: 0; }
-    ul, ol { padding-left: 1.5rem; margin-bottom: 0.9rem; }
-    li { margin-bottom: 0.35rem; }
-
-    /* ── Code ── */
-    pre {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.2rem 1.5rem;
-      overflow-x: auto;
-      margin: 1rem 0;
-      font-size: 0.87rem;
-      line-height: 1.65;
-    }
-    code {
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    }
-    p code, li code, td code {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.1em 0.4em;
-      font-size: 0.84em;
-      color: var(--heading);
-    }
-    .cmt { color: var(--cmt); font-style: italic; }
-    .kw  { color: var(--kw); }
-    .str { color: var(--str); }
-    .num { color: var(--num); }
-    .bi  { color: var(--bi); }
-    .tp  { color: var(--tp); }
-    .lbl { color: var(--accent); }
-
-    /* ── Callout / note ── */
-    .note {
-      background: rgba(88, 166, 255, 0.07);
-      border: 1px solid rgba(88, 166, 255, 0.3);
-      border-radius: 6px;
-      padding: 0.85rem 1.1rem;
-      font-size: 0.9rem;
-      margin: 1rem 0;
-    }
-    .note strong { color: var(--link); }
-
-    /* ── Table ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin: 1rem 0;
-    }
-    th, td {
-      padding: 0.55rem 1rem;
-      border: 1px solid var(--border);
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      background: var(--surface);
-      color: var(--heading);
-    }
-
-    footer {
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -207,8 +18,10 @@
     <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
+  <button class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
 </header>
 
+<div class="sidebar-overlay"></div>
 <div class="layout">
 
   <!-- ── Sidebar ── -->
@@ -239,7 +52,7 @@
   </nav>
 
   <!-- ── Main ── -->
-  <main>
+  <main class="docs-main">
 
     <!-- Comments -->
     <section id="comments">
@@ -275,6 +88,71 @@ local max_retries = 5  // private constant</code></pre>
         bindings. There is no separate <code>fn</code> or <code>type</code> declaration syntax —
         the binding keyword determines visibility.
       </p>
+
+      <h3>Binding Modes</h3>
+      <p>
+        The same mode keywords available on function parameters can also be applied to bindings.
+        A mode is placed between the binding keyword and the identifier.
+      </p>
+      <table>
+        <thead><tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>stc</code></td>
+            <td><code>let stc name = ...</code></td>
+            <td>Stack-allocated. The value cannot escape the enclosing function scope (cannot be returned or stored in a heap-allocated structure).</td>
+          </tr>
+          <tr>
+            <td><code>eva</code></td>
+            <td><code>local eva name = ...</code> / <code>const eva name = ...</code></td>
+            <td>Forces a <em>runtime</em> function to be evaluated at compile time. All arguments must be compile-time known. The result is stored as a compile-time constant.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Inferred compile-time bindings from <code>eva</code> parameters</h4>
+      <p>
+        When you call a function that has <code>eva</code> parameters (including any function
+        with a <code>type</code>-annotated parameter), the result is already a compile-time
+        value. Storing it in a binding is inferred as a compile-time constant — no explicit
+        <code>eva</code> is needed on the binding, but the binding must be <code>const</code>
+        or <code>local</code> (immutable). Assigning such a result to a <code>let</code>
+        binding is a compile error.
+      </p>
+<pre><code class="ruka">// Calling a function with type parameters — result is a compile-time constant
+local IntPair = Pair(i32, string)   // const or local required; let would be an error
+
+// You can use the result without binding it at all — inline in a pipeline or call
+let p = Pair(i32, string).{ first = 42, second = "hello" }</code></pre>
+
+      <h4>Explicit <code>eva</code> binding — forcing a runtime function at compile time</h4>
+      <p>
+        <code>eva</code> on a binding forces a normal runtime function to run at compile time.
+        This is useful when you want a constant that requires real computation — for example,
+        a square root, a hash, or a generated lookup table. The arguments must all be
+        compile-time known: literals, <code>const</code>/<code>local</code> constants, or
+        results of other <code>eva</code> evaluations.
+      </p>
+<pre><code class="ruka">// Stack-allocated buffer — provably cannot escape this function
+let stc buf: [u8] = .{}
+
+const PI = 3.14159265358979
+
+// Force runtime math functions to evaluate at compile time
+local eva SQRT_2: f64  = @sqrt(2.0)           // argument is a literal
+local eva INV_PI: f64  = 1.0 / PI             // argument is a const — compile-time known
+local eva HASH        = compute_hash("seed")  // any function, as long as args are known
+
+// Eva results are themselves compile-time known, so they can chain
+local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0</code></pre>
+
+      <div class="note">
+        <strong>Summary:</strong> <code>eva</code> on a binding is only needed when you want
+        to force a <em>runtime</em> function to run at compile time. Results from calling
+        functions that already have <code>eva</code> parameters are automatically compile-time
+        — no annotation required on the binding, but it must be <code>const</code> or
+        <code>local</code>.
+      </div>
     </section>
 
     <!-- Literals -->
@@ -947,6 +825,7 @@ end</code></pre>
       <p>
         Modes apply to any parameter, including method receivers.
         The mode appears before the identifier, and before the optional type annotation.
+        The same modes can also be applied to <a href="#bindings">bindings</a>.
       </p>
 
       <table>
@@ -971,16 +850,54 @@ end</code></pre>
           </tr>
           <tr>
             <td><code>eva</code></td>
-            <td><code>(eva x: T)</code></td>
-            <td>Compile-time constant. The value must be known at compile time and is evaluated by the compiler.</td>
-          </tr>
-          <tr>
-            <td><code>dyn</code></td>
-            <td><code>(dyn x: I)</code></td>
-            <td>Dynamic dispatch. The argument may be any value whose type implements interface <code>I</code>. See <a href="#interfaces">Interfaces</a>.</td>
+            <td><code>(eva x: T)</code> or <code>(x: type)</code></td>
+            <td>Compile-time constant. The value must be known at compile time and is evaluated by the compiler. <strong>Inferred automatically when the parameter type is <code>type</code>.</strong></td>
           </tr>
         </tbody>
       </table>
+
+      <h3>Automatic <code>eva</code> Inference for <code>type</code> Parameters</h3>
+      <p>
+        When a parameter's type annotation is <code>type</code>, the <code>eva</code> mode is
+        inferred automatically — no explicit keyword is needed. Writing <code>(t: type)</code>
+        is exactly equivalent to <code>(eva t: type)</code>. This keeps generic function
+        signatures clean.
+      </p>
+<pre><code class="ruka">// Explicit — valid, but redundant
+const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
+
+// Inferred — preferred; `eva` is implied by the `type` annotation
+const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
+
+// Compile-time type constructor — same rule applies
+const Pair = (a: type, b: type) do
+    record { first: a, second: b }
+end</code></pre>
+
+      <h3>Storing Results of <code>eva</code>-Parametered Calls</h3>
+      <p>
+        If a function has any <code>eva</code> parameters (including inferred ones from
+        <code>type</code>-typed params), it runs at compile time. The result is automatically
+        a compile-time constant — the compiler infers this without any annotation on the
+        binding. However, the binding must be <code>const</code> or <code>local</code>;
+        assigning a compile-time result to a <code>let</code> (mutable) binding is a
+        compile error.
+      </p>
+      <p>
+        Results can also be used without a binding — passed directly in a pipeline, as a
+        function argument, or as a record field — in which case no binding is needed at all.
+      </p>
+<pre><code class="ruka">const Pair = (a: type, b: type) do
+    record { first: a, second: b }
+end
+
+// Binding inferred as a compile-time constant — const or local required
+local IntStrPair = Pair(i32, string)
+
+// let IntStrPair = Pair(i32, string)  // compile error — compile-time result in mutable binding
+
+// Used inline without a binding — also valid
+let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
 
 <pre><code class="ruka">// mut — in-place mutation
 const fill (mut self: Buffer) = (value: u8) do
@@ -997,7 +914,7 @@ const hash = (stc data: [u8]): u64 do
     // data is on the stack, cannot be returned or stored outside
 end
 
-// eva — compile-time value
+// eva — compile-time value (explicit annotation)
 const repeat = (eva times: usize, msg: string) do
     let i = 0
     while i &lt; times do
@@ -1074,9 +991,10 @@ end                                           // 14</code></pre>
         The trailing syntax is especially readable for collection operations. Named
         closure parameters are placed last in the definition so callers can trail them.
       </p>
-<pre><code class="ruka">const map    = (eva t: type, eva u: type, arr: [t], ~f: (t): u): [u] do ... end
-const filter = (eva t: type, arr: [t], ~pred: (t): bool): [t] do ... end
-const reduce = (eva t: type, eva u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
+<pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
+const map    = (t: type, u: type, arr: [t], ~f: (t): u): [u] do ... end
+const filter = (t: type, arr: [t], ~pred: (t): bool): [t] do ... end
+const reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
 
 let nums = .{1, 2, 3, 4, 5}
 
@@ -1144,13 +1062,15 @@ const perimeter (self) = () => 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape interface — no declaration needed</code></pre>
 
-      <h3>The <code>dyn</code> Parameter Mode</h3>
+      <h3>Dynamic Dispatch via Interface Types</h3>
       <p>
-        The <code>dyn</code> mode on a parameter means the function accepts any value whose
-        type satisfies the named interface. The concrete type is resolved at the call site;
-        dispatch is dynamic at runtime.
+        When a parameter's type is an interface, dynamic dispatch is inferred automatically.
+        Any value whose type satisfies the interface can be passed — no extra keyword is
+        needed. The concrete type is resolved at the call site; method calls on the parameter
+        are dispatched through a vtable at runtime.
       </p>
-<pre><code class="ruka">const print_shape_info = (dyn s: Shape) do
+<pre><code class="ruka">// Interface type on a parameter — dynamic dispatch is automatic
+const print_shape_info = (s: Shape) do
     @println("area:      ${s.area()}")
     @println("perimeter: ${s.perimeter()}")
 end
@@ -1445,12 +1365,13 @@ end</code></pre>
 
       <h3>Generics via eva</h3>
       <p>
-        A function with an <code>eva t: type</code> parameter is instantiated separately for
+        A function with a <code>type</code>-annotated parameter is instantiated separately for
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
-        comptime in Zig.
+        comptime in Zig. The <code>eva</code> mode is inferred automatically from the
+        <code>type</code> annotation — no explicit keyword is needed.
       </p>
-<pre><code class="ruka">// Generic min — instantiated once per type at call site
-const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
+<pre><code class="ruka">// Generic min — `t: type` implies eva; instantiated once per concrete type
+const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
 
 const main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
@@ -1460,9 +1381,11 @@ end</code></pre>
       <h3>Generating types at compile time</h3>
       <p>
         Compile-time functions can return types, enabling parameterized type definitions.
+        Non-<code>type</code> parameters that must be compile-time constants still require
+        an explicit <code>eva</code> annotation.
       </p>
-<pre><code class="ruka">// Returns a record type parameterized by element type and capacity
-const FixedArray = (eva t: type, eva cap: usize) do
+<pre><code class="ruka">// Returns a record type — `t: type` infers eva; `cap` requires explicit eva
+const FixedArray = (t: type, eva cap: usize) do
     record {
         data: [t],
         len:  usize
@@ -1470,7 +1393,7 @@ const FixedArray = (eva t: type, eva cap: usize) do
 end
 
 // Instantiate at compile time — these are concrete types
-local IntBuf  = FixedArray(i32, 64)
+local IntBuf   = FixedArray(i32, 64)
 local FloatBuf = FixedArray(f64, 16)
 
 const main = () do
@@ -1497,8 +1420,29 @@ end</code></pre>
       <div class="note">
         <strong>Note:</strong> Only values that are provably known at compile time may be
         passed to <code>eva</code> parameters. Passing a runtime value to an <code>eva</code>
-        parameter is a compile error.
+        parameter is a compile error. Compile-time known values include: literals, <code>const</code>
+        and <code>local</code> constants, and results of other compile-time evaluations.
       </div>
+
+      <h3>Forcing runtime functions at compile time</h3>
+      <p>
+        A binding declared with <code>eva</code> forces any function — including ordinary
+        runtime functions — to execute at compile time. This is distinct from calling a
+        function that has <code>eva</code> parameters (which runs at compile time automatically).
+        All arguments must be compile-time known.
+      </p>
+<pre><code class="ruka">const PI = 3.14159265358979
+
+// @sqrt is a runtime function, but eva forces it to run at compile time
+local eva SQRT_2: f64 = @sqrt(2.0)          // literal — compile-time known
+local eva INV_PI: f64 = 1.0 / PI            // const PI — compile-time known
+
+// Eva results are themselves compile-time known and can be chained
+local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0
+
+// Useful for any expensive or non-trivial constant
+local eva LOOKUP = generate_lookup_table(256)
+local eva KEY_HASH = compute_hash("app-secret")</code></pre>
     </section>
 
   </main>
@@ -1508,107 +1452,7 @@ end</code></pre>
   <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
-<script>
-  function highlightRuka(raw) {
-    const KEYWORDS = new Set([
-      'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-      'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
-      'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'dyn', 'true', 'false'
-    ]);
-
-    function esc(s) {
-      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    function span(cls, s) {
-      return '<span class="' + cls + '">' + esc(s) + '</span>';
-    }
-
-    let result = '', i = 0;
-    const code = raw;
-
-    while (i < code.length) {
-      if (code[i] === '/' && i + 1 < code.length && code[i + 1] === '/') {
-        let end = code.indexOf('\n', i);
-        if (end === -1) end = code.length;
-        result += span('cmt', code.slice(i, end));
-        i = end;
-        continue;
-      }
-      if (code[i] === '"') {
-        let j = i + 1;
-        let strOut = '"';
-        while (j < code.length && code[j] !== '"') {
-          if (code[j] === '\\') { strOut += code[j] + (code[j+1] ?? ''); j += 2; continue; }
-          if (code[j] === '$' && code[j+1] === '{') {
-            result += span('str', strOut);
-            strOut = '';
-            result += span('str', '${');
-            j += 2;
-            let depth = 1, inner = '';
-            while (j < code.length && depth > 0) {
-              if (code[j] === '{') depth++;
-              else if (code[j] === '}') { depth--; if (depth === 0) break; }
-              inner += code[j++];
-            }
-            result += highlightRuka(inner);
-            result += span('str', '}');
-            j++;
-            continue;
-          }
-          strOut += code[j++];
-        }
-        strOut += '"';
-        result += span('str', strOut);
-        i = j + 1;
-        continue;
-      }
-      if (code[i] === '@') {
-        let j = i + 1;
-        while (j < code.length && /\w/.test(code[j])) j++;
-        result += span('bi', code.slice(i, j));
-        i = j;
-        continue;
-      }
-      if (code[i] === '~') {
-        let j = i + 1;
-        while (j < code.length && /\w/.test(code[j])) j++;
-        result += span('lbl', code.slice(i, j));
-        i = j;
-        continue;
-      }
-      if (/\d/.test(code[i])) {
-        let j = i;
-        if (code[i] === '0' && i + 1 < code.length && (code[i + 1] === 'b' || code[i + 1] === 'x')) {
-          j += 2; while (j < code.length && /[\da-fA-F]/.test(code[j])) j++;
-        } else {
-          while (j < code.length && /[\d.]/.test(code[j])) j++;
-        }
-        result += span('num', code.slice(i, j));
-        i = j;
-        continue;
-      }
-      if (/[a-zA-Z_]/.test(code[i])) {
-        let j = i;
-        while (j < code.length && /\w/.test(code[j])) j++;
-        const word = code.slice(i, j);
-        if (KEYWORDS.has(word)) result += span('kw', word);
-        else if (/^[A-Z]/.test(word)) result += span('tp', word);
-        else result += esc(word);
-        i = j;
-        continue;
-      }
-      result += esc(code[i]);
-      i++;
-    }
-    return result;
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('code.ruka').forEach(el => {
-      el.innerHTML = highlightRuka(el.textContent);
-    });
-  });
-</script>
+<script src="highlight.js"></script>
 
 </body>
 </html>
