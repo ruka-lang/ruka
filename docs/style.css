@@ -164,8 +164,8 @@ code { font-family: 'Intel One Mono', 'Courier New', monospace; }
 /* ────────────────────────────────────────────────
    Code font weight
    ──────────────────────────────────────────────── */
-pre code { font-weight: 450; }
-p code, li code, td code { font-weight: 450; }
+pre code { font-weight: 550; }
+p code, li code, td code { font-weight: 550; }
 
 /* ── Syntax highlight classes ── */
 .cmt { color: var(--cmt); }

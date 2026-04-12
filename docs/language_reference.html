@@ -34,18 +34,18 @@
       <li><a href="#builtin-types">Built-in Types</a></li>
       <li><a href="#user-types">User-defined Types</a></li>
       <li><a href="#type-inference">Type Inference</a></li>
+      <li><a href="#control-flow">Control Flow</a></li>
+      <li><a href="#pattern-matching">Pattern Matching</a></li>
+      <li><a href="#loops">Loops</a></li>
       <li><a href="#functions">Functions</a></li>
       <li><a href="#static-functions">Static Functions</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
       <li><a href="#named-params">Named Parameters</a></li>
       <li><a href="#interfaces">Interfaces</a></li>
-      <li><a href="#control-flow">Control Flow</a></li>
-      <li><a href="#pattern-matching">Pattern Matching</a></li>
-      <li><a href="#loops">Loops</a></li>
+      <li><a href="#pipelines">Pipelines</a></li>
       <li><a href="#modules">Modules</a></li>
       <li><a href="#imports">Imports</a></li>
-      <li><a href="#pipelines">Pipelines</a></li>
       <li><a href="#builtins">Built-in Functions</a></li>
       <li><a href="#comptime">Compile-Time Evaluation</a></li>
     </ul>
@@ -68,7 +68,8 @@ let x = 12  // Inline comment</code></pre>
       <h2>Bindings</h2>
       <p>
         Ruka has three binding forms. All bindings are declared with an initial value;
-        there are no uninitialized variables.
+        there are no uninitialized variables. Bindings can be shadowed by reusing the same
+        identifier, or discarded with <code>_</code>.
       </p>
       <table>
         <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
@@ -100,7 +101,7 @@ local max_retries = 5  // private constant</code></pre>
           <tr>
             <td><code>stc</code></td>
             <td><code>let stc name = ...</code></td>
-            <td>Stack-allocated. The value cannot escape the enclosing function scope (cannot be returned or stored in a heap-allocated structure).</td>
+            <td>Stack-allocated. The value cannot escape the enclosing function scope without performing a copy.</td>
           </tr>
           <tr>
             <td><code>eva</code></td>
@@ -109,49 +110,14 @@ local max_retries = 5  // private constant</code></pre>
           </tr>
         </tbody>
       </table>
-
-      <h4>Inferred compile-time bindings from <code>eva</code> parameters</h4>
       <p>
-        When you call a function that has <code>eva</code> parameters (including any function
-        with a <code>type</code>-annotated parameter), the result is already a compile-time
-        value. Storing it in a binding is inferred as a compile-time constant — no explicit
-        <code>eva</code> is needed on the binding, but the binding must be <code>const</code>
-        or <code>local</code> (immutable). Assigning such a result to a <code>let</code>
-        binding is a compile error.
+        For more detail see: <a href="#comptime">Compile-Time Evaluation</a>.
       </p>
-<pre><code class="ruka">// Calling a function with type parameters — result is a compile-time constant
-local IntPair = Pair(i32, string)   // const or local required; let would be an error
-
-// You can use the result without binding it at all — inline in a pipeline or call
-let p = Pair(i32, string).{ first = 42, second = "hello" }</code></pre>
-
-      <h4>Explicit <code>eva</code> binding — forcing a runtime function at compile time</h4>
-      <p>
-        <code>eva</code> on a binding forces a normal runtime function to run at compile time.
-        This is useful when you want a constant that requires real computation — for example,
-        a square root, a hash, or a generated lookup table. The arguments must all be
-        compile-time known: literals, <code>const</code>/<code>local</code> constants, or
-        results of other <code>eva</code> evaluations.
-      </p>
-<pre><code class="ruka">// Stack-allocated buffer — provably cannot escape this function
-let stc buf: [u8] = .{}
-
-const PI = 3.14159265358979
-
-// Force runtime math functions to evaluate at compile time
-local eva SQRT_2: f64  = @sqrt(2.0)           // argument is a literal
-local eva INV_PI: f64  = 1.0 / PI             // argument is a const — compile-time known
-local eva HASH        = compute_hash("seed")  // any function, as long as args are known
-
-// Eva results are themselves compile-time known, so they can chain
-local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0</code></pre>
-
       <div class="note">
-        <strong>Summary:</strong> <code>eva</code> on a binding is only needed when you want
-        to force a <em>runtime</em> function to run at compile time. Results from calling
-        functions that already have <code>eva</code> parameters are automatically compile-time
-        — no annotation required on the binding, but it must be <code>const</code> or
-        <code>local</code>.
+        <code>eva</code> on a binding is only needed when you want to force a <em>runtime</em>
+        function to run at compile time. Results from calling functions that already have
+        <code>eva</code> parameters are automatically compile-time — no annotation is required
+        on the binding, but it must be <code>const</code> or <code>local</code>.
       </div>
     </section>
 
@@ -196,12 +162,16 @@ let greeting = "Hello, ${name}!"</code></pre>
 let point  = .{10, 20}            // [i32, i32]
 let triple = .{1, "hello", true}  // [i32, string, bool]
 
+let y = point[1]
+
 // Explicit array annotation — compiler produces an array
 let primes: [i32] = .{2, 3, 5, 7, 11}
 let empty:  [i32] = .{}
 
+let two = primes[0]
+
 // Type context from a function parameter resolves the ambiguity
-const sum_all = (values: [i32]): i32 => // ...
+const sum_all = (values: [i32]) -> i32 => // ...
 
 sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
 
@@ -216,7 +186,7 @@ sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</co
     "carol" => 91
 }
 
-let lookup = .{ 1 => "one", 2 => "two", 3 => "three" }</code></pre>
+local score = scores["alice"]</code></pre>
 
       <h3>Record Literals</h3>
       <p>
@@ -233,7 +203,9 @@ let v = Vector.{ x = 1.0, y = 2.0 }
 // Field shorthand — variable name matches field name
 let x = 3.0
 let y = 4.0
-let w = Vector.{ x, y }  // equivalent to .{ x = x, y = y }</code></pre>
+let w = Vector.{ x, y }  // equivalent to .{ x = x, y = y }
+
+let x = w.x</code></pre>
 
       <h3>Variant Constructors</h3>
       <p>Variant values are constructed using dot-prefix notation on the variant tag name.</p>
@@ -278,27 +250,27 @@ end
 let nums: [i32] = .{10, 20, 30, 40, 50}
 let slice = nums[1..4]   // .{20, 30, 40}</code></pre>
 
-      <h3>Unwrap Sugar</h3>
+      <h3>Unwrap Methods</h3>
       <p>
-        Both built-in variant types provide postfix shorthand for force-unwrapping their
-        inner value. These operators panic at runtime if the value is absent or an error.
+        Both built-in variant types provide methods for force-unwrapping their
+        inner value. These methods panic at runtime if the value is absent or an error.
       </p>
       <table>
         <thead><tr><th>Syntax</th><th>Type</th><th>Behaviour</th></tr></thead>
         <tbody>
-          <tr><td><code>expr.?</code></td><td><code>option(T)</code></td><td>Returns the inner <code>T</code>; panics if <code>.none</code>.</td></tr>
-          <tr><td><code>expr.!</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
+          <tr><td><code>expr.?()</code></td><td><code>option(T)</code></td><td>Returns the inner <code>T</code>; panics if <code>.none</code>.</td></tr>
+          <tr><td><code>expr.!()</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
         </tbody>
       </table>
 <pre><code class="ruka">let name: option(string) = .some("Ruka")
-let s = name.?               // "Ruka" — panics if .none
+let s = name.?()               // "Ruka" — panics if .none
 
 let res: result(i32, string) = .ok(42)
-let n = res.!                // 42 — panics if .err
+let n = res.!()                // 42 — panics if .err
 
-// Common in chains where failure is considered a programmer error
-let count = parse_int(input).!
-let upper = find_user(id).?.name</code></pre>
+// Common in chains where failure is a programmer error
+let count = parse_int(input).!()
+let upper = find_user(id).?().name</code></pre>
     </section>
 
     <!-- Built-in Types -->
@@ -386,8 +358,8 @@ let tail   = nums[2..=4]  // .{30, 40, 50}</code></pre>
 let f    = 3.14            // inferred as float  — default float type
 let name = "Ruka"          // inferred as string
 
-let y: u8  = 10            // annotation required — specific integer type differs from default
-let g: f32 = 3.14          // annotation required — specific float type differs from default
+let y: u8  = 10            // annotation required — non-default integer width
+let g: f32 = 3.14          // annotation required — non-default float width
 
 let scores: [f64] = .{9.5, 8.0, 7.3}   // annotation required — collection literal needs context
 let pair: [i32, string] = .{1, "one"}
@@ -457,10 +429,9 @@ local Cat = record {
         determine a unique type. There is no implicit fallback type and no silent coercion.
       </p>
       <p>
-        The scope restriction on methods and static functions (they must be declared in
-        the same scope or module as their type) is what makes this possible: the compiler
-        always knows the complete set of types to consider when resolving an unannotated
-        expression.
+        Methods and static functions must be declared in the same scope or module as their type.
+        This is what makes inference possible: the compiler always knows the complete set of
+        types to consider when resolving an unannotated expression.
       </p>
 
       <h3>Method Receiver Inference</h3>
@@ -480,11 +451,12 @@ const area (self) = () => 3.14159 * self.radius * self.radius
 // self inferred as Rect — only type with both `width` and `height`
 const area (self) = () => self.width * self.height
 
-// Explicit annotation required — both types have a `name` field
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
-const label (self: Dog) = () => "${self.name} (${self.breed})"
+// Inferred as Dog — only Dog has both `name` and `breed`
+const label (self) = () => "${self.name} (${self.breed})"
+// Explicit annotation required — both types have a `name` field
 const label (self: Cat) = () => "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
@@ -502,12 +474,11 @@ let c = .{ radius = 5.0 }
 // Inferred as Rect — only type with `width` and `height`
 let r = .{ width = 4.0, height = 6.0 }
 
-// Unambiguous by field set even when multiple types share some field names
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
-let d = .{ name = "Rex", breed = "Labrador" }  // Dog — Cat has no `breed`
-let c2 = .{ name = "Whiskers", indoor = true }  // Cat — Dog has no `indoor`</code></pre>
+let d  = .{ name = "Rex",      breed = "Labrador" }  // Dog — Cat has no `breed`
+let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `indoor`</code></pre>
 
       <h3>Return Type Inference</h3>
       <p>
@@ -533,9 +504,7 @@ end</code></pre>
       <h3>Numeric Literal Defaults</h3>
       <p>
         Numeric literals have default types that apply when no context provides a more
-        specific type. The default is used at the point of the literal — if the surrounding
-        context (a binding annotation, a function parameter type, a return position) demands
-        a different numeric type, that type is used instead.
+        specific type.
       </p>
       <table>
         <thead><tr><th>Literal</th><th>Default type</th><th>Override example</th></tr></thead>
@@ -556,8 +525,8 @@ end</code></pre>
 let b = 3.14        // float
 
 // Context overrides the default
-let c: u8   = 42    // u8  — annotation provides context
-let d: f64  = 3.14  // f64 — annotation provides context
+let c: u8  = 42    // u8  — annotation provides context
+let d: f64 = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
 const double = (x: i32) => x * 2
@@ -567,531 +536,6 @@ let result = double(10)  // 10 is produced as i32, not isize</code></pre>
         <strong>Ambiguity is always a compile error.</strong> The compiler will highlight the
         ambiguous expression and report which types are candidates. Resolve it by adding a
         type annotation at the point of ambiguity.
-      </div>
-    </section>
-
-    <!-- Functions -->
-    <section id="functions">
-      <h2>Functions</h2>
-      <p>
-        Functions are anonymous values stored in bindings. There is no special
-        <code>fn</code> keyword — a function is written as a parameter list followed by
-        a body block or single expression.
-      </p>
-      <p>
-        The last expression in a block is returned. An early return can be written with
-        the <code>return</code> keyword.
-      </p>
-
-      <h4>Multiline function (do…end block)</h4>
-<pre><code class="ruka">local add = (a: i32, b: i32) do
-    a + b
-end
-
-local greet = (name: string) do
-    let msg = "Hello, ${name}!"
-    @println(msg)
-    // last expression is (), the unit value
-end</code></pre>
-
-      <h4>Single-expression function (arrow)</h4>
-      <p>
-        The <code>=&gt;</code> form means the body is the rest of that same line — no closing
-        <code>end</code> is required. For bodies that span multiple lines, use <code>do…end</code>.
-      </p>
-<pre><code class="ruka">local square = (x: i32) => x * x
-
-local abs = (x: i32) => if x &lt; 0 do -x else x end
-
-// Multi-line body — must use do...end
-local max = (a: i32, b: i32) do
-    if a &gt; b do a
-    else b
-    end
-end</code></pre>
-
-      <h4>Type inference on parameters</h4>
-      <p>
-        Parameter types may be omitted when they can be inferred from context, for example
-        inside a type's method where the receiver type is known.
-      </p>
-<pre><code class="ruka">// Full annotation
-local max = (a: i32, b: i32) => if a &gt; b do a else b end
-
-// Inferred in context
-local identity = (x) => x</code></pre>
-
-      <h4>Return type annotation</h4>
-      <p>
-        A colon after the parameter list specifies the return type. This applies whether
-        the body is a same-line <code>=&gt;</code> or a <code>do…end</code> block.
-        The same colon syntax is used when annotating the binding itself.
-      </p>
-<pre><code class="ruka">// Inline — return type after the parameter list
-local square = (x: i32): i32 => x * x
-
-// Works identically with do...end
-local clamp = (x: i32, lo: i32, hi: i32): i32 do
-    if x &lt; lo do lo else if x &gt; hi do hi else x end
-end
-
-// Binding-side annotation — function type uses the same colon syntax
-local square2: (i32): i32 = (x) => x * x</code></pre>
-
-      <h4>Function type annotation</h4>
-      <p>
-        The type of a function is written as a parameter list followed by a colon and the
-        return type. A colon is the universal separator between a value and its type.
-      </p>
-<pre><code class="ruka">// A function that takes i32 and returns i32
-let transform: (i32): i32 = (x) => x * 2
-
-// A function that takes two strings and returns bool
-const compare: (string, string): bool = (a, b) => a == b</code></pre>
-
-      <h4>Entry point</h4>
-      <p>The program entry point is a public constant named <code>main</code>.</p>
-<pre><code class="ruka">const main = () do
-    @println("Hello, world!")
-end</code></pre>
-    </section>
-
-    <!-- Static Functions -->
-    <section id="static-functions">
-      <h2>Static Functions</h2>
-      <p>
-        A static function is associated with a type but called on the type itself rather than
-        on an instance. It is declared by placing the type name in parentheses between the
-        binding name and the <code>=</code> sign.
-      </p>
-<pre><code class="ruka">local Vector = record {
-    x: f64,
-    y: f64
-}
-
-// Public static function — called as Vector.new(...)
-const new (Vector) = (x: f64, y: f64) do
-    Vector.{ x, y }
-end
-
-// Private static function
-local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
-
-const main = () do
-    let v = Vector.new(1.0, 2.0)
-    let origin = Vector.zero()
-end</code></pre>
-
-      <h3>Static Functions on Variants</h3>
-      <p>
-        Static functions can be attached to variant types using the same receiver syntax.
-        This is useful for named constructors and factory helpers.
-      </p>
-<pre><code class="ruka">local Direction = variant {
-    north,
-    south,
-    east,
-    west
-}
-
-// Named constructor on a variant
-const from_str (Direction) = (s: string): option(Direction) do
-    match s with
-        "north" => .some(Direction.north)
-        "south" => .some(Direction.south)
-        "east"  => .some(Direction.east)
-        "west"  => .some(Direction.west)
-        else    => .none
-    end
-end
-
-const main = () do
-    let d = Direction.from_str("east")
-end</code></pre>
-
-      <div class="note">
-        <strong>Note:</strong> The receiver in parentheses is the <em>type</em>, not an instance.
-        For methods (called on an instance), the receiver is given a name — see the next section.
-      </div>
-
-      <div class="note">
-        <strong>Scope restriction:</strong> Static functions (and methods) may only be declared
-        in the same scope or module where the type is defined. This restriction is what enables
-        type inference — the compiler knows the complete set of types in scope and can uniquely
-        resolve unannotated receivers and literals. Attaching behaviour from a foreign module
-        would break this guarantee.
-      </div>
-    </section>
-
-    <!-- Methods -->
-    <section id="methods">
-      <h2>Methods</h2>
-      <p>
-        Methods are declared similarly to static functions, except the receiver is given a name.
-        That name becomes the implicit first argument — the instance the method is called on.
-      </p>
-<pre><code class="ruka">local Vector = record {
-    x: f64,
-    y: f64
-}
-
-// Public method — `self` is the receiver instance
-const add (self: Vector) = (other: Vector) do
-    Vector.{ x = self.x + other.x, y = self.y + other.y }
-end
-
-const length (self: Vector) = () do
-    @sqrt(self.x * self.x + self.y * self.y)
-end
-
-// Private method
-local negate (self: Vector) = () => Vector.{ x = -self.x, y = -self.y }
-
-const main = () do
-    let a = Vector.new(1.0, 0.0)
-    let b = Vector.new(0.0, 1.0)
-    let c = a.add(b)
-    @println("Length: ${c.length()}")
-end</code></pre>
-
-      <h3>Mutable Methods</h3>
-      <p>
-        To mutate the receiver inside a method, apply the <code>mut</code> mode before
-        the receiver identifier. The caller must hold a mutable binding for the receiver.
-      </p>
-<pre><code class="ruka">local Counter = record { value: i32 }
-
-const new (Counter) = () => Counter.{ value = 0 }
-
-// `mut self` — the receiver is a mutable reference
-const increment (mut self: Counter) = () do
-    self.value = self.value + 1
-end
-
-const main = () do
-    let c = Counter.new()
-    c.increment()         // value is now 1
-    c.increment()         // value is now 2
-    @println("${c.value}")
-end</code></pre>
-
-      <h3>Methods on Variants</h3>
-      <p>
-        Methods can also be attached to variant types. The receiver is an instance of the
-        variant, and pattern matching can be used inside the body.
-      </p>
-<pre><code class="ruka">local Direction = variant {
-    north,
-    south,
-    east,
-    west
-}
-
-// Method on a variant type
-const opposite (self: Direction) = () do
-    match self with
-        .north => Direction.south
-        .south => Direction.north
-        .east  => Direction.west
-        .west  => Direction.east
-    end
-end
-
-const is_vertical (self: Direction) = () =>
-    self == Direction.north or self == Direction.south
-
-const main = () do
-    let d = Direction.north
-    @println("${d.opposite().is_vertical()}")  // true
-end</code></pre>
-
-      <div class="note">
-        <strong>Scope restriction:</strong> Methods (and static functions) may only be declared
-        in the same scope or module where the type is defined. This is required for type inference
-        — the compiler resolves the receiver type by checking which type in the current scope
-        has the fields accessed in the method body. Declaring methods in foreign scopes would
-        make that resolution ambiguous.
-      </div>
-    </section>
-
-    <!-- Parameter Modes -->
-    <section id="parameter-modes">
-      <h2>Parameter Modes</h2>
-      <p>
-        By default, all arguments are passed as immutable references managed by the garbage
-        collector. A <em>mode keyword</em> placed before the parameter identifier changes
-        how the compiler treats the lifetime and ownership of that value.
-      </p>
-      <p>
-        Modes apply to any parameter, including method receivers.
-        The mode appears before the identifier, and before the optional type annotation.
-        The same modes can also be applied to <a href="#bindings">bindings</a>.
-      </p>
-
-      <table>
-        <thead>
-          <tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>mut</code></td>
-            <td><code>(mut x: T)</code></td>
-            <td>Mutable reference. Changes to <code>x</code> are visible to the caller.</td>
-          </tr>
-          <tr>
-            <td><code>mov</code></td>
-            <td><code>(mov x: T)</code></td>
-            <td>Ownership is transferred into this function. The caller cannot use the value after the call.</td>
-          </tr>
-          <tr>
-            <td><code>stc</code></td>
-            <td><code>(stc x: T)</code></td>
-            <td>Stack-allocated copy. The value cannot escape the function scope.</td>
-          </tr>
-          <tr>
-            <td><code>eva</code></td>
-            <td><code>(eva x: T)</code> or <code>(x: type)</code></td>
-            <td>Compile-time constant. The value must be known at compile time and is evaluated by the compiler. <strong>Inferred automatically when the parameter type is <code>type</code>.</strong></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Automatic <code>eva</code> Inference for <code>type</code> Parameters</h3>
-      <p>
-        When a parameter's type annotation is <code>type</code>, the <code>eva</code> mode is
-        inferred automatically — no explicit keyword is needed. Writing <code>(t: type)</code>
-        is exactly equivalent to <code>(eva t: type)</code>. This keeps generic function
-        signatures clean.
-      </p>
-<pre><code class="ruka">// Explicit — valid, but redundant
-const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
-
-// Inferred — preferred; `eva` is implied by the `type` annotation
-const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
-
-// Compile-time type constructor — same rule applies
-const Pair = (a: type, b: type) do
-    record { first: a, second: b }
-end</code></pre>
-
-      <h3>Storing Results of <code>eva</code>-Parametered Calls</h3>
-      <p>
-        If a function has any <code>eva</code> parameters (including inferred ones from
-        <code>type</code>-typed params), it runs at compile time. The result is automatically
-        a compile-time constant — the compiler infers this without any annotation on the
-        binding. However, the binding must be <code>const</code> or <code>local</code>;
-        assigning a compile-time result to a <code>let</code> (mutable) binding is a
-        compile error.
-      </p>
-      <p>
-        Results can also be used without a binding — passed directly in a pipeline, as a
-        function argument, or as a record field — in which case no binding is needed at all.
-      </p>
-<pre><code class="ruka">const Pair = (a: type, b: type) do
-    record { first: a, second: b }
-end
-
-// Binding inferred as a compile-time constant — const or local required
-local IntStrPair = Pair(i32, string)
-
-// let IntStrPair = Pair(i32, string)  // compile error — compile-time result in mutable binding
-
-// Used inline without a binding — also valid
-let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
-
-<pre><code class="ruka">// mut — in-place mutation
-const fill (mut self: Buffer) = (value: u8) do
-    // modifies caller's buffer
-end
-
-// mov — consume / transfer ownership
-const close = (mov handle: FileHandle) do
-    // handle is invalid for the caller after this call
-end
-
-// stc — stack allocated, cannot escape scope
-const hash = (stc data: [u8]): u64 do
-    // data is on the stack, cannot be returned or stored outside
-end
-
-// eva — compile-time value (explicit annotation)
-const repeat = (eva times: usize, msg: string) do
-    let i = 0
-    while i &lt; times do
-        @println(msg)
-        i = i + 1
-    end
-end</code></pre>
-
-      <div class="note">
-        <strong>Note:</strong> <code>eva</code> is covered in detail in the
-        <a href="#comptime">Compile-Time Evaluation</a> section.
-      </div>
-    </section>
-
-    <!-- Named Parameters -->
-    <section id="named-params">
-      <h2>Named Parameters</h2>
-      <p>
-        Prepending <code>~</code> to a parameter name makes it a <em>named parameter</em>.
-        Named parameters must be passed by label at the call site using
-        <code>~label=value</code> syntax and may appear in any order, regardless of their
-        position in the parameter list. Positional and named parameters can be freely mixed.
-      </p>
-
-      <h3>Declaring Named Parameters</h3>
-<pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
-const greet = (~name: string, ~greeting: string) =>
-    "${greeting}, ${name}!"
-
-// Mix of positional and named
-const clamp = (x: isize, ~lo: isize, ~hi: isize) do
-    if x &lt; lo do lo else if x &gt; hi do hi else x end
-end</code></pre>
-
-      <h3>Calling with Named Parameters</h3>
-<pre><code class="ruka">greet(~name="Ruka", ~greeting="Hello")   // "Hello, Ruka!"
-greet(~greeting="Hi", ~name="World")     // "Hi, World!" — order doesn't matter
-
-let v = clamp(42, ~lo=0, ~hi=10)         // 10 — positional first, named in any order</code></pre>
-
-      <h3>Label Shorthand</h3>
-      <p>
-        If a local variable shares the label name, the <code>=value</code> part can be omitted.
-      </p>
-<pre><code class="ruka">let name     = "Ruka"
-let greeting = "Hello"
-
-greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)</code></pre>
-
-      <h3>Trailing Block Syntax</h3>
-      <p>
-        Named parameters can be passed <em>after</em> the closing parenthesis. This is
-        most useful for higher-order functions that accept a closure — the named argument
-        reads as a block visually attached to the call rather than buried inside it.
-        Any number of named parameters may trail; by convention, closure parameters are
-        placed last in the parameter list so they trail naturally.
-      </p>
-<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize): isize) => f(f(x))
-
-// Named param inside the argument list — standard form
-let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
-
-// Trailing form — same result, reads like an attached block
-let r2 = apply_twice(3) ~f=(x) => x * 2     // 12
-
-// Multi-line trailing block
-let r3 = apply_twice(3) ~f=(x) do
-    let y = x * 2
-    y + 1
-end                                           // 14</code></pre>
-
-      <h4>Higher-order functions</h4>
-      <p>
-        The trailing syntax is especially readable for collection operations. Named
-        closure parameters are placed last in the definition so callers can trail them.
-      </p>
-<pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
-const map    = (t: type, u: type, arr: [t], ~f: (t): u): [u] do ... end
-const filter = (t: type, arr: [t], ~pred: (t): bool): [t] do ... end
-const reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
-
-let nums = .{1, 2, 3, 4, 5}
-
-let doubled = map(nums) ~f=(x) => x * 2
-let evens   = filter(nums) ~pred=(x) => x % 2 == 0
-let total   = reduce(nums, 0) ~f=(acc, x) => acc + x   // 15
-
-// Multi-line body — the trailing block scales naturally
-let results = map(nums) ~f=(x) do
-    let squared = x * x
-    squared - 1
-end</code></pre>
-
-      <div class="note">
-        <strong>Note:</strong> Named parameters are always identified by label, never by
-        position. A named parameter cannot be passed without its <code>~label=</code> prefix.
-      </div>
-    </section>
-
-    <!-- Interfaces -->
-    <section id="interfaces">
-      <h2>Interfaces</h2>
-      <p>
-        An interface defines a set of method signatures that a type must satisfy. Interfaces
-        describe behaviour only — they carry no fields or state. Any type that implements all
-        of an interface's methods automatically satisfies it; there is no explicit
-        <em>implements</em> declaration.
-      </p>
-      <p>
-        Interface values are stored in bindings like any other type. Inside the braces, each
-        line declares one method signature: the method name, its receiver (with optional mode),
-        a colon, then the remaining parameter list, and a colon followed by the return type.
-      </p>
-
-      <h3>Declaring an Interface</h3>
-<pre><code class="ruka">// A type that can be printed
-const Printable = interface {
-    print(self): (): unit
-}
-
-// A type that supports a binary add operation
-const Adder = interface {
-    add(mut self): (b: usize): unit
-}
-
-// Multiple methods
-const Shape = interface {
-    area(self):      (): f64
-    perimeter(self): (): f64
-}</code></pre>
-
-      <h3>Satisfying an Interface</h3>
-      <p>
-        A type satisfies an interface implicitly. As long as the required methods are declared
-        in the same module as the type, the compiler considers the type to implement the
-        interface. Because methods must be co-located with the type, receiver types and return
-        types are typically inferred — annotations are only needed when the field set is ambiguous.
-      </p>
-<pre><code class="ruka">local Circle = record { radius: f64 }
-
-// self inferred as Circle (only type in scope with `radius`);
-// return types inferred from the expressions
-const area      (self) = () => 3.14159 * self.radius * self.radius
-const perimeter (self) = () => 2.0 * 3.14159 * self.radius
-
-// Circle now satisfies the Shape interface — no declaration needed</code></pre>
-
-      <h3>Dynamic Dispatch via Interface Types</h3>
-      <p>
-        When a parameter's type is an interface, dynamic dispatch is inferred automatically.
-        Any value whose type satisfies the interface can be passed — no extra keyword is
-        needed. The concrete type is resolved at the call site; method calls on the parameter
-        are dispatched through a vtable at runtime.
-      </p>
-<pre><code class="ruka">// Interface type on a parameter — dynamic dispatch is automatic
-const print_shape_info = (s: Shape) do
-    @println("area:      ${s.area()}")
-    @println("perimeter: ${s.perimeter()}")
-end
-
-local Rect = record { w: f64, h: f64 }
-
-// self inferred as Rect (only type with `w` and `h`)
-const area      (self) = () => self.w * self.h
-const perimeter (self) = () => 2.0 * (self.w + self.h)
-
-const main = () do
-    let c = Circle.{ radius = 5.0 }
-    let r = Rect.{ w = 4.0, h = 6.0 }
-
-    print_shape_info(c)   // Circle satisfies Shape
-    print_shape_info(r)   // Rect satisfies Shape
-end</code></pre>
-
-      <div class="note">
-        <strong>Note:</strong> Interfaces specify only methods. Fields cannot appear in an
-        interface definition. To share field access across types, expose it through methods.
       </div>
     </section>
 
@@ -1109,19 +553,16 @@ end</code></pre>
         If an <code>if</code> expression is used as a value, all branches must return the same type.
       </p>
 <pre><code class="ruka">// Multiline
-if x &gt; 0 do
+if x > 0 do
     @println("positive")
-else if x &lt; 0 do
+else if x < 0 do
     @println("negative")
 else do
     @println("zero")
 end
 
-// Single-expression branches
-if ready => go() else => wait()
-
 // Used as a value
-let label = if score &gt;= 90 do "A" else if score &gt;= 80 do "B" else "C" end
+let label = if score >= 90 do "A" else if score >= 80 do "B" else "C" end
 
 // Logical operators
 if condition and not other_condition do
@@ -1179,10 +620,10 @@ end</code></pre>
       <h4>Guard conditions</h4>
       <p>Arms may use boolean conditions involving the matched value or any in-scope variable.</p>
 <pre><code class="ruka">match n with
-    0          => "zero"
-    n &lt; 0      => "negative"
-    n &gt; 100    => "large"
-    else       => "other"
+    0       => "zero"
+    n < 0   => "negative"
+    n > 100 => "large"
+    else    => "other"
 end</code></pre>
     </section>
 
@@ -1192,7 +633,7 @@ end</code></pre>
 
       <h3>While Loop</h3>
 <pre><code class="ruka">let i = 0
-while i &lt; 10 do
+while i < 10 do
     @println("${i}")
     i = i + 1
 end</code></pre>
@@ -1226,68 +667,442 @@ for .{k, v} in pairs do
 end</code></pre>
     </section>
 
-    <!-- Modules -->
-    <section id="modules">
-      <h2>Modules</h2>
+    <!-- Functions -->
+    <section id="functions">
+      <h2>Functions</h2>
       <p>
-        A module is a file. Every Ruka source file is automatically a module: its
-        <code>const</code> declarations form the public API and its <code>local</code>
-        declarations are private implementation details invisible to importers.
-        There is no inline module literal syntax — namespacing is achieved through files
-        and imports.
+        Functions are anonymous values stored in bindings. There is no special
+        <code>fn</code> keyword — a function is written as a parameter list followed by
+        a body block or single expression.
       </p>
       <p>
-        The binding keyword determines visibility at the module boundary:
-        <code>const</code> is exported, <code>local</code> is not.
+        The last expression in a block is returned. An early return can be written with
+        the <code>return</code> keyword.
       </p>
-<pre><code class="ruka">// stack.ruka — a stack of i32 values
 
-local t = record {
-    local data: [i32],
-    local len:  usize
-}
-
-const new (t) = () => .{ data = .{}, len = 0 }
-
-const push (mut self) = (value: i32) do
-    // append value to self.data
-    self.len = self.len + 1
+      <h4>Multiline function (do…end block)</h4>
+<pre><code class="ruka">local add = (a: i32, b: i32) do
+    a + b
 end
 
-const pop (mut self) = (): option(i32) do
-    if self.len == 0 do
-        .none
-    else do
-        self.len = self.len - 1
-        .some(self.data[self.len])
+local greet = (name: string) do
+    let msg = "Hello, ${name}!"
+    @println(msg)
+    // last expression is (), the unit value
+end</code></pre>
+
+      <h4>Single-expression function (arrow)</h4>
+      <p>
+        The <code>=&gt;</code> form means the body is the rest of that same line — no closing
+        <code>end</code> is required. For bodies that span multiple lines, use <code>do…end</code>.
+      </p>
+<pre><code class="ruka">local square = (x: i32) => x * x
+
+local abs = (x: i32) => if x < 0 do -x else x end
+
+// Multi-line body — must use do...end
+local max = (a: i32, b: i32) do
+    if a > b do a
+    else b
     end
 end</code></pre>
 
+      <h4>Return type annotation</h4>
       <p>
-        Callers import the file to get the module value. The type <code>Stack.t</code> and its
-        static functions and methods are all part of the module's public API because they are
-        declared with <code>const</code>.
+        A <code>-&gt;</code> after the parameter list specifies the return type. This applies
+        whether the body is a same-line <code>=&gt;</code> or a <code>do…end</code> block.
       </p>
+<pre><code class="ruka">// Inline — return type after the parameter list
+local square = (x: i32) -> i32 => x * x
+
+// Works identically with do...end
+local clamp = (x: i32, lo: i32, hi: i32) -> i32 do
+    if x < lo do lo else if x > hi do hi else x end
+end
+
+// Binding-side annotation — function type written as parameter list then return type
+local square2: (i32) -> i32 = (x) => x * x</code></pre>
+
+      <h4>Entry point</h4>
+      <p>The program entry point is a public constant named <code>main</code>.</p>
+<pre><code class="ruka">const main = () do
+    @println("Hello, world!")
+end</code></pre>
     </section>
 
-    <!-- Imports -->
-    <section id="imports">
-      <h2>Imports</h2>
+    <!-- Static Functions -->
+    <section id="static-functions">
+      <h2>Static Functions</h2>
       <p>
-        Files are implicitly modules. Importing a file with <code>@import</code> returns
-        a module value. The path is relative to the current file.
+        A static function is associated with a type but called on the type itself rather than
+        on an instance. It is declared by placing the type name in parentheses between the
+        binding name and the <code>=</code> sign.
       </p>
-<pre><code class="ruka">// Import the whole module
-local math = @import("math")
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
 
-local main = () do
-    @println("${math.sqrt(2.0)}")
+// Public static function — called as Vector.new(...)
+const new (Vector) = (x, y) do
+    Vector.{ x, y }
+end
+
+// Private static function
+local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
+
+const main = () do
+    let v      = Vector.new(1.0, 2.0)
+    let origin = Vector.zero()
 end</code></pre>
 
-      <p>Specific names can be destructured from an import at the binding site.</p>
-<pre><code class="ruka">// Destructured import — only bring specific names into scope
-local { sqrt, pow } = @import("math")
-local { Dog, Cat }  = @import("animals")</code></pre>
+      <h3>Static Functions on Variants</h3>
+      <p>
+        Static functions can be attached to variant types using the same receiver syntax.
+        This is useful for named constructors and factory helpers.
+      </p>
+<pre><code class="ruka">local Direction = variant {
+    north,
+    south,
+    east,
+    west
+}
+
+const from_str (Direction) = (s) do
+    match s with
+        "north" => .some(Direction.north)
+        "south" => .some(Direction.south)
+        "east"  => .some(Direction.east)
+        "west"  => .some(Direction.west)
+        else    => .none
+    end
+end
+
+const main = () do
+    let d = Direction.from_str("east")
+end</code></pre>
+
+      <div class="note">
+        <strong>Scope restriction:</strong> Static functions and methods may only be declared
+        in the same scope or module where the type is defined. This is required for type
+        inference — the compiler resolves receiver types and record literals by checking
+        which types are in the current scope. Attaching behaviour from a foreign module
+        would make that resolution ambiguous.
+      </div>
+    </section>
+
+    <!-- Methods -->
+    <section id="methods">
+      <h2>Methods</h2>
+      <p>
+        Methods are declared similarly to static functions, except the receiver is given a name.
+        That name becomes the implicit first argument — the instance the method is called on.
+      </p>
+<pre><code class="ruka">local Vector = record {
+    x: f64,
+    y: f64
+}
+
+// Public method — `self` is the receiver instance
+const add (self) = (other) do
+    Vector.{ x = self.x + other.x, y = self.y + other.y }
+end
+
+const length (self) = () do
+    @sqrt(self.x * self.x + self.y * self.y)
+end
+
+// Private method
+local negate (self) = () => Vector.{ x = -self.x, y = -self.y }
+
+const main = () do
+    let a = Vector.new(1.0, 0.0)
+    let b = Vector.new(0.0, 1.0)
+    let c = a.add(b)
+    @println("Length: ${c.length()}")
+end</code></pre>
+
+      <h3>Mutable Methods</h3>
+      <p>
+        To mutate the receiver inside a method, apply the <code>mut</code> mode before
+        the receiver identifier. The caller must hold a mutable binding for the receiver.
+      </p>
+<pre><code class="ruka">local Counter = record { value: i32 }
+
+const new (Counter) = () => Counter.{ value = 0 }
+
+// `mut self` — the receiver is a mutable reference
+const increment (mut self) = () do
+    self.value = self.value + 1
+end
+
+const main = () do
+    let c = Counter.new()
+    c.increment()         // value is now 1
+    c.increment()         // value is now 2
+    @println("${c.value}")
+end</code></pre>
+
+      <h3>Methods on Variants</h3>
+      <p>
+        Methods can also be attached to variant types. The receiver is an instance of the
+        variant, and pattern matching can be used inside the body.
+      </p>
+<pre><code class="ruka">local Direction = variant {
+    north,
+    south,
+    east,
+    west
+}
+
+const opposite (self) = () do
+    match self with
+        .north => Direction.south
+        .south => Direction.north
+        .east  => Direction.west
+        .west  => Direction.east
+    end
+end
+
+const is_vertical (self) = () =>
+    self == Direction.north or self == Direction.south
+
+const main = () do
+    let d = Direction.north
+    @println("${d.opposite().is_vertical()}")  // true
+end</code></pre>
+    </section>
+
+    <!-- Parameter Modes -->
+    <section id="parameter-modes">
+      <h2>Parameter Modes</h2>
+      <p>
+        By default, all arguments are passed as immutable references managed by the garbage
+        collector. A <em>mode keyword</em> placed before the parameter identifier changes
+        how the compiler treats the lifetime and ownership of that value.
+        Modes apply to any parameter, including method receivers, and also to
+        <a href="#bindings">bindings</a>.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>mut</code></td>
+            <td><code>(mut x: T)</code></td>
+            <td>Mutable reference. Changes to <code>x</code> are visible to the caller.</td>
+          </tr>
+          <tr>
+            <td><code>mov</code></td>
+            <td><code>(mov x: T)</code></td>
+            <td>Ownership is transferred into this function. The caller cannot use the value after the call.</td>
+          </tr>
+          <tr>
+            <td><code>stc</code></td>
+            <td><code>(stc x: T)</code></td>
+            <td>Stack-allocated copy. The value cannot escape the function scope.</td>
+          </tr>
+          <tr>
+            <td><code>eva</code></td>
+            <td><code>(eva x: T)</code> or <code>(x: type)</code></td>
+            <td>Compile-time constant. The value must be known at compile time. <strong>Inferred automatically when the parameter type is <code>type</code>.</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre><code class="ruka">// mut — in-place mutation
+const fill (mut self) = (value: u8) do
+    // modifies caller's buffer
+end
+
+// mov — consume / transfer ownership
+const close = (mov handle: FileHandle) do
+    // handle is invalid for the caller after this call
+end
+
+// stc — stack allocated, cannot escape scope
+const hash = (stc data: [u8]) -> u64 do
+    // data is on the stack, cannot be returned or stored outside
+end
+
+// eva — compile-time value (explicit annotation)
+const repeat = (eva times: usize, msg: string) do
+    let i = 0
+    while i < times do
+        @println(msg)
+        i = i + 1
+    end
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> <code>eva</code> is covered in detail in the
+        <a href="#comptime">Compile-Time Evaluation</a> section, including automatic
+        inference from <code>type</code>-annotated parameters and storing compile-time results.
+      </div>
+    </section>
+
+    <!-- Named Parameters -->
+    <section id="named-params">
+      <h2>Named Parameters</h2>
+      <p>
+        Prepending <code>~</code> to a parameter name makes it a <em>named parameter</em>.
+        Named parameters must be passed by label at the call site using
+        <code>~label=value</code> syntax and may appear in any order. Positional and named
+        parameters can be freely mixed.
+      </p>
+
+      <h3>Declaring Named Parameters</h3>
+<pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
+const greet = (~name: string, ~greeting: string) =>
+    "${greeting}, ${name}!"
+
+// Mix of positional and named
+const clamp = (x: isize, ~lo: isize, ~hi: isize) do
+    if x < lo do lo else if x > hi do hi else x end
+end</code></pre>
+
+      <h3>Calling with Named Parameters</h3>
+<pre><code class="ruka">greet(~name="Ruka", ~greeting="Hello")   // "Hello, Ruka!"
+greet(~greeting="Hi", ~name="World")     // "Hi, World!" — order doesn't matter
+
+let v = clamp(42, ~lo=0, ~hi=10)         // 10 — positional first, named in any order</code></pre>
+
+      <h3>Label Shorthand</h3>
+      <p>
+        If a local variable shares the label name, the <code>=value</code> part can be omitted.
+      </p>
+<pre><code class="ruka">let name     = "Ruka"
+let greeting = "Hello"
+
+greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)</code></pre>
+
+      <h3>Trailing Block Syntax</h3>
+      <p>
+        Named parameters can be passed <em>after</em> the closing parenthesis. This is
+        most useful for higher-order functions that accept a closure — the named argument
+        reads as a block visually attached to the call. Any number of named parameters may
+        trail; by convention, closure parameters are placed last in the parameter list.
+      </p>
+<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize) -> isize) => f(f(x))
+
+// Named param inside the argument list — standard form
+let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
+
+// Trailing form — same result, reads like an attached block
+let r2 = apply_twice(3) ~f=(x) => x * 2     // 12
+
+// Multi-line trailing block
+let r3 = apply_twice(3) ~f=(x) do
+    let y = x * 2
+    y + 1
+end                                           // 14</code></pre>
+
+      <h4>Higher-order functions</h4>
+      <p>
+        The trailing syntax is especially readable for collection operations. Named
+        closure parameters are placed last in the definition so callers can trail them.
+      </p>
+<pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
+const map    = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
+const filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
+const reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
+
+let nums = .{1, 2, 3, 4, 5}
+
+let doubled = map(nums) ~f=(x) => x * 2
+let evens   = filter(nums) ~pred=(x) => x % 2 == 0
+let total   = reduce(nums, 0) ~f=(acc, x) => acc + x   // 15
+
+// Multi-line body — the trailing block scales naturally
+let results = map(nums) ~f=(x) do
+    let squared = x * x
+    squared - 1
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Named parameters are always identified by label, never by
+        position. A named parameter cannot be passed without its <code>~label=</code> prefix.
+      </div>
+    </section>
+
+    <!-- Interfaces -->
+    <section id="interfaces">
+      <h2>Interfaces</h2>
+      <p>
+        An interface defines a set of method signatures that a type must satisfy. Interfaces
+        describe behaviour only — they carry no fields or state. Any type that implements all
+        of an interface's methods automatically satisfies it; there is no explicit
+        <em>implements</em> declaration.
+      </p>
+      <p>
+        Inside the braces, each line declares one method signature: the method name, its
+        receiver (with optional mode), then the remaining parameter list and return type.
+      </p>
+
+      <h3>Declaring an Interface</h3>
+<pre><code class="ruka">// A type that can be printed
+const Printable = interface {
+    print(self): () -> ()
+}
+
+// A type that supports a binary add operation
+const Adder = interface {
+    add(mut self): (b: usize) -> ()
+}
+
+// Multiple methods
+const Shape = interface {
+    area(self):      () -> f64
+    perimeter(self): () -> f64
+}</code></pre>
+
+      <h3>Satisfying an Interface</h3>
+      <p>
+        A type satisfies an interface implicitly. As long as the required methods are declared
+        in the same module as the type, the compiler considers the type to implement the
+        interface. Receiver and return types are typically inferred — annotations are only
+        needed when the field set is ambiguous.
+      </p>
+<pre><code class="ruka">local Circle = record { radius: f64 }
+
+// self inferred as Circle (only type in scope with `radius`);
+// return types inferred from the expressions
+const area      (self) = () => 3.14159 * self.radius * self.radius
+const perimeter (self) = () => 2.0 * 3.14159 * self.radius
+
+// Circle now satisfies the Shape interface — no declaration needed</code></pre>
+
+      <h3>Dynamic Dispatch via Interface Types</h3>
+      <p>
+        When a parameter's type is an interface, dynamic dispatch is inferred automatically.
+        Any value whose type satisfies the interface can be passed. Interface types are never
+        inferred — they must always be written explicitly as a type annotation.
+      </p>
+<pre><code class="ruka">// Interface type annotation on a parameter — dynamic dispatch is automatic
+const print_shape_info = (s: Shape) do
+    @println("area:      ${s.area()}")
+    @println("perimeter: ${s.perimeter()}")
+end
+
+local Rect = record { w: f64, h: f64 }
+
+const area      (self) = () => self.w * self.h
+const perimeter (self) = () => 2.0 * (self.w + self.h)
+
+const main = () do
+    let c = Circle.{ radius = 5.0 }
+    let r = Rect.{ w = 4.0, h = 6.0 }
+
+    print_shape_info(c)   // Circle satisfies Shape
+    print_shape_info(r)   // Rect satisfies Shape
+end</code></pre>
+
+      <div class="note">
+        <strong>Note:</strong> Interfaces specify only methods. Fields cannot appear in an
+        interface definition. To share field access across types, expose it through methods.
+      </div>
     </section>
 
     <!-- Pipelines -->
@@ -1313,15 +1128,67 @@ getName(user)
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string }
 
-const about (self: Dog) = () => "I'm ${self.name}, a ${self.breed}."
+const about (self) = () => "I'm ${self.name}, a ${self.breed}."
 
 const main = () do
     let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
 
-    // Method call followed by pipeline into a free function
+    // Method call followed by pipeline into a built-in
     ruka.about()
         |> @println()
 end</code></pre>
+    </section>
+
+    <!-- Modules -->
+    <section id="modules">
+      <h2>Modules</h2>
+      <p>
+        A module is a file. Every Ruka source file is automatically a module: its
+        <code>const</code> declarations form the public API and its <code>local</code>
+        declarations are private implementation details invisible to importers.
+      </p>
+<pre><code class="ruka">// stack.ruka — a stack of i32 values
+
+local t = record {
+    local data: [i32],
+    local len:  usize
+}
+
+const new (t) = () => .{ data = .{}, len = 0 }
+
+const push (mut self) = (value: i32) do
+    // append value to self.data
+    self.len = self.len + 1
+end
+
+const pop (mut self) = () -> option(i32) do
+    if self.len == 0 do
+        .none
+    else do
+        self.len = self.len - 1
+        .some(self.data[self.len])
+    end
+end</code></pre>
+    </section>
+
+    <!-- Imports -->
+    <section id="imports">
+      <h2>Imports</h2>
+      <p>
+        Files are implicitly modules. Importing a file with <code>@import</code> returns
+        a module value. The path is relative to the current file.
+      </p>
+<pre><code class="ruka">// Import the whole module
+local math = @import("math")
+
+local main = () do
+    @println("${math.sqrt(2.0)}")
+end</code></pre>
+
+      <p>Specific names can be destructured from an import at the binding site.</p>
+<pre><code class="ruka">// Destructured import — only bring specific names into scope
+local .{ sqrt, pow } = @import("math")
+local .{ Dog, Cat }  = @import("animals")</code></pre>
     </section>
 
     <!-- Built-in Functions -->
@@ -1356,36 +1223,53 @@ end</code></pre>
         Ruka includes a compile-time interpreter. Functions with <code>eva</code> parameters
         are evaluated at compile time rather than at runtime. This enables generic programming
         through static dispatch and the generation of complex types that cannot be expressed
-        as simple literals.
-      </p>
-      <p>
-        Types, functions, and modules are first-class values in compile-time contexts. They
-        can be passed to <code>eva</code> parameters and returned from compile-time functions.
+        as simple literals. Types, functions, and modules are first-class values in
+        compile-time contexts.
       </p>
 
-      <h3>Generics via eva</h3>
+      <h3>Automatic <code>eva</code> Inference</h3>
+      <p>
+        When a parameter's type annotation is <code>type</code>, the <code>eva</code> mode is
+        inferred automatically — no explicit keyword is needed. Writing <code>(t: type)</code>
+        is exactly equivalent to <code>(eva t: type)</code>. When a parameter is used as a
+        type annotation for another parameter, both the <code>eva</code> mode and the
+        <code>type</code> annotation are inferred.
+      </p>
+<pre><code class="ruka">// Explicit — valid, but redundant
+const min = (eva t: type, a: t, b: t) => if a < b do a else b end
+
+// Inferred — preferred; `eva` is implied by the `type` annotation
+const min = (t: type, a: t, b: t) => if a < b do a else b end
+
+// Both `eva` and `: type` inferred — `t` is used to annotate `a` and `b`
+const min = (t, a: t, b: t) => if a < b do a else b end
+
+// Compile-time type constructor — same rules apply
+const Pair = (a, b) do
+    record { first: a, second: b }
+end</code></pre>
+
+      <h3>Generics via <code>eva</code></h3>
       <p>
         A function with a <code>type</code>-annotated parameter is instantiated separately for
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
-        comptime in Zig. The <code>eva</code> mode is inferred automatically from the
-        <code>type</code> annotation — no explicit keyword is needed.
+        comptime in Zig.
       </p>
-<pre><code class="ruka">// Generic min — `t: type` implies eva; instantiated once per concrete type
-const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
+<pre><code class="ruka">const min = (t, a: t, b: t) => if a < b do a else b end
 
 const main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
     local y = min(f64, 1.5, 2.0) // compiler emits an f64 version
 end</code></pre>
 
-      <h3>Generating types at compile time</h3>
+      <h3>Generating Types at Compile Time</h3>
       <p>
-        Compile-time functions can return types, enabling parameterized type definitions.
+        Compile-time functions can return types, enabling parameterised type definitions.
         Non-<code>type</code> parameters that must be compile-time constants still require
         an explicit <code>eva</code> annotation.
       </p>
-<pre><code class="ruka">// Returns a record type — `t: type` infers eva; `cap` requires explicit eva
-const FixedArray = (t: type, eva cap: usize) do
+<pre><code class="ruka">// Returns a record type — `cap` requires explicit eva because it is not type-annotated as `type`
+const FixedArray = (t, eva cap: usize) do
     record {
         data: [t],
         len:  usize
@@ -1400,12 +1284,51 @@ const main = () do
     let buf = IntBuf.{ data = .{}, len = 0 }
 end</code></pre>
 
-      <h3>Compile-time reflection</h3>
+      <h3>Storing Compile-Time Results</h3>
+      <p>
+        If a function has any <code>eva</code> parameters, it runs at compile time and its
+        result is automatically a compile-time constant. The binding must be <code>const</code>
+        or <code>local</code> — assigning a compile-time result to a <code>let</code> binding
+        is a compile error. Results can also be used inline without a binding.
+      </p>
+<pre><code class="ruka">const Pair = (a, b) do
+    record { first: a, second: b }
+end
+
+// Binding must be const or local
+local IntStrPair = Pair(i32, string)
+
+// let IntStrPair = Pair(i32, string)  // compile error — mutable binding
+
+// Used inline without a binding — also valid
+let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
+
+      <h3>Forcing Runtime Functions at Compile Time</h3>
+      <p>
+        A binding declared with <code>eva</code> forces any function — including ordinary
+        runtime functions — to execute at compile time. All arguments must be compile-time
+        known. This is distinct from calling a function that already has <code>eva</code>
+        parameters, which runs at compile time automatically.
+      </p>
+<pre><code class="ruka">const PI = 3.14159265358979
+
+// @sqrt is a runtime function, but eva forces it to run at compile time
+local eva SQRT_2: f64 = @sqrt(2.0)          // literal — compile-time known
+local eva INV_PI: f64 = 1.0 / PI            // const PI — compile-time known
+
+// Eva results are themselves compile-time known and can be chained
+local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0
+
+// Useful for any expensive or non-trivial constant
+local eva LOOKUP = generate_lookup_table(256)
+local eva KEY_HASH = compute_hash("app-secret")</code></pre>
+
+      <h3>Compile-Time Reflection</h3>
       <p>
         <code>@typeOf</code> returns the type of any expression as a compile-time value,
         which can be passed to <code>eva</code> parameters or compared at compile time.
       </p>
-<pre><code class="ruka">const assertSameType = (eva a: type, eva b: type) do
+<pre><code class="ruka">const assertSameType = (a: type, b: type) do
     if not (a == b) do
         @compileError("type mismatch: expected ${a}, got ${b}")
     end
@@ -1420,29 +1343,10 @@ end</code></pre>
       <div class="note">
         <strong>Note:</strong> Only values that are provably known at compile time may be
         passed to <code>eva</code> parameters. Passing a runtime value to an <code>eva</code>
-        parameter is a compile error. Compile-time known values include: literals, <code>const</code>
-        and <code>local</code> constants, and results of other compile-time evaluations.
+        parameter is a compile error. Compile-time known values include: literals,
+        <code>const</code> and <code>local</code> constants, and results of other
+        compile-time evaluations.
       </div>
-
-      <h3>Forcing runtime functions at compile time</h3>
-      <p>
-        A binding declared with <code>eva</code> forces any function — including ordinary
-        runtime functions — to execute at compile time. This is distinct from calling a
-        function that has <code>eva</code> parameters (which runs at compile time automatically).
-        All arguments must be compile-time known.
-      </p>
-<pre><code class="ruka">const PI = 3.14159265358979
-
-// @sqrt is a runtime function, but eva forces it to run at compile time
-local eva SQRT_2: f64 = @sqrt(2.0)          // literal — compile-time known
-local eva INV_PI: f64 = 1.0 / PI            // const PI — compile-time known
-
-// Eva results are themselves compile-time known and can be chained
-local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0
-
-// Useful for any expensive or non-trivial constant
-local eva LOOKUP = generate_lookup_table(256)
-local eva KEY_HASH = compute_hash("app-secret")</code></pre>
     </section>
 
   </main>

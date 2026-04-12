@@ -103,24 +103,9 @@ local fib = (n: usize) do
     end
 end
 
-// Iterative — O(n) time, O(1) space
-local fib_fast = (n: usize) do
-    if n &lt;= 1 do return n end
-    let a: usize = 0
-    let b: usize = 1
-    let i: usize = 2
-    while i &lt;= n do
-        let tmp = a + b
-        a = b
-        b = tmp
-        i = i + 1
-    end
-    b
-end
-
 const main = () do
     for i in 0..=10 do
-        @println("fib(${i}) = ${fib_fast(i)}")
+        @println("fib(${i}) = ${fib(i)}")
     end
 end
 
@@ -147,7 +132,7 @@ end
 }
 
 // Sum of all leaf values
-const sum (self: Tree) = () do
+const sum (self) = () do
     match self with
         .leaf(n)   => n
         .branch(b) => b.left.sum() + b.right.sum()
@@ -155,7 +140,7 @@ const sum (self: Tree) = () do
 end
 
 // Height of the tree
-const height (self: Tree) = () do
+const height (self) = () do
     match self with
         .leaf(_)   => 1
         .branch(b) do
@@ -213,12 +198,12 @@ end</code></pre>
 
 const new (Stack) = () => .{ data = .{}, len = 0 }
 
-const push (mut self: Stack) = (value: i32) do
+const push (mut self) = (value) do
     // append value to self.data
     self.len = self.len + 1
 end
 
-const pop (mut self: Stack) = (): option(i32) do
+const pop (mut self) = () do
     if self.len == 0 do
         .none
     else do
@@ -227,15 +212,15 @@ const pop (mut self: Stack) = (): option(i32) do
     end
 end
 
-const peek (self: Stack) = () do
+const peek (self) = () do
     if self.len == 0 do .none
     else .some(self.data[self.len - 1])
     end
 end
 
-const is_empty (self: Stack) = () => self.len == 0
+const is_empty (self) = () => self.len == 0
 
-const size (self: Stack) = () => self.len
+const size (self) = () => self.len
 
 const main = () do
     let s = Stack.new()
@@ -332,16 +317,16 @@ end</code></pre>
         <code>Pair</code> below is a function that takes two types and produces a record type,
         which can then be used anywhere a type is expected.
       </p>
-<pre><code class="ruka">// Generic min — `t: type` infers eva; a separate version is emitted per concrete type
-const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
+<pre><code class="ruka">// Generic min
+const min = (t, a: t, b: t) => if a &lt; b do a else b end
 
 // Compile-time type constructor — returns a parameterised record type
-const Pair = (a: type, b: type) do
+const Pair = (a, b) do
     record { first: a, second: b }
 end
 
 // Swap the two fields, producing a Pair with reversed type parameters
-const swap = (a: type, b: type, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }
+const swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }
 
 const main = () do
     // Each distinct type argument causes a new instantiation at compile time
@@ -378,9 +363,9 @@ end</code></pre>
 const new (Dog) = (name, breed) => Dog.{ name, breed, age = 0 }
 
 // Each method returns a new Dog so the value can flow through a pipeline
-const with_name (self) = (name: string) => Dog.{ name, breed = self.breed, age = self.age }
+const with_name (self) = (name) => Dog.{ name, breed = self.breed, age = self.age }
 
-const with_age (self) = (age: isize) => Dog.{ name = self.name, breed = self.breed, age }
+const with_age (self) = (age) => Dog.{ name = self.name, breed = self.breed, age }
 
 const bio (self) = () => "${self.name}, ${self.breed}, age ${self.age}"
 
@@ -412,10 +397,9 @@ end</code></pre>
         block, making the code read like a language built-in.
       </p>
 <pre><code class="ruka">// Higher-order functions with named closure parameters
-// `t: type` and `u: type` infer eva automatically
-const map    = (t: type, u: type, arr: [t], ~f: (t): u): [u] do ... end
-const filter = (t: type, arr: [t], ~pred: (t): bool): [t] do ... end
-const reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t): u): u do ... end
+const map    = (t, u, arr: [t], ~f: (t): u): [u] do ... end
+const filter = (t, arr: [t], ~pred: (t): bool): [t] do ... end
+const reduce = (t, u, arr: [t], init: u, ~f: (u, t): u): u do ... end
 
 let nums = .{1, 2, 3, 4, 5}
 

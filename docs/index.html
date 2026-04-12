@@ -207,8 +207,9 @@ const process = (stc buf: Buffer) do
     // buf is a stack-allocated copy; cannot escape this scope
 end
 
-// `t: type` implies eva — generic function, instantiated per concrete type
-const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
+// Using parameter `t` as a type infers `t: type` and implies eva
+// generic function, instantiated per concrete type
+const min = (t, a: t, b: t) => if a &lt; b do a else b end
 
 const main = () do
     local x = min(i32, 3, 7)     // compiler instantiates min for i32
