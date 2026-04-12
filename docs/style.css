@@ -252,9 +252,9 @@ footer a:hover { color: var(--gold); }
 .blink-cursor {
   display: inline-block;
   width: .5em;
-  height: .8em;
+  height: 1em;
   background: var(--gold);
-  vertical-align: middle;
+  vertical-align: baseline;
   animation: blink 1s step-end infinite;
   margin-left: 3px;
 }
@@ -281,16 +281,17 @@ header.hero::after {
   opacity: .18;
   pointer-events: none;
 }
+
 header.hero .header-title {
   position: relative;
   z-index: 1;
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 1rem;
 }
 header.hero .header-title img { height: 4rem; width: 4rem; }
 header.hero h1 {
-  font-family: 'Poller One', cursive;
+  font-family: 'Poller One';
   font-size: 4rem;
   color: var(--gold);
   letter-spacing: .06em;
@@ -300,7 +301,7 @@ header.hero p.tagline {
   position: relative;
   z-index: 1;
   color: var(--subtle);
-  font-family: 'Courier Prime', 'Courier New', monospace;
+  font-family: 'Aptos Display', monospace;
   font-size: 1rem;
   letter-spacing: .04em;
   margin-top: .85rem;
