@@ -36,10 +36,6 @@
   --num: #f6c177;
   --bi:  #ea9a97;
   --tp:  #c4a7e7;
-  --glow-gold: 0 0 8px rgba(246,193,119,.55), 0 0 22px rgba(246,193,119,.2);
-  --glow-foam: 0 0 8px rgba(156,207,216,.55), 0 0 22px rgba(156,207,216,.2);
-  --glow-iris: 0 0 8px rgba(196,167,231,.55), 0 0 22px rgba(196,167,231,.2);
-  --glow-love: 0 0 8px rgba(235,111,146,.55), 0 0 22px rgba(235,111,146,.2);
 }
 
 /* ────────────────────────────────────────────────
@@ -71,8 +67,8 @@ body {
   font-size: 18px;
 }
 
-a { color: var(--foam); text-decoration: none; transition: color .12s, text-shadow .12s; }
-a:hover { color: var(--text); text-shadow: var(--glow-foam); text-decoration: none; }
+a { color: var(--foam); text-decoration: none; transition: color .12s; }
+a:hover { color: var(--text); text-decoration: none; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -244,7 +240,7 @@ footer {
   letter-spacing: .04em;
 }
 footer a { color: var(--subtle); }
-footer a:hover { color: var(--gold); text-shadow: var(--glow-gold); }
+footer a:hover { color: var(--gold); }
 
 /* ────────────────────────────────────────────────
    Blinking cursor (index.html hero)
@@ -261,7 +257,6 @@ footer a:hover { color: var(--gold); text-shadow: var(--glow-gold); }
   vertical-align: middle;
   animation: blink 1s step-end infinite;
   margin-left: 3px;
-  box-shadow: var(--glow-gold);
 }
 
 /* ════════════════════════════════════════════════
@@ -299,7 +294,6 @@ header.hero h1 {
   font-size: 4rem;
   color: var(--gold);
   letter-spacing: .06em;
-  text-shadow: var(--glow-gold);
   line-height: 1;
 }
 header.hero p.tagline {
@@ -333,7 +327,6 @@ header.hero nav a {
 header.hero nav a:hover {
   color: var(--gold);
   border-color: var(--gold);
-  text-shadow: var(--glow-gold);
   background: rgba(246,193,119,.06);
 }
 
@@ -402,7 +395,6 @@ main.index-main section { margin-bottom: 3.5rem; }
   font-size: 1.2rem;
   color: var(--gold);
   letter-spacing: .04em;
-  text-shadow: var(--glow-gold);
 }
 .site-header .header-title { display: flex; align-items: center; gap: .6rem; }
 .site-header .header-title img { height: 1.75rem; width: 1.75rem; }
@@ -421,7 +413,6 @@ main.index-main section { margin-bottom: 3.5rem; }
 .site-header nav a:hover {
   color: var(--foam);
   border-color: var(--overlay);
-  text-shadow: var(--glow-foam);
 }
 
 /* ── Sidebar layout ── */
@@ -478,7 +469,6 @@ main.index-main section { margin-bottom: 3.5rem; }
   color: var(--gold);
   border-left-color: var(--gold);
   background: rgba(246,193,119,.05);
-  text-shadow: var(--glow-gold);
   text-decoration: none;
 }
 .sidebar li a:hover::before { color: var(--gold); }
@@ -547,7 +537,6 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
   color: var(--foam);
   border-left-color: var(--foam);
   background: rgba(156,207,216,.05);
-  text-shadow: var(--glow-foam);
   text-decoration: none;
 }
 .sidebar-page-nav a:hover::before { color: var(--foam); }
