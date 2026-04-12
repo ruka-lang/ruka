@@ -168,7 +168,7 @@ pre code { font-weight: 450; }
 p code, li code, td code { font-weight: 450; }
 
 /* ── Syntax highlight classes ── */
-.cmt { color: var(--cmt); font-style: italic; }
+.cmt { color: var(--cmt); }
 .kw  { color: var(--kw); }
 .str { color: var(--str); }
 .num { color: var(--num); }
@@ -207,7 +207,7 @@ table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: .9rem;
+  font-size: 1rem;
   margin: 1rem 0;
   border: 2px solid var(--overlay);
   border-radius: 8px;
@@ -382,7 +382,7 @@ main.index-main section { margin-bottom: 3.5rem; }
   box-shadow: 3px 3px 0 rgba(0,0,0,.13);
 }
 .roadmap-item h3 { font-size: 1.1rem; color: var(--iris); margin: 0 0 .3rem; letter-spacing: .02em; }
-.roadmap-item p  { font-size: .88rem; color: var(--muted); margin: 0; }
+.roadmap-item p  { font-size: 1rem; color: var(--text); margin: 0; }
 
 /* ════════════════════════════════════════════════
    REFERENCE & EXAMPLES — Sticky site header
