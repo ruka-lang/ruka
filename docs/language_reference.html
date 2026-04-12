@@ -68,7 +68,7 @@ let x = 12  // Inline comment</code></pre>
       <h2>Bindings</h2>
       <p>
         Ruka has three binding forms. All bindings are declared with an initial value;
-        there are no uninitialized variables.
+        there are no uninitialized variables. Bindings can be shadowed by using the same identifier or stored in unnamed bindings using `_`.
       </p>
       <table>
         <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
@@ -100,7 +100,7 @@ local max_retries = 5  // private constant</code></pre>
           <tr>
             <td><code>stc</code></td>
             <td><code>let stc name = ...</code></td>
-            <td>Stack-allocated. The value cannot escape the enclosing function scope (cannot be returned or stored in a heap-allocated structure).</td>
+            <td>Stack-allocated. The value cannot escape the enclosing function scope without performing a copy.</td>
           </tr>
           <tr>
             <td><code>eva</code></td>
@@ -109,45 +109,11 @@ local max_retries = 5  // private constant</code></pre>
           </tr>
         </tbody>
       </table>
-
-      <h4>Inferred compile-time bindings from <code>eva</code> parameters</h4>
       <p>
-        When you call a function that has <code>eva</code> parameters (including any function
-        with a <code>type</code>-annotated parameter), the result is already a compile-time
-        value. Storing it in a binding is inferred as a compile-time constant — no explicit
-        <code>eva</code> is needed on the binding, but the binding must be <code>const</code>
-        or <code>local</code> (immutable). Assigning such a result to a <code>let</code>
-        binding is a compile error.
+      	For more explaination see: <a href="#comptime">Compile-Time Evaluation</a>
       </p>
-<pre><code class="ruka">// Calling a function with type parameters — result is a compile-time constant
-local IntPair = Pair(i32, string)   // const or local required; let would be an error
-
-// You can use the result without binding it at all — inline in a pipeline or call
-let p = Pair(i32, string).{ first = 42, second = "hello" }</code></pre>
-
-      <h4>Explicit <code>eva</code> binding — forcing a runtime function at compile time</h4>
-      <p>
-        <code>eva</code> on a binding forces a normal runtime function to run at compile time.
-        This is useful when you want a constant that requires real computation — for example,
-        a square root, a hash, or a generated lookup table. The arguments must all be
-        compile-time known: literals, <code>const</code>/<code>local</code> constants, or
-        results of other <code>eva</code> evaluations.
-      </p>
-<pre><code class="ruka">// Stack-allocated buffer — provably cannot escape this function
-let stc buf: [u8] = .{}
-
-const PI = 3.14159265358979
-
-// Force runtime math functions to evaluate at compile time
-local eva SQRT_2: f64  = @sqrt(2.0)           // argument is a literal
-local eva INV_PI: f64  = 1.0 / PI             // argument is a const — compile-time known
-local eva HASH        = compute_hash("seed")  // any function, as long as args are known
-
-// Eva results are themselves compile-time known, so they can chain
-local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0</code></pre>
-
       <div class="note">
-        <strong>Summary:</strong> <code>eva</code> on a binding is only needed when you want
+        <code>eva</code> on a binding is only needed when you want
         to force a <em>runtime</em> function to run at compile time. Results from calling
         functions that already have <code>eva</code> parameters are automatically compile-time
         — no annotation required on the binding, but it must be <code>const</code> or
@@ -196,9 +162,13 @@ let greeting = "Hello, ${name}!"</code></pre>
 let point  = .{10, 20}            // [i32, i32]
 let triple = .{1, "hello", true}  // [i32, string, bool]
 
+let y = point[1]
+
 // Explicit array annotation — compiler produces an array
 let primes: [i32] = .{2, 3, 5, 7, 11}
 let empty:  [i32] = .{}
+
+let two = primes[0]
 
 // Type context from a function parameter resolves the ambiguity
 const sum_all = (values: [i32]): i32 => // ...
@@ -216,7 +186,7 @@ sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</co
     "carol" => 91
 }
 
-let lookup = .{ 1 => "one", 2 => "two", 3 => "three" }</code></pre>
+local score = scores["alice"]</code></pre>
 
       <h3>Record Literals</h3>
       <p>
@@ -233,7 +203,9 @@ let v = Vector.{ x = 1.0, y = 2.0 }
 // Field shorthand — variable name matches field name
 let x = 3.0
 let y = 4.0
-let w = Vector.{ x, y }  // equivalent to .{ x = x, y = y }</code></pre>
+let w = Vector.{ x, y }  // equivalent to .{ x = x, y = y }
+
+let x = w.x</code></pre>
 
       <h3>Variant Constructors</h3>
       <p>Variant values are constructed using dot-prefix notation on the variant tag name.</p>
@@ -278,27 +250,27 @@ end
 let nums: [i32] = .{10, 20, 30, 40, 50}
 let slice = nums[1..4]   // .{20, 30, 40}</code></pre>
 
-      <h3>Unwrap Sugar</h3>
+      <h3>Unwrap Methods</h3>
       <p>
-        Both built-in variant types provide postfix shorthand for force-unwrapping their
-        inner value. These operators panic at runtime if the value is absent or an error.
+        Both built-in variant types provide methods for force-unwrapping their
+        inner value. These methods panic at runtime if the value is absent or an error.
       </p>
       <table>
         <thead><tr><th>Syntax</th><th>Type</th><th>Behaviour</th></tr></thead>
         <tbody>
-          <tr><td><code>expr.?</code></td><td><code>option(T)</code></td><td>Returns the inner <code>T</code>; panics if <code>.none</code>.</td></tr>
-          <tr><td><code>expr.!</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
+          <tr><td><code>expr.?()</code></td><td><code>option(T)</code></td><td>Returns the inner <code>T</code>; panics if <code>.none</code>.</td></tr>
+          <tr><td><code>expr.!()</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
         </tbody>
       </table>
 <pre><code class="ruka">let name: option(string) = .some("Ruka")
-let s = name.?               // "Ruka" — panics if .none
+let s = name.?()               // "Ruka" — panics if .none
 
 let res: result(i32, string) = .ok(42)
-let n = res.!                // 42 — panics if .err
+let n = res.!()                // 42 — panics if .err
 
 // Common in chains where failure is considered a programmer error
-let count = parse_int(input).!
-let upper = find_user(id).?.name</code></pre>
+let count = parse_int(input).!()
+let upper = find_user(id).?().name</code></pre>
     </section>
 
     <!-- Built-in Types -->
@@ -480,11 +452,12 @@ const area (self) = () => 3.14159 * self.radius * self.radius
 // self inferred as Rect — only type with both `width` and `height`
 const area (self) = () => self.width * self.height
 
-// Explicit annotation required — both types have a `name` field
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
-const label (self: Dog) = () => "${self.name} (${self.breed})"
+// Can be inferred as only Dog has both name and breed
+const label (self) = () => "${self.name} (${self.breed})"
+// Explicit annotation required — both types have a `name` field
 const label (self: Cat) = () => "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
@@ -623,20 +596,20 @@ local identity = (x) => x</code></pre>
 
       <h4>Return type annotation</h4>
       <p>
-        A colon after the parameter list specifies the return type. This applies whether
+        A arrow after the parameter list specifies the return type. This applies whether
         the body is a same-line <code>=&gt;</code> or a <code>do…end</code> block.
         The same colon syntax is used when annotating the binding itself.
       </p>
 <pre><code class="ruka">// Inline — return type after the parameter list
-local square = (x: i32): i32 => x * x
+local square = (x: i32) -> i32 => x * x
 
 // Works identically with do...end
-local clamp = (x: i32, lo: i32, hi: i32): i32 do
+local clamp = (x: i32, lo: i32, hi: i32) -> i32 do
     if x &lt; lo do lo else if x &gt; hi do hi else x end
 end
 
 // Binding-side annotation — function type uses the same colon syntax
-local square2: (i32): i32 = (x) => x * x</code></pre>
+local square2: (i32) -> i32 = (x) => x * x</code></pre>
 
       <h4>Function type annotation</h4>
       <p>
@@ -644,10 +617,10 @@ local square2: (i32): i32 = (x) => x * x</code></pre>
         return type. A colon is the universal separator between a value and its type.
       </p>
 <pre><code class="ruka">// A function that takes i32 and returns i32
-let transform: (i32): i32 = (x) => x * 2
+let transform: (i32) -> i32 = (x) => x * 2
 
 // A function that takes two strings and returns bool
-const compare: (string, string): bool = (a, b) => a == b</code></pre>
+const compare: (string, string) -> bool = (a, b) => a == b</code></pre>
 
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
@@ -670,7 +643,7 @@ end</code></pre>
 }
 
 // Public static function — called as Vector.new(...)
-const new (Vector) = (x: f64, y: f64) do
+const new (Vector) = (x, y) do
     Vector.{ x, y }
 end
 
@@ -695,7 +668,7 @@ end</code></pre>
 }
 
 // Named constructor on a variant
-const from_str (Direction) = (s: string): option(Direction) do
+const from_str (Direction) = (s) do
     match s with
         "north" => .some(Direction.north)
         "south" => .some(Direction.south)
@@ -736,16 +709,16 @@ end</code></pre>
 }
 
 // Public method — `self` is the receiver instance
-const add (self: Vector) = (other: Vector) do
+const add (self) = (other) do
     Vector.{ x = self.x + other.x, y = self.y + other.y }
 end
 
-const length (self: Vector) = () do
+const length (self) = () do
     @sqrt(self.x * self.x + self.y * self.y)
 end
 
 // Private method
-local negate (self: Vector) = () => Vector.{ x = -self.x, y = -self.y }
+local negate (self) = () => Vector.{ x = -self.x, y = -self.y }
 
 const main = () do
     let a = Vector.new(1.0, 0.0)
@@ -764,7 +737,7 @@ end</code></pre>
 const new (Counter) = () => Counter.{ value = 0 }
 
 // `mut self` — the receiver is a mutable reference
-const increment (mut self: Counter) = () do
+const increment (mut self) = () do
     self.value = self.value + 1
 end
 
@@ -788,7 +761,7 @@ end</code></pre>
 }
 
 // Method on a variant type
-const opposite (self: Direction) = () do
+const opposite (self) = () do
     match self with
         .north => Direction.south
         .south => Direction.north
@@ -797,7 +770,7 @@ const opposite (self: Direction) = () do
     end
 end
 
-const is_vertical (self: Direction) = () =>
+const is_vertical (self) = () =>
     self == Direction.north or self == Direction.south
 
 const main = () do
@@ -869,8 +842,12 @@ const min = (eva t: type, a: t, b: t) => if a &lt; b do a else b end
 // Inferred — preferred; `eva` is implied by the `type` annotation
 const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
 
-// Compile-time type constructor — same rule applies
-const Pair = (a: type, b: type) do
+// Both `eva` and `: type` can be inferred because parameter t is
+// being used to specify types
+const min = (t, a: t, b: t) => if a &lt; b do a else b end
+
+// Compile-time type constructor — same rules applies
+const Pair = (a, b) do
     record { first: a, second: b }
 end</code></pre>
 
@@ -887,7 +864,7 @@ end</code></pre>
         Results can also be used without a binding — passed directly in a pipeline, as a
         function argument, or as a record field — in which case no binding is needed at all.
       </p>
-<pre><code class="ruka">const Pair = (a: type, b: type) do
+<pre><code class="ruka">const Pair = (a, b) do
     record { first: a, second: b }
 end
 
@@ -1032,18 +1009,18 @@ end</code></pre>
       <h3>Declaring an Interface</h3>
 <pre><code class="ruka">// A type that can be printed
 const Printable = interface {
-    print(self): (): unit
+    print(self): () -> unit
 }
 
 // A type that supports a binary add operation
 const Adder = interface {
-    add(mut self): (b: usize): unit
+    add(mut self): (b: usize) -> unit
 }
 
 // Multiple methods
 const Shape = interface {
-    area(self):      (): f64
-    perimeter(self): (): f64
+    area(self):      () -> f64
+    perimeter(self): () -> f64
 }</code></pre>
 
       <h3>Satisfying an Interface</h3>
@@ -1070,6 +1047,7 @@ const perimeter (self) = () => 2.0 * 3.14159 * self.radius
         are dispatched through a vtable at runtime.
       </p>
 <pre><code class="ruka">// Interface type on a parameter — dynamic dispatch is automatic
+// Iterface types will never be inferred, you must always annotate them
 const print_shape_info = (s: Shape) do
     @println("area:      ${s.area()}")
     @println("perimeter: ${s.perimeter()}")
@@ -1116,9 +1094,6 @@ else if x &lt; 0 do
 else do
     @println("zero")
 end
-
-// Single-expression branches
-if ready => go() else => wait()
 
 // Used as a value
 let label = if score &gt;= 90 do "A" else if score &gt;= 80 do "B" else "C" end
@@ -1286,8 +1261,8 @@ end</code></pre>
 
       <p>Specific names can be destructured from an import at the binding site.</p>
 <pre><code class="ruka">// Destructured import — only bring specific names into scope
-local { sqrt, pow } = @import("math")
-local { Dog, Cat }  = @import("animals")</code></pre>
+local .{ sqrt, pow } = @import("math")
+local .{ Dog, Cat }  = @import("animals")</code></pre>
     </section>
 
     <!-- Pipelines -->
@@ -1313,7 +1288,7 @@ getName(user)
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string }
 
-const about (self: Dog) = () => "I'm ${self.name}, a ${self.breed}."
+const about (self) = () => "I'm ${self.name}, a ${self.breed}."
 
 const main = () do
     let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
@@ -1370,8 +1345,8 @@ end</code></pre>
         comptime in Zig. The <code>eva</code> mode is inferred automatically from the
         <code>type</code> annotation — no explicit keyword is needed.
       </p>
-<pre><code class="ruka">// Generic min — `t: type` implies eva; instantiated once per concrete type
-const min = (t: type, a: t, b: t) => if a &lt; b do a else b end
+<pre><code class="ruka">// Generic min — parameter `t` used as type specifications implies `t: type` which implies eva; instantiated once per concrete type
+const min = (t, a: t, b: t) => if a &lt; b do a else b end
 
 const main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
@@ -1384,8 +1359,8 @@ end</code></pre>
         Non-<code>type</code> parameters that must be compile-time constants still require
         an explicit <code>eva</code> annotation.
       </p>
-<pre><code class="ruka">// Returns a record type — `t: type` infers eva; `cap` requires explicit eva
-const FixedArray = (t: type, eva cap: usize) do
+<pre><code class="ruka">// Returns a record type — `cap` requires explicit eva
+const FixedArray = (t, eva cap: usize) do
     record {
         data: [t],
         len:  usize
