@@ -17,6 +17,7 @@
   <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
   <nav>
     <a href="language_reference.html">Language Reference</a>
+    <a href="grammar.html">Grammar</a>
     <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
@@ -36,9 +37,10 @@
       Ruka has compile-time metaprogramming allowing static dispatch, generics, and generating constants that require more complex calculations; dynamic dispatch through interfaces and opaque types; mutable semantics and opt-in lifetime control.
     </p>
     <p>
-      Declarations in Ruka are uniform: functions, types, and modules are all anonymous values
+      Declarations in Ruka are uniform: functions, types, and records are all anonymous values
       stored in named bindings. There is no special declaration syntax — only <code>const</code>,
-      <code>local</code>, and <code>let</code>.
+      <code>local</code>, <code>let</code>, and <code>test</code>. Files are records: importing a
+      file returns a compile-time record value, and there is no separate module concept.
     </p>
   </section>
 
@@ -47,8 +49,9 @@
     <h2>Design Principles</h2>
     <ul>
       <li>
-        <strong>Uniform declarations.</strong> Functions, types, and modules are all values stored
-        in bindings. There is one syntax for naming things.
+        <strong>Uniform declarations.</strong> Functions, types, and records are all values stored
+        in bindings. There is one syntax for naming things. Files are records — importing a file
+        returns a compile-time record value with no separate module concept.
       </li>
       <li>
         <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies
@@ -60,7 +63,7 @@
         without abandoning the GC model entirely.
       </li>
       <li>
-        <strong>Compile-time as a first-class feature.</strong> Types, functions, and modules are
+        <strong>Compile-time as a first-class feature.</strong> Types, functions, and records are
         first-class values in compile-time contexts. The <code>eva</code> parameter mode marks values
         that must be known at compile time, enabling generic programming via static dispatch.
       </li>
@@ -99,8 +102,8 @@
         <p>Exhaustive <code>match</code> over variants, literals, and guard conditions.</p>
       </div>
       <div class="feature-card">
-        <h3>Records &amp; Variants</h3>
-        <p>Product types (records) and sum types (tagged union variants).</p>
+        <h3>Built-in Testing</h3>
+        <p>Test functions are first-class language constructs declared with <code>test</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.</p>
       </div>
       <div class="feature-card">
         <h3>Interfaces</h3>
@@ -112,7 +115,7 @@
       </div>
       <div class="feature-card">
         <h3>First-Class Types</h3>
-        <p>Types and modules are values that can be passed to compile-time (<code>eva</code>) parameters.</p>
+        <p>Types, records, and imported files are all values that can be passed to compile-time (<code>eva</code>) parameters.</p>
       </div>
       <div class="feature-card">
         <h3>Built-in Collections</h3>
@@ -141,12 +144,12 @@ const new (Dog) = (name, breed) do
     Dog.{ name, breed, age = 0 }
 end
 
-// Public method — named receiver with type annotation
+// Public method — self is the receiver keyword; its type is inferred from the body
 const about (self) = () do
     "My name's ${self.name}. I'm a ${self.breed}."
 end
 
-// Private mutable method — `mut` mode before the receiver identifier
+// Private mutable method — mut mode before self
 local age_up (mut self) = () do
     self.age = self.age + 1
 end
@@ -185,7 +188,7 @@ end</code></pre>
         </tr>
         <tr>
           <td><code>stc</code></td>
-          <td>Stack-allocated copy. Cannot escape the function scope.</td>
+          <td>Stack-allocated copy.</td>
           <td>Small, short-lived values where GC overhead is undesirable.</td>
         </tr>
         <tr>
@@ -207,7 +210,6 @@ const process = (stc buf: Buffer) do
     // buf is a stack-allocated copy; cannot escape this scope
 end
 
-// Using parameter `t` as a type infers `t: type` and implies eva
 // generic function, instantiated per concrete type
 const min = (t, a: t, b: t) => if a &lt; b do a else b end
 
