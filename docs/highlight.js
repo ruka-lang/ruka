@@ -3,7 +3,7 @@
   const KEYWORDS = new Set([
     'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
     'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
-    'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false', 'self'
+    'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false', 'self', 'test', 'break', 'continue', 'defer'
   ]);
 
   function esc(s) {
