@@ -141,12 +141,12 @@ const new (Dog) = (name, breed) do
     Dog.{ name, breed, age = 0 }
 end
 
-// Public method — named receiver with type annotation
+// Public method — self is the receiver keyword; its type is inferred from the body
 const about (self) = () do
     "My name's ${self.name}. I'm a ${self.breed}."
 end
 
-// Private mutable method — `mut` mode before the receiver identifier
+// Private mutable method — mut mode before self
 local age_up (mut self) = () do
     self.age = self.age + 1
 end

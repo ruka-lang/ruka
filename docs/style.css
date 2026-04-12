@@ -1,4 +1,4 @@
-/* ── Ruka Docs — Retro Terminal Theme (Rosé Pine Moon) ── */
+/* ── Ruka Docs — Forest Night Theme ── */
 @import url('https://fonts.googleapis.com/css2?family=Poller+One&family=Intel+One+Mono:ital,wght@0,300..700;1,300..700&display=swap');
 
 @font-face {
@@ -12,8 +12,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ────────────────────────────────────────────────
-   Variables
+   Variables — Rosé Pine Moon (kept for reference)
    ──────────────────────────────────────────────── */
+
 :root {
   --bg:      #232136;
   --surface: #2a273f;
@@ -29,14 +30,12 @@
   --iris:    #c4a7e7;
   --love:    #eb6f92;
   --rose:    #ea9a97;
-  /* syntax */
   --kw:  #eb6f92;
   --str: #9ccfd8;
   --cmt: #6e6a86;
   --num: #f6c177;
   --bi:  #ea9a97;
   --tp:  #c4a7e7;
-  /* glows */
   --glow-gold: 0 0 8px rgba(246,193,119,.55), 0 0 22px rgba(246,193,119,.2);
   --glow-foam: 0 0 8px rgba(156,207,216,.55), 0 0 22px rgba(156,207,216,.2);
   --glow-iris: 0 0 8px rgba(196,167,231,.55), 0 0 22px rgba(196,167,231,.2);
@@ -527,7 +526,7 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
     z-index: 90;
     transition: left .25s ease;
     box-shadow: none;
-    padding-top: 3.5rem; /* clear the sticky header */
+    padding-top: 3rem;
   }
 
   .sidebar.open {
@@ -537,7 +536,47 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
 
   .layout { display: block; }
 
-  main.docs-main { padding: 1.75rem 1.25rem 4rem; }
+  main.docs-main { padding: 1.5rem 1rem 4rem; }
+
+  /* ── Sticky site header (reference/examples pages) ── */
+  .site-header {
+    padding: .45rem 1rem;
+  }
+  .site-header h1 {
+    font-size: .95rem;
+  }
+  .site-header .header-title img {
+    height: 1.35rem;
+    width: 1.35rem;
+  }
+  .site-header nav {
+    gap: .4rem;
+  }
+  .site-header nav a {
+    font-size: .72rem;
+    padding: .1rem .35rem;
+  }
+
+  /* ── Hero header (index page) ── */
+  header.hero {
+    padding: 2rem 1rem 1.75rem;
+  }
+  header.hero h1 {
+    font-size: 2.4rem;
+  }
+  header.hero .header-title img {
+    height: 2.4rem;
+    width: 2.4rem;
+  }
+  header.hero nav {
+    gap: .6rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+  header.hero nav a {
+    font-size: .85rem;
+    padding: .25rem .8rem;
+  }
 }
 
 /* ════════════════════════════════════════════════

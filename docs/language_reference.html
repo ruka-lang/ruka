@@ -434,12 +434,14 @@ local Cat = record {
         types to consider when resolving an unannotated expression.
       </p>
 
-      <h3>Method Receiver Inference</h3>
+      <h3>Method Receiver Type Inference</h3>
       <p>
-        The type of a method receiver is inferred from the body. If <code>self.fieldName</code>
-        is accessed and exactly one type in scope has that field, the receiver type is
-        determined without an annotation. If the field name exists on more than one type,
-        an explicit annotation is required — and the compiler will tell you.
+        Because <code>self</code> is a keyword, the compiler always knows a declaration is
+        a method. What it still needs to determine is <em>which type</em> <code>self</code>
+        belongs to. If <code>self.fieldName</code> is accessed and exactly one type in scope
+        has that field, the receiver type is resolved without an annotation. When the field
+        exists on more than one type, an explicit annotation
+        <code>(self: TypeName)</code> is required — and the compiler will tell you.
       </p>
 <pre><code class="ruka">local Circle = record { radius: f64 }
 local Rect   = record { width: f64, height: f64 }
@@ -736,7 +738,9 @@ end</code></pre>
       <p>
         A static function is associated with a type but called on the type itself rather than
         on an instance. It is declared by placing the type name in parentheses between the
-        binding name and the <code>=</code> sign.
+        binding name and the <code>=</code> sign. Using a type name here — rather than the
+        reserved keyword <code>self</code> — is what distinguishes a static function from a
+        method.
       </p>
 <pre><code class="ruka">local Vector = record {
     x: f64,
@@ -795,15 +799,24 @@ end</code></pre>
     <section id="methods">
       <h2>Methods</h2>
       <p>
-        Methods are declared similarly to static functions, except the receiver is given a name.
-        That name becomes the implicit first argument — the instance the method is called on.
+        A method is declared like a static function, but uses the reserved keyword
+        <code>self</code> in the receiver position instead of a type name.
+        <code>self</code> refers to the instance the method is called on and is always
+        the first implicit argument. Any parameter mode (<code>mut</code>, <code>mov</code>,
+        etc.) may precede <code>self</code>.
+      </p>
+      <p>
+        This is the syntactic distinction between a method and a static function:
+        if the receiver is <code>self</code> it is a method; if it is a type name it is
+        a static function. Because <code>self</code> is a keyword, the difference is
+        unambiguous regardless of naming conventions.
       </p>
 <pre><code class="ruka">local Vector = record {
     x: f64,
     y: f64
 }
 
-// Public method — `self` is the receiver instance
+// Public method — self is the receiver instance; its type is inferred as Vector
 const add (self) = (other) do
     Vector.{ x = self.x + other.x, y = self.y + other.y }
 end
@@ -825,13 +838,13 @@ end</code></pre>
       <h3>Mutable Methods</h3>
       <p>
         To mutate the receiver inside a method, apply the <code>mut</code> mode before
-        the receiver identifier. The caller must hold a mutable binding for the receiver.
+        <code>self</code>. The caller must hold a mutable binding.
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
 const new (Counter) = () => Counter.{ value = 0 }
 
-// `mut self` — the receiver is a mutable reference
+// mut self — the receiver is a mutable reference
 const increment (mut self) = () do
     self.value = self.value + 1
 end
@@ -845,8 +858,9 @@ end</code></pre>
 
       <h3>Methods on Variants</h3>
       <p>
-        Methods can also be attached to variant types. The receiver is an instance of the
-        variant, and pattern matching can be used inside the body.
+        Methods can also be attached to variant types using the same <code>self</code>
+        receiver syntax. Pattern matching on <code>self</code> inside the body handles
+        each tag.
       </p>
 <pre><code class="ruka">local Direction = variant {
     north,
@@ -1211,7 +1225,7 @@ local .{ Dog, Cat }  = @import("animals")</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">@println("Hello!")                       // Hello!
-@println("${@typeOf(42)}")               // usize
+@println("${@typeOf(42)}")               // isize
 @assertEq(@abs(-5), 5)
 </code></pre>
     </section>
