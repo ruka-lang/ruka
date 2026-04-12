@@ -106,7 +106,7 @@ local max_retries = 5  // private constant</code></pre>
           <tr>
             <td><code>stc</code></td>
             <td><code>let stc name = ...</code></td>
-            <td>Stack-allocated. The value cannot escape the enclosing function scope without performing a copy.</td>
+            <td>Stack-allocated. Can still be passed-by-reference but it's ownership can't be moved.</td>
           </tr>
           <tr>
             <td><code>eva</code></td>
@@ -396,6 +396,25 @@ local User = record {
 
 // Inline (anonymous) record types are also valid
 let origin: record { x: f64, y: f64 } = .{ x = 0.0, y = 0.0 }</code></pre>
+
+      <h3>Record Destructuring</h3>
+      <p>
+        A record value can be destructured into individual bindings using the
+        <code>.{…}</code> syntax on the left-hand side of a binding. The binding
+        keyword determines visibility and mutability of the resulting names.
+        This is the same mechanism used when destructuring imported files.
+      </p>
+<pre><code class="ruka">local Point = record { x: f64, y: f64 }
+
+let p = Point.{ x = 3.0, y = 4.0 }
+
+// Destructure into separate bindings
+local .{ x, y } = p
+// x is 3.0, y is 4.0
+
+// Works with any record — including imported files
+local .{ sqrt, pow } = @import("math")
+local .{ Dog, Cat }  = @import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
@@ -1009,7 +1028,7 @@ end</code></pre>
           <tr>
             <td><code>stc</code></td>
             <td><code>(stc x: T)</code></td>
-            <td>Stack-allocated copy. The value cannot escape the function scope.</td>
+            <td>Stack-allocated pass-by-copy.</td>
           </tr>
           <tr>
             <td><code>eva</code></td>
@@ -1250,25 +1269,32 @@ end</code></pre>
     <section id="modules">
       <h2>Modules</h2>
       <p>
-        A module is a file. Every Ruka source file is automatically a module: its
-        <code>const</code> declarations form the public API and its <code>local</code>
-        declarations are private implementation details invisible to importers.
+        A file is a record. There is no separate module concept — every Ruka source file
+        implicitly defines a compile-time record value whose fields are the file's
+        <code>const</code> bindings. <code>local</code> bindings at file scope are private
+        fields: they are accessible within the file but not from any importer.
       </p>
-<pre><code class="ruka">// stack.ruka — a stack of i32 values
+      <p>
+        Because files are records, all of the language's record machinery applies directly:
+        field access retrieves exports, and destructuring pulls named fields into scope.
+        The <code>local</code> keyword marks privacy consistently whether on a record field
+        or a file-scope binding.
+      </p>
+<pre><code class="ruka">// stack.ruka — a file is a record; const bindings are its public fields
 
-local t = record {
+local t = record {         // local binding — private to this file
     local data: [i32],
     local len:  usize
 }
 
-const new (t) = () => .{ data = .{}, len = 0 }
+const new (t) = () => .{ data = .{}, len = 0 }   // public field
 
-const push (mut self) = (value: i32) do
+const push (mut self) = (value: i32) do           // public field
     // append value to self.data
     self.len = self.len + 1
 end
 
-const pop (mut self) = () -> option(i32) do
+const pop (mut self) = () -> option(i32) do       // public field
     if self.len == 0 do
         .none
     else do
@@ -1282,20 +1308,29 @@ end</code></pre>
     <section id="imports">
       <h2>Imports</h2>
       <p>
-        Files are implicitly modules. Importing a file with <code>@import</code> returns
-        a module value. The path is relative to the current file.
+        <code>@import</code> evaluates at compile time and returns the file's record value.
+        The result is always compile-time known — <code>eva</code> is implied. Accessing an
+        export is ordinary field access; destructuring an import is ordinary record
+        destructuring, using the same <code>.{…}</code> syntax.
       </p>
-<pre><code class="ruka">// Import the whole module
+<pre><code class="ruka">// Field access on the imported record
 local math = @import("math")
 
-local main = () do
+const main = () do
     @println("${math.sqrt(2.0)}")
-end</code></pre>
+end
 
-      <p>Specific names can be destructured from an import at the binding site.</p>
-<pre><code class="ruka">// Destructured import — only bring specific names into scope
+// Record destructuring — pull specific fields into scope
 local .{ sqrt, pow } = @import("math")
-local .{ Dog, Cat }  = @import("animals")</code></pre>
+local .{ Dog, Cat }  = @import("animals")
+
+// Imported records can be passed to eva parameters like any compile-time value
+const describe = (t: type) => @println("${t}")
+local animals = @import("animals")
+
+const main = () do
+    describe(animals.Dog)   // passes the Dog type to a compile-time parameter
+end</code></pre>
     </section>
 
     <!-- Test Bindings -->

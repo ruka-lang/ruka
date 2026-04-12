@@ -321,9 +321,10 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
       <section id="program">
         <h3>Program</h3>
         <p>
-          A Ruka source file is a flat sequence of declarations. Every file is
-          implicitly a module: <code>const</code> declarations are its public exports
-          and <code>local</code> declarations are private implementation details.
+          A Ruka source file is a flat sequence of declarations. Every file is implicitly
+          a compile-time record: <code>const</code> declarations become its public fields
+          and <code>local</code> declarations are private fields inaccessible to importers.
+          <code>@import</code> returns this record value; there is no separate module concept.
         </p>
         <pre class="grammar"><code>program       ::=  declaration*</code></pre>
       </section>
@@ -356,7 +357,9 @@ type-receiver ::=  identifier                        -- static function: associa
 
 destructure-pattern
               ::=  ".{" identifier ( "," identifier )* "}"
-                   -- used for destructuring imports:  local .{ sqrt, pow } = @import("math")</code></pre>
+                   -- destructures any record value, including imported files
+                   -- e.g.  local .{ x, y } = point
+                   -- e.g.  local .{ sqrt, pow } = @import("math")</code></pre>
 
         <div class="note">
           <strong>Uniform declarations.</strong> Functions, types, interfaces, and modules
@@ -787,7 +790,7 @@ guard-pattern ::=  expr
 -- Standard built-ins
 -- @print(string)              print to stdout without a trailing newline
 -- @println(string)            print to stdout with a trailing newline
--- @import(string-lit)         import a file as a module value; path is relative to the current file
+-- @import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
 -- @typeOf(expr)               return the compile-time type of an expression as a "type" value
 -- @abs(number)                absolute value
 -- @sqrt(number)               square root
