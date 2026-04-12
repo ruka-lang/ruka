@@ -1380,7 +1380,7 @@ end</code></pre>
         <code>@typeOf</code> returns the type of any expression as a compile-time value,
         which can be passed to <code>eva</code> parameters or compared at compile time.
       </p>
-<pre><code class="ruka">const assertSameType = (eva a: type, eva b: type) do
+<pre><code class="ruka">const assertSameType = (a: type, b: type) do
     if not (a == b) do
         @compileError("type mismatch: expected ${a}, got ${b}")
     end
