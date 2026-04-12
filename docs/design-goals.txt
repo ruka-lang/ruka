@@ -1,0 +1,20 @@
+important philosophy:
+- Fully functional interpreter
+- Custom compiler backend
+- All tooling provided (project management, package management, test management, lsp) under a singular tool `ruka` which will be self-hosted
+
+short-term goals:
+- basic interpreter
+- basic project management
+- basic editor support (treesitter and basic lsp)
+- basic compiler targeting aarch64
+mid-term goals:
+- self-hosting of tooling
+- support more features in interpreter and compiler
+- more flushed out project management with testing support
+- more comprehensive editor support
+- basic package management (probably using github repos)
+- amd64 compilation target
+long-term goals:
+- more compilation targets
+- fully featured interpreter and compiler
