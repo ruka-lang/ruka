@@ -1,0 +1,44 @@
+local .{ math, random } = @import("std")
+
+const Layered = record {
+	local weights: [f64],
+	local learning: f64,
+	local inputs: usize
+}
+
+const new (Layered) = (~inputs) do
+	local seed = @time()
+	let rng = random.new(seed)
+
+	Perceptron.{
+		weights = .{ for 0..=inputs => rng.next(f64, -1, 1) },
+		learning = 0.01,
+		inputs
+	}
+end
+
+local sigmoid = (x: f64) => 1 / (1 + math.exp(-x))
+
+const train (mut self) = (inputs, targets, ~epochs) do
+	for 0..epochs do
+		for i in 0..(inputs.len / inputs) do
+			let guess = self.predict(inputs[(i * 2)..(i * 2 + 1)])
+			let error = targets[i] - guess
+
+			for j in 0..self.weights.len do
+				self.weights[j] = self.weights[j] + error * inputs[i * 2 + j] * self.learning
+			end
+		end
+	end
+end
+
+// Feed forward
+const predict (self) = (inputs) do
+	let sum = 0.0
+
+	for 0..self.weights.len do
+		sum = sum + inputs[i] * self.weights[i]
+	end
+
+	sigmoid(sum)
+end
