@@ -1,0 +1,21 @@
+- Destructuring used as boolean `if .some(x) = var do ... end` `while .{ x, y } = arr do...end`. Maybe these would use if let
+- Stack bindings can be moved as well, will not be GC'd or copied, passed-by-ptr
+- std library will include allocators that will return references with program lifetimes (unmanaged)
+- Highlight potential compiler extensiablilty for plugins allowing domain specific features to be added
+- Highlight `_` useable as identifier to ignore something (maybe)
+- Char literals
+- Define more operators like bitwise, exponent, etc
+- Think of other pattern matching and destructuring patterns
+- Optional named parameters with automatic wrapping if passed
+- Return annotated as a result or option will wrap returned value based on inferrence
+- Only one trailing argument allowed
+- Any value attachable as a static
+- const only useable at top level of file or when attaching methods and statics to types
+- Traditional to use forge for contructor instead of new
+- Tag fundamental type which is an polymorphic variant w/o payload, the type of identifiers during evaluation. Could allow using keywords as identifiers like zig's @"". Uses `*name` or `'name` or ``name`
+- Files read as empty records w/ statics. Empty records uninstanciable
+- Consider renaming
+	- const to share
+	- interface to behaviour
+	- variant to tally or spectre
+	- tag to charm or sigil
