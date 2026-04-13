@@ -15,7 +15,8 @@ mid-term goals:
 - more flushed out project management with testing support
 - more comprehensive editor support
 - basic package management (probably using github repos)
-- amd64 compilation target
+- amd64 and wasm compilation target
 very long-term goals:
 - more compilation targets
 - fully featured interpreter and compiler with fancy optimizations
+- compiler / interpreter plugins
