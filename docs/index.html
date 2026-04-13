@@ -14,7 +14,7 @@
     <img src="ruka-logo.svg" alt="Ruka logo">
     <h1>Ruka<span class="blink-cursor"></span></h1>
   </div>
-  <p class="tagline">A statically typed, garbage-collected, expression-based programming language.</p>
+  <p class="tagline">A programming language (maybe someday).</p>
   <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
   <nav>
     <a href="language_reference.html">Language Reference</a>
@@ -31,17 +31,10 @@
     <h2>What is Ruka?</h2>
     <p>
       Ruka is a general-purpose compiled programming language designed around clarity and expressiveness.
-      It is statically typed with pervasive type inference, garbage collected, and
-      expression-based — nearly every construct produces a value.
     </p>
     <p>
-      Ruka has compile-time metaprogramming allowing static dispatch, generics, and generating constants that require more complex calculations; dynamic dispatch through interfaces and opaque types; mutable semantics and opt-in lifetime control.
     </p>
     <p>
-      Declarations in Ruka are uniform: functions, types, and records are all anonymous values
-      stored in named bindings. There is no special declaration syntax — only <code>const</code>,
-      <code>local</code>, <code>let</code>, and <code>test</code>. Files are records: importing a
-      file returns a compile-time record value, and there is no separate module concept.
     </p>
   </section>
 
@@ -50,34 +43,26 @@
     <h2>Design Principles</h2>
     <ul>
       <li>
-        <strong>Uniform declarations.</strong> Functions, types, and records are all values stored
-        in bindings. There is one syntax for naming things. Files are records — importing a file
-        returns a compile-time record value with no separate module concept.
+        <strong>Uniform declarations.</strong> Functions, types, records, and variants (tagged unions) are all values stored in bindings, files are imported as records as well. There is one syntax for naming things.
       </li>
       <li>
         <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies
         all evaluate to a value. The last expression in a block is its result.
       </li>
       <li>
-        <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default.
-        When precise lifetime management is needed, parameter modes give the programmer explicit control
-        without abandoning the GC model entirely.
+        <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default but the user can decide when to control lifetimes or stack/heap allocate.
       </li>
       <li>
-        <strong>Compile-time as a first-class feature.</strong> Types, functions, and records are
-        first-class values in compile-time contexts. The <code>eva</code> parameter mode marks values
-        that must be known at compile time, enabling generic programming via static dispatch.
+        <strong>Compile-time evaluation and interpretation</strong> allowing generic programming via static dispatch.
       </li>
       <li>
         <strong>Interfaces over inheritance.</strong> Ruka has no inheritance. Shared behaviour is
-        expressed through interfaces, giving the function an opaque representation of the argument only seeing a subset of it's behaviour.
+        expressed through behaviours, giving the function an opaque representation of the argument only seeing a subset of it's behaviour.
       </li>
       <li>
-        <strong>Methods live outside types.</strong> A type definition describes only memory layout.
-        Methods and static functions are declared separately in the same scope, keeping type
-        definitions minimal and readable. Co-location is also what enables type inference:
-        the compiler knows every type in scope and can resolve unannotated receivers and record
-        literals from field access alone.
+        <strong>Methods live outside types.</strong> A type definition describes only memory layout, the instance fields.
+        Methods and static fields are declared separately in the same scope, keeping type
+        definitions minimal and readable.
       </li>
     </ul>
   </section>
@@ -87,36 +72,36 @@
     <h2>Core Features</h2>
     <div class="feature-grid">
       <div class="feature-card">
+      <div class="feature-card">
+        <h3>Interpreted and Compilation</h3>
+        <p>Ruka ships both an interpreter and a compiler. The compiler uses the interpreter for metaprogramming and the user can use the interpreter for debugging and rapid prototyping.</p>
+      </div>
         <h3>Strong Static Typing</h3>
         <p>Aggressive type inference — annotations are only written where the type cannot be uniquely determined. Ambiguity is a compile error, never a silent fallback.</p>
       </div>
       <div class="feature-card">
         <h3>Garbage Collection</h3>
-        <p>Memory is managed automatically. Parameter modes allow opt-in lifetime control.</p>
+        <p>Memory is managed automatically. Parameter modes allow opt-in lifetime control and stack/heap allocations.</p>
       </div>
       <div class="feature-card">
         <h3>Expression-Based</h3>
-        <p>Blocks, if/else, and match all return values. No statement/expression split.</p>
+        <p>Blocks, if/else, match, and destructuring all return values. No statement/expression split.</p>
       </div>
       <div class="feature-card">
         <h3>Pattern Matching</h3>
-        <p>Exhaustive <code>match</code> over variants, literals, and guard conditions.</p>
+        <p>Exhaustive <code>match</code> over variants, literals, and guard conditions. Most types can be destructured and those expressions return booleans.</p>
       </div>
       <div class="feature-card">
         <h3>Built-in Testing</h3>
         <p>Test functions are first-class language constructs declared with <code>test</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.</p>
       </div>
       <div class="feature-card">
-        <h3>Interfaces</h3>
-        <p>Structural typing via interfaces. Any type matching the method signatures satisfies an interface implicitly. Parameters typed with an interface use dynamic dispatch automatically.</p>
+        <h3>Behaviours</h3>
+        <p>Structural typing via interfaces. Any type matching the method signatures satisfies an interface implicitly. Parameters typed with an interface cause that function to be compiled for the argument type passed in.</p>
       </div>
       <div class="feature-card">
         <h3>Compile-Time Evaluation</h3>
         <p>Ruka code can be interpreted at compile time to generate types, instantiate generics, and generate constants that require more complex calculations.</p>
-      </div>
-      <div class="feature-card">
-        <h3>First-Class Types</h3>
-        <p>Types, records, and imported files are all values that can be passed to compile-time (<code>eva</code>) parameters.</p>
       </div>
       <div class="feature-card">
         <h3>Built-in Collections</h3>
@@ -129,39 +114,10 @@
   <section id="example">
     <h2>A Quick Look</h2>
     <p>
-      The example below defines a <code>Dog</code> record type, a public static constructor,
-      a public method, a private mutable method, and a <code>main</code> entry point.
-      Note that methods are declared outside the type definition.
+    	The example below
     </p>
-<pre><code class="ruka">// Type definition — describes memory layout only
-local Dog = record {
-    name:  string,
-    breed: string,
-    age:   isize
-}
-
-// Public static function — receiver type in parentheses before `=`
-const new (Dog) = (name, breed) do
-    Dog.{ name, breed, age = 0 }
-end
-
-// Public method — self is the receiver keyword; its type is inferred from the body
-const about (self) = () do
-    "My name's ${self.name}. I'm a ${self.breed}."
-end
-
-// Private mutable method — mut mode before self
-local age_up (mut self) = () do
-    self.age = self.age + 1
-end
-
-const main = () do
-    local ruka = Dog.new("Ruka", "Jack Russell Terrier")
-
-    // Pipeline: passes left-hand value as first argument to the next function
-    ruka.about()
-        |> @println()
-end</code></pre>
+<pre><code class="ruka">
+</code></pre>
   </section>
 
   <!-- ── Development ── -->
@@ -213,7 +169,7 @@ end</code></pre>
   <section id="roadmap">
     <h2>Future Plans</h2>
     <p>
-      The current focus is on the core language. The following extensions are planned for the future.
+      The current focus is on the core language. The following extensions are planned for the future. Potentially allowing custom compiler/interpreter extensions to be made for domain specific solutions.
     </p>
 
     <div class="roadmap-item">
