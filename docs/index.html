@@ -164,6 +164,51 @@ const main = () do
 end</code></pre>
   </section>
 
+  <!-- ── Development ── -->
+  <section id="development">
+    <h2>Development</h2>
+
+    <h3>Philosophy</h3>
+    <ul>
+      <li><strong>Fully functional interpreter.</strong> The language should be runnable without compilation, enabling rapid iteration and scripting use cases.</li>
+      <li><strong>Custom compiler backend.</strong> Ruka targets its own backend rather than relying on LLVM or similar, keeping the toolchain self-contained and tightly integrated with the language.</li>
+      <li><strong>Self-hosted tooling.</strong> The compiler, interpreter, and tools are eventually written in Ruka itself.</li>
+      <li><strong>A singular tool.</strong> Project management, package management, testing, and editor integration are all provided under one unified <code>ruka</code> command — no fragmented ecosystem.</li>
+    </ul>
+
+    <h3>Goals</h3>
+    <div class="roadmap-item">
+      <h3>Short-Term</h3>
+      <ul>
+        <li>Basic interpreter</li>
+        <li>Basic project management</li>
+        <li>Basic editor support (tree-sitter grammar and basic LSP)</li>
+        <li>Basic compiler targeting AArch64</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-item">
+      <h3>Mid-Term</h3>
+      <ul>
+        <li>Self-hosting of tooling</li>
+        <li>Expanded interpreter and compiler with basic optimizations</li>
+        <li>Project management with full testing support</li>
+        <li>More comprehensive editor support</li>
+        <li>Basic package management (using GitHub repositories)</li>
+        <li>AMD64 and WASM compilation targets</li>
+      </ul>
+    </div>
+
+    <div class="roadmap-item">
+      <h3>Long-Term</h3>
+      <ul>
+        <li>Additional compilation targets</li>
+        <li>Fully featured interpreter and compiler with advanced optimizations</li>
+        <li>Compiler and interpreter plugin system</li>
+      </ul>
+    </div>
+  </section>
+
   <!-- ── Roadmap ── -->
   <section id="roadmap">
     <h2>Future Plans</h2>
