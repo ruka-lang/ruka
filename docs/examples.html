@@ -29,21 +29,16 @@
   <nav class="sidebar" aria-label="Examples">
     <div class="sidebar-page-nav">
       <a href="index.html">Overview</a>
-      <a href="language_reference.html">Reference</a>
+      <a href="reference.html">Reference</a>
       <a href="grammar.html">Grammar</a>
       <a href="https://github.com/ruka-lang/ruka">GitHub</a>
     </div>
     <h2>Examples</h2>
     <ul>
       <li><a href="#hello-world">Hello World</a></li>
-      <li><a href="#fizzbuzz">FizzBuzz</a></li>
-      <li><a href="#fibonacci">Fibonacci</a></li>
       <li><a href="#binary-tree">Binary Tree</a></li>
-      <li><a href="#stack">Stack</a></li>
       <li><a href="#shapes">Shapes &amp; Interfaces</a></li>
       <li><a href="#generics">Generic Functions</a></li>
-      <li><a href="#pipelines">Pipelines</a></li>
-      <li><a href="#named-params">Named Parameters</a></li>
     </ul>
   </nav>
 
@@ -61,68 +56,6 @@
 <pre><code class="ruka">const main = () do
     @println("Hello, world!")
 end</code></pre>
-    </section>
-
-    <!-- FizzBuzz -->
-    <section id="fizzbuzz">
-      <h2>FizzBuzz</h2>
-      <p>
-        Print the numbers 1&ndash;100, replacing multiples of 3 with <em>Fizz</em>,
-        multiples of 5 with <em>Buzz</em>, and multiples of both with <em>FizzBuzz</em>.
-      </p>
-      <p>
-        <code>fizzbuzz</code> uses an <code>if/else</code> chain as an expression —
-        the whole chain evaluates to a single <code>string</code> that is returned
-        implicitly as the last expression in the block.
-      </p>
-<pre><code class="ruka">local fizzbuzz = (n: usize) do
-    if n % 15 == 0 do "FizzBuzz"
-    else if n % 3 == 0 do "Fizz"
-    else if n % 5 == 0 do "Buzz"
-    else do "${n}"
-    end
-end
-
-const main = () do
-    for i in 1..=100 do
-        @println(fizzbuzz(i))
-    end
-end</code></pre>
-    </section>
-
-    <!-- Fibonacci -->
-    <section id="fibonacci">
-      <h2>Fibonacci</h2>
-      <p>
-        Two implementations of the Fibonacci sequence side by side. The recursive form is
-        a direct translation of the mathematical definition. The iterative form runs in
-        linear time and constant space.
-      </p>
-      <p>
-        The recursive version uses <code>if/else</code> as its return expression.
-        The iterative version uses an early <code>return</code> for the base case and
-        an implicit return of <code>b</code> at the end of the block.
-      </p>
-<pre><code class="ruka">// Recursive — mirrors the mathematical definition; exponential time
-local fib = (n: usize) do
-    if n &lt;= 1 do n
-    else fib(n - 1) + fib(n - 2)
-    end
-end
-
-const main = () do
-    for i in 0..=10 do
-        @println("fib(${i}) = ${fib(i)}")
-    end
-end
-
-// fib(0) = 0
-// fib(1) = 1
-// fib(2) = 1
-// fib(3) = 2
-// ...
-// fib(10) = 55</code></pre>
-    </section>
 
     <!-- Binary Tree -->
     <section id="binary-tree">
@@ -181,71 +114,6 @@ end</code></pre>
         on records. The variant itself is the receiver type, and <code>match</code> inside the
         body handles each tag.
       </div>
-    </section>
-
-    <!-- Stack -->
-    <section id="stack">
-      <h2>Stack</h2>
-      <p>
-        A last-in first-out stack. The internal array and length counter are private
-        (<code>local</code> fields), so callers can only interact through the public API.
-        Static functions and methods are declared outside the type in the same scope,
-        keeping the type definition focused on memory layout. Operations that may produce
-        no value return <code>option(T)</code>.
-      </p>
-      <p>
-        <code>.?</code> on an <code>option(T)</code> value force-unwraps the inner value,
-        panicking at runtime if the option is <code>.none</code>. Here it is safe because
-        the loop guard ensures the stack is non-empty before popping.
-      </p>
-<pre><code class="ruka">local Stack = record {
-    local data: [i32],
-    local len:  usize
-}
-
-const new (Stack) = () => .{ data = .{}, len = 0 }
-
-const push (mut self) = (value) do
-    // append value to self.data
-    self.len = self.len + 1
-end
-
-const pop (mut self) = () do
-    if self.len == 0 do
-        .none
-    else do
-        self.len = self.len - 1
-        .some(self.data[self.len])
-    end
-end
-
-const peek (self) = () do
-    if self.len == 0 do .none
-    else .some(self.data[self.len - 1])
-    end
-end
-
-const is_empty (self) = () => self.len == 0
-
-const size (self) = () => self.len
-
-const main = () do
-    let s = Stack.new()
-
-    s.push(10)
-    s.push(20)
-    s.push(30)
-
-    @println("size: ${s.size()}")      // 3
-    @println("peek: ${s.peek().?}")    // 30
-
-    while not s.is_empty() do
-        @println("pop: ${s.pop().?}")
-    end
-    // pop: 30
-    // pop: 20
-    // pop: 10
-end</code></pre>
     </section>
 
     <!-- Shapes & Interfaces -->
@@ -325,7 +193,7 @@ end</code></pre>
         which can then be used anywhere a type is expected.
       </p>
 <pre><code class="ruka">// Generic min
-const min = (t, a: t, b: t) => if a &lt; b do a else b end
+const min = (t, a: t, b: t) => if a &lt; b => a else => b
 
 // Compile-time type constructor — returns a parameterised record type
 const Pair = (a, b) do
@@ -349,103 +217,6 @@ end</code></pre>
         <strong>Note:</strong> Only values provably known at compile time may be passed to
         <code>eva</code> parameters. Passing a runtime value is a compile error.
       </div>
-    </section>
-
-    <!-- Pipelines -->
-    <section id="pipelines">
-      <h2>Pipelines</h2>
-      <p>
-        The <code>|&gt;</code> operator passes the left-hand value as the <em>first argument</em>
-        of the right-hand call. This lets you write a chain of operations in the order they
-        are applied — top to bottom, left to right — rather than inside out.
-      </p>
-      <p>
-        Because <code>|&gt;</code> always inserts the left-hand value as the first argument,
-        it works uniformly with free functions, static functions, methods, and built-ins.
-        The example below passes a <code>Dog</code> value through a series of
-        transformation methods and then hands the final string to <code>@println</code>.
-      </p>
-<pre><code class="ruka">local Dog = record { name: string, breed: string, age: isize }
-
-const new (Dog) = (name, breed) => Dog.{ name, breed, age = 0 }
-
-// Each method returns a new Dog so the value can flow through a pipeline
-const with_name (self) = (name) => Dog.{ name, breed = self.breed, age = self.age }
-
-const with_age (self) = (age) => Dog.{ name = self.name, breed = self.breed, age }
-
-const bio (self) = () => "${self.name}, ${self.breed}, age ${self.age}"
-
-const main = () do
-    // Each |> feeds the result of the left side into the first parameter
-    // of the right side — Dog flows through until @println receives a string.
-    Dog.new("puppy", "Labrador")
-        |> with_name("Rex")
-        |> with_age(3)
-        |> bio()
-        |> @println()
-    // Rex, Labrador, age 3
-end</code></pre>
-    </section>
-
-    <!-- Named Parameters -->
-    <section id="named-params">
-      <h2>Named Parameters</h2>
-      <p>
-        A <code>~</code> prefix on a parameter makes it named — callers must supply it by
-        label using <code>~label=value</code> syntax. Named parameters can be passed in any
-        order and may trail after the closing parenthesis, which is especially useful for
-        passing closures to higher-order functions.
-      </p>
-      <p>
-        The example below defines <code>map</code>, <code>filter</code>, and
-        <code>reduce</code> with a named closure parameter <code>~f</code> (or
-        <code>~pred</code>) placed last. At the call site the closure appears as a trailing
-        block, making the code read like a language built-in.
-      </p>
-<pre><code class="ruka">// Higher-order functions with named closure parameters
-const map    = (t, u, arr: [t], ~f: (t): u): [u] do ... end
-const filter = (t, arr: [t], ~pred: (t): bool): [t] do ... end
-const reduce = (t, u, arr: [t], init: u, ~f: (u, t): u): u do ... end
-
-let nums = .{1, 2, 3, 4, 5}
-
-// Single-line trailing block
-let doubled = map(nums) ~f=(x) => x * 2
-// .{2, 4, 6, 8, 10}
-
-let evens = filter(nums) ~pred=(x) => x % 2 == 0
-// .{2, 4}
-
-let total = reduce(nums, 0) ~f=(acc, x) => acc + x
-// 15
-
-// Multi-line trailing block — scales naturally to complex bodies
-let results = map(nums) ~f=(x) do
-    let squared = x * x
-    squared - 1
-end
-// .{0, 3, 8, 15, 24}</code></pre>
-
-      <h3>Named Parameters for Clarity</h3>
-      <p>
-        Named parameters are also useful when a function has multiple parameters of the
-        same type and the positional order would be easy to confuse.
-      </p>
-<pre><code class="ruka">const replace = (s: string, ~from: string, ~to: string): string do ... end
-
-// The label makes the intent clear at the call site
-let result = replace("hello world", ~from="world", ~to="Ruka")
-// "hello Ruka"
-
-// Labels can be supplied in any order
-let result2 = replace("hello world", ~to="Ruka", ~from="world")
-// "hello Ruka"
-
-// Shorthand — variable name matches the label
-let from = "world"
-let to   = "Ruka"
-let result3 = replace("hello world", ~from, ~to)</code></pre>
     </section>
 
   </main>
