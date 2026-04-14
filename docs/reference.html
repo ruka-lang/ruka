@@ -285,13 +285,13 @@ let c2 = Color.custom(.{255, 128, 0})</code></pre>
       <h3>Option and Result Literals</h3>
       <p>
         <code>option(T)</code> and <code>result(T, E)</code> are built-in variant types with
-        their own constructors.
+        their own constructors. Shorthand is provided for these types <code>?(T)</code> and <code>!(T, E)</code> respectively.
       </p>
 <pre><code class="ruka">let some_val: option(i32) = .some(42)
-let no_val:   option(i32) = .none
+let no_val: ?(i32) = .none
 
-let ok_val:  result(i32, string) = .ok(100)
-let err_val: result(i32, string) = .err("something went wrong")</code></pre>
+let ok_val: result(i32, string) = .ok(100)
+let err_val: !(i32, string) = .err("something went wrong")</code></pre>
 
       <h3>Range Literals</h3>
       <p>
@@ -325,10 +325,10 @@ let slice = nums[1..4]   // .{20, 30, 40}</code></pre>
           <tr><td><code>expr.!()</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">let name: option(string) = .some("Ruka")
+<pre><code class="ruka">let name = .some("Ruka")
 let s = name.?()               // "Ruka" — panics if .none
 
-let res: result(i32, string) = .ok(42)
+let res = !(i32, string).ok(42)
 let n = res.!()                // 42 — panics if .err
 
 // Common in chains where failure is a programmer error
