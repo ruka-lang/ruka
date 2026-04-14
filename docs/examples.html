@@ -135,7 +135,7 @@ end</code></pre>
         Parameters typed with an interface use dynamic dispatch automatically — no extra
         keyword is required. Any value that satisfies the interface can be passed.
       </p>
-<pre><code class="ruka">const Shape = interface {
+<pre><code class="ruka">local Shape = interface {
     area(self):      (): f64
     perimeter(self): (): f64
     label(self):     (): string
@@ -155,7 +155,7 @@ const perimeter (self) = () => 2.0 * (self.width + self.height)
 const label     (self) = () => "Rect(${self.width}x${self.height})"
 
 // Interface type implies dynamic dispatch — any Shape can be passed
-const print_info = (s: Shape) do
+local print_info = (s: Shape) do
     @println("${s.label()}")
     @println("  area:      ${s.area()}")
     @println("  perimeter: ${s.perimeter()}")
@@ -193,15 +193,15 @@ end</code></pre>
         which can then be used anywhere a type is expected.
       </p>
 <pre><code class="ruka">// Generic min
-const min = (t, a: t, b: t) => if a &lt; b => a else => b
+local min = (t, a: t, b: t) => if a &lt; b => a else => b
 
 // Compile-time type constructor — returns a parameterised record type
-const Pair = (a, b) do
+local Pair = (a, b) do
     record { first: a, second: b }
 end
 
 // Swap the two fields, producing a Pair with reversed type parameters
-const swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }
+local swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }
 
 const main = () do
     // Each distinct type argument causes a new instantiation at compile time
