@@ -38,6 +38,37 @@
     </p>
   </section>
 
+  <!-- ── Playground ── -->
+  <section id="playground">
+    <h2>A Quick Look</h2>
+    <p id="playground-desc"></p>
+    <div class="playground-widget">
+      <div class="playground-header">
+        <span class="playground-label">PLAYGROUND</span>
+        <div class="select-wrapper">
+          <select id="example-select" aria-label="Select example">
+            <option value="hello-world">Hello World</option>
+            <option value="binary-tree">Binary Tree</option>
+            <option value="shapes">Shapes &amp; Interfaces</option>
+            <option value="generics">Generic Functions</option>
+          </select>
+        </div>
+      </div>
+      <div class="playground-editor">
+        <pre><code id="playground-code"></code></pre>
+        <textarea id="playground-textarea"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          aria-label="Ruka code editor"></textarea>
+      </div>
+      <div class="playground-output-header">EXPECTED OUTPUT</div>
+      <pre class="playground-output-pre" id="playground-output"></pre>
+    </div>
+  </section>
+
+
   <!-- ── Design Principles ── -->
   <section id="philosophy">
     <h2>Design Principles</h2>
@@ -107,28 +138,6 @@
         <h3>Built-in Collections</h3>
         <p>Arrays, tuples, and hashmaps are built into the type system with literal syntax.</p>
       </div>
-    </div>
-  </section>
-
-  <!-- ── Playground ── -->
-  <section id="playground">
-    <h2>A Quick Look</h2>
-    <p id="playground-desc"></p>
-    <div class="playground-widget">
-      <div class="playground-header">
-        <span class="playground-label">PLAYGROUND</span>
-        <div class="select-wrapper">
-          <select id="example-select" aria-label="Select example">
-            <option value="hello-world">Hello World</option>
-            <option value="binary-tree">Binary Tree</option>
-            <option value="shapes">Shapes &amp; Interfaces</option>
-            <option value="generics">Generic Functions</option>
-          </select>
-        </div>
-      </div>
-      <pre><code id="playground-code"></code></pre>
-      <div class="playground-output-header">EXPECTED OUTPUT</div>
-      <pre class="playground-output-pre" id="playground-output"></pre>
     </div>
   </section>
 

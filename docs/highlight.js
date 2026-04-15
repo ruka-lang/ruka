@@ -137,12 +137,13 @@
     }
 
     // ── Playground (index.html) ──
-    var playgroundCode   = document.getElementById('playground-code');
-    var playgroundOutput = document.getElementById('playground-output');
-    var playgroundDesc   = document.getElementById('playground-desc');
-    var exampleSelect    = document.getElementById('example-select');
+    var playgroundCode     = document.getElementById('playground-code');
+    var playgroundTextarea = document.getElementById('playground-textarea');
+    var playgroundOutput   = document.getElementById('playground-output');
+    var playgroundDesc     = document.getElementById('playground-desc');
+    var exampleSelect      = document.getElementById('example-select');
 
-    if (exampleSelect && playgroundCode) {
+    if (exampleSelect && playgroundCode && playgroundTextarea) {
       var EXAMPLES = {
         'hello-world': {
           desc: 'The entry point of every Ruka program is a <code>const main</code> function. <code>ruka.println</code> writes a line to standard output. This is the smallest complete program.',
@@ -262,13 +263,34 @@
         }
       };
 
+      function rehighlight(source) {
+        playgroundCode.innerHTML = highlight(source);
+      }
+
       function setExample(key) {
         var ex = EXAMPLES[key];
         if (!ex) return;
         if (playgroundDesc)   playgroundDesc.innerHTML    = ex.desc;
-        playgroundCode.innerHTML = highlight(ex.code);
+        playgroundTextarea.value = ex.code;
+        rehighlight(ex.code);
         if (playgroundOutput) playgroundOutput.textContent = ex.output;
       }
+
+      // Live re-highlight as the user types
+      playgroundTextarea.addEventListener('input', function () {
+        rehighlight(this.value);
+      });
+
+      // Insert four spaces on Tab instead of losing focus
+      playgroundTextarea.addEventListener('keydown', function (e) {
+        if (e.key !== 'Tab') return;
+        e.preventDefault();
+        var start = this.selectionStart;
+        var end   = this.selectionEnd;
+        this.value = this.value.slice(0, start) + '    ' + this.value.slice(end);
+        this.selectionStart = this.selectionEnd = start + 4;
+        rehighlight(this.value);
+      });
 
       exampleSelect.addEventListener('change', function () {
         setExample(this.value);

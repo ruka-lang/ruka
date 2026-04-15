@@ -704,18 +704,68 @@ select#example-select:focus {
   box-shadow: 0 0 0 2px rgba(156,207,216,.15);
 }
 
-/* ── Code pane: suppress the global pre::before label ── */
+/* ── Code editor pane ──
+   CSS grid stacks pre + textarea in the same cell.
+   The pre (pointer-events:none) is the visual layer;
+   the textarea (color:transparent) is the input layer. ── */
+.playground-editor {
+  display: grid;
+  max-height: 420px;
+  overflow: auto;
+  background: var(--surface);
+  scrollbar-width: thin;
+  scrollbar-color: var(--overlay) transparent;
+}
+.playground-editor > * { grid-area: 1 / 1; }
+
 .playground-widget pre {
   margin: 0;
   border: none;
   border-radius: 0;
   box-shadow: none;
+  background: transparent;
+  pointer-events: none;
+  user-select: none;
+  overflow: visible;
+  min-width: 0;
 }
 .playground-widget pre::before { display: none; }
 .playground-widget pre code {
-  border-top: none;
-  max-height: 420px;
-  overflow-y: auto;
+  display: block;
+  padding: 1.1rem 1.4rem;
+  font-family: 'Intel One Mono', 'Courier New', monospace;
+  font-size: .87rem;
+  line-height: 1.65;
+  font-weight: 550;
+  white-space: pre;
+  tab-size: 4;
+  overflow: visible;
+  min-height: 3.5rem;
+}
+
+#playground-textarea {
+  padding: 1.1rem 1.4rem;
+  margin: 0;
+  font-family: 'Intel One Mono', 'Courier New', monospace;
+  font-size: .87rem;
+  line-height: 1.65;
+  font-weight: 550;
+  white-space: pre;
+  tab-size: 4;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--text);
+  border: none;
+  outline: none;
+  resize: none;
+  z-index: 1;
+  box-sizing: border-box;
+  min-height: 3.5rem;
+}
+#playground-textarea::selection {
+  background: rgba(196,167,231,.22);
+  color: transparent;
 }
 
 /* ── Output pane ── */
