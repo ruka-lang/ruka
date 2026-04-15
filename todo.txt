@@ -1,4 +1,4 @@
 Fixes
 - Change example code blocks to use highlight(raw)
 - Make overview titlebar buttons on the right of the title and tagline
-- Center content in reference and grammar
+- Center content in reference and grammar pages
