@@ -181,7 +181,7 @@ let greeting = "Hello, ${name}!"</code></pre>
         field type, or a function parameter type) and produces the appropriate collection.
       </p>
       <p>
-        When there is no type context, <code>.{...}</code> is inferred as a tuple by default.
+        When there is no type context, <code>{...}</code> is inferred as a tuple by default.
         An explicit type annotation on the binding is the most common way to request an array.
       </p>
 <pre><code class="ruka">// No type context — inferred as a tuple
@@ -230,24 +230,7 @@ let weights = [f64].{ for 0..3 => random.float(f64, -1.0, 1.0) }
 
 // Array comprehension with an iteration variable
 let squares = [i32].{ for i in 1..=5 => i * i }
-// .{1, 4, 9, 16, 25}
-
-// Map comprehension — build a map from an array
-let arr = [f64].{1.0, 2.0, 3.0, 4.0}
-let labels = [string => f64].{ for e in arr => .{"number ${e}" => e} }</code></pre>
-
-      <h3>Hashmap Literals</h3>
-      <p>
-        Hashmaps use dot-brace notation with <code>=&gt;</code> to separate keys from values.
-        This distinguishes them from record literals (which use <code>=</code>).
-      </p>
-<pre><code class="ruka">let scores = .{
-    "alice" => 95,
-    "bob"   => 87,
-    "carol" => 91
-}
-
-local score = scores["alice"]</code></pre>
+// .{1, 4, 9, 16, 25}</code></pre>
 
       <h3>Record Literals</h3>
       <p>
@@ -368,7 +351,6 @@ let upper = find_user(id).?().name</code></pre>
         <tbody>
           <tr><td><code>[T]</code></td><td rowspan="2"><code>.{v, v, ...}</code> (shared — resolved by context)</td><td>Homogeneous array</td></tr>
           <tr><td><code>[T, U, ...]</code></td><td>Fixed-length heterogeneous tuple (default when no context)</td></tr>
-          <tr><td><code>[K =&gt; V]</code></td><td><code>.{k =&gt; v, ...}</code></td><td>Hashmap</td></tr>
         </tbody>
       </table>
 
@@ -465,12 +447,12 @@ let origin: record { x: f64, y: f64 } = .{ x = 0.0, y = 0.0 }</code></pre>
 let p = Point.{ x = 3.0, y = 4.0 }
 
 // Destructure into separate bindings
-local .{ x, y } = p
+local { x, y } = p
 // x is 3.0, y is 4.0
 
 // Works with any record — including imported files
-local .{ sqrt, pow } = ruka.import("math")
-local .{ Dog, Cat }  = ruka.import("animals")</code></pre>
+local { sqrt, pow } = ruka.import("math")
+local { Dog, Cat }  = ruka.import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
@@ -758,24 +740,24 @@ end</code></pre>
 }
 
 let area = match shape with
-    .circle(r)           => 3.14159 * r * r
-    .rectangle(.{w, h})  => w * h
-    .point               => 0.0
+    circle(r) => 3.14159 * r * r
+    rectangle(.{w, h}) => w * h
+    point => 0.0
 end
 
 // option(T)
 match maybe_name with
-    .some(name) => ruka.println("Hello, ${name}")
-    .none       => ruka.println("No name provided")
+    some(name) => ruka.println("Hello, ${name}")
+    none => ruka.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
       <p>Arms may use boolean conditions involving the matched value or any in-scope variable.</p>
 <pre><code class="ruka">match n with
-    0       => "zero"
-    n < 0   => "negative"
+    0 => "zero"
+    n < 0 => "negative"
     n > 100 => "large"
-    else    => "other"
+    else => "other"
 end</code></pre>
     </section>
 
@@ -801,12 +783,12 @@ while i < 10 => i = i + 1</code></pre>
       </p>
 <pre><code class="ruka">// if with destructuring — body only runs if the option is .some
 let maybe: option(i32) = .some(42)
-if .some(x) = maybe do
+if some(x) = maybe do
     ruka.println("got ${x}")
 end
 
 // while with destructuring — loop until the value is .none
-while .some(x) = next_value() do
+while some(x) = next_value() do
     process(x)
 end</code></pre>
 
@@ -840,7 +822,7 @@ end
 // Destructuring a tuple in a for loop
 let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
 
-for .{k, v} in pairs do
+for {k, v} in pairs do
     ruka.println("${k} = ${v}")
 end</code></pre>
 
@@ -852,7 +834,7 @@ end</code></pre>
 <pre><code class="ruka">let values: [option(i32)] = .{.some(1), .none, .some(3), .none, .some(5)}
 
 // Only visits elements where the option is .some; x is bound to the inner value
-for .some(x) in values do
+for some(x) in values do
     ruka.println("${x}")    // 1, 3, 5
 end</code></pre>
 
@@ -1197,10 +1179,10 @@ end</code></pre>
 
 share opposite (self) = () do
     match self with
-        .north => Direction.south
-        .south => Direction.north
-        .east  => Direction.west
-        .west  => Direction.east
+        north => Direction.south
+        south => Direction.north
+        east  => Direction.west
+        west  => Direction.east
     end
 end
 
@@ -1559,8 +1541,8 @@ share main = () do
 end
 
 // Record destructuring — pull specific fields into scope
-local .{ sqrt, pow } = ruka.import("math")
-local .{ Dog, Cat }  = ruka.import("animals")
+local { sqrt, pow } = ruka.import("math")
+local { Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
 share describe = (t: type) => ruka.println("${t}")
@@ -1805,7 +1787,6 @@ end</code></pre>
           <tr><td><code>share</code></td><td><code>share</code></td><td>Better communicates that the value is shared/exported.</td></tr>
           <tr><td><code>behaviour</code></td><td><code>behaviour</code></td><td>Describes what the construct expresses — a set of behaviours — rather than an OOP term.</td></tr>
           <tr><td><code>variant</code></td><td><code>spector</code></td><td>Language-specific term for tagged unions; inspired by the bass manufacturer Spector.</td></tr>
-          <tr><td><code>[K =&gt; V]</code> hashmap</td><td>map</td><td>Shorter name for the built-in key-value collection type.</td></tr>
         </tbody>
       </table>
     </section>

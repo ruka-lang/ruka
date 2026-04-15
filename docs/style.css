@@ -171,7 +171,8 @@ p code, li code, td code { font-weight: 550; }
 .tp  { color: var(--tp); }
 .lbl { color: var(--accent); }
 .op  { color: var(--cmt); }
-.surr { color: var(--accent); }
+.strc { color: var(--cmt); }
+.surr { color: var(--kw); }
 
 /* ────────────────────────────────────────────────
    Note / callout

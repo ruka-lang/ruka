@@ -1,4 +1,5 @@
 Fixes
-- Change example code blocks to use highlight(raw)
+- Change example code blocks to use highlight(raw) and raw text for ease of writing
 - Make overview titlebar buttons on the right of the title and tagline
-- Center content in reference and grammar
+- Center content in reference and grammar pages
+- Have example code as a single multiline string for ease of writing
