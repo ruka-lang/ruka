@@ -262,13 +262,13 @@
 						'    // leaf(1) leaf(2)',
 						'    let tree = Tree.branch(.{',
 						'        left = branch(.{',
-						'            left  = .leaf(1),',
+						'            left = .leaf(1),',
 						'            right = .leaf(2)',
 						'        }),',
 						'        right = .leaf(5)',
 						'    })',
 						'',
-						'    ruka.println("sum:    ${tree.sum()}")',
+						'    ruka.println("sum: ${tree.sum()}")',
 						'    ruka.println("height: ${tree.height()}")',
 						'end'
 						].join('\n'),
@@ -310,13 +310,13 @@
 						'    print_info(r)',
 						'end'
 						].join('\n'),
-					output: 'Circle(r=5.0)\n  area:      78.53975\n  perimeter: 31.4159\nRect(4.0x6.0)\n  area:      24.0\n  perimeter: 20.0'
+					output: 'Circle(r=5.0)\n  area: 78.53975\n  perimeter: 31.4159\nRect(4.0x6.0)\n  area: 24.0\n  perimeter: 20.0'
 				},
 				'generics': {
 					desc: 'Parameters of type <code>type</code> are automatically compile-time. Functions with type parameters are instantiated separately for each unique set of arguments — similar to monomorphisation. Compile-time functions can also return types.',
 					code: [
 						'// Generic min — t is inferred as a compile-time type parameter',
-						'local min = (t, a: t, b: t) => if a < b => a else => b',
+						'local min = (t, a: t, b: t) => if a < b do a else => b',
 						'',
 						'// Type constructor — takes two types, returns a record type',
 						'local Pair = (a, b) do',
@@ -327,7 +327,7 @@
 						'local swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }',
 						'',
 						'share main = () do',
-						'    ruka.println("min(3, 7)     = ${min(i32, 3, 7)}")',
+						'    ruka.println("min(3, 7) = ${min(i32, 3, 7)}")',
 						'    ruka.println("min(1.5, 2.0) = ${min(f64, 1.5, 2.0)}")',
 						'',
 						'    let p = Pair(string, i32).{ first = "score", second = 42 }',
@@ -335,7 +335,7 @@
 						'    ruka.println("${q.first}: ${q.second}")',
 						'end'
 						].join('\n'),
-					output: 'min(3, 7)     = 3\nmin(1.5, 2.0) = 1.5\n42: score'
+					output: 'min(3, 7) = 3\nmin(1.5, 2.0) = 1.5\n42: score'
 				}
 			};
 
