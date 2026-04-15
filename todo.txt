@@ -1,0 +1,9 @@
+Changes:
+- Fields refer to runtime instance attributes, statics refer to compile time shared attributes
+- Behaviours can only be used in parameters
+- Use identifier prefixes (meaning there can't be a space inbetween) for binding/parameter modes
+	- * for mut
+	- & for mov
+	- $ for stc
+	- @ for eva
+- Change builtin prefixes to # for builtins

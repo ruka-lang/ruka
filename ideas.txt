@@ -10,5 +10,3 @@ end
 ```
 - Things like about will be inlined in compilation
 - Iterating over type fields, methods, statics at compile time (allowing rust like derive functions)
-- Fields refer to runtime instance attributes, statics refer to compile time shared attributes
-- Behaviours can only be used in parameters
