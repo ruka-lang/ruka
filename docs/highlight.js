@@ -111,9 +111,26 @@
         let j = i;
         while (j < raw.length && /\w/.test(raw[j])) j++;
         const word = raw.slice(i, j);
+        let previous_nonspace = {
+        	first: null,
+			second: null
+        };
+
+		for (let k = i - 1; k > 0; k--) {
+			if (!/\s/.test(raw[k])) {
+				previous_nonspace = {
+					first: raw[k-1],
+					second: raw[k]
+				};
+				break;
+			}
+		}
         if (KEYWORDS.has(word)) out += span('kw', word);
         // types don't have to be capitalized, they are always proceeded by a `: ` or `-> `
-        else if (raw[i - 2] === ':' || (raw[i - 3] === '-' && raw[i - 2] === '>')) {
+        // with any amount of spaces beforehand
+        else if (previous_nonspace && previous_nonspace.second === ':'
+        	|| (previous_nonspace.first === '-' && previous_nonspace.second === '>')
+        ) {
 	        out += span('tp', word);
         }
         else out += esc(word);
