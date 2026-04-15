@@ -222,7 +222,7 @@ identifier    ::=  letter ( letter | digit )*
         <div class="keyword-grid">
           <code>and</code>
           <code>break</code>
-          <code>const</code>
+          <code>share</code>
           <code>continue</code>
           <code>defer</code>
           <code>do</code>
@@ -232,7 +232,7 @@ identifier    ::=  letter ( letter | digit )*
           <code>for</code>
           <code>if</code>
           <code>in</code>
-          <code>interface</code>
+          <code>behaviour</code>
           <code>let</code>
           <code>local</code>
           <code>match</code>
@@ -327,7 +327,7 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
         <h3>Program</h3>
         <p>
           A Ruka source file is a flat sequence of declarations. Every file is implicitly
-          a compile-time record: <code>const</code> declarations become its public fields
+          a compile-time record: <code>share</code> declarations become its public fields
           and <code>local</code> declarations are private fields inaccessible to importers.
           <code>ruka.import</code> returns this record value; there is no separate module concept.
         </p>
@@ -348,7 +348,7 @@ binding       ::=  binding-kw binding-lhs "=" expr
                |   binding-kw binding-lhs ":" type "=" expr
 
 binding-kw    ::=  "let"     -- mutable; scoped to the enclosing block
-               |   "const"   -- immutable; public (exported from its module)
+               |   "share"   -- immutable; public (exported from its module)
                |   "local"   -- immutable; private (not exported)
                |   "test"    -- test function; compiled only in debug and test builds
 
@@ -367,7 +367,7 @@ destructure-pattern
                    -- e.g.  local .{ sqrt, pow } = ruka.import("math")</code></pre>
 
         <div class="note">
-          <strong>Uniform declarations.</strong> Functions, types, interfaces, and modules
+          <strong>Uniform declarations.</strong> Functions, types, behaviours, and modules
           are all values stored in ordinary bindings. A <em>receiver</em> in the binding
           left-hand side associates the value with a named type as either a static function
           (type-name receiver) or a method (<code>self</code> receiver). The receiver appears
@@ -400,7 +400,7 @@ destructure-pattern
                |   function-type
                |   record-type
                |   variant-type
-               |   interface-type
+               |   behaviour-type
                |   identifier                        -- named type (user-defined or type parameter)
 
 -- ── Primitive types ───────────────────────────────
@@ -442,8 +442,8 @@ variant-type  ::=  "variant" "{" tag-list? "}"
 tag-list      ::=  tag ( "," tag )* ","?
 tag           ::=  identifier ( ":" type )?           -- payload type is optional; absent means unit
 
-interface-type
-              ::=  "interface" "{" method-sig* "}"
+behaviour-type
+              ::=  "behaviour" "{" method-sig* "}"
 method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
                    -- each line declares one required method signature</code></pre>
 

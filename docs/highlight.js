@@ -185,7 +185,7 @@
     if (exampleSelect && playgroundCode && playgroundTextarea) {
       var EXAMPLES = {
         'hello-world': {
-          desc: 'The entry point of every Ruka program is a <code>const main</code> function. <code>ruka.println</code> writes a line to standard output. This is the smallest complete program.',
+          desc: 'The entry point of every Ruka program is a <code>share main</code> function. <code>ruka.println</code> writes a line to standard output. This is the smallest complete program.',
           code: 'share main = () do\n    ruka.println("Hello, world!")\nend',
           output: 'Hello, world!'
         },
