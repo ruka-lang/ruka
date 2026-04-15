@@ -15,7 +15,8 @@ When `Ruka` reaches a usable state, the instructions for installing and using th
 # Documentation
 <!--[Read the docs](https://www.ruka-lang.org)-->
 - [Language Overview](https://ruka-lang.github.io/ruka/) — Design philosophy, core features, and a quick introduction to the syntax
-- [Language Reference](https://ruka-lang.github.io/ruka/language_reference.html) — Full reference covering all language features with examples
+- [Language Reference](https://ruka-lang.github.io/ruka/reference.html) — Full reference covering all language features with examples
+- [Language Grammar](https://ruka-lang.github.io/ruka/grammar.html) — EBNF formal grammar describing Ruka syntax
 - [Examples](https://ruka-lang.github.io/ruka/examples.html) - Ruka language example programs
 
 <!--## Important Repositories

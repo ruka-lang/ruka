@@ -87,8 +87,7 @@
   </div>
   <nav>
     <a href="index.html">Overview</a>
-    <a href="language_reference.html">Reference</a>
-    <a href="examples.html">Examples</a>
+    <a href="reference.html">Reference</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
   <button class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
@@ -101,7 +100,7 @@
   <nav class="sidebar" aria-label="Grammar sections">
     <div class="sidebar-page-nav">
       <a href="index.html">Overview</a>
-      <a href="language_reference.html">Reference</a>
+      <a href="reference.html">Reference</a>
       <a href="examples.html">Examples</a>
       <a href="https://github.com/ruka-lang/ruka">GitHub</a>
     </div>
@@ -223,7 +222,7 @@ identifier    ::=  letter ( letter | digit )*
         <div class="keyword-grid">
           <code>and</code>
           <code>break</code>
-          <code>const</code>
+          <code>share</code>
           <code>continue</code>
           <code>defer</code>
           <code>do</code>
@@ -233,7 +232,7 @@ identifier    ::=  letter ( letter | digit )*
           <code>for</code>
           <code>if</code>
           <code>in</code>
-          <code>interface</code>
+          <code>behaviour</code>
           <code>let</code>
           <code>local</code>
           <code>match</code>
@@ -249,14 +248,14 @@ identifier    ::=  letter ( letter | digit )*
           <code>with</code>
         </div>
         <p>
-          The following identifiers are reserved as <em>mode keywords</em>.
-          They are only valid immediately before a parameter identifier or a binding
-          identifier; in all other positions they are parse errors.
+          The following symbols are reserved as <em>mode prefixes</em>.
+          A mode prefix is placed directly before a parameter or binding identifier
+          with no whitespace between the prefix and the identifier.
         </p>
-        <pre class="grammar"><code>mode          ::=  "mut"    -- mutable reference; changes are visible to the caller
-               |   "mov"    -- ownership transfer; caller cannot use the value after the call
-               |   "stc"    -- stack-allocated copy; value cannot escape the function scope
-               |   "eva"    -- compile-time value; must be known at compile time</code></pre>
+        <pre class="grammar"><code>mode-prefix   ::=  "*"    -- mutable reference; changes are visible to the caller
+               |   "&"    -- move (ownership transfer); caller cannot use the value after the call
+               |   "$"    -- stack-allocated; value cannot escape the function scope
+               |   "@"    -- compile-time; value must be known at compile time</code></pre>
         <div class="note">
           <code>self</code> is a reserved keyword that refers to the method receiver instance.
           It may only appear in the receiver position of a binding declaration or as a parameter
@@ -328,9 +327,9 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
         <h3>Program</h3>
         <p>
           A Ruka source file is a flat sequence of declarations. Every file is implicitly
-          a compile-time record: <code>const</code> declarations become its public fields
+          a compile-time record: <code>share</code> declarations become its public fields
           and <code>local</code> declarations are private fields inaccessible to importers.
-          <code>@import</code> returns this record value; there is no separate module concept.
+          <code>ruka.import</code> returns this record value; there is no separate module concept.
         </p>
         <pre class="grammar"><code>program       ::=  declaration*</code></pre>
       </section>
@@ -349,26 +348,26 @@ binding       ::=  binding-kw binding-lhs "=" expr
                |   binding-kw binding-lhs ":" type "=" expr
 
 binding-kw    ::=  "let"     -- mutable; scoped to the enclosing block
-               |   "const"   -- immutable; public (exported from its module)
+               |   "share"   -- immutable; public (exported from its module)
                |   "local"   -- immutable; private (not exported)
                |   "test"    -- test function; compiled only in debug and test builds
 
-binding-lhs   ::=  mode? identifier                  -- simple value binding
-               |   mode? identifier receiver          -- function or method binding
+binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
+               |   mode-prefix? identifier receiver          -- function or method binding
                |   destructure-pattern                -- destructuring binding
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                        -- static function: associated type name
-               |   mode? "self"                      -- method: instance receiver
+               |   mode-prefix? "self"                      -- method: instance receiver
 
 destructure-pattern
               ::=  ".{" identifier ( "," identifier )* "}"
                    -- destructures any record value, including imported files
                    -- e.g.  local .{ x, y } = point
-                   -- e.g.  local .{ sqrt, pow } = @import("math")</code></pre>
+                   -- e.g.  local .{ sqrt, pow } = ruka.import("math")</code></pre>
 
         <div class="note">
-          <strong>Uniform declarations.</strong> Functions, types, interfaces, and modules
+          <strong>Uniform declarations.</strong> Functions, types, behaviours, and modules
           are all values stored in ordinary bindings. A <em>receiver</em> in the binding
           left-hand side associates the value with a named type as either a static function
           (type-name receiver) or a method (<code>self</code> receiver). The receiver appears
@@ -389,7 +388,7 @@ destructure-pattern
         <p>
           Type expressions appear after <code>:</code> in parameter and binding annotations,
           after <code>-&gt;</code> in return-type annotations, and as values passed to
-          <code>eva</code>-mode parameters.
+          <code>@</code>-prefixed parameters.
         </p>
         <pre class="grammar"><code>type          ::=  "()"                              -- unit type
                |   primitive-type
@@ -401,7 +400,7 @@ destructure-pattern
                |   function-type
                |   record-type
                |   variant-type
-               |   interface-type
+               |   behaviour-type
                |   identifier                        -- named type (user-defined or type parameter)
 
 -- ── Primitive types ───────────────────────────────
@@ -443,9 +442,9 @@ variant-type  ::=  "variant" "{" tag-list? "}"
 tag-list      ::=  tag ( "," tag )* ","?
 tag           ::=  identifier ( ":" type )?           -- payload type is optional; absent means unit
 
-interface-type
-              ::=  "interface" "{" method-sig* "}"
-method-sig    ::=  identifier "(" mode? "self" ")" ":" function-type
+behaviour-type
+              ::=  "behaviour" "{" method-sig* "}"
+method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
                    -- each line declares one required method signature</code></pre>
 
         <div class="note">
@@ -561,7 +560,6 @@ trailing-arg  ::=  "~" identifier "=" function-expr
         <h3>Primary Expressions</h3>
         <pre class="grammar"><code>primary       ::=  literal-expr
                |   identifier
-               |   builtin-call
                |   block-expr
                |   if-expr
                |   match-expr
@@ -639,8 +637,8 @@ function-body ::=  "=>" expr        -- single-expression body; no "end" required
                |   block-expr       -- multi-statement body
 
 param-list    ::=  param ( "," param )*
-param         ::=  mode? "~"? identifier type-annot?     -- positional or named parameter
-               |   mode? "self"                          -- method receiver (keyword only)
+param         ::=  mode-prefix? "~"? identifier type-annot?     -- positional or named parameter
+               |   mode-prefix? "self"                          -- method receiver (keyword only)
 
 type-annot    ::=  ":" type</code></pre>
 
@@ -660,7 +658,7 @@ type-annot    ::=  ":" type</code></pre>
           that accept a closure.
         </p>
         <pre class="grammar"><code>-- Declaration (in param-list)
---   mode? "~" identifier type-annot?
+--   mode-prefix? "~" identifier type-annot?
 --   e.g.  ~name: string,  ~f: (isize) -> isize
 
 -- Call site (in arg-list)
@@ -785,24 +783,26 @@ guard-pattern ::=  expr
 
       <!-- Built-in calls -->
       <section id="builtins-grammar">
-        <h3>Built-in Calls</h3>
+        <h3>Built-in Module</h3>
         <p>
-          Built-in functions are prefixed with <code>@</code> to distinguish them from
-          user-defined names. They are available in every scope without an import and
-          cannot be redefined by user code.
+          Built-in functions are accessed through the <code>ruka</code> module, which is
+          implicitly available in every scope without an import declaration. Access uses
+          ordinary field-access and call syntax: <code>ruka.println(...)</code>,
+          <code>ruka.len(...)</code>, etc. The <code>ruka</code> identifier cannot be
+          shadowed or redefined by user code.
         </p>
-        <pre class="grammar"><code>builtin-call  ::=  "@" identifier "(" arg-list? ")"
+        <pre class="grammar"><code>-- ruka is an implicitly imported compile-time record; no import needed.
+-- Access uses standard postfix call syntax: ruka.fn(args)
 
--- Standard built-ins
--- @print(string)              print to stdout without a trailing newline
--- @println(string)            print to stdout with a trailing newline
--- @import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
--- @typeOf(expr)               return the compile-time type of an expression as a "type" value
--- @abs(number)                absolute value
--- @sqrt(number)               square root
--- @len(collection)            length of an array, tuple, or string
--- @assertEq(a, b)             assert equality; panics at runtime on failure
--- @compileError(string-lit)   emit a compile-time error with the given message</code></pre>
+-- ruka.print(string)              print to stdout without a trailing newline
+-- ruka.println(string)            print to stdout with a trailing newline
+-- ruka.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
+-- ruka.typeOf(expr)               return the compile-time type of an expression as a "type" value
+-- ruka.abs(number)                absolute value
+-- ruka.sqrt(number)               square root
+-- ruka.len(collection)            length of an array, tuple, or string
+-- ruka.assertEq(a, b)             assert equality; panics at runtime on failure
+-- ruka.compileError(string-lit)   emit a compile-time error with the given message</code></pre>
       </section>
 
     </section><!-- /syntactic -->
@@ -811,7 +811,7 @@ guard-pattern ::=  expr
 </div>
 
 <footer>
-  <p>Ruka Language &mdash; <a href="index.html">Overview</a> &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language &mdash; <a href="index.html">Overview</a> &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script src="highlight.js"></script>

@@ -16,7 +16,6 @@
   <nav>
     <a href="index.html">Overview</a>
     <a href="grammar.html">Grammar</a>
-    <a href="examples.html">Examples</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
   <button class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
@@ -30,7 +29,6 @@
     <div class="sidebar-page-nav">
       <a href="index.html">Overview</a>
       <a href="grammar.html">Grammar</a>
-      <a href="examples.html">Examples</a>
       <a href="https://github.com/ruka-lang/ruka">GitHub</a>
     </div>
     <h2>Contents</h2>
@@ -42,6 +40,7 @@
       <li><a href="#user-types">User-defined Types</a></li>
       <li><a href="#type-inference">Type Inference</a></li>
       <li><a href="#control-flow">Control Flow</a></li>
+      <li><a href="#operators">Operators</a></li>
       <li><a href="#pattern-matching">Pattern Matching</a></li>
       <li><a href="#loops">Loops</a></li>
       <li><a href="#defer">Defer</a></li>
@@ -50,7 +49,7 @@
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
       <li><a href="#named-params">Named Parameters</a></li>
-      <li><a href="#interfaces">Interfaces</a></li>
+      <li><a href="#behaviours">Behaviours</a></li>
       <li><a href="#pipelines">Pipelines</a></li>
       <li><a href="#modules">Modules</a></li>
       <li><a href="#imports">Imports</a></li>
@@ -84,39 +83,45 @@ let x = 12  // Inline comment</code></pre>
         <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
         <tbody>
           <tr><td><code>let</code></td><td>Mutable</td><td>Scoped to the enclosing block</td></tr>
-          <tr><td><code>const</code></td><td>Immutable</td><td>Public — exported from its module</td></tr>
+          <tr><td><code>share</code></td><td>Immutable</td><td>Public — exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
           <tr><td><code>local</code></td><td>Immutable</td><td>Private — not exported</td></tr>
           <tr><td><code>test</code></td><td>Immutable</td><td>Not exported — compiled in debug/test builds only</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">let count = 0          // mutable
+<pre><code class="ruka">let count = 0          // mutable runtime value
 count = count + 1
 
-const PI = 3.14159     // public constant
-local max_retries = 5  // private constant</code></pre>
+share PI = 3.14159     // public static constant
+local max_retries = 5  // private static constant</code></pre>
       <p>
-        Functions and types are stored as values in <code>const</code> or <code>local</code>
+        Functions and types are stored as values in <code>share</code> or <code>local</code>
         bindings. There is no separate <code>fn</code> or <code>type</code> declaration syntax —
         the binding keyword determines visibility. Test functions use the <code>test</code>
         keyword and are only present in debug and test builds.
       </p>
+      <div class="note">
+        <strong><code>share</code> is for static values only.</strong> The right-hand side of a
+        <code>share</code> binding must be a value known at compile time — a type, a function,
+        a literal, or the result of a compile-time expression. <code>let</code> and
+        <code>local</code> can hold runtime-evaluated values.
+      </div>
 
       <h3>Binding Modes</h3>
       <p>
-        By default variables and non-eva constants are allocated by the GC. Binding modes allows the user to adjust this behaviour.
-        A mode is placed between the binding keyword and the identifier.
+        By default, variables and constants are allocated by the GC. Binding modes allow the user to adjust this behaviour.
+        A mode prefix is placed directly before the identifier with no space between them.
       </p>
       <table>
-        <thead><tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr></thead>
+        <thead><tr><th>Prefix</th><th>Syntax</th><th>Behaviour</th></tr></thead>
         <tbody>
           <tr>
-            <td><code>stc</code></td>
-            <td><code>let stc name = ...</code></td>
-            <td>Stack-allocated. Can still be passed-by-reference but it's ownership can't be moved.</td>
+            <td><code>$</code></td>
+            <td><code>let $name = ...</code></td>
+            <td>Stack-allocated. Passed by pointer — not GC-managed and not copied. Can be moved: ownership may be transferred to another binding or function, after which the original is invalid.</td>
           </tr>
           <tr>
-            <td><code>eva</code></td>
-            <td><code>local eva name = ...</code> / <code>const eva name = ...</code></td>
+            <td><code>@</code></td>
+            <td><code>local @name = ...</code> / <code>share @name = ...</code></td>
             <td>Forces a <em>runtime</em> function to be evaluated at compile time. All arguments must be compile-time known. The result is stored as a compile-time constant.</td>
           </tr>
         </tbody>
@@ -125,10 +130,10 @@ local max_retries = 5  // private constant</code></pre>
         For more detail see: <a href="#comptime">Compile-Time Evaluation</a>.
       </p>
       <div class="note">
-        <code>eva</code> on a binding is only needed when you want to force a <em>runtime</em>
+        <code>@</code> on a binding is only needed when you want to force a <em>runtime</em>
         function to run at compile time. Results from calling functions that already have
-        <code>eva</code> parameters are automatically compile-time — no annotation is required
-        on the binding, but it must be <code>const</code> or <code>local</code>.
+        <code>@</code>-prefixed parameters are automatically compile-time — no annotation is required
+        on the binding, but it must be <code>share</code> or <code>local</code>.
       </div>
     </section>
 
@@ -144,6 +149,16 @@ let bits = 0b00101010  // binary integer
 let f    = 3.14        // float   (float by default)
 let yes  = true        // boolean
 let no   = false</code></pre>
+
+      <h3>Character Literals</h3>
+      <p>
+        Character literals use single quotes and are inferred as <code>u8</code>. They represent
+        a single ASCII byte. Standard escape sequences are supported.
+      </p>
+<pre><code class="ruka">let ch  = 'a'    // u8 — 97
+let nl  = '\n'   // u8 — 10
+let tab = '\t'   // u8 — 9
+let nul = '\0'   // u8 — 0</code></pre>
 
       <h3>String Literals</h3>
       <p>Strings use double quotes. String interpolation embeds expressions with <code>${...}</code>.</p>
@@ -182,9 +197,44 @@ let empty:  [i32] = .{}
 let two = primes[0]
 
 // Type context from a function parameter resolves the ambiguity
-const sum_all = (values: [i32]) -> i32 => // ...
+share sum_all = (values: [i32]) -> i32 => // ...
 
 sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
+
+      <h3>Explicit Type-Prefixed Collection Literals</h3>
+      <p>
+        Collections can also be created with a type prefix — <code>[type].{...}</code> — which
+        makes the intended type explicit without requiring a binding annotation. This is the
+        idiomatic form for arrays and maps created inline or passed directly to a function.
+        It mirrors the syntax used for record and variant literals.
+      </p>
+<pre><code class="ruka">// Array — type is explicit, no annotation needed on the binding
+let primes = [i32].{2, 3, 5, 7, 11}
+
+// Tuple — multiple types listed
+let pair = [i32, string].{42, "hello"}
+
+// Map — key => value type
+let scores = [string => i32].{
+    "alice" => 95,
+    "bob"   => 87
+}</code></pre>
+
+      <h3>Collection Comprehensions</h3>
+      <p>
+        Arrays and maps support comprehension syntax inside the <code>[type].{...}</code> form.
+        A <code>for</code> expression inside the braces generates the elements.
+      </p>
+<pre><code class="ruka">// Array comprehension — produce 3 random floats
+let weights = [f64].{ for 0..3 => random.float(f64, -1.0, 1.0) }
+
+// Array comprehension with an iteration variable
+let squares = [i32].{ for i in 1..=5 => i * i }
+// .{1, 4, 9, 16, 25}
+
+// Map comprehension — build a map from an array
+let arr = [f64].{1.0, 2.0, 3.0, 4.0}
+let labels = [string => f64].{ for e in arr => .{"number ${e}" => e} }</code></pre>
 
       <h3>Hashmap Literals</h3>
       <p>
@@ -233,13 +283,13 @@ let c2 = Color.custom(.{255, 128, 0})</code></pre>
       <h3>Option and Result Literals</h3>
       <p>
         <code>option(T)</code> and <code>result(T, E)</code> are built-in variant types with
-        their own constructors.
+        their own constructors. Shorthand is provided for these types <code>?(T)</code> and <code>!(T, E)</code> respectively.
       </p>
 <pre><code class="ruka">let some_val: option(i32) = .some(42)
-let no_val:   option(i32) = .none
+let no_val: ?(i32) = .none
 
-let ok_val:  result(i32, string) = .ok(100)
-let err_val: result(i32, string) = .err("something went wrong")</code></pre>
+let ok_val: result(i32, string) = .ok(100)
+let err_val: !(i32, string) = .err("something went wrong")</code></pre>
 
       <h3>Range Literals</h3>
       <p>
@@ -254,7 +304,7 @@ let inclusive = 0..=10   // 0, 1, ..., 10
 let start = 2
 let end   = 7
 for i in start..end do
-    @println("${i}")     // 2 3 4 5 6
+    ruka.println("${i}")     // 2 3 4 5 6
 end
 
 // Slice an array with a range
@@ -273,10 +323,10 @@ let slice = nums[1..4]   // .{20, 30, 40}</code></pre>
           <tr><td><code>expr.!()</code></td><td><code>result(T, E)</code></td><td>Returns the inner <code>T</code>; panics if <code>.err</code>.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">let name: option(string) = .some("Ruka")
+<pre><code class="ruka">let name = .some("Ruka")
 let s = name.?()               // "Ruka" — panics if .none
 
-let res: result(i32, string) = .ok(42)
+let res = !(i32, string).ok(42)
 let n = res.!()                // 42 — panics if .err
 
 // Common in chains where failure is a programmer error
@@ -335,7 +385,7 @@ let upper = find_user(id).?().name</code></pre>
       <p>
         A range value is produced by the <code>..</code> and <code>..=</code> operators.
         Both bounds must be the same numeric type (inferred from context).
-        Ranges implement the iterator interface and can be used in <code>for</code> loops
+        Ranges implement the iterator behaviour and can be used in <code>for</code> loops
         and as array/tuple slice indices.
       </p>
       <table>
@@ -346,11 +396,11 @@ let upper = find_user(id).?().name</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">for i in 0..5 do
-    @println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
 
 for i in 1..=5 do
-    @println("${i}")     // 1 2 3 4 5
+    ruka.println("${i}")     // 1 2 3 4 5
 end
 
 // Ranges as slice indices
@@ -381,7 +431,7 @@ let table: [string => usize] = .{ "a" => 1 }</code></pre>
     <section id="user-types">
       <h2>User-defined Types</h2>
       <p>
-        Types are values stored in <code>const</code> or <code>local</code> bindings.
+        Types are values stored in <code>share</code> or <code>local</code> bindings.
         A type definition describes the memory layout only — behaviour (methods and static
         functions) is declared separately.
       </p>
@@ -419,8 +469,8 @@ local .{ x, y } = p
 // x is 3.0, y is 4.0
 
 // Works with any record — including imported files
-local .{ sqrt, pow } = @import("math")
-local .{ Dog, Cat }  = @import("animals")</code></pre>
+local .{ sqrt, pow } = ruka.import("math")
+local .{ Dog, Cat }  = ruka.import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
@@ -478,18 +528,18 @@ local Rect   = record { width: f64, height: f64 }
 
 // self inferred as Circle — only type in scope with `radius`
 // return type inferred as f64 from the expression
-const area (self) = () => 3.14159 * self.radius * self.radius
+share area (self) = () => 3.14159 * self.radius * self.radius
 
 // self inferred as Rect — only type with both `width` and `height`
-const area (self) = () => self.width * self.height
+share area (self) = () => self.width * self.height
 
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
 // Inferred as Dog — only Dog has both `name` and `breed`
-const label (self) = () => "${self.name} (${self.breed})"
+share label (self) = () => "${self.name} (${self.breed})"
 // Explicit annotation required — both types have a `name` field
-const label (self: Cat) = () => "${self.name}"</code></pre>
+share label (self: Cat) = () => "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
       <p>
@@ -520,14 +570,14 @@ let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `ind
         boundary.
       </p>
 <pre><code class="ruka">// Return type inferred as f64
-const circumference (self) = () => 2.0 * 3.14159 * self.radius
+share circumference (self) = () => 2.0 * 3.14159 * self.radius
 
 // Return type inferred as string — interpolation always produces string
-const label (self) = () => "Circle(r=${self.radius})"
+share label (self) = () => "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
-const find = (values: [i32], target: i32) do
-    for i in 0..@len(values) do
+share find = (values: [i32], target: i32) do
+    for i in 0..ruka.len(values) do
         if values[i] == target do return .some(i) end
     end
     .none
@@ -561,7 +611,7 @@ let c: u8  = 42    // u8  — annotation provides context
 let d: f64 = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
-const double = (x: i32) => x * 2
+share double = (x: i32) => x * 2
 let result = double(10)  // 10 is produced as i32, not isize</code></pre>
 
       <div class="note">
@@ -586,15 +636,30 @@ let result = double(10)  // 10 is produced as i32, not isize</code></pre>
       </p>
 <pre><code class="ruka">// Multiline
 if x > 0 do
-    @println("positive")
+    ruka.println("positive")
 else if x < 0 do
-    @println("negative")
+    ruka.println("negative")
 else do
-    @println("zero")
+    ruka.println("zero")
 end
 
-// Used as a value
-let label = if score >= 90 do "A" else if score >= 80 do "B" else "C" end
+// Single-line — => introduces a single expression; no end required
+if x > 0 => ruka.println("positive")
+
+// Single-line with else
+if x > 0 => ruka.println("positive") else => ruka.println("non-positive")
+
+// Single-line chained
+if x > 0 => "positive" else if x < 0 => "negative" else => "zero"
+
+// Used as a value (do...end form)
+let label = if score >= 90 do
+    "A"
+else if score >= 80 do
+    "B"
+else
+    "C"
+end
 
 // Logical operators
 if condition and not other_condition do
@@ -604,6 +669,61 @@ end
 if a or b do
     // ...
 end</code></pre>
+    </section>
+
+    <!-- Operators -->
+    <section id="operators">
+      <h2>Operators</h2>
+      <p>
+        The table below lists all operators from lowest to highest precedence. Operators at
+        higher precedence levels bind more tightly than those at lower levels.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Level</th><th>Operator(s)</th><th>Associativity</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1 (lowest)</td><td><code>=</code></td><td>Right</td><td>Assignment</td></tr>
+          <tr><td>2</td><td><code>|&gt;</code></td><td>Left</td><td>Pipeline</td></tr>
+          <tr><td>3</td><td><code>or</code></td><td>Left</td><td>Logical OR</td></tr>
+          <tr><td>4</td><td><code>and</code></td><td>Left</td><td>Logical AND</td></tr>
+          <tr><td>5</td><td><code>not</code></td><td>Prefix</td><td>Logical NOT</td></tr>
+          <tr><td>6</td><td><code>== &nbsp; != &nbsp; &lt; &nbsp; &lt;= &nbsp; &gt; &nbsp; &gt;=</code></td><td>None</td><td>Comparison (non-associative)</td></tr>
+          <tr><td>7</td><td><code>.. &nbsp; ..=</code></td><td>None</td><td>Range construction</td></tr>
+          <tr><td>8</td><td><code>|</code></td><td>Left</td><td>Bitwise OR</td></tr>
+          <tr><td>9</td><td><code>^</code></td><td>Left</td><td>Bitwise XOR</td></tr>
+          <tr><td>10</td><td><code>&amp;</code></td><td>Left</td><td>Bitwise AND</td></tr>
+          <tr><td>11</td><td><code>+ &nbsp; -</code></td><td>Left</td><td>Additive arithmetic</td></tr>
+          <tr><td>12</td><td><code>* &nbsp; / &nbsp; %</code></td><td>Left</td><td>Multiplicative arithmetic</td></tr>
+          <tr><td>13</td><td><code>**</code></td><td>Right</td><td>Exponentiation</td></tr>
+          <tr><td>14</td><td><code>-</code> (prefix)</td><td>Prefix</td><td>Arithmetic negation</td></tr>
+          <tr><td>15 (highest)</td><td><code>. &nbsp; [] &nbsp; () &nbsp; .?() &nbsp; .!()</code></td><td>Left</td><td>Field access, index, call, unwrap</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Bitwise Operators</h3>
+      <p>
+        Bitwise operators work on integer types. They operate on the raw bit representation
+        of the value.
+      </p>
+<pre><code class="ruka">let a = 0b1100   // 12
+let b = 0b1010   // 10
+
+let and_result = a & b    // 0b1000 — 8
+let or_result  = a | b    // 0b1110 — 14
+let xor_result = a ^ b    // 0b0110 — 6</code></pre>
+
+      <h3>Exponentiation</h3>
+      <p>
+        The <code>**</code> operator raises the left operand to the power of the right.
+        It is right-associative, so <code>2 ** 3 ** 2</code> evaluates as
+        <code>2 ** (3 ** 2)</code>.
+      </p>
+<pre><code class="ruka">let squared = 4 ** 2     // 16
+let cubed   = 2 ** 3     // 8
+
+// Right-associative
+let nested = 2 ** 3 ** 2   // 2 ** 9 = 512</code></pre>
     </section>
 
     <!-- Pattern Matching -->
@@ -621,13 +741,13 @@ end</code></pre>
 
       <h4>Matching literals and conditions</h4>
 <pre><code class="ruka">match status_code with
-    200 => @println("OK")
-    404 => @println("Not Found")
+    200 => ruka.println("OK")
+    404 => ruka.println("Not Found")
     500 do
-        @println("Internal Server Error")
+        ruka.println("Internal Server Error")
         log_error()
     end
-    else => @println("Unknown status")
+    else => ruka.println("Unknown status")
 end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
@@ -645,8 +765,8 @@ end
 
 // option(T)
 match maybe_name with
-    .some(name) => @println("Hello, ${name}")
-    .none       => @println("No name provided")
+    .some(name) => ruka.println("Hello, ${name}")
+    .none       => ruka.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
@@ -666,36 +786,74 @@ end</code></pre>
       <h3>While Loop</h3>
 <pre><code class="ruka">let i = 0
 while i < 10 do
-    @println("${i}")
+    ruka.println("${i}")
     i = i + 1
+end
+
+// Single-expression body — no end required
+while i < 10 => i = i + 1</code></pre>
+
+      <h3>Destructuring Conditions</h3>
+      <p>
+        A pattern match can serve as the condition of an <code>if</code> or <code>while</code>
+        using the <code>pattern = expr</code> form. The condition is true only if the pattern
+        matches, and any bindings it introduces are in scope for the body.
+      </p>
+<pre><code class="ruka">// if with destructuring — body only runs if the option is .some
+let maybe: option(i32) = .some(42)
+if .some(x) = maybe do
+    ruka.println("got ${x}")
+end
+
+// while with destructuring — loop until the value is .none
+while .some(x) = next_value() do
+    process(x)
 end</code></pre>
 
       <h3>For Loop</h3>
       <p>
-        Iterates over any value that implements the iterator interface. The most common
+        Iterates over any value that implements the iterator behaviour. The most common
         iterable is a range literal.
       </p>
 <pre><code class="ruka">// Range — the common numeric loop idiom
 for i in 0..5 do
-    @println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
+
+// Single-expression body — no end required
+for i in 0..5 => ruka.println("${i}")
+
+// Range without a binding variable
+for 0..10 => ruka.println("tick")
 
 // Inclusive range
 for i in 1..=3 do
-    @println("${i}")     // 1 2 3
+    ruka.println("${i}")     // 1 2 3
 end
 
 // Iterating over an array
 let numbers = .{10, 20, 30}
 for n in numbers do
-    @println("${n}")
+    ruka.println("${n}")
 end
 
 // Destructuring a tuple in a for loop
 let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
 
 for .{k, v} in pairs do
-    @println("${k} = ${v}")
+    ruka.println("${k} = ${v}")
+end</code></pre>
+
+      <h3>Pattern-Filtered For Loop</h3>
+      <p>
+        A pattern in the <code>for</code> loop variable filters the sequence: only elements
+        that match the pattern are visited. Non-matching elements are skipped silently.
+      </p>
+<pre><code class="ruka">let values: [option(i32)] = .{.some(1), .none, .some(3), .none, .some(5)}
+
+// Only visits elements where the option is .some; x is bound to the inner value
+for .some(x) in values do
+    ruka.println("${x}")    // 1, 3, 5
 end</code></pre>
 
       <h3>Break</h3>
@@ -707,7 +865,7 @@ end</code></pre>
 let i = 0
 while true do
     if i >= 5 do break end
-    @println("${i}")
+    ruka.println("${i}")
     i = i + 1
 end
 
@@ -728,7 +886,7 @@ end</code></pre>
 <pre><code class="ruka">// Print only odd numbers
 for i in 0..10 do
     if i % 2 == 0 do continue end
-    @println("${i}")     // 1 3 5 7 9
+    ruka.println("${i}")     // 1 3 5 7 9
 end
 
 // Skip invalid entries while processing
@@ -753,7 +911,7 @@ end</code></pre>
       </p>
 
 <pre><code class="ruka">// Guaranteed cleanup: close() always runs when the block exits
-const read_file = (path: string) do
+share read_file = (path: string) do
     let file = open(path)
     defer file.close()
 
@@ -761,15 +919,15 @@ const read_file = (path: string) do
 end   // file.close() is called here
 
 // Multiple defers execute in reverse declaration order
-const example = () do
-    defer @println("third")    // runs last
-    defer @println("second")
-    defer @println("first")    // runs first
+share example = () do
+    defer ruka.println("third")    // runs last
+    defer ruka.println("second")
+    defer ruka.println("first")    // runs first
     // Output on exit: first, second, third
 end
 
 // Defer works at any scope depth — it binds to the nearest enclosing block
-const process = (items: [i32]) do
+share process = (items: [i32]) do
     let resource = acquire()
     defer resource.release()       // released when process() returns
 
@@ -807,7 +965,7 @@ end
 
 local greet = (name: string) do
     let msg = "Hello, ${name}!"
-    @println(msg)
+    ruka.println(msg)
     // last expression is (), the unit value
 end</code></pre>
 
@@ -843,10 +1001,35 @@ end
 // Binding-side annotation — function type written as parameter list then return type
 local square2: (i32) -> i32 = (x) => x * x</code></pre>
 
+      <h4>Automatic Return Wrapping</h4>
+      <p>
+        When a function's return type is annotated as <code>option(T)</code> or
+        <code>result(T, E)</code>, the compiler automatically wraps returned values
+        rather than requiring explicit <code>.some(...)</code> or <code>.ok(...)</code>
+        at every return site. The wrapping is inferred from the type of the returned expression:
+      </p>
+      <ul>
+        <li><strong><code>option(T)</code>:</strong> a <code>T</code> value is wrapped as <code>.some(T)</code>; a <code>()</code> expression becomes <code>.none</code>.</li>
+        <li><strong><code>result(T, E)</code>:</strong> a <code>T</code> value is wrapped as <code>.ok(T)</code>; an <code>E</code> value is wrapped as <code>.err(E)</code>.</li>
+      </ul>
+<pre><code class="ruka">// Returns option(usize) — wrapping is automatic
+share find_index = (arr: [i32], target: i32) -> option(usize) do
+    for i in 0..ruka.len(arr) do
+        if arr[i] == target do return i end   // i (usize) → .some(i)
+    end
+    // () at end of block → .none
+end
+
+// Returns result(f64, string) — wrapping is automatic
+share safe_div = (a: f64, b: f64) -> result(f64, string) do
+    if b == 0.0 do return "division by zero" end   // string → .err(...)
+    a / b                                           // f64   → .ok(...)
+end</code></pre>
+
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
-<pre><code class="ruka">const main = () do
-    @println("Hello, world!")
+<pre><code class="ruka">share main = () do
+    ruka.println("Hello, world!")
 end</code></pre>
     </section>
 
@@ -854,11 +1037,11 @@ end</code></pre>
     <section id="static-functions">
       <h2>Static Functions</h2>
       <p>
-        A static function is associated with a type but called on the type itself rather than
-        on an instance. It is declared by placing the type name in parentheses between the
-        binding name and the <code>=</code> sign. Using a type name here — rather than the
-        reserved keyword <code>self</code> — is what distinguishes a static function from a
-        method.
+        A static is any value associated with a type using the receiver syntax — a type name
+        in parentheses between the binding name and the <code>=</code> sign. Any value can be
+        attached as a static, not just functions: constants, default instances, and lookup
+        tables are all valid. Using a type name in the receiver position — rather than the
+        reserved keyword <code>self</code> — is what distinguishes a static from a method.
       </p>
 <pre><code class="ruka">local Vector = record {
     x: f64,
@@ -866,16 +1049,41 @@ end</code></pre>
 }
 
 // Public static function — called as Vector.new(...)
-const new (Vector) = (x, y) do
+share new (Vector) = (x, y) do
     Vector.{ x, y }
 end
 
 // Private static function
 local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
 
-const main = () do
+share main = () do
     let v      = Vector.new(1.0, 2.0)
     let origin = Vector.zero()
+end</code></pre>
+
+      <div class="note">
+        <strong>Fields vs. statics:</strong> A type's <em>fields</em> are runtime instance
+        attributes — they exist on each value of that type and are accessed via
+        <code>value.field</code>. <em>Statics</em> are compile-time shared attributes
+        associated with the type itself, not with any particular instance, and are accessed
+        via <code>TypeName.static</code>.
+      </div>
+
+      <h3>Non-Function Statics</h3>
+      <p>
+        Any compile-time value — a constant, a default instance, a type — can be attached
+        as a static. Access uses the same <code>TypeName.name</code> dot notation.
+      </p>
+<pre><code class="ruka">local Color = record { r: u8, g: u8, b: u8 }
+
+// Constant values attached as statics
+share RED   (Color) = Color.{ r = 255, g = 0,   b = 0   }
+share GREEN (Color) = Color.{ r = 0,   g = 255, b = 0   }
+share BLUE  (Color) = Color.{ r = 0,   g = 0,   b = 255 }
+
+share main = () do
+    let c = Color.RED
+    ruka.println("r=${c.r}")   // r=255
 end</code></pre>
 
       <h3>Static Functions on Variants</h3>
@@ -890,7 +1098,7 @@ end</code></pre>
     west
 }
 
-const from_str (Direction) = (s) do
+share from_str (Direction) = (s) do
     match s with
         "north" => .some(Direction.north)
         "south" => .some(Direction.south)
@@ -900,7 +1108,7 @@ const from_str (Direction) = (s) do
     end
 end
 
-const main = () do
+share main = () do
     let d = Direction.from_str("east")
 end</code></pre>
 
@@ -920,7 +1128,7 @@ end</code></pre>
         A method is declared like a static function, but uses the reserved keyword
         <code>self</code> in the receiver position instead of a type name.
         <code>self</code> refers to the instance the method is called on and is always
-        the first implicit argument. Any parameter mode (<code>mut</code>, <code>mov</code>,
+        the first implicit argument. Any mode prefix (<code>*</code>, <code>&amp;</code>,
         etc.) may precede <code>self</code>.
       </p>
       <p>
@@ -935,43 +1143,43 @@ end</code></pre>
 }
 
 // Public method — self is the receiver instance; its type is inferred as Vector
-const add (self) = (other) do
+share add (self) = (other) do
     Vector.{ x = self.x + other.x, y = self.y + other.y }
 end
 
-const length (self) = () do
-    @sqrt(self.x * self.x + self.y * self.y)
+share length (self) = () do
+    ruka.sqrt(self.x * self.x + self.y * self.y)
 end
 
 // Private method
 local negate (self) = () => Vector.{ x = -self.x, y = -self.y }
 
-const main = () do
+share main = () do
     let a = Vector.new(1.0, 0.0)
     let b = Vector.new(0.0, 1.0)
     let c = a.add(b)
-    @println("Length: ${c.length()}")
+    ruka.println("Length: ${c.length()}")
 end</code></pre>
 
       <h3>Mutable Methods</h3>
       <p>
-        To mutate the receiver inside a method, apply the <code>mut</code> mode before
+        To mutate the receiver inside a method, apply the <code>*</code> prefix to
         <code>self</code>. The caller must hold a mutable binding.
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
-const new (Counter) = () => Counter.{ value = 0 }
+share new (Counter) = () => Counter.{ value = 0 }
 
-// mut self — the receiver is a mutable reference
-const increment (mut self) = () do
+// *self — the receiver is a mutable reference
+share increment (*self) = () do
     self.value = self.value + 1
 end
 
-const main = () do
+share main = () do
     let c = Counter.new()
     c.increment()         // value is now 1
     c.increment()         // value is now 2
-    @println("${c.value}")
+    ruka.println("${c.value}")
 end</code></pre>
 
       <h3>Methods on Variants</h3>
@@ -987,7 +1195,7 @@ end</code></pre>
     west
 }
 
-const opposite (self) = () do
+share opposite (self) = () do
     match self with
         .north => Direction.south
         .south => Direction.north
@@ -996,12 +1204,12 @@ const opposite (self) = () do
     end
 end
 
-const is_vertical (self) = () =>
+share is_vertical (self) = () =>
     self == Direction.north or self == Direction.south
 
-const main = () do
+share main = () do
     let d = Direction.north
-    @println("${d.opposite().is_vertical()}")  // true
+    ruka.println("${d.opposite().is_vertical()}")  // true
 end</code></pre>
     </section>
 
@@ -1010,7 +1218,7 @@ end</code></pre>
       <h2>Parameter Modes</h2>
       <p>
         By default, all arguments are passed as immutable references managed by the garbage
-        collector. A <em>mode keyword</em> placed before the parameter identifier changes
+        collector. A <em>mode prefix</em> placed directly before the parameter identifier changes
         how the compiler treats the lifetime and ownership of that value.
         Modes apply to any parameter, including method receivers. Some are shared with
         <a href="#bindings">binding</a> modes.
@@ -1018,58 +1226,58 @@ end</code></pre>
 
       <table>
         <thead>
-          <tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr>
+          <tr><th>Prefix</th><th>Syntax</th><th>Behaviour</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td><code>mut</code></td>
-            <td><code>(mut x: T)</code></td>
+            <td><code>*</code></td>
+            <td><code>(*x: T)</code></td>
             <td>Mutable reference. Changes to <code>x</code> are visible to the caller.</td>
           </tr>
           <tr>
-            <td><code>mov</code></td>
-            <td><code>(mov x: T)</code></td>
+            <td><code>&amp;</code></td>
+            <td><code>(&amp;x: T)</code></td>
             <td>Ownership is transferred into this function. The caller cannot use the value after the call.</td>
           </tr>
           <tr>
-            <td><code>stc</code></td>
-            <td><code>(stc x: T)</code></td>
+            <td><code>$</code></td>
+            <td><code>($x: T)</code></td>
             <td>Stack-allocated pass-by-copy.</td>
           </tr>
           <tr>
-            <td><code>eva</code></td>
-            <td><code>(eva x: T)</code> or <code>(x: type)</code></td>
+            <td><code>@</code></td>
+            <td><code>(@x: T)</code> or <code>(x: type)</code></td>
             <td>Compile-time constant. The value must be known at compile time. <strong>Inferred automatically when the parameter type is <code>type</code>.</strong></td>
           </tr>
         </tbody>
       </table>
 
-<pre><code class="ruka">// mut — in-place mutation
-const fill (mut self) = (value: u8) do
+<pre><code class="ruka">// * — in-place mutation
+share fill (*self) = (value: u8) do
     // modifies caller's buffer
 end
 
-// mov — consume / transfer ownership
-const close = (mov handle: FileHandle) do
+// & — consume / transfer ownership
+share close = (&handle: FileHandle) do
     // handle is invalid for the caller after this call
 end
 
-// stc — stack allocated pass-by-copy
-const hash = (stc data: [u8]) -> u64 do
+// $ — stack allocated pass-by-copy
+share hash = ($data: [u8]) -> u64 do
     // data is on the stack, cannot be returned without a copy
 end
 
-// eva — compile-time value (explicit annotation)
-const repeat = (eva times: usize, msg: string) do
+// @ — compile-time value (explicit annotation)
+share repeat = (@times: usize, msg: string) do
     let i = 0
     while i < times do
-        @println(msg)
+        ruka.println(msg)
         i = i + 1
     end
 end</code></pre>
 
       <div class="note">
-        <strong>Note:</strong> <code>eva</code> is covered in detail in the
+        <strong>Note:</strong> The <code>@</code> compile-time prefix is covered in detail in the
         <a href="#comptime">Compile-Time Evaluation</a> section, including automatic
         inference from <code>type</code>-annotated parameters and storing compile-time results.
       </div>
@@ -1087,11 +1295,11 @@ end</code></pre>
 
       <h3>Declaring Named Parameters</h3>
 <pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
-const greet = (~name: string, ~greeting: string) =>
+share greet = (~name: string, ~greeting: string) =>
     "${greeting}, ${name}!"
 
 // Mix of positional and named
-const clamp = (x: isize, ~lo: isize, ~hi: isize) do
+share clamp = (x: isize, ~lo: isize, ~hi: isize) do
     if x < lo do lo else if x > hi do hi else x end
 end</code></pre>
 
@@ -1110,14 +1318,28 @@ let greeting = "Hello"
 
 greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)</code></pre>
 
+      <h3>Optional Named Parameters</h3>
+      <p>
+        A named parameter whose type is <code>option(T)</code> is optional at the call site.
+        When the argument is omitted, the parameter receives <code>.none</code> automatically.
+        When a value is supplied, it is automatically wrapped in <code>.some(...)</code> — no
+        explicit wrapping is needed.
+      </p>
+<pre><code class="ruka">share greet = (~name: string, ~title: option(string)) =>
+    if .some(t) = title do "${t} ${name}" else name end
+
+greet(~name="Ruka")                    // "Ruka"          — title is .none
+greet(~name="Ruka", ~title="Dr.")      // "Dr. Ruka"      — title is .some("Dr.")
+greet(~name="Ruka", ~title=.none)      // explicit .none also valid</code></pre>
+
       <h3>Trailing Block Syntax</h3>
       <p>
-        Named parameters can be passed <em>after</em> the closing parenthesis. This is
-        most useful for higher-order functions that accept a closure — the named argument
-        reads as a block visually attached to the call. Any number of named parameters may
-        trail; by convention, closure parameters are placed last in the parameter list.
+        A named parameter can be passed <em>after</em> the closing parenthesis as a trailing
+        argument. This is most useful for higher-order functions that accept a closure — the
+        named argument reads as a block visually attached to the call.
+        Only one trailing argument is permitted per call.
       </p>
-<pre><code class="ruka">const apply_twice = (x: isize, ~f: (isize) -> isize) => f(f(x))
+<pre><code class="ruka">share apply_twice = (x: isize, ~f: (isize) -> isize) => f(f(x))
 
 // Named param inside the argument list — standard form
 let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
@@ -1137,9 +1359,9 @@ end                                           // 14</code></pre>
         closure parameters are placed last in the definition so callers can trail them.
       </p>
 <pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
-const map    = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
-const filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
-const reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
+share map    = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
+share filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
+share reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
 
 let nums = .{1, 2, 3, 4, 5}
 
@@ -1159,13 +1381,13 @@ end</code></pre>
       </div>
     </section>
 
-    <!-- Interfaces -->
-    <section id="interfaces">
-      <h2>Interfaces</h2>
+    <!-- Behaviours -->
+    <section id="behaviours">
+      <h2>Behaviours</h2>
       <p>
-        An interface defines a set of method signatures that a type must satisfy. Interfaces
+        A behaviour defines a set of method signatures that a type must satisfy. Behaviours
         describe behaviour only — they carry no fields or state. Any type that implements all
-        of an interface's methods automatically satisfies it; there is no explicit
+        of a behaviour's methods automatically satisfies it; there is no explicit
         <em>implements</em> declaration.
       </p>
       <p>
@@ -1173,57 +1395,57 @@ end</code></pre>
         receiver (with optional mode), then the remaining parameter list and return type.
       </p>
 
-      <h3>Declaring an Interface</h3>
+      <h3>Declaring a Behaviour</h3>
 <pre><code class="ruka">// A type that can be printed
-const Printable = interface {
+share Printable = behaviour {
     print(self): () -> ()
 }
 
 // A type that supports a binary add operation
-const Adder = interface {
+share Adder = behaviour {
     add(mut self): (b: usize) -> ()
 }
 
 // Multiple methods
-const Shape = interface {
+share Shape = behaviour {
     area(self):      () -> f64
     perimeter(self): () -> f64
 }</code></pre>
 
-      <h3>Satisfying an Interface</h3>
+      <h3>Satisfying a Behaviour</h3>
       <p>
-        A type satisfies an interface implicitly. As long as the required methods are declared
+        A type satisfies a behaviour implicitly. As long as the required methods are declared
         in the same module as the type, the compiler considers the type to implement the
-        interface. Receiver and return types are typically inferred — annotations are only
+        behaviour. Receiver and return types are typically inferred — annotations are only
         needed when the field set is ambiguous.
       </p>
 <pre><code class="ruka">local Circle = record { radius: f64 }
 
 // self inferred as Circle (only type in scope with `radius`);
 // return types inferred from the expressions
-const area      (self) = () => 3.14159 * self.radius * self.radius
-const perimeter (self) = () => 2.0 * 3.14159 * self.radius
+share area      (self) = () => 3.14159 * self.radius * self.radius
+share perimeter (self) = () => 2.0 * 3.14159 * self.radius
 
-// Circle now satisfies the Shape interface — no declaration needed</code></pre>
+// Circle now satisfies the Shape behaviour — no declaration needed</code></pre>
 
-      <h3>Dynamic Dispatch via Interface Types</h3>
+      <h3>Dynamic Dispatch via Behaviour Types</h3>
       <p>
-        When a parameter's type is an interface, dynamic dispatch is inferred automatically.
-        Any value whose type satisfies the interface can be passed. Interface types are never
+        When a parameter's type is a behaviour, dynamic dispatch is inferred automatically.
+        Any value whose type satisfies the behaviour can be passed. Behaviour types are never
         inferred — they must always be written explicitly as a type annotation.
       </p>
-<pre><code class="ruka">// Interface type annotation on a parameter — dynamic dispatch is automatic
-const print_shape_info = (s: Shape) do
-    @println("area:      ${s.area()}")
-    @println("perimeter: ${s.perimeter()}")
+<pre><code class="ruka">// Behaviour type annotation on a parameter — dynamic dispatch is automatic
+share print_shape_info = (s: Shape) do
+    ruka.println("area:      ${s.area()}")
+    ruka.println("perimeter: ${s.perimeter()}")
 end
 
 local Rect = record { w: f64, h: f64 }
 
-const area      (self) = () => self.w * self.h
-const perimeter (self) = () => 2.0 * (self.w + self.h)
+share area      (self) = () => self.w * self.h
+share perimeter (self) = () => 2.0 * (self.w + self.h)
 
-const main = () do
+share main = () do
     let c = Circle.{ radius = 5.0 }
     let r = Rect.{ w = 4.0, h = 6.0 }
 
@@ -1232,8 +1454,12 @@ const main = () do
 end</code></pre>
 
       <div class="note">
-        <strong>Note:</strong> Interfaces specify only methods. Fields cannot appear in an
-        interface definition. To share field access across types, expose it through methods.
+        <strong>Note:</strong> behaviours specify only methods. Fields cannot appear in a behaviour definition. To share field access across types, expose it through methods.
+      </div>
+      <div class="note">
+        <strong>Behaviour types may only appear in parameter positions.</strong>
+        Using a behaviour as a return type, field type, or binding type is a compile error.
+        Behaviours describe opaque behaviour — they cannot be stored, only passed into functions.
       </div>
     </section>
 
@@ -1246,13 +1472,13 @@ end</code></pre>
         in the order they are applied, which is easier to read than deeply nested calls.
       </p>
 <pre><code class="ruka">// Without pipeline
-@println(trim(toUpperCase(getName(user))))
+ruka.println(trim(toUpperCase(getName(user))))
 
 // With pipeline — reads top to bottom, left to right
 getName(user)
     |> toUpperCase()
     |> trim()
-    |> @println()</code></pre>
+    |> ruka.println()</code></pre>
 
       <p>
         The pipeline works with any function — free functions, static functions, and methods
@@ -1260,14 +1486,14 @@ getName(user)
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string }
 
-const about (self) = () => "I'm ${self.name}, a ${self.breed}."
+share about (self) = () => "I'm ${self.name}, a ${self.breed}."
 
-const main = () do
+share main = () do
     let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
 
     // Method call followed by pipeline into a built-in
     ruka.about()
-        |> @println()
+        |> ruka.println()
 end</code></pre>
     </section>
 
@@ -1277,7 +1503,7 @@ end</code></pre>
       <p>
         A file is a record. There is no separate module concept — every Ruka source file
         implicitly defines a compile-time record value whose fields are the file's
-        <code>const</code> bindings. <code>local</code> bindings at file scope are private
+        <code>share</code> bindings. <code>local</code> bindings at file scope are private
         fields: they are accessible within the file but not from any importer.
       </p>
       <p>
@@ -1286,21 +1512,27 @@ end</code></pre>
         The <code>local</code> keyword marks privacy consistently whether on a record field
         or a file-scope binding.
       </p>
-<pre><code class="ruka">// stack.ruka — a file is a record; const bindings are its public fields
+      <p>
+        A file record is an <em>empty</em> record — it has no instance fields, only statics.
+        It cannot be instantiated with <code>.{}</code>. Every declaration in the file is
+        stored as a static field accessible via the record value returned by
+        <code>ruka.import</code>.
+      </p>
+<pre><code class="ruka">// stack.ruka — a file is a record; share bindings are its public fields
 
 local t = record {         // local binding — private to this file
     local data: [i32],
     local len:  usize
 }
 
-const new (t) = () => .{ data = .{}, len = 0 }   // public field
+share new (t) = () => .{ data = .{}, len = 0 }   // public field
 
-const push (mut self) = (value: i32) do           // public field
+share push (mut self) = (value: i32) do           // public field
     // append value to self.data
     self.len = self.len + 1
 end
 
-const pop (mut self) = () -> option(i32) do       // public field
+share pop (mut self) = () -> option(i32) do       // public field
     if self.len == 0 do
         .none
     else do
@@ -1314,27 +1546,27 @@ end</code></pre>
     <section id="imports">
       <h2>Imports</h2>
       <p>
-        <code>@import</code> evaluates at compile time and returns the file's record value.
-        The result is always compile-time known — <code>eva</code> is implied. Accessing an
+        <code>ruka.import</code> evaluates at compile time and returns the file's record value.
+        The result is always compile-time known — compile-time evaluation is implied. Accessing an
         export is ordinary field access; destructuring an import is ordinary record
         destructuring, using the same <code>.{…}</code> syntax.
       </p>
 <pre><code class="ruka">// Field access on the imported record
-local math = @import("math")
+local math = ruka.import("math")
 
-const main = () do
-    @println("${math.sqrt(2.0)}")
+share main = () do
+    ruka.println("${math.sqrt(2.0)}")
 end
 
 // Record destructuring — pull specific fields into scope
-local .{ sqrt, pow } = @import("math")
-local .{ Dog, Cat }  = @import("animals")
+local .{ sqrt, pow } = ruka.import("math")
+local .{ Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-const describe = (t: type) => @println("${t}")
-local animals = @import("animals")
+share describe = (t: type) => ruka.println("${t}")
+local animals = ruka.import("animals")
 
-const main = () do
+share main = () do
     describe(animals.Dog)   // passes the Dog type to a compile-time parameter
 end</code></pre>
     </section>
@@ -1358,13 +1590,13 @@ end</code></pre>
 <pre><code class="ruka">local add = (a: i32, b: i32) => a + b
 
 test addition = () do
-    @assertEq(add(1, 2), 3)
-    @assertEq(add(-1, 1), 0)
-    @assertEq(add(0, 0), 0)
+    ruka.assertEq(add(1, 2), 3)
+    ruka.assertEq(add(-1, 1), 0)
+    ruka.assertEq(add(0, 0), 0)
 end
 
 test addition_is_commutative = () do
-    @assertEq(add(3, 4), add(4, 3))
+    ruka.assertEq(add(3, 4), add(4, 3))
 end</code></pre>
 
       <p>
@@ -1377,15 +1609,15 @@ end</code></pre>
 local clamp_internal = (x: i32, lo: i32, hi: i32) => if x < lo do lo else if x > hi do hi else x end
 
 test clamp_lower_bound = () do
-    @assertEq(clamp_internal(3, 5, 10), 5)
+    ruka.assertEq(clamp_internal(3, 5, 10), 5)
 end
 
 test clamp_upper_bound = () do
-    @assertEq(clamp_internal(15, 5, 10), 10)
+    ruka.assertEq(clamp_internal(15, 5, 10), 10)
 end
 
 test clamp_in_range = () do
-    @assertEq(clamp_internal(7, 5, 10), 7)
+    ruka.assertEq(clamp_internal(7, 5, 10), 7)
 end</code></pre>
 
       <div class="note">
@@ -1393,7 +1625,7 @@ end</code></pre>
         <code>test</code> bindings are included in two build modes:
         <em>debug</em> (full code coverage analysis, all assertions active) and
         <em>test</em> (runs the test suite and reports pass/fail). They are stripped
-        in the <em>release</em> build. This means <code>@assertEq</code> and other
+        in the <em>release</em> build. This means <code>ruka.assertEq</code> and other
         assertion calls inside a <code>test</code> binding never appear in a production
         binary.
       </div>
@@ -1403,24 +1635,27 @@ end</code></pre>
     <section id="builtins">
       <h2>Built-in Functions</h2>
       <p>
-        Built-in functions begin with <code>@</code> to distinguish them from user-defined
-        names. They are available in all scopes without any import.
+        Built-in functions are accessed through the <code>ruka</code> module, which is
+        implicitly available in every scope without an import declaration.
       </p>
       <table>
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>@print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
-          <tr><td><code>@println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
-          <tr><td><code>@import(path)</code></td><td>Import a file as a module. Returns the module value.</td></tr>
-          <tr><td><code>@typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
-          <tr><td><code>@abs(number)</code></td><td>Absolute value.</td></tr>
-          <tr><td><code>@sqrt(number)</code></td><td>Square root.</td></tr>
-          <tr><td><code>@assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+          <tr><td><code>ruka.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
+          <tr><td><code>ruka.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
+          <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
+          <tr><td><code>ruka.typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
+          <tr><td><code>ruka.assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>usize</code>.</td></tr>
+          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>usize</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>ruka.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">@println("Hello!")                       // Hello!
-@println("${@typeOf(42)}")               // isize
-@assertEq(@abs(-5), 5)
+<pre><code class="ruka">ruka.println("Hello!")                       // Hello!
+ruka.println("${ruka.typeOf(42)}")               // isize
+ruka.assertEq(ruka.abs(-5), 5)
 </code></pre>
     </section>
 
@@ -1435,37 +1670,37 @@ end</code></pre>
         compile-time contexts.
       </p>
 
-      <h3>Automatic <code>eva</code> Inference</h3>
+      <h3>Automatic Compile-Time Inference</h3>
       <p>
-        When a parameter's type annotation is <code>type</code>, the <code>eva</code> mode is
-        inferred automatically — no explicit keyword is needed. Writing <code>(t: type)</code>
-        is exactly equivalent to <code>(eva t: type)</code>. When a parameter is used as a
-        type annotation for another parameter, both the <code>eva</code> mode and the
+        When a parameter's type annotation is <code>type</code>, the compile-time (<code>@</code>) mode is
+        inferred automatically — no explicit prefix is needed. Writing <code>(t: type)</code>
+        is exactly equivalent to <code>(@t: type)</code>. When a parameter is used as a
+        type annotation for another parameter, both the <code>@</code> prefix and the
         <code>type</code> annotation are inferred.
       </p>
 <pre><code class="ruka">// Explicit — valid, but redundant
-const min = (eva t: type, a: t, b: t) => if a < b do a else b end
+share min = (@t: type, a: t, b: t) => if a < b do a else b end
 
-// Inferred — preferred; `eva` is implied by the `type` annotation
-const min = (t: type, a: t, b: t) => if a < b do a else b end
+// Inferred — preferred; `@` is implied by the `type` annotation
+share min = (t: type, a: t, b: t) => if a < b do a else b end
 
-// Both `eva` and `: type` inferred — `t` is used to annotate `a` and `b`
-const min = (t, a: t, b: t) => if a < b do a else b end
+// Both `@` and `: type` inferred — `t` is used to annotate `a` and `b`
+share min = (t, a: t, b: t) => if a < b do a else b end
 
 // Compile-time type constructor — same rules apply
-const Pair = (a, b) do
+share Pair = (a, b) do
     record { first: a, second: b }
 end</code></pre>
 
-      <h3>Generics via <code>eva</code></h3>
+      <h3>Generics via Compile-Time Parameters</h3>
       <p>
         A function with a <code>type</code>-annotated parameter is instantiated separately for
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
         comptime in Zig.
       </p>
-<pre><code class="ruka">const min = (t, a: t, b: t) => if a < b do a else b end
+<pre><code class="ruka">share min = (t, a: t, b: t) => if a < b do a else b end
 
-const main = () do
+share main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
     local y = min(f64, 1.5, 2.0) // compiler emits an f64 version
 end</code></pre>
@@ -1474,10 +1709,10 @@ end</code></pre>
       <p>
         Compile-time functions can return types, enabling parameterised type definitions.
         Non-<code>type</code> parameters that must be compile-time constants still require
-        an explicit <code>eva</code> annotation.
+        an explicit <code>@</code> prefix.
       </p>
-<pre><code class="ruka">// Returns a record type — `cap` requires explicit eva because it is not type-annotated as `type`
-const FixedArray = (t, eva cap: usize) do
+<pre><code class="ruka">// Returns a record type — `cap` requires explicit @ because it is not type-annotated as `type`
+share FixedArray = (t, @cap: usize) do
     record {
         data: [t],
         len:  usize
@@ -1488,22 +1723,22 @@ end
 local IntBuf   = FixedArray(i32, 64)
 local FloatBuf = FixedArray(f64, 16)
 
-const main = () do
+share main = () do
     let buf = IntBuf.{ data = .{}, len = 0 }
 end</code></pre>
 
       <h3>Storing Compile-Time Results</h3>
       <p>
-        If a function has any <code>eva</code> parameters, it runs at compile time and its
-        result is automatically a compile-time constant. The binding must be <code>const</code>
+        If a function has any <code>@</code>-prefixed parameters, it runs at compile time and its
+        result is automatically a compile-time constant. The binding must be <code>share</code>
         or <code>local</code> — assigning a compile-time result to a <code>let</code> binding
         is a compile error. Results can also be used inline without a binding.
       </p>
-<pre><code class="ruka">const Pair = (a, b) do
+<pre><code class="ruka">share Pair = (a, b) do
     record { first: a, second: b }
 end
 
-// Binding must be const or local
+// Binding must be share or local
 local IntStrPair = Pair(i32, string)
 
 // let IntStrPair = Pair(i32, string)  // compile error — mutable binding
@@ -1513,55 +1748,73 @@ let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
 
       <h3>Forcing Runtime Functions at Compile Time</h3>
       <p>
-        A binding declared with <code>eva</code> forces any function — including ordinary
+        A binding declared with the <code>@</code> prefix forces any function — including ordinary
         runtime functions — to execute at compile time. All arguments must be compile-time
-        known. This is distinct from calling a function that already has <code>eva</code>
+        known. This is distinct from calling a function that already has <code>@</code>-prefixed
         parameters, which runs at compile time automatically.
       </p>
-<pre><code class="ruka">const PI = 3.14159265358979
+<pre><code class="ruka">share PI = 3.14159265358979
 
-// @sqrt is a runtime function, but eva forces it to run at compile time
-local eva SQRT_2: f64 = @sqrt(2.0)          // literal — compile-time known
-local eva INV_PI: f64 = 1.0 / PI            // const PI — compile-time known
+// ruka.sqrt is a runtime built-in, but @ forces it to run at compile time
+local @SQRT_2: f64 = ruka.sqrt(2.0)          // literal — compile-time known
+local @INV_PI: f64 = 1.0 / PI                // constant PI — compile-time known
 
-// Eva results are themselves compile-time known and can be chained
-local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0
+// @ results are themselves compile-time known and can be chained
+local @DOUBLE_SQRT_2 = SQRT_2 * 2.0
 
 // Useful for any expensive or non-trivial constant
-local eva LOOKUP = generate_lookup_table(256)
-local eva KEY_HASH = compute_hash("app-secret")</code></pre>
+local @LOOKUP = generate_lookup_table(256)
+local @KEY_HASH = compute_hash("app-secret")</code></pre>
 
       <h3>Compile-Time Reflection</h3>
       <p>
-        <code>@typeOf</code> returns the type of any expression as a compile-time value,
-        which can be passed to <code>eva</code> parameters or compared at compile time.
+        <code>ruka.typeOf</code> returns the type of any expression as a compile-time value,
+        which can be passed to <code>@</code>-prefixed parameters or compared at compile time.
       </p>
-<pre><code class="ruka">const assertSameType = (a: type, b: type) do
+<pre><code class="ruka">share assertSameType = (a: type, b: type) do
     if not (a == b) do
-        @compileError("type mismatch: expected ${a}, got ${b}")
+        ruka.compileError("type mismatch: expected ${a}, got ${b}")
     end
 end
 
-const main = () do
+share main = () do
     let x: i32 = 10
     let y: i32 = 20
-    assertSameType(@typeOf(x), @typeOf(y))  // ok — both i32
+    assertSameType(ruka.typeOf(x), ruka.typeOf(y))  // ok — both i32
 end</code></pre>
 
       <div class="note">
         <strong>Note:</strong> Only values that are provably known at compile time may be
-        passed to <code>eva</code> parameters. Passing a runtime value to an <code>eva</code>
+        passed to <code>@</code>-prefixed parameters. Passing a runtime value to an <code>@</code>-prefixed
         parameter is a compile error. Compile-time known values include: literals,
-        <code>const</code> and <code>local</code> constants, and results of other
+        <code>share</code> and <code>local</code> constants, and results of other
         compile-time evaluations.
       </div>
+    </section>
+
+    <!-- Planned Changes -->
+    <section id="planned-changes">
+      <h2>Planned Changes</h2>
+      <p>
+        The following keyword renames are under consideration. They are not yet in effect —
+        existing syntax remains valid until a change is confirmed.
+      </p>
+      <table>
+        <thead><tr><th>Current</th><th>Proposed</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><code>share</code></td><td><code>share</code></td><td>Better communicates that the value is shared/exported.</td></tr>
+          <tr><td><code>behaviour</code></td><td><code>behaviour</code></td><td>Describes what the construct expresses — a set of behaviours — rather than an OOP term.</td></tr>
+          <tr><td><code>variant</code></td><td><code>spector</code></td><td>Language-specific term for tagged unions; inspired by the bass manufacturer Spector.</td></tr>
+          <tr><td><code>[K =&gt; V]</code> hashmap</td><td>map</td><td>Shorter name for the built-in key-value collection type.</td></tr>
+        </tbody>
+      </table>
     </section>
 
   </main>
 </div>
 
 <footer>
-  <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script src="highlight.js"></script>
