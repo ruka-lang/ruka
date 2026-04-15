@@ -1,4 +1,4 @@
 Fixes
 - Change example code blocks to use highlight(raw)
-- Make overview titlebar more similar to the other pages (maybe)
-- Sidebars don't move fully left on large screens
+- Make overview titlebar buttons on the right of the title and tagline
+- Center content in reference and grammar
