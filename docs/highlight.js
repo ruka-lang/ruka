@@ -127,7 +127,7 @@
 				else op = raw[i];
 
 				// Only if following character is not a valid identifier character `_, letter or number` do we accept
-				if (i + op.length >= raw.length || !/\w/.test(raw[i + op.length])) {
+				if (op.length < 2 || i + op.length >= raw.length || !/\w/.test(raw[i + op.length])) {
 					out += span('op', op);
 					i += op.length;
 					continue;
