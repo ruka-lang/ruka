@@ -1,8 +1,8 @@
 /* ── Ruka syntax highlighter ── */
 (function () {
 	const KEYWORDS = new Set([
-		'let', 'share', 'local', 'if', 'else', 'match', 'with', 'do', 'end',
-		'while', 'for', 'in', 'return', 'record', 'variant', 'behaviour',
+		'let', 'share', 'local', 'if', 'match',
+		'while', 'for', 'return', 'record', 'variant', 'behaviour',
 		'true', 'false', 'self', 'test', 'break', 'continue', 'defer', 'ruka'
 	]);
 
@@ -11,8 +11,12 @@
 		'->', ':', '.', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not'
 	]);
 
+	const STRUCTURES = new Set([
+		'(', ')', '[', ']', '{', '}'
+	]);
+
 	const SURROUNDS = new Set([
-		'(', ')', '[', ']', '{', '}', '=>'
+		'=>', 'do', 'end', 'with', 'in', 'else'
 	]);
 
 	function esc(s) {
@@ -90,6 +94,55 @@
 				continue;
 			}
 
+			// Surrounds
+	   	    if (
+				SURROUNDS.has(raw.slice(i, i + 4)) ||
+				SURROUNDS.has(raw.slice(i, i + 3)) ||
+				SURROUNDS.has(raw.slice(i, i + 2)) ||
+				SURROUNDS.has(raw[i])
+			) {
+				let surr;
+				if (SURROUNDS.has(raw.slice(i, i + 4))) surr = raw.slice(i, i + 4);
+				else if (SURROUNDS.has(raw.slice(i, i + 3))) surr = raw.slice(i, i + 3);
+				else if (SURROUNDS.has(raw.slice(i, i + 2))) surr = raw.slice(i, i + 2);
+				else surr = raw[i];
+
+				// Only if following character is not a valid identifier character `_, letter or number` do we accept
+				if (i + surr.length >= raw.length || !/\w/.test(raw[i + surr.length])) {
+					out += span('surr', surr);
+					i += surr.length;
+					continue;
+				}
+	        }
+
+			// Operators
+			if (
+				OPERATORS.has(raw.slice(i, i + 3)) ||
+				OPERATORS.has(raw.slice(i, i + 2)) ||
+				OPERATORS.has(raw[i])
+			) {
+				let op;
+				if (OPERATORS.has(raw.slice(i, i + 3))) op = raw.slice(i, i + 3);
+				else if (OPERATORS.has(raw.slice(i, i + 2))) op = raw.slice(i, i + 2);
+				else op = raw[i];
+
+				// Only if following character is not a valid identifier character `_, letter or number` do we accept
+				if (i + op.length >= raw.length || !/\w/.test(raw[i + op.length])) {
+					out += span('op', op);
+					i += op.length;
+					continue;
+				}
+	    	}
+
+			// Structures
+	   	    if (STRUCTURES.has(raw.slice(i, i + 2)) || STRUCTURES.has(raw[i])) {
+				const strc = STRUCTURES.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
+				out += span('strc', strc);
+				i += strc.length;
+				continue;
+	        }
+
+
 			// Identifier / keyword / type
 			if (/[a-zA-Z_]/.test(raw[i])) {
 				let j = i;
@@ -121,22 +174,6 @@
 				i = j;
 				continue;
 			}
-
-			// Surrounds
-	   	    if (SURROUNDS.has(raw.slice(i, i + 2)) || SURROUNDS.has(raw[i])) {
-				const surr = SURROUNDS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
-				out += span('surr', surr);
-				i += surr.length;
-				continue;
-	        }
-
-			// Operators
-			if (OPERATORS.has(raw.slice(i, i + 2)) || OPERATORS.has(raw[i])) {
-				const op = OPERATORS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
-				out += span('op', op);
-				i += op.length;
-				continue;
-	    	}
 
 			out += esc(raw[i++]);
 		}
