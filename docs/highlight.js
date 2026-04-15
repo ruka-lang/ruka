@@ -1,9 +1,18 @@
 /* ── Ruka syntax highlighter ── */
 (function () {
   const KEYWORDS = new Set([
-    'let', 'const', 'local', 'do', 'end', 'if', 'else', 'match', 'with',
-    'while', 'for', 'in', 'return', 'record', 'variant', 'interface',
-    'and', 'or', 'not', 'mut', 'mov', 'stc', 'eva', 'true', 'false', 'self', 'test', 'break', 'continue', 'defer'
+    'let', 'share', 'local', 'if', 'else', 'match', 'with', 'do', 'end',
+    'while', 'for', 'in', 'return', 'record', 'variant', 'behaviour',
+    'true', 'false', 'self', 'test', 'break', 'continue', 'defer', 'ruka'
+  ]);
+
+  const OPERATORS = new Set([
+    '+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=', ',',
+    '->', '=>', ':', '.', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not', '='
+  ]);
+
+  const SURROUNDS = new Set([
+    '(', ')', '[', ']', '{', '}'
   ]);
 
   function esc(s) {
@@ -64,14 +73,24 @@
         continue;
       }
 
-      // Built-in  @name
-      if (raw[i] === '@') {
-        let j = i + 1;
-        while (j < raw.length && /\w/.test(raw[j])) j++;
-        out += span('bi', raw.slice(i, j));
-        i = j;
-        continue;
-      }
+      // Operators should be highlighted the same color as comments, braces and brackets and parentheses as well.
+      // Since modes are now operator based, we just need to detect operators and highlight them.
+
+      // Operators
+      if (OPERATORS.has(raw.slice(i, i + 2)) || OPERATORS.has(raw[i])) {
+        const op = OPERATORS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
+		out += span('op', op);
+		i += op.length;
+		continue;
+	  }
+
+      // Surrounds
+	  if (SURROUNDS.has(raw.slice(i, i + 2)) || SURROUNDS.has(raw[i])) {
+		const surr = SURROUNDS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
+		out += span('surr', surr);
+		i += surr.length;
+		continue;
+	  }
 
       // Number
       if (/\d/.test(raw[i])) {
@@ -92,9 +111,12 @@
         let j = i;
         while (j < raw.length && /\w/.test(raw[j])) j++;
         const word = raw.slice(i, j);
-        if (KEYWORDS.has(word))      out += span('kw', word);
-        else if (/^[A-Z]/.test(word)) out += span('tp', word);
-        else                          out += esc(word);
+        if (KEYWORDS.has(word)) out += span('kw', word);
+        // types don't have to be capitalized, they are always proceeded by a `: ` or `-> `
+        else if (raw[i - 2] === ':' || (raw[i - 3] === '-' && raw[i - 2] === '>')) {
+	        out += span('tp', word);
+        }
+        else out += esc(word);
         i = j;
         continue;
       }
@@ -147,7 +169,7 @@
       var EXAMPLES = {
         'hello-world': {
           desc: 'The entry point of every Ruka program is a <code>const main</code> function. <code>ruka.println</code> writes a line to standard output. This is the smallest complete program.',
-          code: 'const main = () do\n    ruka.println("Hello, world!")\nend',
+          code: 'share main = () do\n    ruka.println("Hello, world!")\nend',
           output: 'Hello, world!'
         },
         'binary-tree': {
@@ -159,7 +181,7 @@
             '}',
             '',
             '// Sum of all leaf values',
-            'const sum (self) = () do',
+            'share sum (self) = () do',
             '    match self with',
             '        .leaf(n)   => n',
             '        .branch(b) => b.left.sum() + b.right.sum()',
@@ -167,7 +189,7 @@
             'end',
             '',
             '// Height of the tree',
-            'const height (self) = () do',
+            'share height (self) = () do',
             '    match self with',
             '        .leaf(_)   => 1',
             '        .branch(b) do',
@@ -178,7 +200,7 @@
             '    end',
             'end',
             '',
-            'const main = () do',
+            'share main = () do',
             '    //       branch',
             '    //      /      \\',
             '    //  branch     leaf(5)',
@@ -199,35 +221,35 @@
           output: 'sum:    8\nheight: 3'
         },
         'shapes': {
-          desc: 'Two unrelated record types satisfy a shared <code>interface</code> structurally — no explicit declaration needed. The compiler infers the receiver type from field names, and interface-typed parameters cause each concrete type to be compiled separately.',
+          desc: 'Two unrelated record types satisfy a shared <code>behaviour</code> structurally — no explicit declaration needed. The compiler infers the receiver type from field names, and behaviour-typed parameters cause each concrete type to be compiled separately.',
           code: [
-            'local Shape = interface {',
-            '    area(self):      (): f64',
-            '    perimeter(self): (): f64',
-            '    label(self):     (): string',
+            'local Shape = behaviour {',
+            '    area(self):      () -> f64',
+            '    perimeter(self): () -> f64',
+            '    label(self):     () -> string',
             '}',
             '',
             'local Circle = record { radius: f64 }',
             'local Rect   = record { width: f64, height: f64 }',
             '',
             '// self inferred as Circle — only type in scope with `radius`',
-            'const area      (self) = () => 3.14159 * self.radius * self.radius',
-            'const perimeter (self) = () => 2.0 * 3.14159 * self.radius',
-            'const label     (self) = () => "Circle(r=${self.radius})"',
+            'share area      (self) = () => 3.14159 * self.radius * self.radius',
+            'share perimeter (self) = () => 2.0 * 3.14159 * self.radius',
+            'share label     (self) = () => "Circle(r=${self.radius})"',
             '',
             '// self inferred as Rect — only type with both `width` and `height`',
-            'const area      (self) = () => self.width * self.height',
-            'const perimeter (self) = () => 2.0 * (self.width + self.height)',
-            'const label     (self) = () => "Rect(${self.width}x${self.height})"',
+            'share area      (self) = () => self.width * self.height',
+            'share perimeter (self) = () => 2.0 * (self.width + self.height)',
+            'share label     (self) = () => "Rect(${self.width}x${self.height})"',
             '',
-            '// Interface parameter — any Shape can be passed',
+            '// Behaviour parameter — any Shape can be passed',
             'local print_info = (s: Shape) do',
             '    ruka.println("${s.label()}")',
             '    ruka.println("  area:      ${s.area()}")',
             '    ruka.println("  perimeter: ${s.perimeter()}")',
             'end',
             '',
-            'const main = () do',
+            'share main = () do',
             '    let c = .{ radius = 5.0 }',
             '    let r = .{ width = 4.0, height = 6.0 }',
             '    print_info(c)',
@@ -250,7 +272,7 @@
             '// Swap fields, reversing the type parameters',
             'local swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.first }',
             '',
-            'const main = () do',
+            'share main = () do',
             '    ruka.println("min(3, 7)     = ${min(i32, 3, 7)}")',
             '    ruka.println("min(1.5, 2.0) = ${min(f64, 1.5, 2.0)}")',
             '',
