@@ -361,10 +361,10 @@ type-receiver ::=  identifier                        -- static function: associa
                |   mode-prefix? "self"                      -- method: instance receiver
 
 destructure-pattern
-              ::=  ".{" identifier ( "," identifier )* "}"
+              ::=  "{" identifier ( "," identifier )* "}"
                    -- destructures any record value, including imported files
-                   -- e.g.  local .{ x, y } = point
-                   -- e.g.  local .{ sqrt, pow } = ruka.import("math")</code></pre>
+                   -- e.g.  local { x, y } = point
+                   -- e.g.  local { sqrt, pow } = ruka.import("math")</code></pre>
 
         <div class="note">
           <strong>Uniform declarations.</strong> Functions, types, behaviours, and modules
@@ -394,7 +394,6 @@ destructure-pattern
                |   primitive-type
                |   array-type
                |   tuple-type
-               |   hashmap-type
                |   option-type
                |   result-type
                |   function-type
@@ -420,7 +419,6 @@ primitive-type
 
 array-type    ::=  "[" type "]"                      -- homogeneous array: [i32]
 tuple-type    ::=  "[" type ( "," type )+ "]"        -- fixed-length heterogeneous tuple: [i32, string]
-hashmap-type  ::=  "[" type "=>" type "]"            -- key-value map: [string => usize]
 
 -- ── Generic built-in types ────────────────────────
 
@@ -449,10 +447,10 @@ method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
 
         <div class="note">
           <strong>Result-location semantics.</strong> The collection literal <code>.{…}</code>
-          may produce an array, tuple, or hashmap depending on the type expected by the
+          may produce an array, tuple depending on the type expected by the
           surrounding context. When no context is available the literal defaults to a tuple.
           An explicit type annotation on the binding is the most common way to request an
-          array or hashmap.
+          array.
         </div>
       </section>
 
@@ -540,7 +538,7 @@ postfix-op    ::=  "." identifier                         -- field access
                |   "." identifier "(" arg-list? ")"       -- method call
                |   ".?()"                                 -- option force-unwrap; panics if .none
                |   ".!()"                                 -- result force-unwrap; panics if .err
-               |   "[" expr "]"                           -- index (array, tuple, hashmap, range slice)
+               |   "[" expr "]"                           -- index (array, tuple, range slice)
                |   "(" arg-list? ")" trailing-arg*        -- function call
 
 arg-list      ::=  arg ( "," arg )*
@@ -589,15 +587,11 @@ block-expr    ::=  "do" stmt* "end"
 stmt          ::=  declaration | defer-stmt | expr
 
 -- ── Collection literals ───────────────────────────
--- Array, tuple, or hashmap — the type is resolved from surrounding context.
+-- Array, tuple — the type is resolved from surrounding context.
 
 collection-lit
               ::=  ".{" "}"                               -- empty (defaults to empty tuple)
-               |   ".{" hashmap-items "}"                 -- hashmap (keys and values separated by "=>")
                |   ".{" expr-items "}"                    -- array or tuple (resolved by context)
-
-hashmap-items ::=  hashmap-pair ( "," hashmap-pair )* ","?
-hashmap-pair  ::=  expr "=>" expr
 
 expr-items    ::=  expr ( "," expr )* ","?
 
@@ -701,9 +695,9 @@ else-branch   ::=  "else" "do" stmt*    -- else with a block body
         <pre class="grammar"><code>for-expr      ::=  "for" for-pattern "in" expr "do" stmt* "end"
 
 for-pattern   ::=  identifier                             -- simple binding
-               |   ".{" identifier ( "," identifier )* "}"
+               |   "{" identifier ( "," identifier )* "}"
                    -- tuple destructuring in the loop variable
-                   -- e.g.  for .{k, v} in pairs do ... end</code></pre>
+                   -- e.g.  for {k, v} in pairs do ... end</code></pre>
 
         <h4>Return</h4>
         <pre class="grammar"><code>return-expr   ::=  "return" expr?
