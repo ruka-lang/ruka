@@ -7,12 +7,12 @@
 	]);
 
 	const OPERATORS = new Set([
-		'+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=', ',',
-		'->', '=>', ':', '.', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not', '='
+		'+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=', ',', '=',
+		'->', ':', '.', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not'
 	]);
 
 	const SURROUNDS = new Set([
-		'(', ')', '[', ']', '{', '}'
+		'(', ')', '[', ']', '{', '}', '=>'
 	]);
 
 	function esc(s) {
@@ -122,14 +122,6 @@
 				continue;
 			}
 
-			// Operators
-			if (OPERATORS.has(raw.slice(i, i + 2)) || OPERATORS.has(raw[i])) {
-				const op = OPERATORS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
-				out += span('op', op);
-				i += op.length;
-				continue;
-	    	}
-
 			// Surrounds
 	   	    if (SURROUNDS.has(raw.slice(i, i + 2)) || SURROUNDS.has(raw[i])) {
 				const surr = SURROUNDS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
@@ -137,6 +129,14 @@
 				i += surr.length;
 				continue;
 	        }
+
+			// Operators
+			if (OPERATORS.has(raw.slice(i, i + 2)) || OPERATORS.has(raw[i])) {
+				const op = OPERATORS.has(raw.slice(i, i + 2)) ? raw.slice(i, i + 2) : raw[i];
+				out += span('op', op);
+				i += op.length;
+				continue;
+	    	}
 
 			out += esc(raw[i++]);
 		}
