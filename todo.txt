@@ -1,0 +1,1 @@
+- Change docs examples to use raw text, not html elements making it easier to write

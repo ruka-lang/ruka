@@ -19,7 +19,7 @@
   <nav>
     <a href="reference.html">Language Reference</a>
     <a href="grammar.html">Grammar</a>
-    <a href="examples.html">Examples</a>
+    <a href="#playground">Playground</a>
     <a href="https://github.com/ruka-lang/ruka">GitHub</a>
   </nav>
 </header>
@@ -110,14 +110,26 @@
     </div>
   </section>
 
-  <!-- ── Quick Look ── -->
-  <section id="example">
+  <!-- ── Playground ── -->
+  <section id="playground">
     <h2>A Quick Look</h2>
-    <p>
-    	The example below
-    </p>
-<pre><code class="ruka">
-</code></pre>
+    <p id="playground-desc"></p>
+    <div class="playground-widget">
+      <div class="playground-header">
+        <span class="playground-label">PLAYGROUND</span>
+        <div class="select-wrapper">
+          <select id="example-select" aria-label="Select example">
+            <option value="hello-world">Hello World</option>
+            <option value="binary-tree">Binary Tree</option>
+            <option value="shapes">Shapes &amp; Interfaces</option>
+            <option value="generics">Generic Functions</option>
+          </select>
+        </div>
+      </div>
+      <pre><code id="playground-code"></code></pre>
+      <div class="playground-output-header">EXPECTED OUTPUT</div>
+      <pre class="playground-output-pre" id="playground-output"></pre>
+    </div>
   </section>
 
   <!-- ── Development ── -->
@@ -193,7 +205,7 @@
 </main>
 
 <footer>
-  <p>Ruka Language &mdash; <a href="language_reference.html">Language Reference</a> &mdash; <a href="examples.html">Examples</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p>Ruka Language &mdash; <a href="reference.html">Language Reference</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
 </footer>
 
 <script src="highlight.js"></script>
