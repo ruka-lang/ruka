@@ -110,20 +110,20 @@ local max_retries = 5  // private static constant</code></pre>
 
       <h3>Binding Modes</h3>
       <p>
-        By default variables and non-eva constants are allocated by the GC. Binding modes allows the user to adjust this behaviour.
-        A mode is placed between the binding keyword and the identifier.
+        By default, variables and constants are allocated by the GC. Binding modes allow the user to adjust this behaviour.
+        A mode prefix is placed directly before the identifier with no space between them.
       </p>
       <table>
-        <thead><tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr></thead>
+        <thead><tr><th>Prefix</th><th>Syntax</th><th>Behaviour</th></tr></thead>
         <tbody>
           <tr>
-            <td><code>stc</code></td>
-            <td><code>let stc name = ...</code></td>
+            <td><code>$</code></td>
+            <td><code>let $name = ...</code></td>
             <td>Stack-allocated. Passed by pointer — not GC-managed and not copied. Can be moved: ownership may be transferred to another binding or function, after which the original is invalid.</td>
           </tr>
           <tr>
-            <td><code>eva</code></td>
-            <td><code>local eva name = ...</code> / <code>const eva name = ...</code></td>
+            <td><code>@</code></td>
+            <td><code>local @name = ...</code> / <code>const @name = ...</code></td>
             <td>Forces a <em>runtime</em> function to be evaluated at compile time. All arguments must be compile-time known. The result is stored as a compile-time constant.</td>
           </tr>
         </tbody>
@@ -132,9 +132,9 @@ local max_retries = 5  // private static constant</code></pre>
         For more detail see: <a href="#comptime">Compile-Time Evaluation</a>.
       </p>
       <div class="note">
-        <code>eva</code> on a binding is only needed when you want to force a <em>runtime</em>
+        <code>@</code> on a binding is only needed when you want to force a <em>runtime</em>
         function to run at compile time. Results from calling functions that already have
-        <code>eva</code> parameters are automatically compile-time — no annotation is required
+        <code>@</code>-prefixed parameters are automatically compile-time — no annotation is required
         on the binding, but it must be <code>const</code> or <code>local</code>.
       </div>
     </section>
@@ -306,7 +306,7 @@ let inclusive = 0..=10   // 0, 1, ..., 10
 let start = 2
 let end   = 7
 for i in start..end do
-    @println("${i}")     // 2 3 4 5 6
+    ruka.println("${i}")     // 2 3 4 5 6
 end
 
 // Slice an array with a range
@@ -398,11 +398,11 @@ let upper = find_user(id).?().name</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">for i in 0..5 do
-    @println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
 
 for i in 1..=5 do
-    @println("${i}")     // 1 2 3 4 5
+    ruka.println("${i}")     // 1 2 3 4 5
 end
 
 // Ranges as slice indices
@@ -471,8 +471,8 @@ local .{ x, y } = p
 // x is 3.0, y is 4.0
 
 // Works with any record — including imported files
-local .{ sqrt, pow } = @import("math")
-local .{ Dog, Cat }  = @import("animals")</code></pre>
+local .{ sqrt, pow } = ruka.import("math")
+local .{ Dog, Cat }  = ruka.import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
@@ -579,7 +579,7 @@ const label (self) = () => "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
 const find = (values: [i32], target: i32) do
-    for i in 0..@len(values) do
+    for i in 0..ruka.len(values) do
         if values[i] == target do return .some(i) end
     end
     .none
@@ -638,18 +638,18 @@ let result = double(10)  // 10 is produced as i32, not isize</code></pre>
       </p>
 <pre><code class="ruka">// Multiline
 if x > 0 do
-    @println("positive")
+    ruka.println("positive")
 else if x < 0 do
-    @println("negative")
+    ruka.println("negative")
 else do
-    @println("zero")
+    ruka.println("zero")
 end
 
 // Single-line — => introduces a single expression; no end required
-if x > 0 => @println("positive")
+if x > 0 => ruka.println("positive")
 
 // Single-line with else
-if x > 0 => @println("positive") else => @println("non-positive")
+if x > 0 => ruka.println("positive") else => ruka.println("non-positive")
 
 // Single-line chained
 if x > 0 => "positive" else if x < 0 => "negative" else => "zero"
@@ -743,13 +743,13 @@ let nested = 2 ** 3 ** 2   // 2 ** 9 = 512</code></pre>
 
       <h4>Matching literals and conditions</h4>
 <pre><code class="ruka">match status_code with
-    200 => @println("OK")
-    404 => @println("Not Found")
+    200 => ruka.println("OK")
+    404 => ruka.println("Not Found")
     500 do
-        @println("Internal Server Error")
+        ruka.println("Internal Server Error")
         log_error()
     end
-    else => @println("Unknown status")
+    else => ruka.println("Unknown status")
 end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
@@ -767,8 +767,8 @@ end
 
 // option(T)
 match maybe_name with
-    .some(name) => @println("Hello, ${name}")
-    .none       => @println("No name provided")
+    .some(name) => ruka.println("Hello, ${name}")
+    .none       => ruka.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
@@ -788,7 +788,7 @@ end</code></pre>
       <h3>While Loop</h3>
 <pre><code class="ruka">let i = 0
 while i < 10 do
-    @println("${i}")
+    ruka.println("${i}")
     i = i + 1
 end
 
@@ -804,7 +804,7 @@ while i < 10 => i = i + 1</code></pre>
 <pre><code class="ruka">// if with destructuring — body only runs if the option is .some
 let maybe: option(i32) = .some(42)
 if .some(x) = maybe do
-    @println("got ${x}")
+    ruka.println("got ${x}")
 end
 
 // while with destructuring — loop until the value is .none
@@ -819,31 +819,31 @@ end</code></pre>
       </p>
 <pre><code class="ruka">// Range — the common numeric loop idiom
 for i in 0..5 do
-    @println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
 
 // Single-expression body — no end required
-for i in 0..5 => @println("${i}")
+for i in 0..5 => ruka.println("${i}")
 
 // Range without a binding variable
-for 0..10 => @println("tick")
+for 0..10 => ruka.println("tick")
 
 // Inclusive range
 for i in 1..=3 do
-    @println("${i}")     // 1 2 3
+    ruka.println("${i}")     // 1 2 3
 end
 
 // Iterating over an array
 let numbers = .{10, 20, 30}
 for n in numbers do
-    @println("${n}")
+    ruka.println("${n}")
 end
 
 // Destructuring a tuple in a for loop
 let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
 
 for .{k, v} in pairs do
-    @println("${k} = ${v}")
+    ruka.println("${k} = ${v}")
 end</code></pre>
 
       <h3>Pattern-Filtered For Loop</h3>
@@ -855,7 +855,7 @@ end</code></pre>
 
 // Only visits elements where the option is .some; x is bound to the inner value
 for .some(x) in values do
-    @println("${x}")    // 1, 3, 5
+    ruka.println("${x}")    // 1, 3, 5
 end</code></pre>
 
       <h3>Break</h3>
@@ -867,7 +867,7 @@ end</code></pre>
 let i = 0
 while true do
     if i >= 5 do break end
-    @println("${i}")
+    ruka.println("${i}")
     i = i + 1
 end
 
@@ -888,7 +888,7 @@ end</code></pre>
 <pre><code class="ruka">// Print only odd numbers
 for i in 0..10 do
     if i % 2 == 0 do continue end
-    @println("${i}")     // 1 3 5 7 9
+    ruka.println("${i}")     // 1 3 5 7 9
 end
 
 // Skip invalid entries while processing
@@ -922,9 +922,9 @@ end   // file.close() is called here
 
 // Multiple defers execute in reverse declaration order
 const example = () do
-    defer @println("third")    // runs last
-    defer @println("second")
-    defer @println("first")    // runs first
+    defer ruka.println("third")    // runs last
+    defer ruka.println("second")
+    defer ruka.println("first")    // runs first
     // Output on exit: first, second, third
 end
 
@@ -967,7 +967,7 @@ end
 
 local greet = (name: string) do
     let msg = "Hello, ${name}!"
-    @println(msg)
+    ruka.println(msg)
     // last expression is (), the unit value
 end</code></pre>
 
@@ -1016,7 +1016,7 @@ local square2: (i32) -> i32 = (x) => x * x</code></pre>
       </ul>
 <pre><code class="ruka">// Returns option(usize) — wrapping is automatic
 const find_index = (arr: [i32], target: i32) -> option(usize) do
-    for i in 0..@len(arr) do
+    for i in 0..ruka.len(arr) do
         if arr[i] == target do return i end   // i (usize) → .some(i)
     end
     // () at end of block → .none
@@ -1031,7 +1031,7 @@ end</code></pre>
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
 <pre><code class="ruka">const main = () do
-    @println("Hello, world!")
+    ruka.println("Hello, world!")
 end</code></pre>
     </section>
 
@@ -1063,6 +1063,14 @@ const main = () do
     let origin = Vector.zero()
 end</code></pre>
 
+      <div class="note">
+        <strong>Fields vs. statics:</strong> A type's <em>fields</em> are runtime instance
+        attributes — they exist on each value of that type and are accessed via
+        <code>value.field</code>. <em>Statics</em> are compile-time shared attributes
+        associated with the type itself, not with any particular instance, and are accessed
+        via <code>TypeName.static</code>.
+      </div>
+
       <h3>Non-Function Statics</h3>
       <p>
         Any compile-time value — a constant, a default instance, a type — can be attached
@@ -1077,7 +1085,7 @@ const BLUE  (Color) = Color.{ r = 0,   g = 0,   b = 255 }
 
 const main = () do
     let c = Color.RED
-    @println("r=${c.r}")   // r=255
+    ruka.println("r=${c.r}")   // r=255
 end</code></pre>
 
       <h3>Static Functions on Variants</h3>
@@ -1122,7 +1130,7 @@ end</code></pre>
         A method is declared like a static function, but uses the reserved keyword
         <code>self</code> in the receiver position instead of a type name.
         <code>self</code> refers to the instance the method is called on and is always
-        the first implicit argument. Any parameter mode (<code>mut</code>, <code>mov</code>,
+        the first implicit argument. Any mode prefix (<code>*</code>, <code>&amp;</code>,
         etc.) may precede <code>self</code>.
       </p>
       <p>
@@ -1142,7 +1150,7 @@ const add (self) = (other) do
 end
 
 const length (self) = () do
-    @sqrt(self.x * self.x + self.y * self.y)
+    ruka.sqrt(self.x * self.x + self.y * self.y)
 end
 
 // Private method
@@ -1152,20 +1160,20 @@ const main = () do
     let a = Vector.new(1.0, 0.0)
     let b = Vector.new(0.0, 1.0)
     let c = a.add(b)
-    @println("Length: ${c.length()}")
+    ruka.println("Length: ${c.length()}")
 end</code></pre>
 
       <h3>Mutable Methods</h3>
       <p>
-        To mutate the receiver inside a method, apply the <code>mut</code> mode before
+        To mutate the receiver inside a method, apply the <code>*</code> prefix to
         <code>self</code>. The caller must hold a mutable binding.
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
 const new (Counter) = () => Counter.{ value = 0 }
 
-// mut self — the receiver is a mutable reference
-const increment (mut self) = () do
+// *self — the receiver is a mutable reference
+const increment (*self) = () do
     self.value = self.value + 1
 end
 
@@ -1173,7 +1181,7 @@ const main = () do
     let c = Counter.new()
     c.increment()         // value is now 1
     c.increment()         // value is now 2
-    @println("${c.value}")
+    ruka.println("${c.value}")
 end</code></pre>
 
       <h3>Methods on Variants</h3>
@@ -1203,7 +1211,7 @@ const is_vertical (self) = () =>
 
 const main = () do
     let d = Direction.north
-    @println("${d.opposite().is_vertical()}")  // true
+    ruka.println("${d.opposite().is_vertical()}")  // true
 end</code></pre>
     </section>
 
@@ -1212,7 +1220,7 @@ end</code></pre>
       <h2>Parameter Modes</h2>
       <p>
         By default, all arguments are passed as immutable references managed by the garbage
-        collector. A <em>mode keyword</em> placed before the parameter identifier changes
+        collector. A <em>mode prefix</em> placed directly before the parameter identifier changes
         how the compiler treats the lifetime and ownership of that value.
         Modes apply to any parameter, including method receivers. Some are shared with
         <a href="#bindings">binding</a> modes.
@@ -1220,58 +1228,58 @@ end</code></pre>
 
       <table>
         <thead>
-          <tr><th>Mode</th><th>Syntax</th><th>Behaviour</th></tr>
+          <tr><th>Prefix</th><th>Syntax</th><th>Behaviour</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td><code>mut</code></td>
-            <td><code>(mut x: T)</code></td>
+            <td><code>*</code></td>
+            <td><code>(*x: T)</code></td>
             <td>Mutable reference. Changes to <code>x</code> are visible to the caller.</td>
           </tr>
           <tr>
-            <td><code>mov</code></td>
-            <td><code>(mov x: T)</code></td>
+            <td><code>&amp;</code></td>
+            <td><code>(&amp;x: T)</code></td>
             <td>Ownership is transferred into this function. The caller cannot use the value after the call.</td>
           </tr>
           <tr>
-            <td><code>stc</code></td>
-            <td><code>(stc x: T)</code></td>
+            <td><code>$</code></td>
+            <td><code>($x: T)</code></td>
             <td>Stack-allocated pass-by-copy.</td>
           </tr>
           <tr>
-            <td><code>eva</code></td>
-            <td><code>(eva x: T)</code> or <code>(x: type)</code></td>
+            <td><code>@</code></td>
+            <td><code>(@x: T)</code> or <code>(x: type)</code></td>
             <td>Compile-time constant. The value must be known at compile time. <strong>Inferred automatically when the parameter type is <code>type</code>.</strong></td>
           </tr>
         </tbody>
       </table>
 
-<pre><code class="ruka">// mut — in-place mutation
-const fill (mut self) = (value: u8) do
+<pre><code class="ruka">// * — in-place mutation
+const fill (*self) = (value: u8) do
     // modifies caller's buffer
 end
 
-// mov — consume / transfer ownership
-const close = (mov handle: FileHandle) do
+// & — consume / transfer ownership
+const close = (&handle: FileHandle) do
     // handle is invalid for the caller after this call
 end
 
-// stc — stack allocated pass-by-copy
-const hash = (stc data: [u8]) -> u64 do
+// $ — stack allocated pass-by-copy
+const hash = ($data: [u8]) -> u64 do
     // data is on the stack, cannot be returned without a copy
 end
 
-// eva — compile-time value (explicit annotation)
-const repeat = (eva times: usize, msg: string) do
+// @ — compile-time value (explicit annotation)
+const repeat = (@times: usize, msg: string) do
     let i = 0
     while i < times do
-        @println(msg)
+        ruka.println(msg)
         i = i + 1
     end
 end</code></pre>
 
       <div class="note">
-        <strong>Note:</strong> <code>eva</code> is covered in detail in the
+        <strong>Note:</strong> The <code>@</code> compile-time prefix is covered in detail in the
         <a href="#comptime">Compile-Time Evaluation</a> section, including automatic
         inference from <code>type</code>-annotated parameters and storing compile-time results.
       </div>
@@ -1430,8 +1438,8 @@ const perimeter (self) = () => 2.0 * 3.14159 * self.radius
       </p>
 <pre><code class="ruka">// Interface type annotation on a parameter — dynamic dispatch is automatic
 const print_shape_info = (s: Shape) do
-    @println("area:      ${s.area()}")
-    @println("perimeter: ${s.perimeter()}")
+    ruka.println("area:      ${s.area()}")
+    ruka.println("perimeter: ${s.perimeter()}")
 end
 
 local Rect = record { w: f64, h: f64 }
@@ -1451,6 +1459,11 @@ end</code></pre>
         <strong>Note:</strong> Interfaces specify only methods. Fields cannot appear in an
         interface definition. To share field access across types, expose it through methods.
       </div>
+      <div class="note">
+        <strong>Interface types may only appear in parameter positions.</strong>
+        Using an interface as a return type, field type, or binding type is a compile error.
+        Interfaces describe opaque behaviour — they cannot be stored, only passed into functions.
+      </div>
     </section>
 
     <!-- Pipelines -->
@@ -1462,13 +1475,13 @@ end</code></pre>
         in the order they are applied, which is easier to read than deeply nested calls.
       </p>
 <pre><code class="ruka">// Without pipeline
-@println(trim(toUpperCase(getName(user))))
+ruka.println(trim(toUpperCase(getName(user))))
 
 // With pipeline — reads top to bottom, left to right
 getName(user)
     |> toUpperCase()
     |> trim()
-    |> @println()</code></pre>
+    |> ruka.println()</code></pre>
 
       <p>
         The pipeline works with any function — free functions, static functions, and methods
@@ -1483,7 +1496,7 @@ const main = () do
 
     // Method call followed by pipeline into a built-in
     ruka.about()
-        |> @println()
+        |> ruka.println()
 end</code></pre>
     </section>
 
@@ -1506,7 +1519,7 @@ end</code></pre>
         A file record is an <em>empty</em> record — it has no instance fields, only statics.
         It cannot be instantiated with <code>.{}</code>. Every declaration in the file is
         stored as a static field accessible via the record value returned by
-        <code>@import</code>.
+        <code>ruka.import</code>.
       </p>
 <pre><code class="ruka">// stack.ruka — a file is a record; const bindings are its public fields
 
@@ -1536,25 +1549,25 @@ end</code></pre>
     <section id="imports">
       <h2>Imports</h2>
       <p>
-        <code>@import</code> evaluates at compile time and returns the file's record value.
-        The result is always compile-time known — <code>eva</code> is implied. Accessing an
+        <code>ruka.import</code> evaluates at compile time and returns the file's record value.
+        The result is always compile-time known — compile-time evaluation is implied. Accessing an
         export is ordinary field access; destructuring an import is ordinary record
         destructuring, using the same <code>.{…}</code> syntax.
       </p>
 <pre><code class="ruka">// Field access on the imported record
-local math = @import("math")
+local math = ruka.import("math")
 
 const main = () do
-    @println("${math.sqrt(2.0)}")
+    ruka.println("${math.sqrt(2.0)}")
 end
 
 // Record destructuring — pull specific fields into scope
-local .{ sqrt, pow } = @import("math")
-local .{ Dog, Cat }  = @import("animals")
+local .{ sqrt, pow } = ruka.import("math")
+local .{ Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-const describe = (t: type) => @println("${t}")
-local animals = @import("animals")
+const describe = (t: type) => ruka.println("${t}")
+local animals = ruka.import("animals")
 
 const main = () do
     describe(animals.Dog)   // passes the Dog type to a compile-time parameter
@@ -1580,13 +1593,13 @@ end</code></pre>
 <pre><code class="ruka">local add = (a: i32, b: i32) => a + b
 
 test addition = () do
-    @assertEq(add(1, 2), 3)
-    @assertEq(add(-1, 1), 0)
-    @assertEq(add(0, 0), 0)
+    ruka.assertEq(add(1, 2), 3)
+    ruka.assertEq(add(-1, 1), 0)
+    ruka.assertEq(add(0, 0), 0)
 end
 
 test addition_is_commutative = () do
-    @assertEq(add(3, 4), add(4, 3))
+    ruka.assertEq(add(3, 4), add(4, 3))
 end</code></pre>
 
       <p>
@@ -1599,15 +1612,15 @@ end</code></pre>
 local clamp_internal = (x: i32, lo: i32, hi: i32) => if x < lo do lo else if x > hi do hi else x end
 
 test clamp_lower_bound = () do
-    @assertEq(clamp_internal(3, 5, 10), 5)
+    ruka.assertEq(clamp_internal(3, 5, 10), 5)
 end
 
 test clamp_upper_bound = () do
-    @assertEq(clamp_internal(15, 5, 10), 10)
+    ruka.assertEq(clamp_internal(15, 5, 10), 10)
 end
 
 test clamp_in_range = () do
-    @assertEq(clamp_internal(7, 5, 10), 7)
+    ruka.assertEq(clamp_internal(7, 5, 10), 7)
 end</code></pre>
 
       <div class="note">
@@ -1615,7 +1628,7 @@ end</code></pre>
         <code>test</code> bindings are included in two build modes:
         <em>debug</em> (full code coverage analysis, all assertions active) and
         <em>test</em> (runs the test suite and reports pass/fail). They are stripped
-        in the <em>release</em> build. This means <code>@assertEq</code> and other
+        in the <em>release</em> build. This means <code>ruka.assertEq</code> and other
         assertion calls inside a <code>test</code> binding never appear in a production
         binary.
       </div>
@@ -1625,27 +1638,27 @@ end</code></pre>
     <section id="builtins">
       <h2>Built-in Functions</h2>
       <p>
-        Built-in functions begin with <code>@</code> to distinguish them from user-defined
-        names. They are available in all scopes without any import.
+        Built-in functions are accessed through the <code>ruka</code> module, which is
+        implicitly available in every scope without an import declaration.
       </p>
       <table>
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>@print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
-          <tr><td><code>@println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
-          <tr><td><code>@import(path)</code></td><td>Import a file as a module. Returns the module value.</td></tr>
-          <tr><td><code>@typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
-          <tr><td><code>@abs(number)</code></td><td>Absolute value.</td></tr>
-          <tr><td><code>@sqrt(number)</code></td><td>Square root.</td></tr>
-          <tr><td><code>@assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
-          <tr><td><code>@len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>usize</code>.</td></tr>
-          <tr><td><code>@size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>usize</code>. The argument must be a compile-time type value.</td></tr>
-          <tr><td><code>@now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
+          <tr><td><code>ruka.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
+          <tr><td><code>ruka.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
+          <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
+          <tr><td><code>ruka.typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
+          <tr><td><code>ruka.assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>usize</code>.</td></tr>
+          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>usize</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>ruka.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">@println("Hello!")                       // Hello!
-@println("${@typeOf(42)}")               // isize
-@assertEq(@abs(-5), 5)
+<pre><code class="ruka">ruka.println("Hello!")                       // Hello!
+ruka.println("${ruka.typeOf(42)}")               // isize
+ruka.assertEq(ruka.abs(-5), 5)
 </code></pre>
     </section>
 
@@ -1660,21 +1673,21 @@ end</code></pre>
         compile-time contexts.
       </p>
 
-      <h3>Automatic <code>eva</code> Inference</h3>
+      <h3>Automatic Compile-Time Inference</h3>
       <p>
-        When a parameter's type annotation is <code>type</code>, the <code>eva</code> mode is
-        inferred automatically — no explicit keyword is needed. Writing <code>(t: type)</code>
-        is exactly equivalent to <code>(eva t: type)</code>. When a parameter is used as a
-        type annotation for another parameter, both the <code>eva</code> mode and the
+        When a parameter's type annotation is <code>type</code>, the compile-time (<code>@</code>) mode is
+        inferred automatically — no explicit prefix is needed. Writing <code>(t: type)</code>
+        is exactly equivalent to <code>(@t: type)</code>. When a parameter is used as a
+        type annotation for another parameter, both the <code>@</code> prefix and the
         <code>type</code> annotation are inferred.
       </p>
 <pre><code class="ruka">// Explicit — valid, but redundant
-const min = (eva t: type, a: t, b: t) => if a < b do a else b end
+const min = (@t: type, a: t, b: t) => if a < b do a else b end
 
-// Inferred — preferred; `eva` is implied by the `type` annotation
+// Inferred — preferred; `@` is implied by the `type` annotation
 const min = (t: type, a: t, b: t) => if a < b do a else b end
 
-// Both `eva` and `: type` inferred — `t` is used to annotate `a` and `b`
+// Both `@` and `: type` inferred — `t` is used to annotate `a` and `b`
 const min = (t, a: t, b: t) => if a < b do a else b end
 
 // Compile-time type constructor — same rules apply
@@ -1682,7 +1695,7 @@ const Pair = (a, b) do
     record { first: a, second: b }
 end</code></pre>
 
-      <h3>Generics via <code>eva</code></h3>
+      <h3>Generics via Compile-Time Parameters</h3>
       <p>
         A function with a <code>type</code>-annotated parameter is instantiated separately for
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
@@ -1699,10 +1712,10 @@ end</code></pre>
       <p>
         Compile-time functions can return types, enabling parameterised type definitions.
         Non-<code>type</code> parameters that must be compile-time constants still require
-        an explicit <code>eva</code> annotation.
+        an explicit <code>@</code> prefix.
       </p>
-<pre><code class="ruka">// Returns a record type — `cap` requires explicit eva because it is not type-annotated as `type`
-const FixedArray = (t, eva cap: usize) do
+<pre><code class="ruka">// Returns a record type — `cap` requires explicit @ because it is not type-annotated as `type`
+const FixedArray = (t, @cap: usize) do
     record {
         data: [t],
         len:  usize
@@ -1719,7 +1732,7 @@ end</code></pre>
 
       <h3>Storing Compile-Time Results</h3>
       <p>
-        If a function has any <code>eva</code> parameters, it runs at compile time and its
+        If a function has any <code>@</code>-prefixed parameters, it runs at compile time and its
         result is automatically a compile-time constant. The binding must be <code>const</code>
         or <code>local</code> — assigning a compile-time result to a <code>let</code> binding
         is a compile error. Results can also be used inline without a binding.
@@ -1738,44 +1751,44 @@ let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
 
       <h3>Forcing Runtime Functions at Compile Time</h3>
       <p>
-        A binding declared with <code>eva</code> forces any function — including ordinary
+        A binding declared with the <code>@</code> prefix forces any function — including ordinary
         runtime functions — to execute at compile time. All arguments must be compile-time
-        known. This is distinct from calling a function that already has <code>eva</code>
+        known. This is distinct from calling a function that already has <code>@</code>-prefixed
         parameters, which runs at compile time automatically.
       </p>
 <pre><code class="ruka">const PI = 3.14159265358979
 
-// @sqrt is a runtime function, but eva forces it to run at compile time
-local eva SQRT_2: f64 = @sqrt(2.0)          // literal — compile-time known
-local eva INV_PI: f64 = 1.0 / PI            // const PI — compile-time known
+// ruka.sqrt is a runtime built-in, but @ forces it to run at compile time
+local @SQRT_2: f64 = ruka.sqrt(2.0)          // literal — compile-time known
+local @INV_PI: f64 = 1.0 / PI                // const PI — compile-time known
 
-// Eva results are themselves compile-time known and can be chained
-local eva DOUBLE_SQRT_2 = SQRT_2 * 2.0
+// @ results are themselves compile-time known and can be chained
+local @DOUBLE_SQRT_2 = SQRT_2 * 2.0
 
 // Useful for any expensive or non-trivial constant
-local eva LOOKUP = generate_lookup_table(256)
-local eva KEY_HASH = compute_hash("app-secret")</code></pre>
+local @LOOKUP = generate_lookup_table(256)
+local @KEY_HASH = compute_hash("app-secret")</code></pre>
 
       <h3>Compile-Time Reflection</h3>
       <p>
-        <code>@typeOf</code> returns the type of any expression as a compile-time value,
-        which can be passed to <code>eva</code> parameters or compared at compile time.
+        <code>ruka.typeOf</code> returns the type of any expression as a compile-time value,
+        which can be passed to <code>@</code>-prefixed parameters or compared at compile time.
       </p>
 <pre><code class="ruka">const assertSameType = (a: type, b: type) do
     if not (a == b) do
-        @compileError("type mismatch: expected ${a}, got ${b}")
+        ruka.compileError("type mismatch: expected ${a}, got ${b}")
     end
 end
 
 const main = () do
     let x: i32 = 10
     let y: i32 = 20
-    assertSameType(@typeOf(x), @typeOf(y))  // ok — both i32
+    assertSameType(ruka.typeOf(x), ruka.typeOf(y))  // ok — both i32
 end</code></pre>
 
       <div class="note">
         <strong>Note:</strong> Only values that are provably known at compile time may be
-        passed to <code>eva</code> parameters. Passing a runtime value to an <code>eva</code>
+        passed to <code>@</code>-prefixed parameters. Passing a runtime value to an <code>@</code>-prefixed
         parameter is a compile error. Compile-time known values include: literals,
         <code>const</code> and <code>local</code> constants, and results of other
         compile-time evaluations.

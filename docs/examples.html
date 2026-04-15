@@ -50,11 +50,11 @@
       <h2>Hello World</h2>
       <p>
         The entry point of every Ruka program is a public <code>const main</code> function.
-        It takes no arguments and returns <code>()</code> (unit). <code>@println</code>
+        It takes no arguments and returns <code>()</code> (unit). <code>ruka.println</code>
         writes a string to standard output followed by a newline.
       </p>
 <pre><code class="ruka">const main = () do
-    @println("Hello, world!")
+    ruka.println("Hello, world!")
 end</code></pre>
 
     <!-- Binary Tree -->
@@ -105,8 +105,8 @@ const main = () do
         right = Tree.leaf(5)
     })
 
-    @println("sum:    ${tree.sum()}")     // 8
-    @println("height: ${tree.height()}")  // 3
+    ruka.println("sum:    ${tree.sum()}")     // 8
+    ruka.println("height: ${tree.height()}")  // 3
 end</code></pre>
 
       <div class="note">
@@ -156,9 +156,9 @@ const label     (self) = () => "Rect(${self.width}x${self.height})"
 
 // Interface type implies dynamic dispatch — any Shape can be passed
 local print_info = (s: Shape) do
-    @println("${s.label()}")
-    @println("  area:      ${s.area()}")
-    @println("  perimeter: ${s.perimeter()}")
+    ruka.println("${s.label()}")
+    ruka.println("  area:      ${s.area()}")
+    ruka.println("  perimeter: ${s.perimeter()}")
 end
 
 const main = () do
@@ -181,11 +181,11 @@ end</code></pre>
     <section id="generics">
       <h2>Generic Functions</h2>
       <p>
-        When a parameter's type is <code>type</code>, the <code>eva</code> mode is inferred
-        automatically — no keyword is needed. A function with such parameters is instantiated
+        When a parameter's type is <code>type</code>, the compile-time (<code>@</code>) mode is inferred
+        automatically — no explicit prefix is needed. A function with such parameters is instantiated
         separately for each unique combination of compile-time type arguments, similar to
         monomorphisation or templates. Non-<code>type</code> compile-time parameters still
-        require an explicit <code>eva</code>.
+        require an explicit <code>@</code> prefix.
       </p>
       <p>
         Compile-time functions can also return types, enabling parameterised type definitions.
@@ -205,17 +205,17 @@ local swap = (a, b, p: Pair(a, b)) => Pair(b, a).{ first = p.second, second = p.
 
 const main = () do
     // Each distinct type argument causes a new instantiation at compile time
-    @println("min(3, 7)     = ${min(i32, 3, 7)}")
-    @println("min(1.5, 2.0) = ${min(f64, 1.5, 2.0)}")
+    ruka.println("min(3, 7)     = ${min(i32, 3, 7)}")
+    ruka.println("min(1.5, 2.0) = ${min(f64, 1.5, 2.0)}")
 
     let p = Pair(string, i32).{ first = "score", second = 42 }
     let q = swap(string, i32, p)
-    @println("${q.first}: ${q.second}")  // 42: score
+    ruka.println("${q.first}: ${q.second}")  // 42: score
 end</code></pre>
 
       <div class="note">
         <strong>Note:</strong> Only values provably known at compile time may be passed to
-        <code>eva</code> parameters. Passing a runtime value is a compile error.
+        <code>@</code>-prefixed parameters. Passing a runtime value is a compile error.
       </div>
     </section>
 
