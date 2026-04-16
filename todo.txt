@@ -1,6 +1,7 @@
 TODO
 - If possible change code examples within grammar.html and reference.html to use highlight(raw) from highlight.js so it's easier to edit those examples and create my own
-- Make overview titlebar buttons on the right side of the title and tagline, similar to the reference and grammar pages but larger
+- Make overview titlebar buttons on the right side of the title and tagline
+- Align playground select and run button vertically
 - Have playground examples load their code from .ruka files in docs/examples for ease of making changes instead of being written in highlight.js
 - Basic editor error highlighting and messages
 - More playground support (in order of importance)
@@ -16,3 +17,4 @@ TODO
 	- Methods and statics
 	- Modes
 	- Behaviours
+	- More builtin functions
