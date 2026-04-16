@@ -1,4 +1,11 @@
-TODO
+TODO (Docs and playground)
+- Add builtin behaviours to docs
+	- ruka.printable (for string interpolation)
+	- ruka.iteratable (for iterating w/ for loops)
+	- ruka.allocator (for accepting custom heap allocators)
+- Add to docs description of idomatic constructors and destructors
+	- `share new (T) = ...
+	- `share destroy (&self) =...` receiver ownership moved so compiler error if used after
 - Char literal syntax highlighting
 - Attribute color scheme to rose-pine-moon
 - Better error checking
@@ -6,15 +13,22 @@ TODO
 - Context aware indentation and autoclosing () {} do end
 - More playground support (in order of importance)
 	- If needs to support multiline blocks using do...else if condition do...else...end
-	- Builtin types, annotation and inference
+	- Builtin types, annotation and basic inference
 	- Booleans
 	- Chars
 	- Tuples
 	- Arrays
+		- .append(item) method
+		- .remove(index) method
+		- .length() method
 	- Ranges
+	- String and Array indexing
 	- Records
 	- Variants
+	- More fleshed out type inference
+	- Patterns / Matching / Destructuring
 	- Methods and statics
 	- Modes
 	- Behaviours
+	- Builtin behaviours
 	- More builtin functions
