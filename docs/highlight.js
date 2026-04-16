@@ -222,7 +222,7 @@
 		if (exampleSelect && playgroundCode && playgroundTextarea) {
 			var EXAMPLES = {
 				'hello-world': {
-					desc: 'The entry point of every Ruka program is a <code>share main</code> function. <code>ruka.println</code> writes a line to standard output followed by a newline.',
+					desc: '',
 					code: [
 						'share main = () do',
 						'    let name = "world"',
@@ -232,7 +232,7 @@
 					].join('\n')
 				},
 				'calculator': {
-					desc: 'Functions are values bound with <code>local</code> or <code>share</code>. Single-expression bodies use <code>=></code>; multi-statement bodies use <code>do…end</code>. String interpolation with <code>${…}</code> evaluates any expression inline.',
+					desc: '',
 					code: [
 						'local add = (a, b) => a + b',
 						'local sub = (a, b) => a - b',
@@ -250,7 +250,7 @@
 					].join('\n')
 				},
 				'fibonacci': {
-					desc: 'Recursive functions work naturally — the closure captures its own binding by reference, so <code>fib</code> can call itself. <code>while</code> loops use <code>do…end</code> and bare assignment (<code>i = i + 1</code>) mutates an existing <code>let</code> binding.',
+					desc: '',
 					code: [
 						'local fib = (n) =>',
 						'    if n <= 1 => n',
@@ -266,7 +266,7 @@
 					].join('\n')
 				},
 				'fizzbuzz': {
-					desc: '<code>else if</code> chains work because after <code>else</code> the parser recurses into <code>if</code> — there is no special syntax. Single-expression branches use <code>=></code> and the whole chain is one expression returning a value.',
+					desc: '',
 					code: [
 						'share main = () do',
 						'    let i = 1',
