@@ -1,7 +1,8 @@
 TODO
 - Char literal syntax highlighting
-- Better error checking making sure expressions and statements are properly formed
-	- Currently misspelling the binding doesn't trigger an error until running
+- Attribute color scheme to rose-pine-moon
+- Better error checking
+	- Using an identifier that hasn't been declared should be an editor error
 - Context aware indentation and autoclosing () {} do end
 - More playground support (in order of importance)
 	- If needs to support multiline blocks using do...else if condition do...else...end
