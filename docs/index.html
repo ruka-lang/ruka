@@ -39,18 +39,21 @@
 
   <!-- ── Playground ── -->
   <section id="playground">
-    <h2>A Quick Look</h2>
+    <h2>Give it a try!</h2>
     <p id="playground-desc"></p>
     <div class="playground-widget">
       <div class="playground-header">
         <span class="playground-label">PLAYGROUND</span>
-        <div class="select-wrapper">
-          <select id="example-select" aria-label="Select example">
-            <option value="hello-world">Hello World</option>
-            <option value="binary-tree">Binary Tree</option>
-            <option value="shapes">Shapes &amp; Behaviours</option>
-            <option value="generics">Generic Functions</option>
-          </select>
+        <div class="playground-controls">
+          <div class="select-wrapper">
+            <select id="example-select" aria-label="Select example">
+              <option value="hello-world">Hello World</option>
+              <option value="calculator">Calculator</option>
+              <option value="fibonacci">Fibonacci</option>
+              <option value="fizzbuzz">FizzBuzz</option>
+            </select>
+          </div>
+          <button id="playground-run" aria-label="Run code">RUN</button>
         </div>
       </div>
       <div class="playground-editor">
@@ -62,9 +65,12 @@
           autocapitalize="off"
           aria-label="Ruka code editor"></textarea>
       </div>
-      <div class="playground-output-header">EXPECTED OUTPUT</div>
-      <pre class="playground-output-pre" id="playground-output"></pre>
+      <div id="playground-output-panel">
+        <div class="playground-output-header">OUTPUT</div>
+        <pre class="playground-output-pre" id="playground-output"></pre>
+      </div>
     </div>
+    <p>(<i>only a small subset of language features currently supported which are shown in the available examples</i>)</p>
   </section>
 
 
@@ -213,6 +219,7 @@
 </footer>
 
 <script src="highlight.js"></script>
+<script src="playground.js"></script>
 
 </body>
 </html>

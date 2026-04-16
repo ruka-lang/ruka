@@ -650,7 +650,7 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
   margin: 1.1rem 0;
 }
 
-/* ── Header bar: label + select ── */
+/* ── Header bar: label + controls ── */
 .playground-header {
   background: var(--overlay);
   border-bottom: 2px solid var(--border);
@@ -658,6 +658,11 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.playground-controls {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
 }
 .playground-label {
   font-family: 'Poller One', cursive;
@@ -794,3 +799,36 @@ select#example-select:focus {
   min-height: 2.4rem;
   border: none;
 }
+
+/* ── Run button ── */
+#playground-run {
+  background: transparent;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  color: var(--gold);
+  font-family: 'Poller One', cursive;
+  font-size: .75rem;
+  letter-spacing: .08em;
+  padding: .22rem .85rem;
+  cursor: pointer;
+  outline: none;
+  transition: background .12s, color .12s;
+  line-height: 1;
+}
+#playground-run:hover:not(:disabled) {
+  background: rgba(246,193,119,.12);
+}
+#playground-run:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+/* ── Output error state ── */
+#playground-output-panel[data-state="err"] .playground-output-pre {
+  color: var(--love);
+}
+
+/* ── New highlighter span classes ── */
+.op   { color: var(--subtle); }
+.strc { color: var(--subtle); }
+.surr { color: var(--kw); }
