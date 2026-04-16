@@ -1,0 +1,11 @@
+local fib = (n) =>
+    if n <= 1 => n
+    else => fib(n - 1) + fib(n - 2)
+
+share main = () do
+    let i = 0
+    while i <= 10 do
+        ruka.println("fib(${i}) = ${fib(i)}")
+        i = i + 1
+    end
+end
