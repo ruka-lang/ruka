@@ -1,5 +1,19 @@
-Fixes
-- Change example code blocks to use highlight(raw) and raw text for ease of writing
-- Make overview titlebar buttons on the right of the title and tagline
-- Center content in reference and grammar pages
-- Have example code as a single multiline string for ease of writing
+TODO
+- If possible change code examples within grammar.html and reference.html to use highlight(raw) from highlight.js so it's easier to edit those examples and create my own
+- Make overview titlebar buttons on the right side of the title and tagline, similar to the reference and grammar pages but larger
+- Center content in reference and grammar pages (I made it so the sidebar moves fully left on large displays but I want the content to be width limited and centered)
+- Have playground examples load their code from .ruka files in docs/examples for ease of making changes instead of being written in highlight.js
+- Basic editor error highlighting and messages
+- More playground support (in order of importance)
+	- If needs to support multiline blocks using do...else if condition do...else...end
+	- Builtin types, annotation and inference
+	- Booleans
+	- Chars
+	- Tuples
+	- Arrays
+	- Ranges
+	- Records
+	- Variants
+	- Methods and statics
+	- Modes
+	- Behaviours
