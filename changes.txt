@@ -1,4 +1,4 @@
-- Pattern matching and destructuring doesn't begin with `.` for tuples, arrays and records `.{...}` becomes `{...}`, or variants `.ok()` becomes `ok()`. `.` is only used in rhs.
+- Pattern matching and destructuring doesn't begin with `.` for tuples, arrays and records `.{...}` becomes `{...}`, or variants `.ok()` becomes `ok()`. `.` is only used in rhs of assignments.
 - Interfaces renamed to behaviours
 - const renamed to share
 - Removed builtin hashmaps and their literals. Records with optional fields provide similar benefits to hashmap literals for providing options to things with added type safety and information
