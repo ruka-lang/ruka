@@ -181,6 +181,9 @@
 		return out;
 	}
 
+	// Expose for playground.js error re-rendering
+	window.highlightRuka = highlight;
+
 	document.addEventListener('DOMContentLoaded', function () {
 		// ── Syntax highlighting ──
 		document.querySelectorAll('code.ruka').forEach(function (el) {
@@ -238,9 +241,10 @@
 				if (panel) panel.removeAttribute('data-state');
 			}
 
-			// Live re-highlight as the user types
+			// Live re-highlight as the user types.
+			// playground.js replaces this with rukaCheckAndHighlight once loaded.
 			playgroundTextarea.addEventListener('input', function () {
-				rehighlight(this.value);
+				(window.rukaCheckAndHighlight || rehighlight)(this.value);
 			});
 
 			// Insert four spaces on Tab instead of losing focus
@@ -251,7 +255,7 @@
 				var end   = this.selectionEnd;
 				this.value = this.value.slice(0, start) + '    ' + this.value.slice(end);
 				this.selectionStart = this.selectionEnd = start + 4;
-				rehighlight(this.value);
+				(window.rukaCheckAndHighlight || rehighlight)(this.value);
 			});
 
 			exampleSelect.addEventListener('change', function () {

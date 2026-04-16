@@ -863,3 +863,15 @@ select#example-select:focus {
 .op   { color: var(--subtle); }
 .strc { color: var(--subtle); }
 .surr { color: var(--kw); }
+
+/* ── Playground error highlighting ── */
+.err-line {
+  background: rgba(235, 111, 146, 0.14);
+  border-radius: 2px;
+}
+.err-msg {
+  color: var(--love);
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+}
