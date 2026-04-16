@@ -1,6 +1,7 @@
 TODO
 - Char literal syntax highlighting
-- Basic editor error highlighting and messages
+- Better error checking making sure expressions and statements are properly formed
+	- Currently misspelling the binding doesn't trigger an error until running
 - Context aware indentation and autoclosing () {} do end
 - More playground support (in order of importance)
 	- If needs to support multiline blocks using do...else if condition do...else...end
