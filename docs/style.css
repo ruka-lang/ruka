@@ -355,11 +355,8 @@ main.index-main { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
 main.index-main section { margin-bottom: 3.5rem; }
 
 /* ── Feature grid ── */
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
+.feature-list {
+	list-style: none;
 }
 .feature-card {
   background: var(--surface);

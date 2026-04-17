@@ -66,64 +66,27 @@
 
   <!-- ── Design Principles ── -->
   <section id="philosophy">
-    <h2>Design Principles</h2>
-    <ul>
-      <li>
-        <strong>Value-based.</strong> Functions, types, records (structs), and variants (tagged unions) are all values stored in bindings, files are imported as records as well.
-      </li>
-      <li>
-        <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies all evaluate to a value. The last expression in a block is its result.
-      </li>
-      <li>
-        <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default but the user can decide when to control lifetimes or stack/heap allocate.
-      </li>
-      <li>
-        <strong>Compile-time evaluation and interpretation</strong> allowing generic programming and generating compile time constants that require complex calculations or algorithms.
-      </li>
-      <li>
-        <strong>Shared behaviours.</strong> Ruka has no inheritance. Shared behaviour is
-        expressed through behaviours, giving the function an opaque representation of the argument seeing only a subset of it's functionality.
-      </li>
-    </ul>
-  </section>
-
-  <!-- ── Core Features ── -->
-  <section id="features">
     <h2>Core Features</h2>
-    <div class="feature-grid">
-      <div class="feature-card">
-        <h3>Interpreted and Compilation</h3>
-        <p>Ruka ships both an interpreter and a compiler. The compiler uses the interpreter for metaprogramming and the user can use the interpreter for debugging and rapid prototyping.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Strong Static Typing</h3>
-        <p>Aggressive type inference — annotations are only written where the type cannot be uniquely determined. Ambiguity is a compile error, never a silent fallback.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Garbage Collection</h3>
-        <p>Memory is managed automatically. Parameter modes allow opt-in lifetime control and stack/heap allocations.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Expression-Based</h3>
-        <p>Blocks, if/else, match, and destructuring all return values. No statement/expression split.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Pattern Matching</h3>
-        <p>Exhaustive <code>match</code> over variants, literals, and guard conditions. Most types can be destructured and those expressions return booleans.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Built-in Testing</h3>
-        <p>Test functions are first-class language constructs declared with <code>test</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Behaviours</h3>
-        <p>Structural typing via behaviours. Any type matching the method signatures satisfies an behavour implicitly. Parameters typed with an behaviour cause that function to be compiled for the argument type passed in.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Compile-Time Evaluation</h3>
-        <p>Ruka code can be interpreted at compile time to generate types, instantiate generics, and generate constants that require more complex calculations.</p>
-      </div>
-    </div>
+    <ul class="feature-list">
+      <li><div class="feature-card">
+      	<h3>Compiled and/or Interpreted.</h3> The ruka compiler uses the interpreter for metaprogramming (allowing generics and complex constants, etc.), and users can use the interpreter for rapid debugging, extending the build process, and scripting.
+      </div></li>
+      <li><div class="feature-card">
+      	<h3>Value-based.</h3> Functions, types, records (structs), variants (tagged unions), and tests are all values stored in bindings. Files/modules are imported as records so are values as well.
+      </div></li>
+      <li><div class="feature-card">
+        <h3>Expression-based.</h3> Blocks, conditionals, match expressions, and function bodies all evaluate to a value. The last expression in a block is its result.
+      </div></li>
+      <li><div class="feature-card">
+        <h3>Garbage collected with opt-in lifetime control.</h3> The GC handles memory by default but parameter/binding modes allow the user to decide when to control lifetimes or stack/heap allocate.
+      </div></li>
+      <li><div class="feature-card">
+        <h3>Structural typing.</h3> Shared functionality is expressed through behaviours: any type matching the method signatures satisfies an behavour implicitly and can be passed to Behaviour typed parameters. Parameters typed with a behaviour cause that function to be compiled for the argument type passed in.</p>
+      </div></li>
+      <li><div class="feature-card">
+        <h3>Built-in testing.</h3> Test functions are first-class language constructs declared with <code>test name = ...</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.
+      </div></li>
+    </ul>
   </section>
 
   <!-- ── Development ── -->
