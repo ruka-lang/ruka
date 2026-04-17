@@ -299,10 +299,31 @@
       }
     }
 
+    function chkInterp(raw, scope, line) {
+      // Extract each ${...} and statically check it with the enclosing scope.
+      // Mirrors the runtime regex in interpStr so behaviour stays aligned.
+      // The inner tokenizer restarts its line counter at 1, so any line it
+      // emits is meaningless in the outer source — always report on the line
+      // of the enclosing string.
+      var re = /\$\{([^}]*)\}/g;
+      var m;
+      while ((m = re.exec(raw)) !== null) {
+        var inner = m[1];
+        try {
+          var innerAst = parse(tokenize(inner));
+          innerAst.body.forEach(function (s) { chkStmt(s, scope); });
+        } catch (e) {
+          e.line = line;
+          throw e;
+        }
+      }
+    }
+
     function chkExpr(node, scope) {
       if (!node) return;
       switch (node.k) {
-        case 'Lit': case 'Str': return;
+        case 'Lit': return;
+        case 'Str': chkInterp(node.raw, scope, node.line); return;
         case 'Ident':
           if (!scope.has(node.name)) {
             var e = new Error('Undefined: ' + node.name);
@@ -539,8 +560,15 @@
     // Evaluate all top-level statements
     for (var i = 0; i < ast.body.length; i++) evalStmt(ast.body[i], globalEnv);
 
-    // Auto-call main() if defined at top level
-    if (globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
+    // Auto-call main() only if it was declared as `share` — `local` / `let`
+    // bindings are private and should not run as an entry point.
+    var mainBind = null;
+    for (var i = 0; i < ast.body.length; i++) {
+      var s = ast.body[i];
+      if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
+    }
+    if (mainBind && mainBind.kw === 'share'
+        && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
       evalExpr({ k: 'Call', callee: { k: 'Ident', name: 'main' }, args: [] }, globalEnv);
     }
 

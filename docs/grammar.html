@@ -791,12 +791,18 @@ guard-pattern ::=  expr
 -- ruka.print(string)              print to stdout without a trailing newline
 -- ruka.println(string)            print to stdout with a trailing newline
 -- ruka.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
--- ruka.typeOf(expr)               return the compile-time type of an expression as a "type" value
+-- ruka.type_of(expr)              return the compile-time type of an expression as a "type" value
 -- ruka.abs(number)                absolute value
 -- ruka.sqrt(number)               square root
 -- ruka.len(collection)            length of an array, tuple, or string
--- ruka.assertEq(a, b)             assert equality; panics at runtime on failure
--- ruka.compileError(string-lit)   emit a compile-time error with the given message</code></pre>
+-- ruka.assert_eq(a, b)            assert equality; panics at runtime on failure
+-- ruka.compile_error(string-lit)  emit a compile-time error with the given message
+-- ruka.heap_alloc(size)           raw heap allocation; returns [u8], untracked by GC
+-- ruka.heap_free(bytes)           release memory obtained from heap_alloc
+-- ruka.fields_of(t)               compile-time array of a type's field descriptors
+-- ruka.methods_of(t)              compile-time array of a type's method descriptors
+-- ruka.statics_of(t)              compile-time array of a type's static members
+-- ruka.record_of(fields)          build a record type from compile-time field data</code></pre>
       </section>
 
     </section><!-- /syntactic -->
