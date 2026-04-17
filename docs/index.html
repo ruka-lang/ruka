@@ -10,11 +10,13 @@
 <body>
 
 <header class="hero">
-  <div class="header-title">
-    <img src="ruka-logo.svg" alt="Ruka logo">
-    <h1>Ruka<span class="blink-cursor"></span></h1>
+  <div class="hero-left">
+    <div class="header-title">
+      <img src="ruka-logo.svg" alt="Ruka logo">
+      <h1>Ruka<span class="blink-cursor"></span></h1>
+    </div>
+    <p class="tagline">A programming language (maybe someday).</p>
   </div>
-  <p class="tagline">A programming language (maybe someday).</p>
   <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
   <nav>
     <a href="reference.html">Language Reference</a>
@@ -24,18 +26,6 @@
 </header>
 
 <main class="index-main">
-
-  <!--<!-- ── Introduction ──
-  <section id="intro">
-    <h2>What is Ruka?</h2>
-    <p>
-      Ruka is a general-purpose compiled programming language designed around clarity and expressiveness.
-    </p>
-    <p>
-    </p>
-    <p>
-    </p>
-  </section>-->
 
   <!-- ── Playground ── -->
   <section id="playground">
@@ -79,26 +69,20 @@
     <h2>Design Principles</h2>
     <ul>
       <li>
-        <strong>Uniform declarations.</strong> Functions, types, records, and variants (tagged unions) are all values stored in bindings, files are imported as records as well. There is one syntax for naming things.
+        <strong>Value-based.</strong> Functions, types, records (structs), and variants (tagged unions) are all values stored in bindings, files are imported as records as well.
       </li>
       <li>
-        <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies
-        all evaluate to a value. The last expression in a block is its result.
+        <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies all evaluate to a value. The last expression in a block is its result.
       </li>
       <li>
         <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default but the user can decide when to control lifetimes or stack/heap allocate.
       </li>
       <li>
-        <strong>Compile-time evaluation and interpretation</strong> allowing generic programming via static dispatch.
+        <strong>Compile-time evaluation and interpretation</strong> allowing generic programming and generating compile time constants that require complex calculations or algorithms.
       </li>
       <li>
-        <strong>Behaviours not inheritance.</strong> Ruka has no inheritance. Shared behaviour is
-        expressed through behaviours, giving the function an opaque representation of the argument seeing only a subset of it's behaviour.
-      </li>
-      <li>
-        <strong>Methods live outside types.</strong> A type definition describes only memory layout, the instance fields.
-        Methods and static fields are declared separately in the same scope, keeping type
-        definitions minimal and readable.
+        <strong>Shared behaviours.</strong> Ruka has no inheritance. Shared behaviour is
+        expressed through behaviours, giving the function an opaque representation of the argument seeing only a subset of it's functionality.
       </li>
     </ul>
   </section>
@@ -216,8 +200,10 @@
 
 <footer>
   <p>Ruka Language &mdash; <a href="reference.html">Language Reference</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p class="attribution">Color scheme: <a href="https://rosepinetheme.com" target="_blank" rel="noopener">Rosé Pine Moon</a></p>
 </footer>
 
+<script src="examples/examples.js"></script>
 <script src="highlight.js"></script>
 <script src="playground.js"></script>
 

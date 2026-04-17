@@ -14,15 +14,17 @@
   ]);
 
   function tokenize(src) {
-    var toks = [], i = 0, len = src.length;
+    var toks = [], i = 0, len = src.length, line = 1;
     while (i < len) {
-      // whitespace
+      // newlines advance line counter
+      if (src[i] === '\n') { line++; i++; continue; }
       if (/\s/.test(src[i])) { i++; continue; }
       // line comment
       if (src[i] === '/' && src[i + 1] === '/') {
         while (i < len && src[i] !== '\n') i++;
         continue;
       }
+      var tok_line = line;
       // string literal — preserve raw content including ${...}
       if (src[i] === '"') {
         i++;
@@ -32,32 +34,32 @@
           else raw += src[i++];
         }
         i++; // closing "
-        toks.push({ t: 'STR', v: raw });
+        toks.push({ t: 'STR', v: raw, line: tok_line });
         continue;
       }
       // number
       if (/\d/.test(src[i])) {
         var n = '';
         while (i < len && /[\d.]/.test(src[i])) n += src[i++];
-        toks.push({ t: 'NUM', v: parseFloat(n) });
+        toks.push({ t: 'NUM', v: parseFloat(n), line: tok_line });
         continue;
       }
       // identifier / keyword
       if (/[a-zA-Z_]/.test(src[i])) {
         var w = '';
         while (i < len && /\w/.test(src[i])) w += src[i++];
-        toks.push({ t: KW.has(w) ? w : 'ID', v: w });
+        toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
         continue;
       }
       // two-char tokens
       var c2 = src.slice(i, i + 2);
       if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '=>') {
-        toks.push({ t: c2, v: c2 }); i += 2; continue;
+        toks.push({ t: c2, v: c2, line: tok_line }); i += 2; continue;
       }
       // single-char token
-      toks.push({ t: src[i], v: src[i] }); i++;
+      toks.push({ t: src[i], v: src[i], line: tok_line }); i++;
     }
-    toks.push({ t: 'EOF', v: '' });
+    toks.push({ t: 'EOF', v: '', line: line });
     return toks;
   }
 
@@ -70,7 +72,11 @@
     function peek()   { return toks[pos]; }
     function check(t) { return toks[pos].t === t; }
     function eat(t) {
-      if (!check(t)) throw new Error("Expected '" + t + "', got '" + peek().t + "' ('" + peek().v + "')");
+      if (!check(t)) {
+        var e = new Error("Expected '" + t + "', got '" + peek().t + "' ('" + peek().v + "')");
+        e.line = peek().line;
+        throw e;
+      }
       return toks[pos++];
     }
     function tryMatch() {
@@ -81,7 +87,6 @@
     }
 
     // Lookahead: is '(' at current pos the start of a function literal?
-    // True when the token after the matching ')' is '=>' or 'do'.
     function isFnLiteral() {
       var j = pos + 1, depth = 1;
       while (j < toks.length && depth > 0) {
@@ -99,7 +104,7 @@
     }
 
     function parseStmt() {
-      // binding: let/local/share name [receiver] [: Type] = expr
+      // binding: let/local/share name = expr
       var kw = tryMatch('let', 'local', 'share');
       if (kw) {
         var name = eat('ID').v;
@@ -115,15 +120,17 @@
         // skip optional : Type
         if (tryMatch(':')) while (!check('=') && !check('EOF')) pos++;
         eat('=');
-        return { k: 'Bind', kw: kw.v, name: name, value: parseExpr() };
+        return { k: 'Bind', kw: kw.v, name: name, value: parseExpr(), line: kw.line };
       }
-      // plain assignment: ident = expr  (distinguished from == by token type)
+      // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
+        var al = toks[pos].line;
         var aname = eat('ID').v;
         eat('=');
-        return { k: 'Assign', name: aname, value: parseExpr() };
+        return { k: 'Assign', name: aname, value: parseExpr(), line: al };
       }
-      return { k: 'ExprStmt', expr: parseExpr() };
+      var sl = peek().line;
+      return { k: 'ExprStmt', expr: parseExpr(), line: sl };
     }
 
     function parseExpr() {
@@ -133,6 +140,7 @@
     }
 
     function parseFn() {
+      var l = peek().line;
       eat('(');
       var params = [];
       while (!check(')') && !check('EOF')) {
@@ -145,31 +153,33 @@
       var body;
       if (tryMatch('=>')) body = parseExpr();
       else { eat('do'); body = parseBlockExpr(); eat('end'); }
-      return { k: 'Fn', params: params, body: body };
+      return { k: 'Fn', params: params, body: body, line: l };
     }
 
     function parseWhile() {
+      var l = peek().line;
       eat('while');
       var cond = parseExpr();
       eat('do');
       var body = parseBlockBody();
       eat('end');
-      return { k: 'While', cond: cond, body: body };
+      return { k: 'While', cond: cond, body: body, line: l };
     }
 
     function parseIf() {
-      if (!tryMatch('if')) return parseOr();
+      var ifTok = tryMatch('if');
+      if (!ifTok) return parseOr();
       var cond = parseOr(); // don't recurse into if inside cond
       var then;
       if (tryMatch('=>')) then = parseExpr();
       else { eat('do'); then = parseBlockExpr(); eat('end'); }
       var else_ = null;
       if (tryMatch('else')) {
-        if (check('if'))        else_ = parseIf();      // else-if chain
-        else if (tryMatch('=>')) else_ = parseExpr();
+        if (check('if'))         else_ = parseIf();      // else-if chain
+        else if (tryMatch('=>'))  else_ = parseExpr();
         else { eat('do'); else_ = parseBlockExpr(); eat('end'); }
       }
-      return { k: 'If', cond: cond, then: then, else_: else_ };
+      return { k: 'If', cond: cond, then: then, else_: else_, line: ifTok.line };
     }
 
     // Returns a stmt array (stops at 'end', 'else', or EOF)
@@ -225,31 +235,143 @@
       var expr = parsePrimary();
       while (true) {
         if (check('(')) {
+          var cl = peek().line;
           eat('(');
           var args = [];
           while (!check(')') && !check('EOF')) { args.push(parseExpr()); tryMatch(','); }
           eat(')');
-          expr = { k: 'Call', callee: expr, args: args };
+          expr = { k: 'Call', callee: expr, args: args, line: cl };
         } else if (check('.')) {
+          var ml = peek().line;
           eat('.');
-          expr = { k: 'Member', obj: expr, prop: eat('ID').v };
+          expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
         } else break;
       }
       return expr;
     }
     function parsePrimary() {
       var tok = peek();
-      if (tok.t === 'NUM')   { pos++; return { k: 'Lit', v: tok.v }; }
-      if (tok.t === 'STR')   { pos++; return { k: 'Str', raw: tok.v }; }
-      if (tok.t === 'true')  { pos++; return { k: 'Lit', v: true }; }
-      if (tok.t === 'false') { pos++; return { k: 'Lit', v: false }; }
-      if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v }; }
+      if (tok.t === 'NUM')   { pos++; return { k: 'Lit',   v: tok.v,    line: tok.line }; }
+      if (tok.t === 'STR')   { pos++; return { k: 'Str',   raw: tok.v,  line: tok.line }; }
+      if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
+      if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
+      if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
       if (tok.t === '(')     { eat('('); var e = parseExpr(); eat(')'); return e; }
       if (tok.t === 'do')    { eat('do'); var b = parseBlockExpr(); eat('end'); return b; }
-      throw new Error("Unexpected token '" + tok.t + "' ('" + tok.v + "')");
+      var ue = new Error("Unexpected token '" + tok.t + "' ('" + tok.v + "')");
+      ue.line = tok.line;
+      throw ue;
     }
 
     return parseProgram();
+  }
+
+  // ──────────────────────────────────────────────
+  // Static scope checker  (undeclared identifiers)
+  // ──────────────────────────────────────────────
+  // Returns an Error with .line set on the first undeclared identifier,
+  // or null if the program is clean.
+  function checkScope(ast) {
+    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
+
+    // Top-level: hoist all binding names so mutually-recursive functions work.
+    var topNames = new Set(BUILTINS);
+    ast.body.forEach(function (s) { if (s.k === 'Bind') topNames.add(s.name); });
+
+    try {
+      ast.body.forEach(function (s) { chkStmt(s, topNames); });
+    } catch (e) { return e; }
+    return null;
+
+    function chkStmt(node, scope) {
+      if (node.k === 'Bind') {
+        chkExpr(node.value, scope);
+        scope.add(node.name); // available after this point in sequential blocks
+      } else if (node.k === 'Assign') {
+        if (!scope.has(node.name)) {
+          var e = new Error('Undefined: ' + node.name);
+          e.line = node.line;
+          throw e;
+        }
+        chkExpr(node.value, scope);
+      } else if (node.k === 'ExprStmt') {
+        chkExpr(node.expr, scope);
+      }
+    }
+
+    function chkInterp(raw, scope, line) {
+      // Extract each ${...} and statically check it with the enclosing scope.
+      // Mirrors the runtime regex in interpStr so behaviour stays aligned.
+      // The inner tokenizer restarts its line counter at 1, so any line it
+      // emits is meaningless in the outer source — always report on the line
+      // of the enclosing string.
+      var re = /\$\{([^}]*)\}/g;
+      var m;
+      while ((m = re.exec(raw)) !== null) {
+        var inner = m[1];
+        try {
+          var innerAst = parse(tokenize(inner));
+          innerAst.body.forEach(function (s) { chkStmt(s, scope); });
+        } catch (e) {
+          e.line = line;
+          throw e;
+        }
+      }
+    }
+
+    function chkExpr(node, scope) {
+      if (!node) return;
+      switch (node.k) {
+        case 'Lit': return;
+        case 'Str': chkInterp(node.raw, scope, node.line); return;
+        case 'Ident':
+          if (!scope.has(node.name)) {
+            var e = new Error('Undefined: ' + node.name);
+            e.line = node.line;
+            throw e;
+          }
+          return;
+        case 'Fn': {
+          var fnScope = new Set(scope);
+          // The fn's own binding name is already in scope (hoisted at top level,
+          // or added by chkStmt before we recurse into value).
+          node.params.forEach(function (p) { fnScope.add(p); });
+          chkExpr(node.body, fnScope);
+          return;
+        }
+        case 'Block': {
+          var bScope = new Set(scope);
+          node.body.forEach(function (s) { chkStmt(s, bScope); });
+          return;
+        }
+        case 'While': {
+          chkExpr(node.cond, scope);
+          var wScope = new Set(scope);
+          node.body.forEach(function (s) { chkStmt(s, wScope); });
+          return;
+        }
+        case 'If':
+          chkExpr(node.cond, scope);
+          chkExpr(node.then, scope);
+          if (node.else_) chkExpr(node.else_, scope);
+          return;
+        case 'Call':
+          chkExpr(node.callee, scope);
+          node.args.forEach(function (a) { chkExpr(a, scope); });
+          return;
+        case 'Member':
+          chkExpr(node.obj, scope);
+          // Don't check the property name — it's resolved on the value at runtime
+          return;
+        case 'BinOp':
+          chkExpr(node.left, scope);
+          chkExpr(node.right, scope);
+          return;
+        case 'Unary':
+          chkExpr(node.expr, scope);
+          return;
+      }
+    }
   }
 
   // ──────────────────────────────────────────────
@@ -302,6 +424,12 @@
                 .replace(/\\"/g,  '"');
     }
 
+    // Attach line to an error only if not already annotated (deepest site wins)
+    function annotate(e, line) {
+      if (e.line === undefined && line !== undefined) e.line = line;
+      return e;
+    }
+
     var globalEnv = mkEnv(null);
     envSet(globalEnv, 'ruka', {
       _obj: true,
@@ -314,18 +442,20 @@
     });
 
     function evalStmt(node, env) {
-      if (node.k === 'Bind') {
-        var val = evalExpr(node.value, env);
-        envSet(env, node.name, val);
-        return val;
-      }
-      if (node.k === 'Assign') {
-        var val = evalExpr(node.value, env);
-        envUpdate(env, node.name, val);
-        return val;
-      }
-      if (node.k === 'ExprStmt') return evalExpr(node.expr, env);
-      throw new Error('Unknown statement kind: ' + node.k);
+      try {
+        if (node.k === 'Bind') {
+          var val = evalExpr(node.value, env);
+          envSet(env, node.name, val);
+          return val;
+        }
+        if (node.k === 'Assign') {
+          var val = evalExpr(node.value, env);
+          envUpdate(env, node.name, val);
+          return val;
+        }
+        if (node.k === 'ExprStmt') return evalExpr(node.expr, env);
+        throw new Error('Unknown statement kind: ' + node.k);
+      } catch(e) { throw annotate(e, node.line); }
     }
 
     function evalExpr(node, env) {
@@ -333,7 +463,11 @@
 
         case 'Lit':   return node.v;
         case 'Str':   return interpStr(unesc(node.raw), env);
-        case 'Ident': return envGet(env, node.name);
+
+        case 'Ident': {
+          try { return envGet(env, node.name); }
+          catch(e) { throw annotate(e, node.line); }
+        }
 
         case 'Block': {
           var lenv = mkEnv(env), val = null;
@@ -346,7 +480,11 @@
           // Condition is evaluated against the outer env so loop-counter mutations
           // (via envUpdate) are visible to it on the next iteration.
           while (evalExpr(node.cond, env)) {
-            if (++iters > 10000) throw new Error('Exceeded 10,000 iterations');
+            if (++iters > 10000) {
+              var te = new Error('Exceeded 10,000 iterations');
+              te.line = node.line;
+              throw te;
+            }
             var iterEnv = mkEnv(env);
             for (var i = 0; i < node.body.length; i++) val = evalStmt(node.body[i], iterEnv);
           }
@@ -365,20 +503,24 @@
         }
 
         case 'Call': {
-          var callee = evalExpr(node.callee, env);
-          var args   = node.args.map(function (a) { return evalExpr(a, env); });
-          if (!callee || !callee._fn) throw new Error('Not a function: ' + display(callee));
-          if (callee.call) return callee.call(args); // built-in
-          var fnEnv = mkEnv(callee.env);
-          for (var i = 0; i < callee.params.length; i++)
-            envSet(fnEnv, callee.params[i], i < args.length ? args[i] : null);
-          return evalExpr(callee.body, fnEnv);
+          try {
+            var callee = evalExpr(node.callee, env);
+            var args   = node.args.map(function (a) { return evalExpr(a, env); });
+            if (!callee || !callee._fn) throw new Error('Not a function: ' + display(callee));
+            if (callee.call) return callee.call(args); // built-in
+            var fnEnv = mkEnv(callee.env);
+            for (var i = 0; i < callee.params.length; i++)
+              envSet(fnEnv, callee.params[i], i < args.length ? args[i] : null);
+            return evalExpr(callee.body, fnEnv);
+          } catch(e) { throw annotate(e, node.line); }
         }
 
         case 'Member': {
-          var obj = evalExpr(node.obj, env);
-          if (obj && typeof obj === 'object' && node.prop in obj) return obj[node.prop];
-          throw new Error("No field '" + node.prop + "' on " + display(obj));
+          try {
+            var obj = evalExpr(node.obj, env);
+            if (obj && typeof obj === 'object' && node.prop in obj) return obj[node.prop];
+            throw new Error("No field '" + node.prop + "' on " + display(obj));
+          } catch(e) { throw annotate(e, node.line); }
         }
 
         case 'BinOp': {
@@ -418,8 +560,15 @@
     // Evaluate all top-level statements
     for (var i = 0; i < ast.body.length; i++) evalStmt(ast.body[i], globalEnv);
 
-    // Auto-call main() if defined at top level
-    if (globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
+    // Auto-call main() only if it was declared as `share` — `local` / `let`
+    // bindings are private and should not run as an entry point.
+    var mainBind = null;
+    for (var i = 0; i < ast.body.length; i++) {
+      var s = ast.body[i];
+      if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
+    }
+    if (mainBind && mainBind.kw === 'share'
+        && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
       evalExpr({ k: 'Call', callee: { k: 'Ident', name: 'main' }, args: [] }, globalEnv);
     }
 
@@ -427,27 +576,83 @@
   }
 
   // ──────────────────────────────────────────────
-  // Run button
+  // Error display helpers
+  // ──────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Re-render the code view with the error line highlighted and an inline message.
+  // Clears automatically the next time the user edits (highlight.js input handler runs).
+  function setEditorError(codeEl, source, errLine, errMsg) {
+    if (!codeEl) return;
+    var hl = window.highlightRuka ? window.highlightRuka(source) : escHtml(source);
+    if (errLine) {
+      var lines = hl.split('\n');
+      var idx = errLine - 1;
+      if (idx >= 0 && idx < lines.length) {
+        lines[idx] = '<span class="err-line">' + lines[idx] + '</span>'
+          + '<span class="err-msg"> \u2190 ' + escHtml(errMsg) + '</span>';
+      }
+      hl = lines.join('\n');
+    }
+    codeEl.innerHTML = hl;
+  }
+
+  // ──────────────────────────────────────────────
+  // Check-as-you-type + Run button
   // ──────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function () {
     var runBtn   = document.getElementById('playground-run');
     var textarea = document.getElementById('playground-textarea');
     var output   = document.getElementById('playground-output');
     var panel    = document.getElementById('playground-output-panel');
+    var codeEl   = document.getElementById('playground-code');
 
     if (!runBtn || !textarea || !output) return;
 
+    // Debounce handle for the parse-error check
+    var checkTimer = null;
+
+    // Called by highlight.js on every input/Tab event.
+    // Re-highlights immediately (fast), then after a short pause checks for
+    // parse errors so mid-expression typing doesn't flash spurious errors.
+    window.rukaCheckAndHighlight = function (source) {
+      // Immediate clean highlight — always snappy
+      if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(source);
+      // Debounced parse check
+      if (checkTimer) clearTimeout(checkTimer);
+      checkTimer = setTimeout(function () {
+        checkTimer = null;
+        var err = null;
+        try {
+          var ast = parse(tokenize(source));
+          err = checkScope(ast); // null if clean
+        } catch (e) {
+          err = e;
+        }
+        if (err && textarea && textarea.value === source) {
+          setEditorError(codeEl, source, err.line, err.message);
+        }
+      }, 400);
+    };
+
     runBtn.addEventListener('click', function () {
+      // Cancel any pending check — the run result is authoritative
+      if (checkTimer) { clearTimeout(checkTimer); checkTimer = null; }
       runBtn.disabled = true;
       runBtn.textContent = 'RUNNING';
       // Yield to the browser so the button state renders before we block
       setTimeout(function () {
         try {
           var lines = evaluate(parse(tokenize(textarea.value)));
+          // Clear any previous error highlight on a successful run
+          if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(textarea.value);
           output.textContent = lines.length ? lines.join('\n') : '(no output)';
           if (panel) panel.setAttribute('data-state', 'ok');
         } catch (e) {
-          output.textContent = 'Error: ' + e.message;
+          setEditorError(codeEl, textarea.value, e.line, e.message);
+          output.textContent = 'Error' + (e.line ? ' (line ' + e.line + ')' : '') + ': ' + e.message;
           if (panel) panel.setAttribute('data-state', 'err');
         }
         runBtn.disabled = false;

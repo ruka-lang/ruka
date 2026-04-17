@@ -12,7 +12,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ────────────────────────────────────────────────
-   Variables — Rosé Pine Moon (kept for reference)
+   Variables — Rosé Pine Moon palette
+   https://rosepinetheme.com
    ──────────────────────────────────────────────── */
 
 :root {
@@ -244,6 +245,7 @@ footer {
 }
 footer a { color: var(--subtle); }
 footer a:hover { color: var(--gold); }
+footer .attribution { margin-top: .4rem; font-size: .72rem; color: var(--muted); opacity: .7; }
 
 /* ────────────────────────────────────────────────
    Blinking cursor (index.html hero)
@@ -268,10 +270,14 @@ footer a:hover { color: var(--gold); }
 header.hero {
   background: var(--surface);
   border-bottom: 2px solid var(--overlay);
-  padding: 4rem 0 3rem;
-  text-align: center;
+  padding: 1.25rem 3rem;
+  text-align: left;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
 }
 header.hero::after {
   content: '';
@@ -285,17 +291,23 @@ header.hero::after {
   pointer-events: none;
 }
 
-header.hero .header-title {
+.hero-left {
   position: relative;
   z-index: 1;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-width: 0;
 }
-header.hero .header-title img { height: 4rem; width: 4rem; }
+header.hero .header-title {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+header.hero .header-title img { height: 2.6rem; width: 2.6rem; }
 header.hero h1 {
   font-family: 'Poller One';
-  font-size: 4rem;
+  font-size: 2.6rem;
   color: var(--gold);
   letter-spacing: .06em;
   line-height: 1;
@@ -305,27 +317,31 @@ header.hero p.tagline {
   z-index: 1;
   color: var(--subtle);
   font-family: 'Aptos Display', monospace;
-  font-size: 1rem;
+  font-size: .9rem;
   letter-spacing: .04em;
-  margin-top: .85rem;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 header.hero nav {
   position: relative;
   z-index: 1;
-  margin-top: 2rem;
+  margin-top: 0;
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  gap: .75rem;
+  justify-content: flex-end;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 header.hero nav a {
   font-family: 'Poller One', cursive;
-  font-size: 1.05rem;
+  font-size: .95rem;
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--foam);
   border: 2px solid var(--overlay);
   border-radius: 6px;
-  padding: .35rem 1.25rem;
+  padding: .3rem 1rem;
   transition: all .15s;
 }
 header.hero nav a:hover {
@@ -335,7 +351,7 @@ header.hero nav a:hover {
 }
 
 /* ── Index main & sections ── */
-main.index-main { max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+main.index-main { max-width: 860px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
 main.index-main section { margin-bottom: 3.5rem; }
 
 /* ── Feature grid ── */
@@ -478,7 +494,7 @@ main.index-main section { margin-bottom: 3.5rem; }
 .sidebar li a:hover::before { color: var(--gold); }
 
 /* ── Main content (sidebar pages) ── */
-main.docs-main { flex: 1; max-width: 1200px; padding: 2.5rem 3rem; min-width: 0; }
+main.docs-main { flex: 1; max-width: 860px; padding: 2.5rem 3rem; min-width: 0; }
 main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
 
 /* ════════════════════════════════════════════════
@@ -597,32 +613,48 @@ main.docs-main section { margin-bottom: 4rem; padding-top: .5rem; }
     display: none;
   }
 
-  /* ── Hero header — collapse nav behind toggle button ── */
+  /* ── Hero header — compact titlebar with collapsible nav ── */
   header.hero {
-    padding: 2rem 1rem 1.75rem;
+    padding: .85rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .hero-left {
+    flex: 1;
+    min-width: 0;
   }
   header.hero h1 {
-    font-size: 2.4rem;
+    font-size: 1.75rem;
   }
   header.hero .header-title img {
-    height: 2.4rem;
-    width: 2.4rem;
+    height: 1.75rem;
+    width: 1.75rem;
   }
-  .nav-toggle { display: block; margin-top: 1.25rem; }
+  header.hero p.tagline {
+    font-size: .78rem;
+  }
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    margin-top: 0;
+    align-self: center;
+    margin-left: .5rem;
+  }
   header.hero nav {
     display: none;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    gap: .6rem;
+    gap: .5rem;
     margin-top: .6rem;
+    width: 100%;
   }
   header.hero nav.open {
     display: flex;
   }
   header.hero nav a {
-    font-size: .85rem;
-    padding: .25rem .8rem;
+    font-size: .82rem;
+    padding: .22rem .75rem;
   }
 }
 
@@ -697,6 +729,7 @@ select#example-select {
   font-family: 'Poller One', cursive;
   font-size: .75rem;
   letter-spacing: .04em;
+  line-height: 1;
   padding: .22rem 1.8rem .22rem .6rem;
   cursor: pointer;
   outline: none;
@@ -832,3 +865,15 @@ select#example-select:focus {
 .op   { color: var(--subtle); }
 .strc { color: var(--subtle); }
 .surr { color: var(--kw); }
+
+/* ── Playground error highlighting ── */
+.err-line {
+  background: rgba(235, 111, 146, 0.14);
+  border-radius: 2px;
+}
+.err-msg {
+  color: var(--love);
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+}

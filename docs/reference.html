@@ -46,10 +46,12 @@
       <li><a href="#defer">Defer</a></li>
       <li><a href="#functions">Functions</a></li>
       <li><a href="#static-functions">Static Functions</a></li>
+      <li><a href="#constructors">Constructors &amp; Destructors</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
       <li><a href="#named-params">Named Parameters</a></li>
       <li><a href="#behaviours">Behaviours</a></li>
+      <li><a href="#builtin-behaviours">Builtin Behaviours</a></li>
       <li><a href="#pipelines">Pipelines</a></li>
       <li><a href="#modules">Modules</a></li>
       <li><a href="#imports">Imports</a></li>
@@ -1103,6 +1105,73 @@ end</code></pre>
       </div>
     </section>
 
+    <!-- Constructors & Destructors -->
+    <section id="constructors">
+      <h2>Constructors &amp; Destructors</h2>
+      <p>
+        Ruka has no special constructor or destructor syntax. Instead, idiomatic constructors
+        are plain static functions named <code>new</code> attached to the type, and idiomatic
+        destructors are methods named <code>deinit</code> that take ownership of the receiver
+        using the <code>&amp;</code> (move) mode prefix.
+      </p>
+
+      <h3>Idiomatic Constructor</h3>
+      <p>
+        A constructor is a static function named <code>new</code>. It allocates and initialises
+        a value of the associated type, then returns it. Any additional setup logic lives here.
+      </p>
+<pre><code class="ruka">local Buffer = record {
+    data: [u8],
+    len:  usize,
+}
+
+// Public constructor — called as Buffer.new(capacity)
+share new (Buffer) = (cap: usize) do
+    Buffer.{
+        data = [u8, cap].{},
+        len  = 0,
+    }
+end
+
+share main = () do
+    let buf = Buffer.new(64)
+end</code></pre>
+
+      <h3>Idiomatic Teardown</h3>
+      <p>
+        A teardown method is named <code>deinit</code> and takes the receiver by move
+        (<code>&amp;self</code>). The <code>&amp;</code> mode transfers ownership into the
+        function — the caller cannot use the value after calling <code>deinit</code>, and the
+        compiler will emit an error on any subsequent use of the moved binding.
+      </p>
+      <p>
+        <code>deinit</code> is the right place for any finalisation work: flushing a buffer,
+        closing a file handle, returning memory to an allocator, or signalling that an object
+        has completed its work. It is not limited to deallocation.
+      </p>
+<pre><code class="ruka">// deinit — ownership of self is moved in; self cannot be used after this call
+share deinit (&self) = () do
+    // flush pending writes, close handle, signal completion, etc.
+    ruka.println("Buffer flushed and freed")
+end
+
+share main = () do
+    let buf = Buffer.new(64)
+    // ... use buf ...
+    buf.deinit()
+    // buf.len   // compile error: buf was moved by deinit
+end</code></pre>
+
+      <div class="note">
+        <strong>Move ownership and the GC:</strong> Because <code>deinit</code> takes
+        <code>&amp;self</code>, ownership is transferred into the call. The GC treats the
+        binding as dead the moment <code>deinit</code> returns, allowing it to reclaim the
+        value immediately rather than waiting for the enclosing scope to end. This makes
+        <code>deinit</code> useful even for fully GC-managed types — any time you want
+        deterministic cleanup or want to shorten a value's lifetime explicitly.
+      </div>
+    </section>
+
     <!-- Methods -->
     <section id="methods">
       <h2>Methods</h2>
@@ -1445,6 +1514,100 @@ end</code></pre>
       </div>
     </section>
 
+    <!-- Builtin Behaviours -->
+    <section id="builtin-behaviours">
+      <h2>Builtin Behaviours</h2>
+      <p>
+        The <code>ruka</code> module exposes a small set of standard behaviours that the
+        compiler and runtime recognise specially. Satisfying them unlocks language-level
+        features: string interpolation, <code>for</code> loops, and custom allocator support.
+        Like all behaviours, they are satisfied implicitly — no declaration is needed.
+      </p>
+
+      <h3>ruka.printable</h3>
+      <p>
+        Any type that satisfies <code>ruka.printable</code> can be interpolated inside a
+        <code>${…}</code> string expression and passed to <code>ruka.print</code> /
+        <code>ruka.println</code>. The compiler calls <code>format</code> automatically
+        in those positions.
+      </p>
+<pre><code class="ruka">share printable = behaviour {
+    format(self): () -> string
+}
+
+// Example — make a Point printable
+local Point = record { x: f64, y: f64 }
+
+share format (self) = () => "(${self.x}, ${self.y})"
+
+share main = () do
+    let p = Point.{ x = 1.0, y = 2.0 }
+    ruka.println("point: ${p}")   // point: (1.0, 2.0)
+end</code></pre>
+
+      <h3>ruka.iterable</h3>
+      <p>
+        Any type that satisfies <code>ruka.iterable</code> can be used in a <code>for</code>
+        loop. The compiler calls <code>next</code> on each iteration; when it returns
+        <code>.none</code> the loop ends.
+      </p>
+<pre><code class="ruka">share iterable = behaviour {
+    next(*self): () -> ?(T)
+}
+
+// Example — a simple counter iterator
+local Counter = record { current: usize, limit: usize }
+
+share next (*self) = () do
+    if self.current >= self.limit => .none
+    else do
+        let val = self.current
+        self.current = self.current + 1
+        .some(val)
+    end
+end
+
+share main = () do
+    let c = Counter.{ current = 0, limit = 3 }
+    for n in c do
+        ruka.println("${n}")   // 0, 1, 2
+    end
+end</code></pre>
+
+      <h3>ruka.allocator</h3>
+      <p>
+        Any type that satisfies <code>ruka.allocator</code> can be passed to functions or
+        data structures that need explicit heap control. This allows callers to supply arena
+        allocators, pool allocators, or any other strategy without coupling the implementation
+        to a specific allocator.
+      </p>
+<pre><code class="ruka">share allocator = behaviour {
+    alloc  (*self): (@size: usize) -> [u8]
+    free   (*self): (&bytes: [u8]) -> ()
+}
+
+// A function that accepts any allocator
+share make_buffer = (alloc: ruka.allocator, cap: usize) do
+    Buffer.{ data = alloc.alloc(cap), len = 0 }
+end</code></pre>
+
+      <div class="note">
+        <strong>ruka.allocator and the GC:</strong> The default allocator used by the runtime
+        is the GC. Passing a custom <code>ruka.allocator</code> opts a specific allocation out
+        of GC management — the returned buffer is an ordinary reference, but the GC does not
+        track it, so the caller is responsible for calling <code>free</code> (typically via
+        <code>deinit</code>).
+      </div>
+      <div class="note">
+        <strong>GC exclusion in manual-memory programs:</strong> If a program never uses
+        GC-allocated values — every heap allocation goes through <code>ruka.heap_alloc</code> or
+        a custom <code>ruka.allocator</code> — the compiler statically proves the GC has no
+        roots to scan and excludes the GC runtime from the final binary entirely. This makes
+        Ruka practical for embedded targets and low-latency code where a GC pause is
+        unacceptable.
+      </div>
+    </section>
+
     <!-- Pipelines -->
     <section id="pipelines">
       <h2>Pipelines</h2>
@@ -1572,13 +1735,13 @@ end</code></pre>
 <pre><code class="ruka">local add = (a: i32, b: i32) => a + b
 
 test addition = () do
-    ruka.assertEq(add(1, 2), 3)
-    ruka.assertEq(add(-1, 1), 0)
-    ruka.assertEq(add(0, 0), 0)
+    ruka.assert_eq(add(1, 2), 3)
+    ruka.assert_eq(add(-1, 1), 0)
+    ruka.assert_eq(add(0, 0), 0)
 end
 
 test addition_is_commutative = () do
-    ruka.assertEq(add(3, 4), add(4, 3))
+    ruka.assert_eq(add(3, 4), add(4, 3))
 end</code></pre>
 
       <p>
@@ -1591,15 +1754,15 @@ end</code></pre>
 local clamp_internal = (x: i32, lo: i32, hi: i32) => if x < lo do lo else if x > hi do hi else x end
 
 test clamp_lower_bound = () do
-    ruka.assertEq(clamp_internal(3, 5, 10), 5)
+    ruka.assert_eq(clamp_internal(3, 5, 10), 5)
 end
 
 test clamp_upper_bound = () do
-    ruka.assertEq(clamp_internal(15, 5, 10), 10)
+    ruka.assert_eq(clamp_internal(15, 5, 10), 10)
 end
 
 test clamp_in_range = () do
-    ruka.assertEq(clamp_internal(7, 5, 10), 7)
+    ruka.assert_eq(clamp_internal(7, 5, 10), 7)
 end</code></pre>
 
       <div class="note">
@@ -1607,7 +1770,7 @@ end</code></pre>
         <code>test</code> bindings are included in two build modes:
         <em>debug</em> (full code coverage analysis, all assertions active) and
         <em>test</em> (runs the test suite and reports pass/fail). They are stripped
-        in the <em>release</em> build. This means <code>ruka.assertEq</code> and other
+        in the <em>release</em> build. This means <code>ruka.assert_eq</code> and other
         assertion calls inside a <code>test</code> binding never appear in a production
         binary.
       </div>
@@ -1626,18 +1789,24 @@ end</code></pre>
           <tr><td><code>ruka.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
           <tr><td><code>ruka.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
           <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
-          <tr><td><code>ruka.typeOf(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>ruka.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
           <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
           <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
-          <tr><td><code>ruka.assertEq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+          <tr><td><code>ruka.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
           <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>usize</code>.</td></tr>
           <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>usize</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>ruka.heap_alloc(@size: usize) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
+          <tr><td><code>ruka.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>ruka.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
+          <tr><td><code>ruka.fields_of(@t: type) -> [ruka.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
+          <tr><td><code>ruka.methods_of(@t: type) -> [ruka.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
+          <tr><td><code>ruka.statics_of(@t: type) -> [ruka.static_info]</code></td><td>Return a compile-time array describing every static member (constructor, associated constant, etc.) attached to the type.</td></tr>
+          <tr><td><code>ruka.record_of(@fields: [ruka.field_info]) -> type</code></td><td>Construct a new <code>record</code> type from a compile-time array of field descriptors. The inverse of <code>ruka.fields_of</code>.</td></tr>
           <tr><td><code>ruka.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
         </tbody>
       </table>
 <pre><code class="ruka">ruka.println("Hello!")                       // Hello!
-ruka.println("${ruka.typeOf(42)}")               // isize
-ruka.assertEq(ruka.abs(-5), 5)
+ruka.println("${ruka.type_of(42)}")               // isize
+ruka.assert_eq(ruka.abs(-5), 5)
 </code></pre>
     </section>
 
@@ -1750,19 +1919,19 @@ local @KEY_HASH = compute_hash("app-secret")</code></pre>
 
       <h3>Compile-Time Reflection</h3>
       <p>
-        <code>ruka.typeOf</code> returns the type of any expression as a compile-time value,
+        <code>ruka.type_of</code> returns the type of any expression as a compile-time value,
         which can be passed to <code>@</code>-prefixed parameters or compared at compile time.
       </p>
 <pre><code class="ruka">share assertSameType = (a: type, b: type) do
     if not (a == b) do
-        ruka.compileError("type mismatch: expected ${a}, got ${b}")
+        ruka.compile_error("type mismatch: expected ${a}, got ${b}")
     end
 end
 
 share main = () do
     let x: i32 = 10
     let y: i32 = 20
-    assertSameType(ruka.typeOf(x), ruka.typeOf(y))  // ok — both i32
+    assertSameType(ruka.type_of(x), ruka.type_of(y))  // ok — both i32
 end</code></pre>
 
       <div class="note">
@@ -1771,6 +1940,46 @@ end</code></pre>
         parameter is a compile error. Compile-time known values include: literals,
         <code>share</code> and <code>local</code> constants, and results of other
         compile-time evaluations.
+      </div>
+
+      <h3>Compile-Time Type Introspection</h3>
+      <p>
+        At compile time, a type's structure can be inspected — its fields, methods, and
+        static members are all readable as ordinary compile-time data. Combined with
+        <code>ruka.record_of</code>, this enables derive-macro-style generation: a
+        compile-time function analyses an existing type and produces a new type
+        mechanically derived from it.
+      </p>
+<pre><code class="ruka">// Given any record type, produce a version where every field is option(T).
+share Partial = (t: type) do
+    let fs = ruka.fields_of(t)
+    let opt_fs = fs |> map((f) => .{ name = f.name, type = option(f.type) })
+    ruka.record_of(opt_fs)
+end
+
+local User        = record { id: i32, name: string, email: string }
+local PartialUser = Partial(User)
+// PartialUser is equivalent to:
+//   record { id: option(i32), name: option(string), email: option(string) }</code></pre>
+
+      <p>
+        Because the result of any <code>@</code>-parameterised function is a compile-time value,
+        the synthesised type can be bound with <code>share</code> or <code>local</code> and used
+        exactly like a type written by hand — instantiated with <code>.{…}</code>, checked by
+        the type system, and exported from a module.
+      </p>
+      <p>
+        <code>ruka.methods_of</code> and <code>ruka.statics_of</code> complete the introspection
+        surface. They enable generation patterns that also carry behaviour — for example, a
+        function that inspects a record's fields and emits a derived record together with a
+        matching set of accessor or serialisation methods.
+      </p>
+      <div class="note">
+        <strong>Introspection is compile-time only.</strong> <code>ruka.fields_of</code>,
+        <code>ruka.methods_of</code>, <code>ruka.statics_of</code>, and
+        <code>ruka.record_of</code> all take <code>@</code>-prefixed type arguments and run
+        during compilation. There is no runtime reflection — everything is erased before
+        code generation, so introspection has zero runtime cost.
       </div>
     </section>
 
@@ -1796,6 +2005,7 @@ end</code></pre>
 
 <footer>
   <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p class="attribution">Color scheme: <a href="https://rosepinetheme.com" target="_blank" rel="noopener">Rosé Pine Moon</a></p>
 </footer>
 
 <script src="highlight.js"></script>

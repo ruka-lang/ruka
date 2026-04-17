@@ -68,7 +68,18 @@
 				continue;
 			}
 
-			// Named-parameter label  ~name
+			// Char literal  'x'  '\n'  '\\'
+		if (raw[i] === "'") {
+			let j = i + 1;
+			if (j < raw.length && raw[j] === '\\') j++; // escape prefix
+			j++; // the char itself
+			if (j < raw.length && raw[j] === "'") j++; // closing quote
+			out += span('str', raw.slice(i, j));
+			i = j;
+			continue;
+		}
+
+		// Named-parameter label  ~name
 			if (raw[i] === '~') {
 				let j = i + 1;
 				while (j < raw.length && /\w/.test(raw[j])) j++;
@@ -181,6 +192,9 @@
 		return out;
 	}
 
+	// Expose for playground.js error re-rendering
+	window.highlightRuka = highlight;
+
 	document.addEventListener('DOMContentLoaded', function () {
 		// ── Syntax highlighting ──
 		document.querySelectorAll('code.ruka').forEach(function (el) {
@@ -220,67 +234,8 @@
 		var exampleSelect      = document.getElementById('example-select');
 
 		if (exampleSelect && playgroundCode && playgroundTextarea) {
-			var EXAMPLES = {
-				'hello-world': {
-					desc: '',
-					code: [
-						'share main = () do',
-						'    let name = "world"',
-						'    ruka.println("Hello, ${name}!")',
-						'    ruka.println("1 + 2 = ${1 + 2}")',
-						'end'
-					].join('\n')
-				},
-				'calculator': {
-					desc: '',
-					code: [
-						'local add = (a, b) => a + b',
-						'local sub = (a, b) => a - b',
-						'local mul = (a, b) => a * b',
-						'local div = (a, b) => a / b',
-						'',
-						'share main = () do',
-						'    let x = 12',
-						'    let y = 4',
-						'    ruka.println("${x} + ${y} = ${add(x, y)}")',
-						'    ruka.println("${x} - ${y} = ${sub(x, y)}")',
-						'    ruka.println("${x} * ${y} = ${mul(x, y)}")',
-						'    ruka.println("${x} / ${y} = ${div(x, y)}")',
-						'end'
-					].join('\n')
-				},
-				'fibonacci': {
-					desc: '',
-					code: [
-						'local fib = (n) =>',
-						'    if n <= 1 => n',
-						'    else => fib(n - 1) + fib(n - 2)',
-						'',
-						'share main = () do',
-						'    let i = 0',
-						'    while i <= 10 do',
-						'        ruka.println("fib(${i}) = ${fib(i)}")',
-						'        i = i + 1',
-						'    end',
-						'end'
-					].join('\n')
-				},
-				'fizzbuzz': {
-					desc: '',
-					code: [
-						'share main = () do',
-						'    let i = 1',
-						'    while i <= 20 do',
-						'        if i % 15 == 0 => ruka.println("FizzBuzz")',
-						'        else if i % 3 == 0 => ruka.println("Fizz")',
-						'        else if i % 5 == 0 => ruka.println("Buzz")',
-						'        else => ruka.println("${i}")',
-						'        i = i + 1',
-						'    end',
-						'end'
-					].join('\n')
-				}
-			};
+			var EXAMPLES = {};
+			var EXAMPLE_KEYS = ['hello-world', 'calculator', 'fibonacci', 'fizzbuzz'];
 
 			function rehighlight(source) {
 				playgroundCode.innerHTML = highlight(source);
@@ -297,9 +252,10 @@
 				if (panel) panel.removeAttribute('data-state');
 			}
 
-			// Live re-highlight as the user types
+			// Live re-highlight as the user types.
+			// playground.js replaces this with rukaCheckAndHighlight once loaded.
 			playgroundTextarea.addEventListener('input', function () {
-				rehighlight(this.value);
+				(window.rukaCheckAndHighlight || rehighlight)(this.value);
 			});
 
 			// Insert four spaces on Tab instead of losing focus
@@ -310,13 +266,18 @@
 				var end   = this.selectionEnd;
 				this.value = this.value.slice(0, start) + '    ' + this.value.slice(end);
 				this.selectionStart = this.selectionEnd = start + 4;
-				rehighlight(this.value);
+				(window.rukaCheckAndHighlight || rehighlight)(this.value);
 			});
 
 			exampleSelect.addEventListener('change', function () {
 				setExample(this.value);
 			});
 
+			// Populate from examples/examples.js (window.RUKA_EXAMPLES)
+			var source = window.RUKA_EXAMPLES || {};
+			EXAMPLE_KEYS.forEach(function (key) {
+				EXAMPLES[key] = { desc: '', code: source[key] || '// Example not found: ' + key };
+			});
 			setExample(exampleSelect.value);
 		}
 
