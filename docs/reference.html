@@ -1524,14 +1524,14 @@ end</code></pre>
         Like all behaviours, they are satisfied implicitly — no declaration is needed.
       </p>
 
-      <h3>ruka.Printable</h3>
+      <h3>ruka.printable</h3>
       <p>
-        Any type that satisfies <code>ruka.Printable</code> can be interpolated inside a
+        Any type that satisfies <code>ruka.printable</code> can be interpolated inside a
         <code>${…}</code> string expression and passed to <code>ruka.print</code> /
         <code>ruka.println</code>. The compiler calls <code>format</code> automatically
         in those positions.
       </p>
-<pre><code class="ruka">share Printable = behaviour {
+<pre><code class="ruka">share printable = behaviour {
     format(self): () -> string
 }
 
@@ -1545,13 +1545,13 @@ share main = () do
     ruka.println("point: ${p}")   // point: (1.0, 2.0)
 end</code></pre>
 
-      <h3>ruka.Iterable</h3>
+      <h3>ruka.iterable</h3>
       <p>
-        Any type that satisfies <code>ruka.Iterable</code> can be used in a <code>for</code>
+        Any type that satisfies <code>ruka.iterable</code> can be used in a <code>for</code>
         loop. The compiler calls <code>next</code> on each iteration; when it returns
         <code>.none</code> the loop ends.
       </p>
-<pre><code class="ruka">share Iterable = behaviour {
+<pre><code class="ruka">share iterable = behaviour {
     next(*self): () -> ?(T)
 }
 
@@ -1574,26 +1574,26 @@ share main = () do
     end
 end</code></pre>
 
-      <h3>ruka.Allocator</h3>
+      <h3>ruka.allocator</h3>
       <p>
-        Any type that satisfies <code>ruka.Allocator</code> can be passed to functions or
+        Any type that satisfies <code>ruka.allocator</code> can be passed to functions or
         data structures that need explicit heap control. This allows callers to supply arena
         allocators, pool allocators, or any other strategy without coupling the implementation
         to a specific allocator.
       </p>
-<pre><code class="ruka">share Allocator = behaviour {
+<pre><code class="ruka">share allocator = behaviour {
     alloc  (*self): (@size: usize) -> $[u8]
     free   (*self): (&bytes: $[u8]) -> ()
 }
 
 // A function that accepts any allocator
-share make_buffer = (alloc: ruka.Allocator, cap: usize) do
+share make_buffer = (alloc: ruka.allocator, cap: usize) do
     Buffer.{ data = alloc.alloc(cap), len = 0 }
 end</code></pre>
 
       <div class="note">
-        <strong>ruka.Allocator and the GC:</strong> The default allocator used by the runtime
-        is the GC. Passing a custom <code>ruka.Allocator</code> opts a specific allocation out
+        <strong>ruka.allocator and the GC:</strong> The default allocator used by the runtime
+        is the GC. Passing a custom <code>ruka.allocator</code> opts a specific allocation out
         of GC management — the caller is responsible for calling <code>free</code> (typically
         via <code>deinit</code>).
       </div>

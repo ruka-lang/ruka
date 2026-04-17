@@ -1,6 +1,6 @@
 TODO (Docs and playground)
 - Char literal syntax highlighting
-- Attribute color scheme to rose-pine-moon
+- Will need builtin functions to support manual heap allocation to allow for creating custom allocators that will support ruka.allocator behaviour
 - Better error checking
 	- Using an identifier that hasn't been declared should be an editor error
 	- String interpolation values are not checked for errors
