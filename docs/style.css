@@ -12,7 +12,8 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ────────────────────────────────────────────────
-   Variables — Rosé Pine Moon (kept for reference)
+   Variables — Rosé Pine Moon palette
+   https://rosepinetheme.com
    ──────────────────────────────────────────────── */
 
 :root {
@@ -244,6 +245,7 @@ footer {
 }
 footer a { color: var(--subtle); }
 footer a:hover { color: var(--gold); }
+footer .attribution { margin-top: .4rem; font-size: .72rem; color: var(--muted); opacity: .7; }
 
 /* ────────────────────────────────────────────────
    Blinking cursor (index.html hero)

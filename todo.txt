@@ -1,15 +1,9 @@
 TODO (Docs and playground)
-- Add builtin behaviours to docs
-	- ruka.printable (for string interpolation)
-	- ruka.iteratable (for iterating w/ for loops)
-	- ruka.allocator (for accepting custom heap allocators)
-- Add to docs description of idomatic constructors and destructors
-	- `share new (T) = ...
-	- `share destroy (&self) =...` receiver ownership moved so compiler error if used after
 - Char literal syntax highlighting
 - Attribute color scheme to rose-pine-moon
 - Better error checking
 	- Using an identifier that hasn't been declared should be an editor error
+	- String interpolation values are not checked for errors
 - More playground features (in order of importance)
 	- If needs to support multiline blocks using do...else if condition do...else...end
 	- Builtin types, annotation and basic inference

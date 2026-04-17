@@ -46,10 +46,12 @@
       <li><a href="#defer">Defer</a></li>
       <li><a href="#functions">Functions</a></li>
       <li><a href="#static-functions">Static Functions</a></li>
+      <li><a href="#constructors">Constructors &amp; Destructors</a></li>
       <li><a href="#methods">Methods</a></li>
       <li><a href="#parameter-modes">Parameter Modes</a></li>
       <li><a href="#named-params">Named Parameters</a></li>
       <li><a href="#behaviours">Behaviours</a></li>
+      <li><a href="#builtin-behaviours">Builtin Behaviours</a></li>
       <li><a href="#pipelines">Pipelines</a></li>
       <li><a href="#modules">Modules</a></li>
       <li><a href="#imports">Imports</a></li>
@@ -1103,6 +1105,73 @@ end</code></pre>
       </div>
     </section>
 
+    <!-- Constructors & Destructors -->
+    <section id="constructors">
+      <h2>Constructors &amp; Destructors</h2>
+      <p>
+        Ruka has no special constructor or destructor syntax. Instead, idiomatic constructors
+        are plain static functions named <code>new</code> attached to the type, and idiomatic
+        destructors are methods named <code>deinit</code> that take ownership of the receiver
+        using the <code>&amp;</code> (move) mode prefix.
+      </p>
+
+      <h3>Idiomatic Constructor</h3>
+      <p>
+        A constructor is a static function named <code>new</code>. It allocates and initialises
+        a value of the associated type, then returns it. Any additional setup logic lives here.
+      </p>
+<pre><code class="ruka">local Buffer = record {
+    data: [u8],
+    len:  usize,
+}
+
+// Public constructor — called as Buffer.new(capacity)
+share new (Buffer) = (cap: usize) do
+    Buffer.{
+        data = [u8, cap].{},
+        len  = 0,
+    }
+end
+
+share main = () do
+    let buf = Buffer.new(64)
+end</code></pre>
+
+      <h3>Idiomatic Teardown</h3>
+      <p>
+        A teardown method is named <code>deinit</code> and takes the receiver by move
+        (<code>&amp;self</code>). The <code>&amp;</code> mode transfers ownership into the
+        function — the caller cannot use the value after calling <code>deinit</code>, and the
+        compiler will emit an error on any subsequent use of the moved binding.
+      </p>
+      <p>
+        <code>deinit</code> is the right place for any finalisation work: flushing a buffer,
+        closing a file handle, returning memory to an allocator, or signalling that an object
+        has completed its work. It is not limited to deallocation.
+      </p>
+<pre><code class="ruka">// deinit — ownership of self is moved in; self cannot be used after this call
+share deinit (&self) = () do
+    // flush pending writes, close handle, signal completion, etc.
+    ruka.println("Buffer flushed and freed")
+end
+
+share main = () do
+    let buf = Buffer.new(64)
+    // ... use buf ...
+    buf.deinit()
+    // buf.len   // compile error: buf was moved by deinit
+end</code></pre>
+
+      <div class="note">
+        <strong>Move ownership and the GC:</strong> Because <code>deinit</code> takes
+        <code>&amp;self</code>, ownership is transferred into the call. The GC treats the
+        binding as dead the moment <code>deinit</code> returns, allowing it to reclaim the
+        value immediately rather than waiting for the enclosing scope to end. This makes
+        <code>deinit</code> useful even for fully GC-managed types — any time you want
+        deterministic cleanup or want to shorten a value's lifetime explicitly.
+      </div>
+    </section>
+
     <!-- Methods -->
     <section id="methods">
       <h2>Methods</h2>
@@ -1442,6 +1511,91 @@ end</code></pre>
         <strong>Behaviour types may only appear in parameter positions.</strong>
         Using a behaviour as a return type, field type, or binding type is a compile error.
         Behaviours describe opaque behaviour — they cannot be stored, only passed into functions.
+      </div>
+    </section>
+
+    <!-- Builtin Behaviours -->
+    <section id="builtin-behaviours">
+      <h2>Builtin Behaviours</h2>
+      <p>
+        The <code>ruka</code> module exposes a small set of standard behaviours that the
+        compiler and runtime recognise specially. Satisfying them unlocks language-level
+        features: string interpolation, <code>for</code> loops, and custom allocator support.
+        Like all behaviours, they are satisfied implicitly — no declaration is needed.
+      </p>
+
+      <h3>ruka.Printable</h3>
+      <p>
+        Any type that satisfies <code>ruka.Printable</code> can be interpolated inside a
+        <code>${…}</code> string expression and passed to <code>ruka.print</code> /
+        <code>ruka.println</code>. The compiler calls <code>format</code> automatically
+        in those positions.
+      </p>
+<pre><code class="ruka">share Printable = behaviour {
+    format(self): () -> string
+}
+
+// Example — make a Point printable
+local Point = record { x: f64, y: f64 }
+
+share format (self) = () => "(${self.x}, ${self.y})"
+
+share main = () do
+    let p = Point.{ x = 1.0, y = 2.0 }
+    ruka.println("point: ${p}")   // point: (1.0, 2.0)
+end</code></pre>
+
+      <h3>ruka.Iterable</h3>
+      <p>
+        Any type that satisfies <code>ruka.Iterable</code> can be used in a <code>for</code>
+        loop. The compiler calls <code>next</code> on each iteration; when it returns
+        <code>.none</code> the loop ends.
+      </p>
+<pre><code class="ruka">share Iterable = behaviour {
+    next(*self): () -> ?(T)
+}
+
+// Example — a simple counter iterator
+local Counter = record { current: usize, limit: usize }
+
+share next (*self) = () do
+    if self.current >= self.limit => .none
+    else do
+        let val = self.current
+        self.current = self.current + 1
+        .some(val)
+    end
+end
+
+share main = () do
+    let c = Counter.{ current = 0, limit = 3 }
+    for n in c do
+        ruka.println("${n}")   // 0, 1, 2
+    end
+end</code></pre>
+
+      <h3>ruka.Allocator</h3>
+      <p>
+        Any type that satisfies <code>ruka.Allocator</code> can be passed to functions or
+        data structures that need explicit heap control. This allows callers to supply arena
+        allocators, pool allocators, or any other strategy without coupling the implementation
+        to a specific allocator.
+      </p>
+<pre><code class="ruka">share Allocator = behaviour {
+    alloc  (*self): (@size: usize) -> $[u8]
+    free   (*self): (&bytes: $[u8]) -> ()
+}
+
+// A function that accepts any allocator
+share make_buffer = (alloc: ruka.Allocator, cap: usize) do
+    Buffer.{ data = alloc.alloc(cap), len = 0 }
+end</code></pre>
+
+      <div class="note">
+        <strong>ruka.Allocator and the GC:</strong> The default allocator used by the runtime
+        is the GC. Passing a custom <code>ruka.Allocator</code> opts a specific allocation out
+        of GC management — the caller is responsible for calling <code>free</code> (typically
+        via <code>deinit</code>).
       </div>
     </section>
 
@@ -1796,6 +1950,7 @@ end</code></pre>
 
 <footer>
   <p>Ruka Language Reference &mdash; <a href="index.html">Overview</a> &mdash; <a href="grammar.html">Grammar</a> &mdash; <a href="https://github.com/ruka-lang/ruka">GitHub</a></p>
+  <p class="attribution">Color scheme: <a href="https://rosepinetheme.com" target="_blank" rel="noopener">Rosé Pine Moon</a></p>
 </footer>
 
 <script src="highlight.js"></script>

@@ -267,6 +267,93 @@
   }
 
   // ──────────────────────────────────────────────
+  // Static scope checker  (undeclared identifiers)
+  // ──────────────────────────────────────────────
+  // Returns an Error with .line set on the first undeclared identifier,
+  // or null if the program is clean.
+  function checkScope(ast) {
+    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
+
+    // Top-level: hoist all binding names so mutually-recursive functions work.
+    var topNames = new Set(BUILTINS);
+    ast.body.forEach(function (s) { if (s.k === 'Bind') topNames.add(s.name); });
+
+    try {
+      ast.body.forEach(function (s) { chkStmt(s, topNames); });
+    } catch (e) { return e; }
+    return null;
+
+    function chkStmt(node, scope) {
+      if (node.k === 'Bind') {
+        chkExpr(node.value, scope);
+        scope.add(node.name); // available after this point in sequential blocks
+      } else if (node.k === 'Assign') {
+        if (!scope.has(node.name)) {
+          var e = new Error('Undefined: ' + node.name);
+          e.line = node.line;
+          throw e;
+        }
+        chkExpr(node.value, scope);
+      } else if (node.k === 'ExprStmt') {
+        chkExpr(node.expr, scope);
+      }
+    }
+
+    function chkExpr(node, scope) {
+      if (!node) return;
+      switch (node.k) {
+        case 'Lit': case 'Str': return;
+        case 'Ident':
+          if (!scope.has(node.name)) {
+            var e = new Error('Undefined: ' + node.name);
+            e.line = node.line;
+            throw e;
+          }
+          return;
+        case 'Fn': {
+          var fnScope = new Set(scope);
+          // The fn's own binding name is already in scope (hoisted at top level,
+          // or added by chkStmt before we recurse into value).
+          node.params.forEach(function (p) { fnScope.add(p); });
+          chkExpr(node.body, fnScope);
+          return;
+        }
+        case 'Block': {
+          var bScope = new Set(scope);
+          node.body.forEach(function (s) { chkStmt(s, bScope); });
+          return;
+        }
+        case 'While': {
+          chkExpr(node.cond, scope);
+          var wScope = new Set(scope);
+          node.body.forEach(function (s) { chkStmt(s, wScope); });
+          return;
+        }
+        case 'If':
+          chkExpr(node.cond, scope);
+          chkExpr(node.then, scope);
+          if (node.else_) chkExpr(node.else_, scope);
+          return;
+        case 'Call':
+          chkExpr(node.callee, scope);
+          node.args.forEach(function (a) { chkExpr(a, scope); });
+          return;
+        case 'Member':
+          chkExpr(node.obj, scope);
+          // Don't check the property name — it's resolved on the value at runtime
+          return;
+        case 'BinOp':
+          chkExpr(node.left, scope);
+          chkExpr(node.right, scope);
+          return;
+        case 'Unary':
+          chkExpr(node.expr, scope);
+          return;
+      }
+    }
+  }
+
+  // ──────────────────────────────────────────────
   // Evaluator
   // ──────────────────────────────────────────────
   function evaluate(ast) {
@@ -509,14 +596,15 @@
       if (checkTimer) clearTimeout(checkTimer);
       checkTimer = setTimeout(function () {
         checkTimer = null;
+        var err = null;
         try {
-          parse(tokenize(source));
-          // No parse error — already rendered cleanly above, nothing to do
+          var ast = parse(tokenize(source));
+          err = checkScope(ast); // null if clean
         } catch (e) {
-          // Only annotate if the source hasn't changed since the timer was set
-          if (textarea && textarea.value === source) {
-            setEditorError(codeEl, source, e.line, e.message);
-          }
+          err = e;
+        }
+        if (err && textarea && textarea.value === source) {
+          setEditorError(codeEl, source, err.line, err.message);
         }
       }, 400);
     };

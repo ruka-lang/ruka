@@ -68,7 +68,18 @@
 				continue;
 			}
 
-			// Named-parameter label  ~name
+			// Char literal  'x'  '\n'  '\\'
+		if (raw[i] === "'") {
+			let j = i + 1;
+			if (j < raw.length && raw[j] === '\\') j++; // escape prefix
+			j++; // the char itself
+			if (j < raw.length && raw[j] === "'") j++; // closing quote
+			out += span('str', raw.slice(i, j));
+			i = j;
+			continue;
+		}
+
+		// Named-parameter label  ~name
 			if (raw[i] === '~') {
 				let j = i + 1;
 				while (j < raw.length && /\w/.test(raw[j])) j++;
