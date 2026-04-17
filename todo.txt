@@ -1,6 +1,8 @@
 TODO (Docs and playground)
 - Char literal syntax highlighting
 - Will need builtin functions to support manual heap allocation to allow for creating custom allocators that will support ruka.allocator behaviour
+- If user exclusively uses manual memory management, GC will be excluded from binary
+- In compile time, should be able to analyze a type's fields, methods, and static members and create a new type based on that (similar to rust derive macros)
 - Better error checking
 	- Using an identifier that hasn't been declared should be an editor error
 	- String interpolation values are not checked for errors
