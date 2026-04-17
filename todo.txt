@@ -10,8 +10,7 @@ TODO (Docs and playground)
 - Attribute color scheme to rose-pine-moon
 - Better error checking
 	- Using an identifier that hasn't been declared should be an editor error
-- Context aware indentation and autoclosing () {} do end
-- More playground support (in order of importance)
+- More playground features (in order of importance)
 	- If needs to support multiline blocks using do...else if condition do...else...end
 	- Builtin types, annotation and basic inference
 	- Booleans
@@ -23,6 +22,7 @@ TODO (Docs and playground)
 		- .length() method
 	- Ranges
 	- String and Array indexing
+	- Context aware indentation and autoclosing for () {} [] do end
 	- Records
 	- Variants
 	- More fleshed out type inference
