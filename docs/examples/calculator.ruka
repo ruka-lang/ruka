@@ -1,7 +1,7 @@
-local add = (a, b) => a + b
-local sub = (a, b) => a - b
-local mul = (a, b) => a * b
-local div = (a, b) => a / b
+local add = (a, b) do a + b
+local sub = (a, b) do a - b
+local mul = (a, b) do a * b
+local div = (a, b) do a / b
 
 share main = () do
     let x = 12

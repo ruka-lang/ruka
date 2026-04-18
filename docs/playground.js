@@ -14,10 +14,14 @@
   ]);
 
   function tokenize(src) {
-    var toks = [], i = 0, len = src.length, line = 1;
+    var toks = [], i = 0, len = src.length, line = 1, depth = 0;
     while (i < len) {
-      // newlines advance line counter
-      if (src[i] === '\n') { line++; i++; continue; }
+      // Newlines emit NL tokens at depth 0 so the parser can treat them as
+      // soft block terminators. Inside any bracketed form they are whitespace.
+      if (src[i] === '\n') {
+        if (depth === 0) toks.push({ t: 'NL', v: '\n', line: line });
+        line++; i++; continue;
+      }
       if (/\s/.test(src[i])) { i++; continue; }
       // line comment
       if (src[i] === '/' && src[i + 1] === '/') {
@@ -53,11 +57,14 @@
       }
       // two-char tokens
       var c2 = src.slice(i, i + 2);
-      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '=>') {
+      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->') {
         toks.push({ t: c2, v: c2, line: tok_line }); i += 2; continue;
       }
-      // single-char token
-      toks.push({ t: src[i], v: src[i], line: tok_line }); i++;
+      // single-char token — track bracket depth so NL is suppressed inside
+      var ch = src[i];
+      if (ch === '(' || ch === '[' || ch === '{') depth++;
+      else if (ch === ')' || ch === ']' || ch === '}') depth--;
+      toks.push({ t: ch, v: ch, line: tok_line }); i++;
     }
     toks.push({ t: 'EOF', v: '', line: line });
     return toks;
@@ -66,6 +73,11 @@
   // ──────────────────────────────────────────────
   // Parser
   // ──────────────────────────────────────────────
+  // Block rules:
+  //   `do <expr>`        — single-line; NL (or an enclosing `end`/`else`) terminates.
+  //   `do <NL> <stmts>`  — multi-line; `end` is required.
+  // `else` follows the same rule; `do` after `else` is optional.
+  // Ternary: `<expr> if <cond> else <expr>` (right-associative, lower precedence than `or`).
   function parse(toks) {
     var pos = 0;
 
@@ -85,8 +97,10 @@
       }
       return null;
     }
+    function skipNL() { while (check('NL')) pos++; }
 
     // Lookahead: is '(' at current pos the start of a function literal?
+    // A function literal is `(params) [-> ReturnType] do ...`.
     function isFnLiteral() {
       var j = pos + 1, depth = 1;
       while (j < toks.length && depth > 0) {
@@ -94,12 +108,22 @@
         else if (toks[j].t === ')') depth--;
         j++;
       }
-      return toks[j] && (toks[j].t === '=>' || toks[j].t === 'do');
+      if (toks[j] && toks[j].t === '->') {
+        j++;
+        while (j < toks.length && toks[j].t !== 'do'
+                               && toks[j].t !== 'NL'
+                               && toks[j].t !== 'EOF') j++;
+      }
+      return toks[j] && toks[j].t === 'do';
     }
 
     function parseProgram() {
       var body = [];
-      while (!check('EOF')) body.push(parseStmt());
+      skipNL();
+      while (!check('EOF')) {
+        body.push(parseStmt());
+        skipNL();
+      }
       return { k: 'Program', body: body };
     }
 
@@ -120,6 +144,7 @@
         // skip optional : Type
         if (tryMatch(':')) while (!check('=') && !check('EOF')) pos++;
         eat('=');
+        skipNL();
         return { k: 'Bind', kw: kw.v, name: name, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
@@ -127,6 +152,7 @@
         var al = toks[pos].line;
         var aname = eat('ID').v;
         eat('=');
+        skipNL();
         return { k: 'Assign', name: aname, value: parseExpr(), line: al };
       }
       var sl = peek().line;
@@ -139,81 +165,134 @@
       return parseIf();
     }
 
+    // Parse a block body opened by a `do` token already consumed by the caller.
+    // Returns { node, multiline }: the node is always a Block; `multiline` means
+    // the block needs an explicit `end` (caller decides — if-chains share one `end`).
+    // Single-line = one statement, terminated by NL/else/end.
+    // Multi-line  = `do` followed by NL, then statements until a closing `end`.
+    function parseDoBody() {
+      if (check('NL')) {
+        skipNL();
+        return { node: { k: 'Block', body: parseBlockBody() }, multiline: true };
+      }
+      var stmt = parseStmt();
+      return { node: { k: 'Block', body: [stmt] }, multiline: false };
+    }
+
     function parseFn() {
       var l = peek().line;
       eat('(');
       var params = [];
+      skipNL();
       while (!check(')') && !check('EOF')) {
         tryMatch('*', '&', '$', '@'); // skip mode prefix sigil
         if (check('ID')) params.push(eat('ID').v);
         if (tryMatch(':')) while (!check(',') && !check(')') && !check('EOF')) pos++; // skip type
-        tryMatch(',');
+        skipNL();
+        if (tryMatch(',')) skipNL();
       }
       eat(')');
-      var body;
-      if (tryMatch('=>')) body = parseExpr();
-      else { eat('do'); body = parseBlockExpr(); eat('end'); }
-      return { k: 'Fn', params: params, body: body, line: l };
+      if (tryMatch('->')) while (!check('do') && !check('EOF')) pos++;
+      eat('do');
+      var b = parseDoBody();
+      if (b.multiline) eat('end');
+      else tryMatch('end');
+      return { k: 'Fn', params: params, body: b.node, line: l };
     }
 
     function parseWhile() {
       var l = peek().line;
       eat('while');
-      var cond = parseExpr();
+      var cond = parseOr(); // no trailing ternary; `do` opens the body
       eat('do');
-      var body = parseBlockBody();
-      eat('end');
-      return { k: 'While', cond: cond, body: body, line: l };
+      var b = parseDoBody();
+      if (b.multiline) eat('end');
+      else tryMatch('end');
+      return { k: 'While', cond: cond, body: b.node.body, line: l };
     }
 
-    function parseIf() {
+    // `inChain` = this parseIf is the RHS of an enclosing `else if`, so the
+    // enclosing call owns the shared trailing `end` (when any branch is multi-line).
+    function parseIf(inChain) {
       var ifTok = tryMatch('if');
-      if (!ifTok) return parseOr();
-      var cond = parseOr(); // don't recurse into if inside cond
-      var then;
-      if (tryMatch('=>')) then = parseExpr();
-      else { eat('do'); then = parseBlockExpr(); eat('end'); }
-      var else_ = null;
+      if (!ifTok) return parseTernary();
+      var cond = parseOr();
+      eat('do');
+      var t = parseDoBody();
+      var then = t.node, thenMultiline = t.multiline;
+
+      // Allow `else` on a new line regardless of single/multi-line then.
+      skipNL();
+      var else_ = null, elseMultiline = false;
       if (tryMatch('else')) {
-        if (check('if'))         else_ = parseIf();      // else-if chain
-        else if (tryMatch('=>'))  else_ = parseExpr();
-        else { eat('do'); else_ = parseBlockExpr(); eat('end'); }
+        if (check('if')) {
+          else_ = parseIf(true);
+          elseMultiline = else_._multiline;
+        } else {
+          tryMatch('do'); // `do` after `else` is optional
+          var eBody = parseDoBody();
+          else_ = eBody.node;
+          elseMultiline = eBody.multiline;
+        }
       }
-      return { k: 'If', cond: cond, then: then, else_: else_, line: ifTok.line };
+
+      var multiline = thenMultiline || elseMultiline;
+      if (!inChain) {
+        skipNL();
+        if (multiline) eat('end');
+        else tryMatch('end');
+      }
+      var node = { k: 'If', cond: cond, then: then, else_: else_, line: ifTok.line };
+      node._multiline = multiline;
+      return node;
     }
 
-    // Returns a stmt array (stops at 'end', 'else', or EOF)
+    // Ternary: `<expr> if <cond> else <expr>` (right-assoc, below `or`).
+    function parseTernary() {
+      var a = parseOr();
+      if (tryMatch('if')) {
+        var cond = parseOr();
+        skipNL();
+        eat('else');
+        skipNL();
+        var b = parseTernary();
+        return { k: 'If', cond: cond, then: a, else_: b, line: a.line };
+      }
+      return a;
+    }
+
+    // Stops at 'end', 'else', or EOF. NL between statements is filler.
     function parseBlockBody() {
       var stmts = [];
-      while (!check('end') && !check('else') && !check('EOF')) stmts.push(parseStmt());
+      skipNL();
+      while (!check('end') && !check('else') && !check('EOF')) {
+        stmts.push(parseStmt());
+        skipNL();
+      }
       return stmts;
-    }
-
-    // Returns a Block expr node
-    function parseBlockExpr() {
-      return { k: 'Block', body: parseBlockBody() };
     }
 
     function parseOr() {
       var l = parseAnd();
-      while (tryMatch('or')) l = { k: 'BinOp', op: 'or', left: l, right: parseAnd() };
+      while (check('or')) { pos++; skipNL(); l = { k: 'BinOp', op: 'or', left: l, right: parseAnd() }; }
       return l;
     }
     function parseAnd() {
       var l = parseCmp();
-      while (tryMatch('and')) l = { k: 'BinOp', op: 'and', left: l, right: parseCmp() };
+      while (check('and')) { pos++; skipNL(); l = { k: 'BinOp', op: 'and', left: l, right: parseCmp() }; }
       return l;
     }
     function parseCmp() {
       var l = parseAdd();
       var op = tryMatch('==', '!=', '<', '>', '<=', '>=');
-      if (op) l = { k: 'BinOp', op: op.t, left: l, right: parseAdd() };
+      if (op) { skipNL(); l = { k: 'BinOp', op: op.t, left: l, right: parseAdd() }; }
       return l;
     }
     function parseAdd() {
       var l = parseMul();
       while (check('+') || check('-')) {
         var op = toks[pos++].t;
+        skipNL();
         l = { k: 'BinOp', op: op, left: l, right: parseMul() };
       }
       return l;
@@ -222,13 +301,14 @@
       var l = parseUnary();
       while (check('*') || check('/') || check('%')) {
         var op = toks[pos++].t;
+        skipNL();
         l = { k: 'BinOp', op: op, left: l, right: parseUnary() };
       }
       return l;
     }
     function parseUnary() {
-      if (tryMatch('-'))   return { k: 'Unary', op: '-',   expr: parseUnary() };
-      if (tryMatch('not')) return { k: 'Unary', op: 'not', expr: parseUnary() };
+      if (tryMatch('-'))   { skipNL(); return { k: 'Unary', op: '-',   expr: parseUnary() }; }
+      if (tryMatch('not')) { skipNL(); return { k: 'Unary', op: 'not', expr: parseUnary() }; }
       return parseCall();
     }
     function parseCall() {
@@ -237,13 +317,19 @@
         if (check('(')) {
           var cl = peek().line;
           eat('(');
+          skipNL();
           var args = [];
-          while (!check(')') && !check('EOF')) { args.push(parseExpr()); tryMatch(','); }
+          while (!check(')') && !check('EOF')) {
+            args.push(parseExpr());
+            skipNL();
+            if (tryMatch(',')) skipNL();
+          }
           eat(')');
           expr = { k: 'Call', callee: expr, args: args, line: cl };
         } else if (check('.')) {
           var ml = peek().line;
           eat('.');
+          skipNL();
           expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
         } else break;
       }
@@ -256,8 +342,14 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
-      if (tok.t === '(')     { eat('('); var e = parseExpr(); eat(')'); return e; }
-      if (tok.t === 'do')    { eat('do'); var b = parseBlockExpr(); eat('end'); return b; }
+      if (tok.t === '(')     { eat('('); skipNL(); var e = parseExpr(); skipNL(); eat(')'); return e; }
+      if (tok.t === 'do')    {
+        eat('do');
+        var b = parseDoBody();
+        if (b.multiline) eat('end');
+        else tryMatch('end');
+        return b.node;
+      }
       var ue = new Error("Unexpected token '" + tok.t + "' ('" + tok.v + "')");
       ue.line = tok.line;
       throw ue;

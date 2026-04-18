@@ -144,7 +144,7 @@ local max_retries = 5  // private static constant</code></pre>
       <h2>Literals</h2>
 
       <h3>Scalar Literals</h3>
-<pre><code class="ruka">let n    = 42          // integer  (isize by default)
+<pre><code class="ruka">let n    = 42          // integer  (int by default)
 let neg  = -7          // signed integer
 let hex  = 0xFF        // hexadecimal integer
 let bits = 0b00101010  // binary integer
@@ -182,24 +182,21 @@ let greeting = "Hello, ${name}!"</code></pre>
         expected type from the surrounding context (the left-hand side of a binding, a record
         field type, or a function parameter type) and produces the appropriate collection.
       </p>
-      <p>
-        When there is no type context, <code>{...}</code> is inferred as a tuple by default.
-        An explicit type annotation on the binding is the most common way to request an array.
-      </p>
-<pre><code class="ruka">// No type context — inferred as a tuple
-let point  = .{10, 20}            // [i32, i32]
-let triple = .{1, "hello", true}  // [i32, string, bool]
+<pre><code class="ruka">// No type context — compiler error about providing context
+let point  = .{10, 20}
+// No type context - compiler can inferred tuple because of heterogeneous elements
+let triple = .{1, "hello", true} // [int, string, boolean]
 
-let y = point[1]
+let greeting = triple[1]
 
-// Explicit array annotation — compiler produces an array
+// Explicit annotation — compiler produces an array
 let primes: [i32] = .{2, 3, 5, 7, 11}
 let empty:  [i32] = .{}
 
 let two = primes[0]
 
 // Type context from a function parameter resolves the ambiguity
-share sum_all = (values: [i32]) -> i32 => // ...
+share sum_all = (values: [i32]) -> i32 do // ...
 
 sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
 
@@ -207,31 +204,25 @@ sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</co
       <p>
         Collections can also be created with a type prefix — <code>[type].{...}</code> — which
         makes the intended type explicit without requiring a binding annotation. This is the
-        idiomatic form for arrays and maps created inline or passed directly to a function.
+        idiomatic form for creating a new binding initialized to an array or tuple.
         It mirrors the syntax used for record and variant literals.
       </p>
 <pre><code class="ruka">// Array — type is explicit, no annotation needed on the binding
 let primes = [i32].{2, 3, 5, 7, 11}
 
 // Tuple — multiple types listed
-let pair = [i32, string].{42, "hello"}
-
-// Map — key => value type
-let scores = [string => i32].{
-    "alice" => 95,
-    "bob"   => 87
-}</code></pre>
+let pair = [i32, string].{42, "hello"}</code></pre>
 
       <h3>Collection Comprehensions</h3>
       <p>
-        Arrays and maps support comprehension syntax inside the <code>[type].{...}</code> form.
+        Arrays support comprehension syntax inside the <code>[type].{...}</code> form.
         A <code>for</code> expression inside the braces generates the elements.
       </p>
 <pre><code class="ruka">// Array comprehension — produce 3 random floats
-let weights = [f64].{ for 0..3 => random.float(f64, -1.0, 1.0) }
+let weights = [f64].{ for 0..3 do random.float(f64, -1.0, 1.0) }
 
 // Array comprehension with an iteration variable
-let squares = [i32].{ for i in 1..=5 => i * i }
+let squares = [i32].{ for i in 1..=5 do i * i }
 // .{1, 4, 9, 16, 25}</code></pre>
 
       <h3>Record Literals</h3>
@@ -327,8 +318,8 @@ let upper = find_user(id).?().name</code></pre>
       <table>
         <thead><tr><th>Type</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>isize</code></td><td>Signed integer, platform-native width (<strong>default integer type</strong>)</td></tr>
-          <tr><td><code>usize</code></td><td>Unsigned integer, platform-native width</td></tr>
+          <tr><td><code>int</code></td><td>Signed integer, platform-native width (<strong>default integer type</strong>)</td></tr>
+          <tr><td><code>uint</code></td><td>Unsigned integer, platform-native width</td></tr>
           <tr><td><code>u8</code> &mdash; <code>u128</code></td><td>Unsigned integers of explicit bit width</td></tr>
           <tr><td><code>i8</code> &mdash; <code>i128</code></td><td>Signed integers of explicit bit width</td></tr>
           <tr><td><code>float</code></td><td>Floating-point, platform-native width (default float type)</td></tr>
@@ -399,7 +390,7 @@ let tail   = nums[2..=4]  // .{30, 40, 50}</code></pre>
         full rules. Annotations are only written to resolve genuine ambiguity or to improve
         readability at module boundaries.
       </p>
-<pre><code class="ruka">let x    = 10              // inferred as isize — default integer type
+<pre><code class="ruka">let x    = 10              // inferred as int — default integer type
 let f    = 3.14            // inferred as float  — default float type
 let name = "Ruka"          // inferred as string
 
@@ -407,8 +398,7 @@ let y: u8  = 10            // annotation required — non-default integer width
 let g: f32 = 3.14          // annotation required — non-default float width
 
 let scores: [f64] = .{9.5, 8.0, 7.3}   // annotation required — collection literal needs context
-let pair: [i32, string] = .{1, "one"}
-let table: [string => usize] = .{ "a" => 1 }</code></pre>
+let pair: [i32, string] = .{1, "one"}</code></pre>
     </section>
 
     <!-- User-defined Types -->
@@ -512,18 +502,18 @@ local Rect   = record { width: f64, height: f64 }
 
 // self inferred as Circle — only type in scope with `radius`
 // return type inferred as f64 from the expression
-share area (self) = () => 3.14159 * self.radius * self.radius
+share area (self) = () do 3.14159 * self.radius * self.radius
 
 // self inferred as Rect — only type with both `width` and `height`
-share area (self) = () => self.width * self.height
+share area (self) = () do self.width * self.height
 
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
 // Inferred as Dog — only Dog has both `name` and `breed`
-share label (self) = () => "${self.name} (${self.breed})"
+share label (self) = () do "${self.name} (${self.breed})"
 // Explicit annotation required — both types have a `name` field
-share label (self: Cat) = () => "${self.name}"</code></pre>
+share label (self: Cat) = () do "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
       <p>
@@ -548,16 +538,15 @@ let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `ind
 
       <h3>Return Type Inference</h3>
       <p>
-        Return types are inferred from the last expression in a block or from the
-        expression after <code>=&gt;</code>. Explicit return type annotations are only
-        needed when the inferred type is ambiguous, or as documentation at a public API
-        boundary.
+        Return types are inferred from the last expression in the function body.
+        Explicit return type annotations are only needed when the inferred type is
+        ambiguous, or as documentation at a public API boundary.
       </p>
 <pre><code class="ruka">// Return type inferred as f64
-share circumference (self) = () => 2.0 * 3.14159 * self.radius
+share circumference (self) = () do 2.0 * 3.14159 * self.radius
 
 // Return type inferred as string — interpolation always produces string
-share label (self) = () => "Circle(r=${self.radius})"
+share label (self) = () do "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
 share find = (values: [i32], target: i32) do
@@ -577,7 +566,7 @@ end</code></pre>
         <tbody>
           <tr>
             <td>Integer (<code>42</code>, <code>-7</code>, <code>0xFF</code>)</td>
-            <td><code>isize</code></td>
+            <td><code>int</code></td>
             <td><code>let x: u8 = 42</code></td>
           </tr>
           <tr>
@@ -587,7 +576,7 @@ end</code></pre>
           </tr>
         </tbody>
       </table>
-<pre><code class="ruka">let a = 42          // isize
+<pre><code class="ruka">let a = 42          // int
 let b = 3.14        // float
 
 // Context overrides the default
@@ -595,8 +584,8 @@ let c: u8  = 42    // u8  — annotation provides context
 let d: f64 = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
-share double = (x: i32) => x * 2
-let result = double(10)  // 10 is produced as i32, not isize</code></pre>
+share double = (x: i32) do x * 2
+let result = double(10)  // 10 is produced as i32, not int</code></pre>
 
       <div class="note">
         <strong>Ambiguity is always a compile error.</strong> The compiler will highlight the
@@ -615,26 +604,30 @@ let result = double(10)  // 10 is produced as i32, not isize</code></pre>
 
       <h3>If / Else</h3>
       <p>
-        Multiline branches use <code>do…end</code>. A single-expression branch uses <code>=&gt;</code>.
-        If an <code>if</code> expression is used as a value, all branches must return the same type.
+        <code>do</code> follows <code>if</code> and <code>else if</code> to separate the
+        condition from the body. <code>else</code> is followed directly by its body — no
+        <code>do</code>. A body whose body is a single expression on the same line is
+        closed by the newline; a body that opens a new line is a multi-statement block
+        and is closed by the chain's single trailing <code>end</code>. If an <code>if</code>
+        expression is used as a value, all branches must return the same type.
       </p>
-<pre><code class="ruka">// Multiline
+<pre><code class="ruka">// Multiline — one `end` closes the whole chain
 if x > 0 do
     ruka.println("positive")
 else if x < 0 do
     ruka.println("negative")
-else do
+else
     ruka.println("zero")
 end
 
-// Single-line — => introduces a single expression; no end required
-if x > 0 => ruka.println("positive")
+// Single-line — body is on the same line; newline closes the branch
+if x > 0 do ruka.println("positive")
 
 // Single-line with else
-if x > 0 => ruka.println("positive") else => ruka.println("non-positive")
+if x > 0 do ruka.println("positive") else ruka.println("non-positive")
 
 // Single-line chained
-if x > 0 => "positive" else if x < 0 => "negative" else => "zero"
+if x > 0 do "positive" else if x < 0 do "negative" else "zero"
 
 // Used as a value (do...end form)
 let label = if score >= 90 do
@@ -653,6 +646,24 @@ end
 if a or b do
     // ...
 end</code></pre>
+
+      <h3>Conditional Expression (Ternary)</h3>
+      <p>
+        A right-hand-side conditional uses the same keywords rearranged:
+        <code>value if cond else value</code>. It is right-associative and may be chained
+        to express multi-way selection inline. Both branches must produce the same type.
+      </p>
+<pre><code class="ruka">// Pick a value inline
+let label = "positive" if x > 0 else "non-positive"
+
+// Chained — right-associative; reads like "if/else if/else"
+let grade =
+    "A" if score >= 90 else
+    "B" if score >= 80 else
+    "C"
+
+// Useful in single-expression function bodies
+local fib = (n) do n if n &lt;= 1 else fib(n - 1) + fib(n - 2)</code></pre>
     </section>
 
     <!-- Operators -->
@@ -719,19 +730,21 @@ let nested = 2 ** 3 ** 2   // 2 ** 9 = 512</code></pre>
         the matched arm.
       </p>
       <p>
-        Multiline arms use <code>do…end</code>. Single-expression arms use <code>=&gt;</code>.
+        Every arm is opened by <code>do</code>. A single-expression arm keeps the body
+        on the same line as <code>do</code> and is closed by the newline. A multi-statement
+        arm opens a new line after <code>do</code> and is closed by an explicit <code>end</code>.
         The <code>else</code> arm is the catch-all default.
       </p>
 
       <h4>Matching literals and conditions</h4>
 <pre><code class="ruka">match status_code with
-    200 => ruka.println("OK")
-    404 => ruka.println("Not Found")
+    200 do ruka.println("OK")
+    404 do ruka.println("Not Found")
     500 do
         ruka.println("Internal Server Error")
         log_error()
     end
-    else => ruka.println("Unknown status")
+    else ruka.println("Unknown status")
 end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
@@ -742,24 +755,24 @@ end</code></pre>
 }
 
 let area = match shape with
-    circle(r) => 3.14159 * r * r
-    rectangle(.{w, h}) => w * h
-    point => 0.0
+    circle(r) do 3.14159 * r * r
+    rectangle(.{w, h}) do w * h
+    point do 0.0
 end
 
 // option(T)
 match maybe_name with
-    some(name) => ruka.println("Hello, ${name}")
-    none => ruka.println("No name provided")
+    some(name) do ruka.println("Hello, ${name}")
+    none do ruka.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
       <p>Arms may use boolean conditions involving the matched value or any in-scope variable.</p>
 <pre><code class="ruka">match n with
-    0 => "zero"
-    n < 0 => "negative"
-    n > 100 => "large"
-    else => "other"
+    0 do "zero"
+    n < 0 do "negative"
+    n > 100 do "large"
+    else "other"
 end</code></pre>
     </section>
 
@@ -774,8 +787,8 @@ while i < 10 do
     i = i + 1
 end
 
-// Single-expression body — no end required
-while i < 10 => i = i + 1</code></pre>
+// Single-expression body — newline closes the block
+while i < 10 do i = i + 1</code></pre>
 
       <h3>Destructuring Conditions</h3>
       <p>
@@ -804,11 +817,11 @@ for i in 0..5 do
     ruka.println("${i}")     // 0 1 2 3 4
 end
 
-// Single-expression body — no end required
-for i in 0..5 => ruka.println("${i}")
+// Single-expression body — newline closes the block
+for i in 0..5 do ruka.println("${i}")
 
 // Range without a binding variable
-for 0..10 => ruka.println("tick")
+for 0..10 do ruka.println("tick")
 
 // Inclusive range
 for i in 1..=3 do
@@ -953,37 +966,36 @@ local greet = (name: string) do
     // last expression is (), the unit value
 end</code></pre>
 
-      <h4>Single-expression function (arrow)</h4>
+      <h4>Single-expression function</h4>
       <p>
-        The <code>=&gt;</code> form means the body is the rest of that same line — no closing
-        <code>end</code> is required. For bodies that span multiple lines, use <code>do…end</code>.
+        When the body is a single expression on the same line as <code>do</code>, the
+        newline closes the function — no <code>end</code> is required. For bodies that
+        span multiple lines, the <code>do…end</code> block form is used.
       </p>
-<pre><code class="ruka">local square = (x: i32) => x * x
+<pre><code class="ruka">local square = (x: i32) do x * x
 
-local abs = (x: i32) => if x < 0 do -x else x end
+local abs = (x: i32) do if x < 0 do -x else x
 
-// Multi-line body — must use do...end
+// Multi-line body — closed by `end`
 local max = (a: i32, b: i32) do
-    if a > b do a
-    else b
-    end
+    if a > b do a else b
 end</code></pre>
 
       <h4>Return type annotation</h4>
       <p>
         A <code>-&gt;</code> after the parameter list specifies the return type. This applies
-        whether the body is a same-line <code>=&gt;</code> or a <code>do…end</code> block.
+        to both single-expression and <code>do…end</code> bodies.
       </p>
 <pre><code class="ruka">// Inline — return type after the parameter list
-local square = (x: i32) -> i32 => x * x
+local square = (x: i32) -> i32 do x * x
 
-// Works identically with do...end
+// Works identically with multi-line bodies
 local clamp = (x: i32, lo: i32, hi: i32) -> i32 do
-    if x < lo do lo else if x > hi do hi else x end
+    if x < lo do lo else if x > hi do hi else x
 end
 
 // Binding-side annotation — function type written as parameter list then return type
-local square2: (i32) -> i32 = (x) => x * x</code></pre>
+local square2: (i32) -> i32 = (x) do x * x</code></pre>
 
       <h4>Automatic Return Wrapping</h4>
       <p>
@@ -996,10 +1008,10 @@ local square2: (i32) -> i32 = (x) => x * x</code></pre>
         <li><strong><code>option(T)</code>:</strong> a <code>T</code> value is wrapped as <code>.some(T)</code>; a <code>()</code> expression becomes <code>.none</code>.</li>
         <li><strong><code>result(T, E)</code>:</strong> a <code>T</code> value is wrapped as <code>.ok(T)</code>; an <code>E</code> value is wrapped as <code>.err(E)</code>.</li>
       </ul>
-<pre><code class="ruka">// Returns option(usize) — wrapping is automatic
-share find_index = (arr: [i32], target: i32) -> option(usize) do
+<pre><code class="ruka">// Returns option(uint) — wrapping is automatic
+share find_index = (arr: [i32], target: i32) -> option(uint) do
     for i in 0..ruka.len(arr) do
-        if arr[i] == target do return i end   // i (usize) → .some(i)
+        if arr[i] == target do return i end   // i (uint) → .some(i)
     end
     // () at end of block → .none
 end
@@ -1038,7 +1050,7 @@ share new (Vector) = (x, y) do
 end
 
 // Private static function
-local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
+local zero (Vector) = () do Vector.{ x = 0.0, y = 0.0 }
 
 share main = () do
     let v      = Vector.new(1.0, 2.0)
@@ -1084,11 +1096,11 @@ end</code></pre>
 
 share from_str (Direction) = (s) do
     match s with
-        "north" => .some(Direction.north)
-        "south" => .some(Direction.south)
-        "east"  => .some(Direction.east)
-        "west"  => .some(Direction.west)
-        else    => .none
+        "north" do .some(Direction.north)
+        "south" do .some(Direction.south)
+        "east"  do .some(Direction.east)
+        "west"  do .some(Direction.west)
+        else    .none
     end
 end
 
@@ -1122,13 +1134,13 @@ end</code></pre>
       </p>
 <pre><code class="ruka">local Buffer = record {
     data: [u8],
-    len:  usize,
+    len:  uint,
 }
 
 // Public constructor — called as Buffer.new(capacity)
-share new (Buffer) = (cap: usize) do
+share new (Buffer) = (cap: uint) do
     Buffer.{
-        data = [u8, cap].{},
+        data = [u8; cap].{},
         len  = 0,
     }
 end
@@ -1203,7 +1215,7 @@ share length (self) = () do
 end
 
 // Private method
-local negate (self) = () => Vector.{ x = -self.x, y = -self.y }
+local negate (self) = () do Vector.{ x = -self.x, y = -self.y }
 
 share main = () do
     let a = Vector.new(1.0, 0.0)
@@ -1219,7 +1231,7 @@ end</code></pre>
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
-share new (Counter) = () => Counter.{ value = 0 }
+share new (Counter) = () do Counter.{ value = 0 }
 
 // *self — the receiver is a mutable reference
 share increment (*self) = () do
@@ -1248,15 +1260,16 @@ end</code></pre>
 
 share opposite (self) = () do
     match self with
-        north => Direction.south
-        south => Direction.north
-        east  => Direction.west
-        west  => Direction.east
+        north do Direction.south
+        south do Direction.north
+        east  do Direction.west
+        west  do Direction.east
     end
 end
 
-share is_vertical (self) = () =>
+share is_vertical (self) = () do
     self == Direction.north or self == Direction.south
+end
 
 share main = () do
     let d = Direction.north
@@ -1319,7 +1332,7 @@ share hash = ($data: [u8]) -> u64 do
 end
 
 // @ — compile-time value (explicit annotation)
-share repeat = (@times: usize, msg: string) do
+share repeat = (@times: uint, msg: string) do
     let i = 0
     while i < times do
         ruka.println(msg)
@@ -1346,12 +1359,13 @@ end</code></pre>
 
       <h3>Declaring Named Parameters</h3>
 <pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
-share greet = (~name: string, ~greeting: string) =>
+share greet = (~name: string, ~greeting: string) do
     "${greeting}, ${name}!"
+end
 
 // Mix of positional and named
-share clamp = (x: isize, ~lo: isize, ~hi: isize) do
-    if x < lo do lo else if x > hi do hi else x end
+share clamp = (x: int, ~lo: int, ~hi: int) do
+    if x < lo do lo else if x > hi do hi else x
 end</code></pre>
 
       <h3>Calling with Named Parameters</h3>
@@ -1376,8 +1390,9 @@ greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)
         When a value is supplied, it is automatically wrapped in <code>.some(...)</code> — no
         explicit wrapping is needed.
       </p>
-<pre><code class="ruka">share greet = (~name: string, ~title: option(string)) =>
-    if .some(t) = title do "${t} ${name}" else name end
+<pre><code class="ruka">share greet = (~name: string, ~title: option(string)) do
+    if .some(t) = title do "${t} ${name}" else name
+end
 
 greet(~name="Ruka")                    // "Ruka"          — title is .none
 greet(~name="Ruka", ~title="Dr.")      // "Dr. Ruka"      — title is .some("Dr.")
@@ -1390,13 +1405,13 @@ greet(~name="Ruka", ~title=.none)      // explicit .none also valid</code></pre>
         named argument reads as a block visually attached to the call.
         Only one trailing argument is permitted per call.
       </p>
-<pre><code class="ruka">share apply_twice = (x: isize, ~f: (isize) -> isize) => f(f(x))
+<pre><code class="ruka">share apply_twice = (x: int, ~f: (int) -> int) do f(f(x))
 
 // Named param inside the argument list — standard form
-let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
+let r1 = apply_twice(3, ~f=(x) do x * 2)    // 12
 
 // Trailing form — same result, reads like an attached block
-let r2 = apply_twice(3) ~f=(x) => x * 2     // 12
+let r2 = apply_twice(3) ~f=(x) do x * 2     // 12
 
 // Multi-line trailing block
 let r3 = apply_twice(3) ~f=(x) do
@@ -1416,9 +1431,9 @@ share reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ..
 
 let nums = .{1, 2, 3, 4, 5}
 
-let doubled = map(nums) ~f=(x) => x * 2
-let evens   = filter(nums) ~pred=(x) => x % 2 == 0
-let total   = reduce(nums, 0) ~f=(acc, x) => acc + x   // 15
+let doubled = map(nums) ~f=(x) do x * 2
+let evens   = filter(nums) ~pred=(x) do x % 2 == 0
+let total   = reduce(nums, 0) ~f=(acc, x) do acc + x   // 15
 
 // Multi-line body — the trailing block scales naturally
 let results = map(nums) ~f=(x) do
@@ -1454,7 +1469,7 @@ share Printable = behaviour {
 
 // A type that supports a binary add operation
 share Adder = behaviour {
-    add(mut self): (b: usize) -> ()
+    add(mut self): (b: uint) -> ()
 }
 
 // Multiple methods
@@ -1474,8 +1489,8 @@ share Shape = behaviour {
 
 // self inferred as Circle (only type in scope with `radius`);
 // return types inferred from the expressions
-share area      (self) = () => 3.14159 * self.radius * self.radius
-share perimeter (self) = () => 2.0 * 3.14159 * self.radius
+share area      (self) = () do 3.14159 * self.radius * self.radius
+share perimeter (self) = () do 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape behaviour — no declaration needed</code></pre>
 
@@ -1493,8 +1508,8 @@ end
 
 local Rect = record { w: f64, h: f64 }
 
-share area      (self) = () => self.w * self.h
-share perimeter (self) = () => 2.0 * (self.w + self.h)
+share area      (self) = () do self.w * self.h
+share perimeter (self) = () do 2.0 * (self.w + self.h)
 
 share main = () do
     let c = Circle.{ radius = 5.0 }
@@ -1538,7 +1553,7 @@ end</code></pre>
 // Example — make a Point printable
 local Point = record { x: f64, y: f64 }
 
-share format (self) = () => "(${self.x}, ${self.y})"
+share format (self) = () do "(${self.x}, ${self.y})"
 
 share main = () do
     let p = Point.{ x = 1.0, y = 2.0 }
@@ -1556,11 +1571,11 @@ end</code></pre>
 }
 
 // Example — a simple counter iterator
-local Counter = record { current: usize, limit: usize }
+local Counter = record { current: uint, limit: uint }
 
 share next (*self) = () do
-    if self.current >= self.limit => .none
-    else do
+    if self.current >= self.limit do .none
+    else
         let val = self.current
         self.current = self.current + 1
         .some(val)
@@ -1582,12 +1597,12 @@ end</code></pre>
         to a specific allocator.
       </p>
 <pre><code class="ruka">share allocator = behaviour {
-    alloc  (*self): (@size: usize) -> [u8]
+    alloc  (*self): (@size: uint) -> [u8]
     free   (*self): (&bytes: [u8]) -> ()
 }
 
 // A function that accepts any allocator
-share make_buffer = (alloc: ruka.allocator, cap: usize) do
+share make_buffer = (alloc: ruka.allocator, cap: uint) do
     Buffer.{ data = alloc.alloc(cap), len = 0 }
 end</code></pre>
 
@@ -1631,7 +1646,7 @@ getName(user)
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string }
 
-share about (self) = () => "I'm ${self.name}, a ${self.breed}."
+share about (self) = () do "I'm ${self.name}, a ${self.breed}."
 
 share main = () do
     let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
@@ -1667,10 +1682,10 @@ end</code></pre>
 
 local t = record {         // local binding — private to this file
     local data: [i32],
-    local len:  usize
+    local len:  uint
 }
 
-share new (t) = () => .{ data = .{}, len = 0 }   // public field
+share new (t) = () do .{ data = .{}, len = 0 }   // public field
 
 share push (mut self) = (value: i32) do           // public field
     // append value to self.data
@@ -1708,7 +1723,7 @@ local { sqrt, pow } = ruka.import("math")
 local { Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-share describe = (t: type) => ruka.println("${t}")
+share describe = (t: type) do ruka.println("${t}")
 local animals = ruka.import("animals")
 
 share main = () do
@@ -1732,7 +1747,7 @@ end</code></pre>
         to test internal implementation details without exposing them.
       </p>
 
-<pre><code class="ruka">local add = (a: i32, b: i32) => a + b
+<pre><code class="ruka">local add = (a: i32, b: i32) do a + b
 
 test addition = () do
     ruka.assert_eq(add(1, 2), 3)
@@ -1751,7 +1766,7 @@ end</code></pre>
       </p>
 
 <pre><code class="ruka">// Private implementation detail — not exported
-local clamp_internal = (x: i32, lo: i32, hi: i32) => if x < lo do lo else if x > hi do hi else x end
+local clamp_internal = (x: i32, lo: i32, hi: i32) do if x < lo do lo else if x > hi do hi else x
 
 test clamp_lower_bound = () do
     ruka.assert_eq(clamp_internal(3, 5, 10), 5)
@@ -1793,9 +1808,9 @@ end</code></pre>
           <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
           <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
           <tr><td><code>ruka.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
-          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>usize</code>.</td></tr>
-          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>usize</code>. The argument must be a compile-time type value.</td></tr>
-          <tr><td><code>ruka.heap_alloc(@size: usize) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
+          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>uint</code>.</td></tr>
+          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>ruka.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
           <tr><td><code>ruka.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>ruka.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
           <tr><td><code>ruka.fields_of(@t: type) -> [ruka.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
           <tr><td><code>ruka.methods_of(@t: type) -> [ruka.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
@@ -1805,7 +1820,7 @@ end</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">ruka.println("Hello!")                       // Hello!
-ruka.println("${ruka.type_of(42)}")               // isize
+ruka.println("${ruka.type_of(42)}")               // int
 ruka.assert_eq(ruka.abs(-5), 5)
 </code></pre>
     </section>
@@ -1830,13 +1845,13 @@ ruka.assert_eq(ruka.abs(-5), 5)
         <code>type</code> annotation are inferred.
       </p>
 <pre><code class="ruka">// Explicit — valid, but redundant
-share min = (@t: type, a: t, b: t) => if a < b do a else b end
+share min = (@t: type, a: t, b: t) do if a < b do a else b
 
 // Inferred — preferred; `@` is implied by the `type` annotation
-share min = (t: type, a: t, b: t) => if a < b do a else b end
+share min = (t: type, a: t, b: t) do if a < b do a else b
 
 // Both `@` and `: type` inferred — `t` is used to annotate `a` and `b`
-share min = (t, a: t, b: t) => if a < b do a else b end
+share min = (t, a: t, b: t) do if a < b do a else b
 
 // Compile-time type constructor — same rules apply
 share Pair = (a, b) do
@@ -1849,7 +1864,7 @@ end</code></pre>
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
         comptime in Zig.
       </p>
-<pre><code class="ruka">share min = (t, a: t, b: t) => if a < b do a else b end
+<pre><code class="ruka">share min = (t, a: t, b: t) do if a < b do a else b
 
 share main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
@@ -1863,10 +1878,10 @@ end</code></pre>
         an explicit <code>@</code> prefix.
       </p>
 <pre><code class="ruka">// Returns a record type — `cap` requires explicit @ because it is not type-annotated as `type`
-share FixedArray = (t, @cap: usize) do
+share FixedArray = (t, @cap: uint) do
     record {
         data: [t],
-        len:  usize
+        len:  uint
     }
 end
 
@@ -1953,7 +1968,7 @@ end</code></pre>
 <pre><code class="ruka">// Given any record type, produce a version where every field is option(T).
 share Partial = (t: type) do
     let fs = ruka.fields_of(t)
-    let opt_fs = fs |> map((f) => .{ name = f.name, type = option(f.type) })
+    let opt_fs = fs |> map((f) do .{ name = f.name, type = option(f.type) })
     ruka.record_of(opt_fs)
 end
 

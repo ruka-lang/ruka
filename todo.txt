@@ -1,17 +1,15 @@
 TODO (Docs and playground)
 - More playground features (in order of importance)
-	- If needs to support multiline blocks using do...else if condition do...else...end
-	- Builtin types, annotation and basic inference
-	- Booleans
+	- For loops
 	- Chars
 	- Tuples
+	- Ranges
+	- Type annotation and basic inference
 	- Arrays
 		- .append(item) method
 		- .remove(index) method
 		- .length() method
-	- Ranges
 	- String and Array indexing
-	- Context aware indentation and autoclosing for () {} [] do end
 	- Records
 	- Variants
 	- More fleshed out type inference
@@ -19,5 +17,7 @@ TODO (Docs and playground)
 	- Methods and statics
 	- Modes
 	- Behaviours
-	- Builtin behaviours
+	- Builtin behaviours used by for loops and print functions
 	- More builtin functions
+	- Context aware indentation and autoclosing for () {} [] do end
+	- Multi-file support and saving code to localstorage so work isn't lost of refresh
