@@ -1,15 +1,14 @@
 TODO (Docs and playground)
 - More playground features (in order of importance)
-	- If needs to support multiline blocks using do...else if condition do...else...end
-	- Builtin types, annotation and basic inference
-	- Booleans
+	- For loops
 	- Chars
 	- Tuples
+	- Ranges
+	- Builtin types, annotation and basic inference
 	- Arrays
 		- .append(item) method
 		- .remove(index) method
 		- .length() method
-	- Ranges
 	- String and Array indexing
 	- Context aware indentation and autoclosing for () {} [] do end
 	- Records

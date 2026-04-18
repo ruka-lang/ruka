@@ -512,18 +512,18 @@ local Rect   = record { width: f64, height: f64 }
 
 // self inferred as Circle — only type in scope with `radius`
 // return type inferred as f64 from the expression
-share area (self) = () => 3.14159 * self.radius * self.radius
+share area (self) = () do 3.14159 * self.radius * self.radius
 
 // self inferred as Rect — only type with both `width` and `height`
-share area (self) = () => self.width * self.height
+share area (self) = () do self.width * self.height
 
 local Dog = record { name: string, breed: string }
 local Cat = record { name: string, indoor: bool }
 
 // Inferred as Dog — only Dog has both `name` and `breed`
-share label (self) = () => "${self.name} (${self.breed})"
+share label (self) = () do "${self.name} (${self.breed})"
 // Explicit annotation required — both types have a `name` field
-share label (self: Cat) = () => "${self.name}"</code></pre>
+share label (self: Cat) = () do "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
       <p>
@@ -554,10 +554,10 @@ let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `ind
         boundary.
       </p>
 <pre><code class="ruka">// Return type inferred as f64
-share circumference (self) = () => 2.0 * 3.14159 * self.radius
+share circumference (self) = () do 2.0 * 3.14159 * self.radius
 
 // Return type inferred as string — interpolation always produces string
-share label (self) = () => "Circle(r=${self.radius})"
+share label (self) = () do "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
 share find = (values: [i32], target: i32) do
@@ -595,7 +595,7 @@ let c: u8  = 42    // u8  — annotation provides context
 let d: f64 = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
-share double = (x: i32) => x * 2
+share double = (x: i32) do x * 2
 let result = double(10)  // 10 is produced as i32, not isize</code></pre>
 
       <div class="note">
@@ -641,7 +641,7 @@ let label = if score >= 90 do
     "A"
 else if score >= 80 do
     "B"
-else
+else do
     "C"
 end
 
@@ -742,14 +742,14 @@ end</code></pre>
 }
 
 let area = match shape with
-    circle(r) => 3.14159 * r * r
-    rectangle(.{w, h}) => w * h
+    circle(r) do 3.14159 * r * r
+    rectangle(.{w, h}) do w * h
     point => 0.0
 end
 
 // option(T)
 match maybe_name with
-    some(name) => ruka.println("Hello, ${name}")
+    some(name) do ruka.println("Hello, ${name}")
     none => ruka.println("No name provided")
 end</code></pre>
 
@@ -958,15 +958,13 @@ end</code></pre>
         The <code>=&gt;</code> form means the body is the rest of that same line — no closing
         <code>end</code> is required. For bodies that span multiple lines, use <code>do…end</code>.
       </p>
-<pre><code class="ruka">local square = (x: i32) => x * x
+<pre><code class="ruka">local square = (x: i32) do x * x
 
-local abs = (x: i32) => if x < 0 do -x else x end
+local abs = (x: i32) do if x < 0 => -x else => x
 
 // Multi-line body — must use do...end
 local max = (a: i32, b: i32) do
-    if a > b do a
-    else b
-    end
+    if a > b => a else => b
 end</code></pre>
 
       <h4>Return type annotation</h4>
@@ -979,11 +977,11 @@ local square = (x: i32) -> i32 => x * x
 
 // Works identically with do...end
 local clamp = (x: i32, lo: i32, hi: i32) -> i32 do
-    if x < lo do lo else if x > hi do hi else x end
+    if x < lo => lo else if x > hi => hi else => x
 end
 
 // Binding-side annotation — function type written as parameter list then return type
-local square2: (i32) -> i32 = (x) => x * x</code></pre>
+local square2: (i32) -> i32 = (x) do x * x</code></pre>
 
       <h4>Automatic Return Wrapping</h4>
       <p>
@@ -1038,7 +1036,7 @@ share new (Vector) = (x, y) do
 end
 
 // Private static function
-local zero (Vector) = () => Vector.{ x = 0.0, y = 0.0 }
+local zero (Vector) = () do Vector.{ x = 0.0, y = 0.0 }
 
 share main = () do
     let v      = Vector.new(1.0, 2.0)
@@ -1203,7 +1201,7 @@ share length (self) = () do
 end
 
 // Private method
-local negate (self) = () => Vector.{ x = -self.x, y = -self.y }
+local negate (self) = () do Vector.{ x = -self.x, y = -self.y }
 
 share main = () do
     let a = Vector.new(1.0, 0.0)
@@ -1219,7 +1217,7 @@ end</code></pre>
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
-share new (Counter) = () => Counter.{ value = 0 }
+share new (Counter) = () do Counter.{ value = 0 }
 
 // *self — the receiver is a mutable reference
 share increment (*self) = () do
@@ -1351,7 +1349,7 @@ share greet = (~name: string, ~greeting: string) =>
 
 // Mix of positional and named
 share clamp = (x: isize, ~lo: isize, ~hi: isize) do
-    if x < lo do lo else if x > hi do hi else x end
+    if x < lo => lo else if x > hi => hi else => x
 end</code></pre>
 
       <h3>Calling with Named Parameters</h3>
@@ -1377,7 +1375,7 @@ greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)
         explicit wrapping is needed.
       </p>
 <pre><code class="ruka">share greet = (~name: string, ~title: option(string)) =>
-    if .some(t) = title do "${t} ${name}" else name end
+    if .some(t) = title => "${t} ${name}" else => name
 
 greet(~name="Ruka")                    // "Ruka"          — title is .none
 greet(~name="Ruka", ~title="Dr.")      // "Dr. Ruka"      — title is .some("Dr.")
@@ -1390,13 +1388,13 @@ greet(~name="Ruka", ~title=.none)      // explicit .none also valid</code></pre>
         named argument reads as a block visually attached to the call.
         Only one trailing argument is permitted per call.
       </p>
-<pre><code class="ruka">share apply_twice = (x: isize, ~f: (isize) -> isize) => f(f(x))
+<pre><code class="ruka">share apply_twice = (x: isize, ~f: (isize) -> isize) do f(f(x))
 
 // Named param inside the argument list — standard form
-let r1 = apply_twice(3, ~f=(x) => x * 2)    // 12
+let r1 = apply_twice(3, ~f=(x) do x * 2)    // 12
 
 // Trailing form — same result, reads like an attached block
-let r2 = apply_twice(3) ~f=(x) => x * 2     // 12
+let r2 = apply_twice(3) ~f=(x) do x * 2     // 12
 
 // Multi-line trailing block
 let r3 = apply_twice(3) ~f=(x) do
@@ -1416,9 +1414,9 @@ share reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ..
 
 let nums = .{1, 2, 3, 4, 5}
 
-let doubled = map(nums) ~f=(x) => x * 2
-let evens   = filter(nums) ~pred=(x) => x % 2 == 0
-let total   = reduce(nums, 0) ~f=(acc, x) => acc + x   // 15
+let doubled = map(nums) ~f=(x) do x * 2
+let evens   = filter(nums) ~pred=(x) do x % 2 == 0
+let total   = reduce(nums, 0) ~f=(acc, x) do acc + x   // 15
 
 // Multi-line body — the trailing block scales naturally
 let results = map(nums) ~f=(x) do
@@ -1474,8 +1472,8 @@ share Shape = behaviour {
 
 // self inferred as Circle (only type in scope with `radius`);
 // return types inferred from the expressions
-share area      (self) = () => 3.14159 * self.radius * self.radius
-share perimeter (self) = () => 2.0 * 3.14159 * self.radius
+share area      (self) = () do 3.14159 * self.radius * self.radius
+share perimeter (self) = () do 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape behaviour — no declaration needed</code></pre>
 
@@ -1493,8 +1491,8 @@ end
 
 local Rect = record { w: f64, h: f64 }
 
-share area      (self) = () => self.w * self.h
-share perimeter (self) = () => 2.0 * (self.w + self.h)
+share area      (self) = () do self.w * self.h
+share perimeter (self) = () do 2.0 * (self.w + self.h)
 
 share main = () do
     let c = Circle.{ radius = 5.0 }
@@ -1538,7 +1536,7 @@ end</code></pre>
 // Example — make a Point printable
 local Point = record { x: f64, y: f64 }
 
-share format (self) = () => "(${self.x}, ${self.y})"
+share format (self) = () do "(${self.x}, ${self.y})"
 
 share main = () do
     let p = Point.{ x = 1.0, y = 2.0 }
@@ -1631,7 +1629,7 @@ getName(user)
       </p>
 <pre><code class="ruka">local Dog = record { name: string, breed: string }
 
-share about (self) = () => "I'm ${self.name}, a ${self.breed}."
+share about (self) = () do "I'm ${self.name}, a ${self.breed}."
 
 share main = () do
     let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
@@ -1670,7 +1668,7 @@ local t = record {         // local binding — private to this file
     local len:  usize
 }
 
-share new (t) = () => .{ data = .{}, len = 0 }   // public field
+share new (t) = () do .{ data = .{}, len = 0 }   // public field
 
 share push (mut self) = (value: i32) do           // public field
     // append value to self.data
@@ -1708,7 +1706,7 @@ local { sqrt, pow } = ruka.import("math")
 local { Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-share describe = (t: type) => ruka.println("${t}")
+share describe = (t: type) do ruka.println("${t}")
 local animals = ruka.import("animals")
 
 share main = () do
@@ -1732,7 +1730,7 @@ end</code></pre>
         to test internal implementation details without exposing them.
       </p>
 
-<pre><code class="ruka">local add = (a: i32, b: i32) => a + b
+<pre><code class="ruka">local add = (a: i32, b: i32) do a + b
 
 test addition = () do
     ruka.assert_eq(add(1, 2), 3)
@@ -1751,7 +1749,7 @@ end</code></pre>
       </p>
 
 <pre><code class="ruka">// Private implementation detail — not exported
-local clamp_internal = (x: i32, lo: i32, hi: i32) => if x < lo do lo else if x > hi do hi else x end
+local clamp_internal = (x: i32, lo: i32, hi: i32) do if x < lo => lo else if x > hi => hi else => x
 
 test clamp_lower_bound = () do
     ruka.assert_eq(clamp_internal(3, 5, 10), 5)
@@ -1830,13 +1828,13 @@ ruka.assert_eq(ruka.abs(-5), 5)
         <code>type</code> annotation are inferred.
       </p>
 <pre><code class="ruka">// Explicit — valid, but redundant
-share min = (@t: type, a: t, b: t) => if a < b do a else b end
+share min = (@t: type, a: t, b: t) do if a < b => a else => b
 
 // Inferred — preferred; `@` is implied by the `type` annotation
-share min = (t: type, a: t, b: t) => if a < b do a else b end
+share min = (t: type, a: t, b: t) do if a < b => a else => b
 
 // Both `@` and `: type` inferred — `t` is used to annotate `a` and `b`
-share min = (t, a: t, b: t) => if a < b do a else b end
+share min = (t, a: t, b: t) do if a < b => a else => b
 
 // Compile-time type constructor — same rules apply
 share Pair = (a, b) do
@@ -1849,7 +1847,7 @@ end</code></pre>
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
         comptime in Zig.
       </p>
-<pre><code class="ruka">share min = (t, a: t, b: t) => if a < b do a else b end
+<pre><code class="ruka">share min = (t, a: t, b: t) do if a < b => a else => b
 
 share main = () do
     local x = min(i32, 3, 7)     // compiler emits an i32 version
@@ -1953,7 +1951,7 @@ end</code></pre>
 <pre><code class="ruka">// Given any record type, produce a version where every field is option(T).
 share Partial = (t: type) do
     let fs = ruka.fields_of(t)
-    let opt_fs = fs |> map((f) => .{ name = f.name, type = option(f.type) })
+    let opt_fs = fs |> map((f) do .{ name = f.name, type = option(f.type) })
     ruka.record_of(opt_fs)
 end
 

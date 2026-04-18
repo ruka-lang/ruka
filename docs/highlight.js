@@ -16,7 +16,7 @@
 	]);
 
 	const SURROUNDS = new Set([
-		'=>', 'do', 'end', 'with', 'in', 'else'
+		'do', 'end', 'with', 'in', 'else'
 	]);
 
 	function esc(s) {

@@ -68,24 +68,24 @@
   <section id="philosophy">
     <h2>Core Features</h2>
     <ul class="feature-list">
-      <li><div class="feature-card">
-      	<h3>Compiled and/or Interpreted.</h3> The ruka compiler uses the interpreter for metaprogramming (allowing generics and complex constants, etc.), and users can use the interpreter for rapid debugging, extending the build process, and scripting.
-      </div></li>
-      <li><div class="feature-card">
-      	<h3>Value-based.</h3> Functions, types, records (structs), variants (tagged unions), and tests are all values stored in bindings. Files/modules are imported as records so are values as well.
-      </div></li>
-      <li><div class="feature-card">
-        <h3>Expression-based.</h3> Blocks, conditionals, match expressions, and function bodies all evaluate to a value. The last expression in a block is its result.
-      </div></li>
-      <li><div class="feature-card">
-        <h3>Garbage collected with opt-in lifetime control.</h3> The GC handles memory by default but parameter/binding modes allow the user to decide when to control lifetimes or stack/heap allocate.
-      </div></li>
-      <li><div class="feature-card">
-        <h3>Structural typing.</h3> Shared functionality is expressed through behaviours: any type matching the method signatures satisfies an behavour implicitly and can be passed to Behaviour typed parameters. Parameters typed with a behaviour cause that function to be compiled for the argument type passed in.</p>
-      </div></li>
-      <li><div class="feature-card">
-        <h3>Built-in testing.</h3> Test functions are first-class language constructs declared with <code>test name = ...</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.
-      </div></li>
+      <li>
+      	<strong>Compiled and/or Interpreted.</strong> The ruka compiler uses the interpreter for metaprogramming (allowing generics and complex constants, etc.), and users can use the interpreter for rapid debugging, extending the build process, and scripting.
+      </li>
+      <li>
+      	<strong>Value-based.</strong> Functions, types, records (structs), variants (tagged unions), and tests are all values stored in bindings. Files/modules are imported as records so are values as well.
+      </li>
+      <li>
+        <strong>Expression-based.</strong> Blocks, conditionals, match expressions, and function bodies all evaluate to a value. The last expression in a block is its result.
+      </li>
+      <li>
+        <strong>Garbage collected with opt-in lifetime control.</strong> The GC handles memory by default but parameter/binding modes allow the user to decide when to control lifetimes or stack/heap allocate.
+      </li>
+      <li>
+        <strong>Structural typing.</strong> Shared functionality is expressed through behaviours: any type matching the method signatures satisfies an behavour implicitly and can be passed to Behaviour typed parameters. Parameters typed with a behaviour cause that function to be compiled for the argument type passed in.</p>
+      </li>
+      <li>
+        <strong>Built-in testing.</strong> Test functions are first-class language constructs declared with <code>test name = ...</code>. They compile only in debug and test builds — zero overhead and zero code in production binaries.
+      </li>
     </ul>
   </section>
 
@@ -131,32 +131,32 @@
         <li>Fully featured interpreter and compiler with advanced optimizations</li>
         <li>Compiler and interpreter plugin system</li>
       </ul>
+      <h3>Future Plans</h3>
+      <p class="future-plans">
+        The current focus is on the core language. Functionality allowing custom compiler/interpreter extensions to be made for domain specific solutions is being considered with the following examples also being considered.
+      </p>
+
+      <div class="roadmap-item">
+        <h3>Ruka.web</h3>
+        <p>
+          First-class JSX-like syntax for HTML and CSS directly in Ruka source, enabling server-side
+          rendering without a template engine. Components would be ordinary Ruka functions.
+        </p>
+      </div>
+
+      <div class="roadmap-item">
+        <h3>Ruka.hdl</h3>
+        <p>
+          A hardware description language using Ruka syntax, targeting FPGA development on
+          SoC boards such as the Xilinx Zynq family. Hardware modules expose getter and setter
+          behaviours, allowing the same language to describe both the software and the hardware it runs on.
+        </p>
+      </div>
     </div>
   </section>
 
   <!-- ── Roadmap ── -->
   <section id="roadmap">
-    <h2>Future Plans</h2>
-    <p>
-      The current focus is on the core language. The following extensions are planned for the future. Potentially allowing custom compiler/interpreter extensions to be made for domain specific solutions.
-    </p>
-
-    <div class="roadmap-item">
-      <h3>Ruka.web</h3>
-      <p>
-        First-class JSX-like syntax for HTML and CSS directly in Ruka source, enabling server-side
-        rendering without a template engine. Components would be ordinary Ruka functions.
-      </p>
-    </div>
-
-    <div class="roadmap-item">
-      <h3>Ruka.hdl</h3>
-      <p>
-        A hardware description language using Ruka syntax, targeting FPGA development on
-        SoC boards such as the Xilinx Zynq family. Hardware modules expose getter and setter
-        behaviours, allowing the same language to describe both the software and the hardware it runs on.
-      </p>
-    </div>
   </section>
 
 </main>

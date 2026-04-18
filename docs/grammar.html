@@ -676,17 +676,19 @@ type-annot    ::=  ":" type</code></pre>
         </p>
 
         <h4>If Expression</h4>
-        <pre class="grammar"><code>if-expr       ::=  "if" expr if-branch
-                   ( "else" "if" expr if-branch )*
-                   else-branch?
+        <pre class="grammar"><code>if-expr       ::=  multiline-if | single-line-if
+
+multiline-if  ::=  "if" expr "do" stmt*
+                   ( "else" "if" expr "do" stmt* )*
+                   ( "else" "do" stmt* )?
                    "end"
-                   -- a single "end" closes the entire if chain
+                   -- a single "end" closes the entire if chain;
+                   -- "do" is required on every branch, including the final else
 
-if-branch     ::=  "do" stmt*       -- block body; opened with "do", closed by the chain's "end"
-
-else-branch   ::=  "else" "do" stmt*    -- else with a block body
-               |   "else" expr          -- bare else expression without "do"
-                   -- e.g.  else "C"  in  if score >= 90 do "A" else if score >= 80 do "B" else "C" end</code></pre>
+single-line-if ::= "if" expr "=>" expr
+                   ( "else" "if" expr "=>" expr )*
+                   ( "else" "=>" expr )?
+                   -- no "end"; each branch is a single expression</code></pre>
 
         <h4>While Expression</h4>
         <pre class="grammar"><code>while-expr    ::=  "while" expr "do" stmt* "end"</code></pre>
