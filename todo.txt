@@ -21,3 +21,4 @@ TODO (Docs and playground)
 	- Behaviours
 	- Builtin behaviours used by for loops and print functions
 	- More builtin functions
+	- Multi-file support and saving code to localstorage so work isn't lost of refresh
