@@ -207,31 +207,25 @@ sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</co
       <p>
         Collections can also be created with a type prefix — <code>[type].{...}</code> — which
         makes the intended type explicit without requiring a binding annotation. This is the
-        idiomatic form for arrays and maps created inline or passed directly to a function.
+        idiomatic form for creating a new binding initialized to an array or tuple.
         It mirrors the syntax used for record and variant literals.
       </p>
 <pre><code class="ruka">// Array — type is explicit, no annotation needed on the binding
 let primes = [i32].{2, 3, 5, 7, 11}
 
 // Tuple — multiple types listed
-let pair = [i32, string].{42, "hello"}
-
-// Map — key => value type
-let scores = [string => i32].{
-    "alice" => 95,
-    "bob"   => 87
-}</code></pre>
+let pair = [i32, string].{42, "hello"}</code></pre>
 
       <h3>Collection Comprehensions</h3>
       <p>
-        Arrays and maps support comprehension syntax inside the <code>[type].{...}</code> form.
+        Arrays support comprehension syntax inside the <code>[type].{...}</code> form.
         A <code>for</code> expression inside the braces generates the elements.
       </p>
 <pre><code class="ruka">// Array comprehension — produce 3 random floats
-let weights = [f64].{ for 0..3 => random.float(f64, -1.0, 1.0) }
+let weights = [f64].{ for 0..3 do random.float(f64, -1.0, 1.0) }
 
 // Array comprehension with an iteration variable
-let squares = [i32].{ for i in 1..=5 => i * i }
+let squares = [i32].{ for i in 1..=5 do i * i }
 // .{1, 4, 9, 16, 25}</code></pre>
 
       <h3>Record Literals</h3>
@@ -1126,7 +1120,7 @@ end</code></pre>
 // Public constructor — called as Buffer.new(capacity)
 share new (Buffer) = (cap: usize) do
     Buffer.{
-        data = [u8, cap].{},
+        data = [u8; cap].{},
         len  = 0,
     }
 end

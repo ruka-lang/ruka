@@ -5,13 +5,12 @@ TODO (Docs and playground)
 	- Chars
 	- Tuples
 	- Ranges
-	- Builtin types, annotation and basic inference
+	- Type annotation and basic inference
 	- Arrays
 		- .append(item) method
 		- .remove(index) method
 		- .length() method
 	- String and Array indexing
-	- Context aware indentation and autoclosing for () {} [] do end
 	- Records
 	- Variants
 	- More fleshed out type inference
@@ -21,4 +20,5 @@ TODO (Docs and playground)
 	- Behaviours
 	- Builtin behaviours used by for loops and print functions
 	- More builtin functions
+	- Context aware indentation and autoclosing for () {} [] do end
 	- Multi-file support and saving code to localstorage so work isn't lost of refresh
