@@ -1,5 +1,6 @@
 TODO (Docs and playground)
 - Add inspiration attribution to Zig, Ocaml, Rust, Ruby, Elixir
+- Replace isize, usize with int and uint
 - More playground features (in order of importance)
 	- For loops
 	- Chars

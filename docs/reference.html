@@ -182,17 +182,14 @@ let greeting = "Hello, ${name}!"</code></pre>
         expected type from the surrounding context (the left-hand side of a binding, a record
         field type, or a function parameter type) and produces the appropriate collection.
       </p>
-      <p>
-        When there is no type context, <code>.{...}</code> is inferred as a tuple by default.
-        An explicit type annotation on the binding is the most common way to request an array.
-      </p>
-<pre><code class="ruka">// No type context — inferred as a tuple
-let point  = .{10, 20}            // [i32, i32]
-let triple = .{1, "hello", true}  // [i32, string, bool]
+<pre><code class="ruka">// No type context — compiler error about providing context
+let point  = .{10, 20}
+// No type context - compiler can inferred tuple because of heterogeneous elements
+let triple = .{1, "hello", true} // [isize, string, boolean]
 
-let y = point[1]
+let greeting = triple[1]
 
-// Explicit array annotation — compiler produces an array
+// Explicit annotation — compiler produces an array
 let primes: [i32] = .{2, 3, 5, 7, 11}
 let empty:  [i32] = .{}
 
