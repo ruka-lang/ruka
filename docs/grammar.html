@@ -101,7 +101,6 @@
     <div class="sidebar-page-nav">
       <a href="index.html">Overview</a>
       <a href="reference.html">Reference</a>
-      <a href="examples.html">Examples</a>
       <a href="https://github.com/ruka-lang/ruka">GitHub</a>
     </div>
     <h2>Contents</h2>
@@ -279,7 +278,7 @@ binary-lit    ::=  "0b" binary-digit+
 
 integer-lit   ::=  decimal-lit | hex-lit | binary-lit
                    -- a leading minus sign is parsed as a unary operator, not part of the literal
-                   -- default type: isize; overridden by type context</code></pre>
+                   -- default type: int; overridden by type context</code></pre>
 
         <h4>Float Literals</h4>
         <pre class="grammar"><code>float-lit     ::=  decimal-digit+ "." decimal-digit+
@@ -405,8 +404,8 @@ destructure-pattern
 -- ── Primitive types ───────────────────────────────
 
 primitive-type
-              ::=  "isize"                           -- signed integer, platform-native width (default)
-               |   "usize"                           -- unsigned integer, platform-native width
+              ::=  "int"                           -- signed integer, platform-native width (default)
+               |   "uint"                           -- unsigned integer, platform-native width
                |   "i8"   | "i16"  | "i32"  | "i64"  | "i128"
                |   "u8"   | "u16"  | "u32"  | "u64"  | "u128"
                |   "float"                           -- floating-point, platform-native width (default)
@@ -463,7 +462,8 @@ method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
           precedence structurally, from lowest-binding (outermost rule) to
           highest-binding (innermost rule).
         </p>
-        <pre class="grammar"><code>expr          ::=  assign-expr
+        <pre class="grammar"><code>expr          ::=  ternary-expr
+                   -- see "Conditional expression (ternary)" under Control Flow for the rule
 
 assign-expr   ::=  pipeline-expr ( "=" assign-expr )?
                    -- right-associative; left-hand side must be a mutable place expression
@@ -550,7 +550,7 @@ named-arg     ::=  "~" identifier ( "=" expr )?
 
 trailing-arg  ::=  "~" identifier "=" function-expr
                    -- a named closure argument passed after the closing parenthesis
-                   -- e.g.  map(nums) ~f=(x) => x * 2</code></pre>
+                   -- e.g.  map(nums) ~f=(x) do x * 2</code></pre>
       </section>
 
       <!-- Primary -->
@@ -619,16 +619,18 @@ variant-ctor  ::=  "." identifier                         -- unqualified, no pay
         <h3>Function Expressions</h3>
         <p>
           Functions are anonymous values. A function expression is a parameter list,
-          an optional return-type annotation, and a body. The body is either a
-          single expression (introduced with <code>=&gt;</code>, requiring no
-          closing <code>end</code>) or a <code>do…end</code> block.
+          an optional return-type annotation, and a body opened by <code>do</code>.
+          When the body is a single expression on the same line as <code>do</code>,
+          the newline closes the function — no <code>end</code> is required. When the
+          body opens a new line after <code>do</code>, it is a block of statements
+          terminated by <code>end</code>.
         </p>
         <pre class="grammar"><code>function-expr ::=  "(" param-list? ")" return-annot? function-body
 
 return-annot  ::=  "->" type
 
-function-body ::=  "=>" expr        -- single-expression body; no "end" required
-               |   block-expr       -- multi-statement body
+function-body ::=  "do" expr               -- single-expression body; closed by newline
+               |   "do" newline stmt* "end" -- multi-statement body; closed by "end"
 
 param-list    ::=  param ( "," param )*
 param         ::=  mode-prefix? "~"? identifier type-annot?     -- positional or named parameter
@@ -653,7 +655,7 @@ type-annot    ::=  ":" type</code></pre>
         </p>
         <pre class="grammar"><code>-- Declaration (in param-list)
 --   mode-prefix? "~" identifier type-annot?
---   e.g.  ~name: string,  ~f: (isize) -> isize
+--   e.g.  ~name: string,  ~f: (int) -> int
 
 -- Call site (in arg-list)
 --   "~" identifier "=" expr     standard form:  ~name="Ruka"
@@ -661,7 +663,7 @@ type-annot    ::=  ":" type</code></pre>
 
 -- Trailing form (after the closing parenthesis)
 --   "~" identifier "=" function-expr
---   e.g.  map(nums) ~f=(x) => x * 2
+--   e.g.  map(nums) ~f=(x) do x * 2
 --   e.g.  reduce(nums, 0) ~f=(acc, x) do
 --             acc + x
 --         end</code></pre>
@@ -676,25 +678,50 @@ type-annot    ::=  ":" type</code></pre>
         </p>
 
         <h4>If Expression</h4>
-        <pre class="grammar"><code>if-expr       ::=  multiline-if | single-line-if
+        <p>
+          <code>do</code> follows <code>if</code> and <code>else if</code> to separate the
+          condition from the body; <code>else</code> is followed directly by its body.
+          A branch whose body is a single expression on the same line is closed by the
+          newline; a branch whose body opens a new line is a block of statements closed
+          by the chain's single trailing <code>end</code>.
+        </p>
+        <pre class="grammar"><code>if-expr       ::=  "if" expr if-body
+                   ( "else" "if" expr if-body )*
+                   else-branch?
+                   "end"?
+                   -- "end" is required if any branch is multi-line;
+                   -- omitted when every branch is a single-expression body
 
-multiline-if  ::=  "if" expr "do" stmt*
-                   ( "else" "if" expr "do" stmt* )*
-                   ( "else" "do" stmt* )?
-                   "end"
-                   -- a single "end" closes the entire if chain;
-                   -- "do" is required on every branch, including the final else
+if-body       ::=  "do" expr               -- single-expression body; closed by newline
+               |   "do" newline stmt*      -- multi-statement body; closed by chain's "end"
 
-single-line-if ::= "if" expr "=>" expr
-                   ( "else" "if" expr "=>" expr )*
-                   ( "else" "=>" expr )?
-                   -- no "end"; each branch is a single expression</code></pre>
+else-branch   ::=  "else" expr             -- single-expression else; closed by newline
+               |   "else" newline stmt*    -- multi-statement else; closed by chain's "end"</code></pre>
+
+        <p>
+          <strong>Conditional expression (ternary).</strong> A right-hand-side
+          conditional uses <code>value if cond else value</code> — the same keywords,
+          rearranged. The form sits at the top of the expression hierarchy (just below
+          <code>expr</code>), is right-associative on the <code>else</code> branch, and
+          parses the <code>cond</code> at <code>or-expr</code> precedence — a nested
+          ternary in the condition position requires parentheses.
+        </p>
+        <pre class="grammar"><code>ternary-expr  ::=  assign-expr ( "if" or-expr "else" ternary-expr )?
+                   -- right-associative on the else branch; the value may chain freely
+                   -- e.g.  let label = "positive" if x > 0 else "non-positive"
+                   -- e.g.  let grade  = "A" if score >= 90 else
+                   --                    "B" if score >= 80 else
+                   --                    "C"</code></pre>
 
         <h4>While Expression</h4>
-        <pre class="grammar"><code>while-expr    ::=  "while" expr "do" stmt* "end"</code></pre>
+        <pre class="grammar"><code>while-expr    ::=  "while" expr loop-body
+
+loop-body     ::=  "do" expr               -- single-expression body; closed by newline
+               |   "do" newline stmt* "end" -- multi-statement body; closed by "end"</code></pre>
 
         <h4>For Expression</h4>
-        <pre class="grammar"><code>for-expr      ::=  "for" for-pattern "in" expr "do" stmt* "end"
+        <pre class="grammar"><code>for-expr      ::=  "for" for-pattern "in" expr loop-body
+               |   "for" expr loop-body            -- range without a binding variable
 
 for-pattern   ::=  identifier                             -- simple binding
                |   "{" identifier ( "," identifier )* "}"
@@ -740,17 +767,17 @@ continue-expr ::=  "continue"
           the first matching arm is taken. The compiler requires exhaustive coverage:
           every possible value must be handled by some arm.
         </p>
-        <pre class="grammar"><code>match-expr    ::=  "match" expr "with" arm+ "end"
+        <pre class="grammar"><code>match-expr    ::=  "match" expr "with" arm+ else-arm? "end"
 
-arm           ::=  pattern arm-body
+arm           ::=  pattern "do" expr               -- single-expression arm; closed by newline
+               |   pattern "do" newline stmt* "end" -- block arm; closed by "end"
 
-arm-body      ::=  "=>" expr              -- single-expression arm
-               |   "do" stmt* "end"       -- block arm
+else-arm      ::=  "else" expr                     -- single-expression else; closed by newline
+               |   "else" newline stmt* "end"      -- block else; closed by "end"
 
 pattern       ::=  variant-pattern        -- matches a variant tag and optionally binds its payload
                |   literal-expr           -- matches an exact value (integer, float, bool, string)
                |   guard-pattern          -- a boolean expression used as a conditional arm
-               |   "else"                 -- catch-all; must be the last arm
 
 variant-pattern
               ::=  "." identifier
@@ -766,7 +793,7 @@ payload-pattern
 
 guard-pattern ::=  expr
                    -- any boolean expression; may reference the matched value by its binding name
-                   -- e.g.  n < 0   in   match n with  n < 0 => "negative" ... end</code></pre>
+                   -- e.g.  n < 0   in   match n with  n < 0 do "negative" ... end</code></pre>
 
         <div class="note">
           <strong>Option and result patterns.</strong>
