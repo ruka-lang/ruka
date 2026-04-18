@@ -1,4 +1,8 @@
 TODO (Docs and playground)
+- Clarify
+	- let is mutable variable
+	- local is immutable variable or private static/field
+	- share is public static
 - More playground features (in order of importance)
 	- For loops
 	- Chars

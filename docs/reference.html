@@ -157,8 +157,8 @@ let no   = false</code></pre>
         Character literals use single quotes and are inferred as <code>u8</code>. They represent
         a single ASCII byte. Standard escape sequences are supported.
       </p>
-<pre><code class="ruka">let ch  = 'a'    // u8 — 97
-let nl  = '\n'   // u8 — 10
+<pre><code class="ruka">let ch = 'a'     // u8 — 97
+let nl = '\n'    // u8 — 10
 let tab = '\t'   // u8 — 9
 let nul = '\0'   // u8 — 0</code></pre>
 
@@ -191,7 +191,7 @@ let greeting = triple[1]
 
 // Explicit annotation — compiler produces an array
 let primes: [i32] = .{2, 3, 5, 7, 11}
-let empty:  [i32] = .{}
+let empty: [i32] = .{}
 
 let two = primes[0]
 
@@ -278,7 +278,7 @@ let inclusive = 0..=10   // 0, 1, ..., 10
 
 // Variable bounds
 let start = 2
-let end   = 7
+let end = 7
 for i in start..end do
     ruka.println("${i}")     // 2 3 4 5 6
 end
@@ -381,7 +381,7 @@ end
 // Ranges as slice indices
 let nums: [i32] = .{10, 20, 30, 40, 50}
 let middle = nums[1..4]   // .{20, 30, 40}
-let tail   = nums[2..=4]  // .{30, 40, 50}</code></pre>
+let tail = nums[2..=4]    // .{30, 40, 50}</code></pre>
 
       <h3>Type Annotations</h3>
       <p>
@@ -391,10 +391,10 @@ let tail   = nums[2..=4]  // .{30, 40, 50}</code></pre>
         readability at module boundaries.
       </p>
 <pre><code class="ruka">let x    = 10              // inferred as int — default integer type
-let f    = 3.14            // inferred as float  — default float type
+let f = 3.14               // inferred as float  — default float type
 let name = "Ruka"          // inferred as string
 
-let y: u8  = 10            // annotation required — non-default integer width
+let y: u8 = 10             // annotation required — non-default integer width
 let g: f32 = 3.14          // annotation required — non-default float width
 
 let scores: [f64] = .{9.5, 8.0, 7.3}   // annotation required — collection literal needs context
@@ -419,7 +419,7 @@ let pair: [i32, string] = .{1, "one"}</code></pre>
 }
 
 local User = record {
-    name:  string,
+    name: string,
     email: string,
     local password_hash: string  // private field
 }
@@ -452,8 +452,8 @@ local { Dog, Cat }  = ruka.import("animals")</code></pre>
         has the unit type.
       </p>
 <pre><code class="ruka">local Shape = variant {
-    circle:    f64,            // payload: radius
-    rectangle: [f64, f64],    // payload: width, height
+    circle: f64,               // payload: radius
+    rectangle: [f64, f64],     // payload: [width, height]
     point                      // no payload
 }
 
@@ -498,7 +498,7 @@ local Cat = record {
         <code>(self: TypeName)</code> is required — and the compiler will tell you.
       </p>
 <pre><code class="ruka">local Circle = record { radius: f64 }
-local Rect   = record { width: f64, height: f64 }
+local Rect = record { width: f64, height: f64 }
 
 // self inferred as Circle — only type in scope with `radius`
 // return type inferred as f64 from the expression
@@ -522,7 +522,7 @@ share label (self: Cat) = () do "${self.name}"</code></pre>
         needed. This applies to bindings, function arguments, and return expressions.
       </p>
 <pre><code class="ruka">local Circle = record { radius: f64 }
-local Rect   = record { width: f64, height: f64 }
+local Rect = record { width: f64, height: f64 }
 
 // Inferred as Circle — only type with `radius`
 let c = .{ radius = 5.0 }
@@ -551,7 +551,7 @@ share label (self) = () do "Circle(r=${self.radius})"
 // Return type inferred as option(i32) from the .some / .none arms
 share find = (values: [i32], target: i32) do
     for i in 0..ruka.len(values) do
-        if values[i] == target do return .some(i) end
+        if values[i] == target do return .some(i)
     end
     .none
 end</code></pre>
@@ -749,7 +749,7 @@ end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
 <pre><code class="ruka">local Shape = variant {
-    circle:    f64,
+    circle: f64,
     rectangle: [f64, f64],
     point
 }
@@ -861,7 +861,7 @@ end</code></pre>
 <pre><code class="ruka">// Exit a while loop early
 let i = 0
 while true do
-    if i >= 5 do break end
+    if i >= 5 do break
     ruka.println("${i}")
     i = i + 1
 end
@@ -882,7 +882,7 @@ end</code></pre>
       </p>
 <pre><code class="ruka">// Print only odd numbers
 for i in 0..10 do
-    if i % 2 == 0 do continue end
+    if i % 2 == 0 do continue
     ruka.println("${i}")     // 1 3 5 7 9
 end
 
@@ -1011,14 +1011,14 @@ local square2: (i32) -> i32 = (x) do x * x</code></pre>
 <pre><code class="ruka">// Returns option(uint) — wrapping is automatic
 share find_index = (arr: [i32], target: i32) -> option(uint) do
     for i in 0..ruka.len(arr) do
-        if arr[i] == target do return i end   // i (uint) → .some(i)
+        if arr[i] == target do return i              // i (uint) → .some(i)
     end
     // () at end of block → .none
 end
 
 // Returns result(f64, string) — wrapping is automatic
 share safe_div = (a: f64, b: f64) -> result(f64, string) do
-    if b == 0.0 do return "division by zero" end   // string → .err(...)
+    if b == 0.0 do return "division by zero"        // string → .err(...)
     a / b                                           // f64   → .ok(...)
 end</code></pre>
 
@@ -1046,14 +1046,14 @@ end</code></pre>
 
 // Public static function — called as Vector.new(...)
 share new (Vector) = (x, y) do
-    Vector.{ x, y }
+    .{ x, y }
 end
 
 // Private static function
-local zero (Vector) = () do Vector.{ x = 0.0, y = 0.0 }
+local zero (Vector) = () do .{ x = 0.0, y = 0.0 }
 
 share main = () do
-    let v      = Vector.new(1.0, 2.0)
+    let v = Vector.new(1.0, 2.0)
     let origin = Vector.zero()
 end</code></pre>
 
@@ -1073,9 +1073,9 @@ end</code></pre>
 <pre><code class="ruka">local Color = record { r: u8, g: u8, b: u8 }
 
 // Constant values attached as statics
-share RED   (Color) = Color.{ r = 255, g = 0,   b = 0   }
+share RED (Color) = Color.{ r = 255, g = 0,   b = 0   }
 share GREEN (Color) = Color.{ r = 0,   g = 255, b = 0   }
-share BLUE  (Color) = Color.{ r = 0,   g = 0,   b = 255 }
+share BLUE (Color) = Color.{ r = 0,   g = 0,   b = 255 }
 
 share main = () do
     let c = Color.RED
@@ -1207,7 +1207,7 @@ end</code></pre>
 
 // Public method — self is the receiver instance; its type is inferred as Vector
 share add (self) = (other) do
-    Vector.{ x = self.x + other.x, y = self.y + other.y }
+    .{ x = self.x + other.x, y = self.y + other.y }
 end
 
 share length (self) = () do
@@ -1215,7 +1215,7 @@ share length (self) = () do
 end
 
 // Private method
-local negate (self) = () do Vector.{ x = -self.x, y = -self.y }
+local negate (self) = () do .{ x = -self.x, y = -self.y }
 
 share main = () do
     let a = Vector.new(1.0, 0.0)
@@ -1231,7 +1231,7 @@ end</code></pre>
       </p>
 <pre><code class="ruka">local Counter = record { value: i32 }
 
-share new (Counter) = () do Counter.{ value = 0 }
+share new (Counter) = () do .{ value = 0 }
 
 // *self — the receiver is a mutable reference
 share increment (*self) = () do
@@ -1328,7 +1328,7 @@ end
 
 // $ — stack allocated pass-by-copy
 share hash = ($data: [u8]) -> u64 do
-    // data is on the stack, cannot be returned without a copy
+    // data is on the stack
 end
 
 // @ — compile-time value (explicit annotation)
@@ -1365,7 +1365,13 @@ end
 
 // Mix of positional and named
 share clamp = (x: int, ~lo: int, ~hi: int) do
-    if x < lo do lo else if x > hi do hi else x
+    if x < lo do
+    	lo
+     else if x > hi do
+     	hi
+    else
+    	x
+    end
 end</code></pre>
 
       <h3>Calling with Named Parameters</h3>
@@ -1378,7 +1384,7 @@ let v = clamp(42, ~lo=0, ~hi=10)         // 10 — positional first, named in an
       <p>
         If a local variable shares the label name, the <code>=value</code> part can be omitted.
       </p>
-<pre><code class="ruka">let name     = "Ruka"
+<pre><code class="ruka">let name = "Ruka"
 let greeting = "Hello"
 
 greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)</code></pre>
@@ -1391,7 +1397,7 @@ greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)
         explicit wrapping is needed.
       </p>
 <pre><code class="ruka">share greet = (~name: string, ~title: option(string)) do
-    if .some(t) = title do "${t} ${name}" else name
+    "${t} ${name}" if .some(t) = title else name
 end
 
 greet(~name="Ruka")                    // "Ruka"          — title is .none
@@ -1425,15 +1431,15 @@ end                                           // 14</code></pre>
         closure parameters are placed last in the definition so callers can trail them.
       </p>
 <pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
-share map    = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
+share map = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
 share filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
 share reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
 
 let nums = .{1, 2, 3, 4, 5}
 
 let doubled = map(nums) ~f=(x) do x * 2
-let evens   = filter(nums) ~pred=(x) do x % 2 == 0
-let total   = reduce(nums, 0) ~f=(acc, x) do acc + x   // 15
+let evens = filter(nums) ~pred=(x) do x % 2 == 0
+let total = reduce(nums, 0) ~f=(acc, x) do acc + x   // 15
 
 // Multi-line body — the trailing block scales naturally
 let results = map(nums) ~f=(x) do
@@ -1474,7 +1480,7 @@ share Adder = behaviour {
 
 // Multiple methods
 share Shape = behaviour {
-    area(self):      () -> f64
+    area(self): () -> f64,
     perimeter(self): () -> f64
 }</code></pre>
 
@@ -1489,26 +1495,26 @@ share Shape = behaviour {
 
 // self inferred as Circle (only type in scope with `radius`);
 // return types inferred from the expressions
-share area      (self) = () do 3.14159 * self.radius * self.radius
+share area (self) = () do 3.14159 * self.radius * self.radius
 share perimeter (self) = () do 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape behaviour — no declaration needed</code></pre>
 
-      <h3>Dynamic Dispatch via Behaviour Types</h3>
+      <h3>Monomorphisation via Behaviour Types</h3>
       <p>
-        When a parameter's type is a behaviour, dynamic dispatch is inferred automatically.
+        When a parameter's type is a behaviour, a version of the function will be compiled for that specific argument's type.
         Any value whose type satisfies the behaviour can be passed. Behaviour types are never
         inferred — they must always be written explicitly as a type annotation.
       </p>
 <pre><code class="ruka">// Behaviour type annotation on a parameter — dynamic dispatch is automatic
 share print_shape_info = (s: Shape) do
-    ruka.println("area:      ${s.area()}")
+    ruka.println("area: ${s.area()}")
     ruka.println("perimeter: ${s.perimeter()}")
 end
 
 local Rect = record { w: f64, h: f64 }
 
-share area      (self) = () do self.w * self.h
+share area (self) = () do self.w * self.h
 share perimeter (self) = () do 2.0 * (self.w + self.h)
 
 share main = () do
@@ -1597,7 +1603,7 @@ end</code></pre>
         to a specific allocator.
       </p>
 <pre><code class="ruka">share allocator = behaviour {
-    alloc  (*self): (@size: uint) -> [u8]
+    alloc  (*self): (@size: uint) -> [u8],
     free   (*self): (&bytes: [u8]) -> ()
 }
 
@@ -1639,22 +1645,6 @@ getName(user)
     |> toUpperCase()
     |> trim()
     |> ruka.println()</code></pre>
-
-      <p>
-        The pipeline works with any function — free functions, static functions, and methods
-        called in function position. It always inserts the left-hand value as the first argument.
-      </p>
-<pre><code class="ruka">local Dog = record { name: string, breed: string }
-
-share about (self) = () do "I'm ${self.name}, a ${self.breed}."
-
-share main = () do
-    let ruka = Dog.{ name = "Ruka", breed = "Jack Russell Terrier" }
-
-    // Method call followed by pipeline into a built-in
-    ruka.about()
-        |> ruka.println()
-end</code></pre>
     </section>
 
     <!-- Modules -->
@@ -1687,7 +1677,7 @@ local t = record {         // local binding — private to this file
 
 share new (t) = () do .{ data = .{}, len = 0 }   // public field
 
-share push (mut self) = (value: i32) do           // public field
+share push (*self) = (value: i32) do           // public field
     // append value to self.data
     self.len = self.len + 1
 end
@@ -1695,7 +1685,7 @@ end
 share pop (mut self) = () -> option(i32) do       // public field
     if self.len == 0 do
         .none
-    else do
+    else
         self.len = self.len - 1
         .some(self.data[self.len])
     end
@@ -1709,7 +1699,7 @@ end</code></pre>
         <code>ruka.import</code> evaluates at compile time and returns the file's record value.
         The result is always compile-time known — compile-time evaluation is implied. Accessing an
         export is ordinary field access; destructuring an import is ordinary record
-        destructuring, using the same <code>.{…}</code> syntax.
+        destructuring, using the same <code>{…}</code> syntax.
       </p>
 <pre><code class="ruka">// Field access on the imported record
 local math = ruka.import("math")
@@ -1997,24 +1987,6 @@ local PartialUser = Partial(User)
         code generation, so introspection has zero runtime cost.
       </div>
     </section>
-
-    <!-- Planned Changes -->
-    <section id="planned-changes">
-      <h2>Planned Changes</h2>
-      <p>
-        The following keyword renames are under consideration. They are not yet in effect —
-        existing syntax remains valid until a change is confirmed.
-      </p>
-      <table>
-        <thead><tr><th>Current</th><th>Proposed</th><th>Rationale</th></tr></thead>
-        <tbody>
-          <tr><td><code>share</code></td><td><code>share</code></td><td>Better communicates that the value is shared/exported.</td></tr>
-          <tr><td><code>behaviour</code></td><td><code>behaviour</code></td><td>Describes what the construct expresses — a set of behaviours — rather than an OOP term.</td></tr>
-          <tr><td><code>variant</code></td><td><code>spector</code></td><td>Language-specific term for tagged unions; inspired by the bass manufacturer Spector.</td></tr>
-        </tbody>
-      </table>
-    </section>
-
   </main>
 </div>
 
