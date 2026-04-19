@@ -1,8 +1,14 @@
-TODO (Docs and playground)
+TODO (Features, Docs and playground)
 - Clarify
 	- let is mutable variable
 	- local is immutable variable or private static/field
 	- share is public static
+- Allow ranges in match arm guards
+	- Compiler will check for overlapping ranges
+- Consider alternatives for builtin function namespacing
+	- I don't really want to go back to operator prefix based
+	- Could just have builtins not namespaced but that does clutter the global namespace somewhat
+- Have in, break, continue, return highlighted in a faded colour like comments
 - More playground features (in order of importance)
 	- For loops
 	- Chars
@@ -17,6 +23,7 @@ TODO (Docs and playground)
 	- Records
 	- Variants
 	- More fleshed out type inference
+	- Bug: can't write a string literal inside string interpolation
 	- Patterns / Matching / Destructuring
 	- Methods and statics
 	- Modes
@@ -24,4 +31,8 @@ TODO (Docs and playground)
 	- Builtin behaviours used by for loops and print functions
 	- More builtin functions
 	- Context aware indentation and autoclosing for () {} [] do end
+	- Type information on hover
 	- Multi-file support and saving code to localstorage so work isn't lost of refresh
+TODO (Zig Implementation)
+- Plan out and document zig implementation formally including diagrams before starting code
+- Start fresh zig implementation for new Zig 0.16.0 language changes
