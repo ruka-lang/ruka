@@ -105,7 +105,7 @@ fn getVersion(b: *std.Build) std.SemanticVersion {
     const git_describe_untrimmed = b.runAllowFail(
         &.{ "git", "-C", b.pathFromRoot("."), "describe", "--match", "*.*.*", "--tags" },
         &code,
-        .Ignore,
+        .ignore
     ) catch return ruka_version;
 
     const git_describe = std.mem.trim(u8, git_describe_untrimmed, " \n\r");
@@ -146,7 +146,7 @@ fn getDate(b: *std.Build) []const u8 {
     var code: u8 = undefined;
     const date_untrimmed = b.runAllowFail(&.{
         "date", "+'%m/%d/%Y'"
-    }, &code, .Ignore) catch return version_date;
+    }, &code, .ignore) catch return version_date;
     const date = std.mem.trim(u8, date_untrimmed, " \n\r");
 
     return date;
