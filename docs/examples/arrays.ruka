@@ -1,0 +1,21 @@
+share main = () do
+    let primes = .{2, 3, 5, 7, 11}
+    ruka.println("primes:  ${primes}")
+    ruka.println("length:  ${primes.length()}")
+    ruka.println("first:   ${primes[0]}")
+    ruka.println("last:    ${primes[primes.length() - 1]}")
+
+    primes.append(13)
+    ruka.println("after append(13): ${primes}")
+
+    primes.remove(0)
+    ruka.println("after remove(0):  ${primes}")
+
+    // Iterate with for
+    let sum = 0
+    for p in primes do sum = sum + p
+    ruka.println("sum:     ${sum}")
+
+    // Slice with a range
+    ruka.println("slice:   ${primes[1..4]}")
+end

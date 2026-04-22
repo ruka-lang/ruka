@@ -72,7 +72,8 @@
         toks.push({ t: 'STR', v: raw, line: tok_line });
         continue;
       }
-      // char literal — single quotes; tokenize as a NUM (byte value)
+      // char literal — single quotes; tokenize as a CHAR (u8 byte value,
+      // distinguished from NUM so interpolation can render it as ASCII)
       if (src[i] === "'") {
         i++;
         var cv;
@@ -93,7 +94,7 @@
           cv = 0;
         }
         if (src[i] === "'") i++;
-        toks.push({ t: 'NUM', v: cv, line: tok_line });
+        toks.push({ t: 'CHAR', v: cv, line: tok_line });
         continue;
       }
       // number — stop the fractional part if we hit `..` (range operator)
@@ -454,6 +455,7 @@
     function parsePrimary() {
       var tok = peek();
       if (tok.t === 'NUM')   { pos++; return { k: 'Lit',   v: tok.v,    line: tok.line }; }
+      if (tok.t === 'CHAR')  { pos++; return { k: 'Char',  v: tok.v,    line: tok.line }; }
       if (tok.t === 'STR')   { pos++; return { k: 'Str',   raw: tok.v,  line: tok.line }; }
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
@@ -598,8 +600,9 @@
     function chkExpr(node, scope) {
       if (!node) return;
       switch (node.k) {
-        case 'Lit': return;
-        case 'Str': chkInterp(node.raw, scope, node.line); return;
+        case 'Lit':  return;
+        case 'Char': return;
+        case 'Str':  chkInterp(node.raw, scope, node.line); return;
         case 'Ident':
           if (!scope.has(node.name)) {
             var e = new Error('Undefined: ' + node.name);
@@ -687,11 +690,21 @@
     function display(v) {
       if (v === null || v === undefined) return '()';
       if (typeof v === 'boolean') return v ? 'true' : 'false';
-      if (v && v._fn) return '<fn>';
-      if (v && v._range) return v.start + (v.inclusive ? '..=' : '..') + v.end;
+      if (v && v._fn)    return '<fn>';
+      if (v && v._char)  return String.fromCharCode(v.v);
+      if (v && v._range) {
+        var sep = v.inclusive ? '..=' : '..';
+        if (v._charRange) {
+          return "'" + String.fromCharCode(v.start) + "'" + sep + "'" + String.fromCharCode(v.end) + "'";
+        }
+        return v.start + sep + v.end;
+      }
       if (Array.isArray(v)) return '.{' + v.map(display).join(', ') + '}';
       return String(v);
     }
+
+    // Unwrap a tagged char to its underlying u8 number (or return v unchanged)
+    function num(v) { return (v && v._char) ? v.v : v; }
 
     // Materialise an iterable into a JS array of values
     function iterValues(v, line) {
@@ -699,7 +712,9 @@
       if (v && v._range) {
         var out = [], step = v.start <= v.end ? 1 : -1;
         var stop = v.inclusive ? v.end + step : v.end;
-        for (var n = v.start; n !== stop; n += step) out.push(n);
+        for (var n = v.start; n !== stop; n += step) {
+          out.push(v._charRange ? { _char: true, v: n } : n);
+        }
         return out;
       }
       var e = new Error('Not iterable: ' + display(v));
@@ -793,6 +808,7 @@
       switch (node.k) {
 
         case 'Lit':   return node.v;
+        case 'Char':  return { _char: true, v: node.v };
         case 'Str':   return interpStr(node.raw, env);
 
         case 'Ident': {
@@ -831,7 +847,8 @@
         case 'Range': {
           var s = evalExpr(node.start, env);
           var e = evalExpr(node.end,   env);
-          return { _range: true, start: s, end: e, inclusive: node.inclusive };
+          var isCharRange = (s && s._char) || (e && e._char);
+          return { _range: true, start: num(s), end: num(e), inclusive: node.inclusive, _charRange: isCharRange };
         }
 
         case 'List': {
@@ -849,8 +866,8 @@
               if (Array.isArray(obj))       return obj.slice(lo, hi);
               throw new Error('Cannot slice ' + display(obj));
             }
-            if (Array.isArray(obj))      return obj[idx];
-            if (typeof obj === 'string') return obj.charCodeAt(idx);
+            if (Array.isArray(obj))      return obj[num(idx)];
+            if (typeof obj === 'string') return { _char: true, v: obj.charCodeAt(num(idx)) };
             throw new Error('Cannot index ' + display(obj));
           } catch(e) { throw annotate(e, node.line); }
         }
@@ -907,27 +924,29 @@
           if (node.op === 'or')  return evalExpr(node.left, env) || evalExpr(node.right, env);
           var l = evalExpr(node.left, env);
           var r = evalExpr(node.right, env);
+          // Tagged chars behave as u8 numbers for arithmetic and comparison.
+          var ln = num(l), rn = num(r);
           switch (node.op) {
             case '+':  return (typeof l === 'string' || typeof r === 'string')
-                              ? display(l) + display(r) : l + r;
-            case '-':  return l - r;
-            case '*':  return l * r;
-            case '/':  return l / r;
-            case '%':  return l % r;
-            case '**': return Math.pow(l, r);
-            case '==': return l === r;
-            case '!=': return l !== r;
-            case '<':  return l < r;
-            case '>':  return l > r;
-            case '<=': return l <= r;
-            case '>=': return l >= r;
+                              ? display(l) + display(r) : ln + rn;
+            case '-':  return ln - rn;
+            case '*':  return ln * rn;
+            case '/':  return ln / rn;
+            case '%':  return ln % rn;
+            case '**': return Math.pow(ln, rn);
+            case '==': return ln === rn;
+            case '!=': return ln !== rn;
+            case '<':  return ln <  rn;
+            case '>':  return ln >  rn;
+            case '<=': return ln <= rn;
+            case '>=': return ln >= rn;
             default: throw new Error('Unknown operator: ' + node.op);
           }
         }
 
         case 'Unary': {
           var v = evalExpr(node.expr, env);
-          if (node.op === '-')   return -v;
+          if (node.op === '-')   return -num(v);
           if (node.op === 'not') return !v;
           break;
         }
