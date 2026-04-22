@@ -185,9 +185,8 @@ All stages accumulate diagnostics into a shared list. The list is flushed to std
 name    = "my_project"
 version = "0.1.0"
 
-[build]
-entry   = "src/main.ruka"   # defaults to src/main.ruka
-output  = "bin/my_project"  # defaults to bin/<name>
+# entry is src/main.ruka
+# outputs written to .out/<name>
 
 [dependencies]
 # future: local paths and package registry
