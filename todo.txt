@@ -1,19 +1,9 @@
-TODOS are in order of importance
-
-TODO (Zig Implementation)
-- Plan out and document zig implementation formally including diagrams before starting code
-- Start fresh zig implementation for new Zig 0.16.0 language changes
-
 TODO (Features, Docs and playground)
 - Clarify
 	- let is mutable variable
 	- local is immutable variable or private static/field
 	- share is public static
 - Allow ranges in match arm guards
-	- Compiler will check for overlapping ranges
-- Consider alternatives for builtin function namespacing
-	- I don't really want to go back to operator prefix based because I don't want to reuse operators for too many uses
-	- Could just have builtins not namespaced but that does clutter the global namespace somewhat
 - More playground features (in order of importance)
 	- For loops
 	- Chars
