@@ -41,10 +41,38 @@
         toks.push({ t: 'STR', v: raw, line: tok_line });
         continue;
       }
-      // number
+      // char literal — single quotes; tokenize as a NUM (byte value)
+      if (src[i] === "'") {
+        i++;
+        var cv;
+        if (src[i] === '\\' && i + 1 < len) {
+          i++;
+          var esc = src[i++];
+          if      (esc === 'n')  cv = 10;
+          else if (esc === 't')  cv = 9;
+          else if (esc === 'r')  cv = 13;
+          else if (esc === '0')  cv = 0;
+          else if (esc === '\\') cv = 92;
+          else if (esc === "'")  cv = 39;
+          else if (esc === '"')  cv = 34;
+          else                   cv = esc.charCodeAt(0);
+        } else if (i < len) {
+          cv = src.charCodeAt(i++);
+        } else {
+          cv = 0;
+        }
+        if (src[i] === "'") i++;
+        toks.push({ t: 'NUM', v: cv, line: tok_line });
+        continue;
+      }
+      // number — stop the fractional part if we hit `..` (range operator)
       if (/\d/.test(src[i])) {
         var n = '';
-        while (i < len && /[\d.]/.test(src[i])) n += src[i++];
+        while (i < len && /\d/.test(src[i])) n += src[i++];
+        if (src[i] === '.' && src[i + 1] !== '.' && /\d/.test(src[i + 1])) {
+          n += src[i++];
+          while (i < len && /\d/.test(src[i])) n += src[i++];
+        }
         toks.push({ t: 'NUM', v: parseFloat(n), line: tok_line });
         continue;
       }
@@ -55,9 +83,14 @@
         toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
         continue;
       }
+      // three-char tokens (must precede two-char)
+      var c3 = src.slice(i, i + 3);
+      if (c3 === '..=') {
+        toks.push({ t: c3, v: c3, line: tok_line }); i += 3; continue;
+      }
       // two-char tokens
       var c2 = src.slice(i, i + 2);
-      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->') {
+      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->' || c2 === '..') {
         toks.push({ t: c2, v: c2, line: tok_line }); i += 2; continue;
       }
       // single-char token — track bracket depth so NL is suppressed inside
@@ -155,8 +188,30 @@
         skipNL();
         return { k: 'Assign', name: aname, value: parseExpr(), line: al };
       }
+      // break / continue
+      if (check('break'))    { var bl = peek().line; pos++; return { k: 'Break',    line: bl }; }
+      if (check('continue')) { var ccl = peek().line; pos++; return { k: 'Continue', line: ccl }; }
+      // for [name in] iterable do body end
+      if (check('for')) return parseFor();
       var sl = peek().line;
       return { k: 'ExprStmt', expr: parseExpr(), line: sl };
+    }
+
+    function parseFor() {
+      var l = peek().line;
+      eat('for');
+      // Optional binding: `for name in iter` or pattern-less `for iter`
+      var name = null;
+      if (check('ID') && toks[pos + 1] && toks[pos + 1].t === 'in') {
+        name = eat('ID').v;
+        eat('in');
+      }
+      var iter = parseOr(); // no trailing ternary; `do` opens the body
+      eat('do');
+      var b = parseDoBody();
+      if (b.multiline) eat('end');
+      else tryMatch('end');
+      return { k: 'For', name: name, iter: iter, body: b.node.body, line: l };
     }
 
     function parseExpr() {
@@ -283,9 +338,21 @@
       return l;
     }
     function parseCmp() {
-      var l = parseAdd();
+      var l = parseRange();
       var op = tryMatch('==', '!=', '<', '>', '<=', '>=');
-      if (op) { skipNL(); l = { k: 'BinOp', op: op.t, left: l, right: parseAdd() }; }
+      if (op) { skipNL(); l = { k: 'BinOp', op: op.t, left: l, right: parseRange() }; }
+      return l;
+    }
+    function parseRange() {
+      var l = parseAdd();
+      if (check('..') || check('..=')) {
+        var inclusive = peek().t === '..=';
+        var rl = peek().line;
+        pos++;
+        skipNL();
+        var r = parseAdd();
+        return { k: 'Range', start: l, end: r, inclusive: inclusive, line: rl };
+      }
       return l;
     }
     function parseAdd() {
@@ -331,6 +398,14 @@
           eat('.');
           skipNL();
           expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
+        } else if (check('[')) {
+          var il = peek().line;
+          eat('[');
+          skipNL();
+          var idx = parseExpr();
+          skipNL();
+          eat(']');
+          expr = { k: 'Index', obj: expr, idx: idx, line: il };
         } else break;
       }
       return expr;
@@ -343,6 +418,20 @@
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
       if (tok.t === '(')     { eat('('); skipNL(); var e = parseExpr(); skipNL(); eat(')'); return e; }
+      // Array/tuple literal: .{a, b, c}
+      if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
+        var ll = tok.line;
+        eat('.'); eat('{');
+        skipNL();
+        var elements = [];
+        while (!check('}') && !check('EOF')) {
+          elements.push(parseExpr());
+          skipNL();
+          if (tryMatch(',')) skipNL();
+        }
+        eat('}');
+        return { k: 'List', elements: elements, line: ll };
+      }
       if (tok.t === 'do')    {
         eat('do');
         var b = parseDoBody();
@@ -388,6 +477,13 @@
         chkExpr(node.value, scope);
       } else if (node.k === 'ExprStmt') {
         chkExpr(node.expr, scope);
+      } else if (node.k === 'For') {
+        chkExpr(node.iter, scope);
+        var fScope = new Set(scope);
+        if (node.name) fScope.add(node.name);
+        node.body.forEach(function (s) { chkStmt(s, fScope); });
+      } else if (node.k === 'Break' || node.k === 'Continue') {
+        // structural — nothing to resolve
       }
     }
 
@@ -455,6 +551,17 @@
           chkExpr(node.obj, scope);
           // Don't check the property name — it's resolved on the value at runtime
           return;
+        case 'Index':
+          chkExpr(node.obj, scope);
+          chkExpr(node.idx, scope);
+          return;
+        case 'Range':
+          chkExpr(node.start, scope);
+          chkExpr(node.end, scope);
+          return;
+        case 'List':
+          node.elements.forEach(function (e) { chkExpr(e, scope); });
+          return;
         case 'BinOp':
           chkExpr(node.left, scope);
           chkExpr(node.right, scope);
@@ -493,7 +600,23 @@
       if (v === null || v === undefined) return '()';
       if (typeof v === 'boolean') return v ? 'true' : 'false';
       if (v && v._fn) return '<fn>';
+      if (v && v._range) return v.start + (v.inclusive ? '..=' : '..') + v.end;
+      if (Array.isArray(v)) return '.{' + v.map(display).join(', ') + '}';
       return String(v);
+    }
+
+    // Materialise an iterable into a JS array of values
+    function iterValues(v, line) {
+      if (Array.isArray(v)) return v;
+      if (v && v._range) {
+        var out = [], step = v.start <= v.end ? 1 : -1;
+        var stop = v.inclusive ? v.end + step : v.end;
+        for (var n = v.start; n !== stop; n += step) out.push(n);
+        return out;
+      }
+      var e = new Error('Not iterable: ' + display(v));
+      e.line = line;
+      throw e;
     }
 
     // Evaluate ${...} interpolations inside a string at runtime
@@ -546,8 +669,34 @@
           return val;
         }
         if (node.k === 'ExprStmt') return evalExpr(node.expr, env);
+        if (node.k === 'For')      return evalFor(node, env);
+        if (node.k === 'Break')    { var b = new Error('break outside loop');    b._break    = true; throw b; }
+        if (node.k === 'Continue') { var c = new Error('continue outside loop'); c._continue = true; throw c; }
         throw new Error('Unknown statement kind: ' + node.k);
       } catch(e) { throw annotate(e, node.line); }
+    }
+
+    function evalFor(node, env) {
+      var iter = evalExpr(node.iter, env);
+      var values = iterValues(iter, node.line);
+      var iters = 0, val = null;
+      for (var i = 0; i < values.length; i++) {
+        if (++iters > 10000) {
+          var te = new Error('Exceeded 10,000 iterations');
+          te.line = node.line;
+          throw te;
+        }
+        var fenv = mkEnv(env);
+        if (node.name) envSet(fenv, node.name, values[i]);
+        try {
+          for (var j = 0; j < node.body.length; j++) val = evalStmt(node.body[j], fenv);
+        } catch (e) {
+          if (e._continue) continue;
+          if (e._break)    return val;
+          throw e;
+        }
+      }
+      return val;
     }
 
     function evalExpr(node, env) {
@@ -571,16 +720,49 @@
           var val = null, iters = 0;
           // Condition is evaluated against the outer env so loop-counter mutations
           // (via envUpdate) are visible to it on the next iteration.
-          while (evalExpr(node.cond, env)) {
+          whileLoop: while (evalExpr(node.cond, env)) {
             if (++iters > 10000) {
               var te = new Error('Exceeded 10,000 iterations');
               te.line = node.line;
               throw te;
             }
             var iterEnv = mkEnv(env);
-            for (var i = 0; i < node.body.length; i++) val = evalStmt(node.body[i], iterEnv);
+            try {
+              for (var i = 0; i < node.body.length; i++) val = evalStmt(node.body[i], iterEnv);
+            } catch (e) {
+              if (e._continue) continue whileLoop;
+              if (e._break)    break    whileLoop;
+              throw e;
+            }
           }
           return val;
+        }
+
+        case 'Range': {
+          var s = evalExpr(node.start, env);
+          var e = evalExpr(node.end,   env);
+          return { _range: true, start: s, end: e, inclusive: node.inclusive };
+        }
+
+        case 'List': {
+          return node.elements.map(function (el) { return evalExpr(el, env); });
+        }
+
+        case 'Index': {
+          try {
+            var obj = evalExpr(node.obj, env);
+            var idx = evalExpr(node.idx, env);
+            // Range index — slice. Works on arrays and strings.
+            if (idx && idx._range) {
+              var lo = idx.start, hi = idx.inclusive ? idx.end + 1 : idx.end;
+              if (typeof obj === 'string')  return obj.slice(lo, hi);
+              if (Array.isArray(obj))       return obj.slice(lo, hi);
+              throw new Error('Cannot slice ' + display(obj));
+            }
+            if (Array.isArray(obj))      return obj[idx];
+            if (typeof obj === 'string') return obj.charCodeAt(idx);
+            throw new Error('Cannot index ' + display(obj));
+          } catch(e) { throw annotate(e, node.line); }
         }
 
         case 'If': {

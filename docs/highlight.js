@@ -8,7 +8,7 @@
 
 	const OPERATORS = new Set([
 		'+', '-', '*', '/', '%', '==', '!=', '<', '>', '<=', '>=', ',', '=',
-		'->', ':', '.', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not'
+		'->', ':', '.', '..', '..=', '@', '&', '$', '|', '^', '!', '?', 'and', 'or', 'not'
 	]);
 
 	const STRUCTURES = new Set([
@@ -91,14 +91,18 @@
 			// Operators should be highlighted the same color as comments, braces and brackets and parentheses as well.
 			// Since modes are now operator based, we just need to detect operators and highlight them.
 
-			// Number
+			// Number — fractional part is consumed only when the dot isn't `..`
 			if (/\d/.test(raw[i])) {
 				let j = i;
 				if (raw[i] === '0' && (raw[i + 1] === 'b' || raw[i + 1] === 'x')) {
 					j += 2;
 					while (j < raw.length && /[\da-fA-F]/.test(raw[j])) j++;
 				} else {
-					while (j < raw.length && /[\d.]/.test(raw[j])) j++;
+					while (j < raw.length && /\d/.test(raw[j])) j++;
+					if (raw[j] === '.' && raw[j + 1] !== '.' && /\d/.test(raw[j + 1])) {
+						j++;
+						while (j < raw.length && /\d/.test(raw[j])) j++;
+					}
 				}
 				out += span('num', raw.slice(i, j));
 				i = j;
@@ -137,8 +141,10 @@
 				else if (OPERATORS.has(raw.slice(i, i + 2))) op = raw.slice(i, i + 2);
 				else op = raw[i];
 
-				// Only if following character is not a valid identifier character `_, letter or number` do we accept
-				if (op.length < 2 || i + op.length >= raw.length || !/\w/.test(raw[i + op.length])) {
+				// Word-based ops (and/or/not) must not match inside an identifier;
+				// symbol ops have no such conflict, so accept them unconditionally.
+				const isWordOp = /[a-zA-Z]/.test(op[0]);
+				if (op.length < 2 || !isWordOp || i + op.length >= raw.length || !/\w/.test(raw[i + op.length])) {
 					out += span('op', op);
 					i += op.length;
 					continue;
