@@ -34,8 +34,39 @@
         i++;
         var raw = '';
         while (i < len && src[i] !== '"') {
-          if (src[i] === '\\' && i + 1 < len) { raw += src[i] + src[i + 1]; i += 2; }
-          else raw += src[i++];
+          if (src[i] === '\\' && i + 1 < len) {
+            raw += src[i] + src[i + 1];
+            i += 2;
+          } else if (src[i] === '$' && src[i + 1] === '{') {
+            // Capture the ${...} verbatim, tracking nested braces and strings so
+            // that a `"` inside the expression doesn't terminate the outer string.
+            // NB: can't name this `depth` — `var` in JS hoists to the function
+            // scope and would clobber the outer bracket-depth tracker.
+            raw += '${';
+            i += 2;
+            var interpDepth = 1;
+            while (i < len && interpDepth > 0) {
+              if (src[i] === '"') {
+                raw += src[i++];
+                while (i < len && src[i] !== '"') {
+                  if (src[i] === '\\' && i + 1 < len) { raw += src[i] + src[i + 1]; i += 2; }
+                  else raw += src[i++];
+                }
+                if (i < len) { raw += src[i++]; }
+              } else if (src[i] === '{') {
+                interpDepth++;
+                raw += src[i++];
+              } else if (src[i] === '}') {
+                interpDepth--;
+                if (interpDepth === 0) { raw += '}'; i++; break; }
+                raw += src[i++];
+              } else {
+                raw += src[i++];
+              }
+            }
+          } else {
+            raw += src[i++];
+          }
         }
         i++; // closing "
         toks.push({ t: 'STR', v: raw, line: tok_line });
@@ -90,7 +121,7 @@
       }
       // two-char tokens
       var c2 = src.slice(i, i + 2);
-      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->' || c2 === '..') {
+      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->' || c2 === '..' || c2 === '**') {
         toks.push({ t: c2, v: c2, line: tok_line }); i += 2; continue;
       }
       // single-char token — track bracket depth so NL is suppressed inside
@@ -365,11 +396,21 @@
       return l;
     }
     function parseMul() {
-      var l = parseUnary();
+      var l = parsePow();
       while (check('*') || check('/') || check('%')) {
         var op = toks[pos++].t;
         skipNL();
-        l = { k: 'BinOp', op: op, left: l, right: parseUnary() };
+        l = { k: 'BinOp', op: op, left: l, right: parsePow() };
+      }
+      return l;
+    }
+    function parsePow() {
+      var l = parseUnary();
+      if (check('**')) {
+        pos++;
+        skipNL();
+        var r = parsePow(); // right-associative
+        return { k: 'BinOp', op: '**', left: l, right: r };
       }
       return l;
     }
@@ -447,6 +488,54 @@
     return parseProgram();
   }
 
+  // Split a raw string body into literal text / ${...} parts, respecting
+  // nested braces AND nested string literals so that `"outer ${"inner"} end"`
+  // round-trips correctly.
+  function splitInterp(raw) {
+    var parts = [], buf = '', i = 0, len = raw.length;
+    while (i < len) {
+      if (raw[i] === '\\' && i + 1 < len) {
+        buf += raw[i] + raw[i + 1];
+        i += 2;
+      } else if (raw[i] === '$' && raw[i + 1] === '{') {
+        if (buf.length) { parts.push({ text: buf }); buf = ''; }
+        i += 2;
+        var depth = 1, inner = '';
+        while (i < len && depth > 0) {
+          if (raw[i] === '"') {
+            inner += raw[i++];
+            while (i < len && raw[i] !== '"') {
+              if (raw[i] === '\\' && i + 1 < len) { inner += raw[i] + raw[i + 1]; i += 2; }
+              else inner += raw[i++];
+            }
+            if (i < len) inner += raw[i++];
+          } else if (raw[i] === '{') {
+            depth++;
+            inner += raw[i++];
+          } else if (raw[i] === '}') {
+            depth--;
+            if (depth === 0) { i++; break; }
+            inner += raw[i++];
+          } else {
+            inner += raw[i++];
+          }
+        }
+        parts.push({ interp: inner });
+      } else {
+        buf += raw[i++];
+      }
+    }
+    if (buf.length) parts.push({ text: buf });
+    return parts;
+  }
+
+  function unescText(raw) {
+    return raw.replace(/\\n/g,  '\n')
+              .replace(/\\t/g,  '\t')
+              .replace(/\\\\/g, '\\')
+              .replace(/\\"/g,  '"');
+  }
+
   // ──────────────────────────────────────────────
   // Static scope checker  (undeclared identifiers)
   // ──────────────────────────────────────────────
@@ -488,21 +577,20 @@
     }
 
     function chkInterp(raw, scope, line) {
-      // Extract each ${...} and statically check it with the enclosing scope.
-      // Mirrors the runtime regex in interpStr so behaviour stays aligned.
-      // The inner tokenizer restarts its line counter at 1, so any line it
-      // emits is meaningless in the outer source — always report on the line
-      // of the enclosing string.
-      var re = /\$\{([^}]*)\}/g;
-      var m;
-      while ((m = re.exec(raw)) !== null) {
-        var inner = m[1];
-        try {
-          var innerAst = parse(tokenize(inner));
-          innerAst.body.forEach(function (s) { chkStmt(s, scope); });
-        } catch (e) {
-          e.line = line;
-          throw e;
+      // Extract each ${...} (balanced braces, nested strings) and statically
+      // check it with the enclosing scope. The inner tokenizer restarts its
+      // line counter at 1, so any line it emits is meaningless in the outer
+      // source — always report on the line of the enclosing string.
+      var parts = splitInterp(raw);
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].interp !== undefined) {
+          try {
+            var innerAst = parse(tokenize(parts[i].interp));
+            innerAst.body.forEach(function (s) { chkStmt(s, scope); });
+          } catch (e) {
+            e.line = line;
+            throw e;
+          }
         }
       }
     }
@@ -619,24 +707,26 @@
       throw e;
     }
 
-    // Evaluate ${...} interpolations inside a string at runtime
+    // Evaluate ${...} interpolations inside a string at runtime. Escape
+    // sequences are expanded on literal-text segments only — escapes inside
+    // an embedded ${"..."} pass through to the inner tokenizer untouched.
     function interpStr(raw, env) {
-      return raw.replace(/\$\{([^}]*)\}/g, function (_, inner) {
-        try {
-          var toks = tokenize(inner);
-          var ast  = parse(toks);
-          var val  = null;
-          for (var i = 0; i < ast.body.length; i++) val = evalStmt(ast.body[i], env);
-          return display(val);
-        } catch (e) { return '<err:' + e.message + '>'; }
-      });
-    }
-
-    function unesc(raw) {
-      return raw.replace(/\\n/g,  '\n')
-                .replace(/\\t/g,  '\t')
-                .replace(/\\\\/g, '\\')
-                .replace(/\\"/g,  '"');
+      var out = '', parts = splitInterp(raw);
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        if (p.text !== undefined) {
+          out += unescText(p.text);
+        } else {
+          try {
+            var toks = tokenize(p.interp);
+            var ast  = parse(toks);
+            var val  = null;
+            for (var j = 0; j < ast.body.length; j++) val = evalStmt(ast.body[j], env);
+            out += display(val);
+          } catch (e) { out += '<err:' + e.message + '>'; }
+        }
+      }
+      return out;
     }
 
     // Attach line to an error only if not already annotated (deepest site wins)
@@ -703,7 +793,7 @@
       switch (node.k) {
 
         case 'Lit':   return node.v;
-        case 'Str':   return interpStr(unesc(node.raw), env);
+        case 'Str':   return interpStr(node.raw, env);
 
         case 'Ident': {
           try { return envGet(env, node.name); }
@@ -792,6 +882,20 @@
         case 'Member': {
           try {
             var obj = evalExpr(node.obj, env);
+            if (Array.isArray(obj)) {
+              if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
+              if (node.prop === 'append') return { _fn: true, call: function (a) { obj.push(a[0]); return null; } };
+              if (node.prop === 'remove') return { _fn: true, call: function (a) {
+                var idx = a[0];
+                if (idx < 0 || idx >= obj.length) throw new Error('remove: index ' + idx + ' out of bounds (length ' + obj.length + ')');
+                return obj.splice(idx, 1)[0];
+              } };
+              throw new Error("No method '" + node.prop + "' on array");
+            }
+            if (typeof obj === 'string') {
+              if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
+              throw new Error("No method '" + node.prop + "' on string");
+            }
             if (obj && typeof obj === 'object' && node.prop in obj) return obj[node.prop];
             throw new Error("No field '" + node.prop + "' on " + display(obj));
           } catch(e) { throw annotate(e, node.line); }
@@ -810,6 +914,7 @@
             case '*':  return l * r;
             case '/':  return l / r;
             case '%':  return l % r;
+            case '**': return Math.pow(l, r);
             case '==': return l === r;
             case '!=': return l !== r;
             case '<':  return l < r;
