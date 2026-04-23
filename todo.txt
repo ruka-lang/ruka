@@ -1,7 +1,11 @@
 TODO (Features, Docs and playground)
 - Documentation/Language features
-    - Allow ranges in match arm guards
-    - Consider compile-time builtins use @.type_of, and runtime builtins use #.abs, etc.
+	- Consider changing local back to static only, and let be immutable by default and requiring the mut mode `let *ident` to create a mutable variable mirroring the * parameter mode
+		- Also consider removing local/share and using the compile-time mode to specify compile-time constants `let @ALPHA = ...` `let @main = ...`, @ is implied for methods and statics `let start (self) = ...`, and type definitions `let vec = record { ... }`, but I'm not sure how to handle specifying privacy cleanly
+		- If we do this change, I think we should go back to `ruka.` for builtin functions, interfaces, etc otherwise I think it would look messy with so many operators everywhere
+    - Allowing ranges in match arm guards when matching integer-typed variables
+	- Builtin types like arrays, tuples, strings, (maybe even primatives as well like integers) are treated like records and have methods
+	- Methods are only appliable in the scope the type is defined in. Maybe this rule has an expection for builtin types so you could add methods to a specific array type for example to satisfy an interface `let fold (self: [float]) = ...` so you wouldn't have to create a wrapper type around an array unless you needed more fields to keep track of data for whatever reason
 - More playground language support (in order of importance)
 	- Playground input sanitization
 	- Modes
@@ -17,4 +21,4 @@ TODO (Features, Docs and playground)
 	- Make playground it's own page
 	- User projects supporting multiple files, saved in local storage
 	- Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
-        - do is only closed with end if pressing enter right after it
+        - do is only autoclosed with end if pressing enter right after it
