@@ -259,7 +259,9 @@ identifier    ::=  letter ( letter | digit )*
           <code>self</code> is a reserved keyword that refers to the method receiver instance.
           It may only appear in the receiver position of a binding declaration or as a parameter
           inside the function body of a method. <code>with</code> is a keyword used exclusively
-          as part of the <code>match</code> expression syntax.
+          as part of the <code>match</code> expression syntax. <code>#</code> is a reserved sigil
+          that refers to the built-in module; it may appear anywhere an identifier is valid as a
+          primary expression and cannot be shadowed.
         </div>
       </section>
 
@@ -328,7 +330,8 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
           A Ruka source file is a flat sequence of declarations. Every file is implicitly
           a compile-time record: <code>share</code> declarations become its public fields
           and <code>local</code> declarations are private fields inaccessible to importers.
-          <code>ruka.import</code> returns this record value; there is no separate module concept.
+          <code>#.import</code> returns this record value; there is no separate module concept.
+          (The <code>#</code> sigil is the built-in module reference; see Built-in Module below.)
         </p>
         <pre class="grammar"><code>program       ::=  declaration*</code></pre>
       </section>
@@ -363,7 +366,7 @@ destructure-pattern
               ::=  "{" identifier ( "," identifier )* "}"
                    -- destructures any record value, including imported files
                    -- e.g.  local { x, y } = point
-                   -- e.g.  local { sqrt, pow } = ruka.import("math")</code></pre>
+                   -- e.g.  local { sqrt, pow } = #.import("math")</code></pre>
 
         <div class="note">
           <strong>Uniform declarations.</strong> Functions, types, behaviours, and modules
@@ -558,6 +561,7 @@ trailing-arg  ::=  "~" identifier "=" function-expr
         <h3>Primary Expressions</h3>
         <pre class="grammar"><code>primary       ::=  literal-expr
                |   identifier
+               |   "#"                                     -- built-in module reference; see Built-in Module
                |   block-expr
                |   if-expr
                |   match-expr
@@ -579,6 +583,9 @@ literal-expr  ::=  integer-lit
                |   bool-lit
                |   string-lit
                |   multiline-lit
+               |   unit-lit
+
+unit-lit      ::=  "(" ")"                                -- the unit value; the only inhabitant of the unit type
 
 -- ── Block expression ──────────────────────────────
 -- A sequence of statements; evaluates to its last expression.
@@ -729,8 +736,9 @@ for-pattern   ::=  identifier                             -- simple binding
                    -- e.g.  for {k, v} in pairs do ... end</code></pre>
 
         <h4>Return</h4>
-        <pre class="grammar"><code>return-expr   ::=  "return" expr?
-                   -- "return" with no expression returns the unit value ()</code></pre>
+        <pre class="grammar"><code>return-expr   ::=  "return" expr
+                   -- "return" always carries a payload expression
+                   -- a unit-returning function exits early with `return ()`</code></pre>
 
         <h4>Break and Continue</h4>
         <p>
@@ -808,30 +816,34 @@ guard-pattern ::=  expr
       <section id="builtins-grammar">
         <h3>Built-in Module</h3>
         <p>
-          Built-in functions are accessed through the <code>ruka</code> module, which is
+          Built-in functions are accessed through the <code>#</code> module, which is
           implicitly available in every scope without an import declaration. Access uses
-          ordinary field-access and call syntax: <code>ruka.println(...)</code>,
-          <code>ruka.len(...)</code>, etc. The <code>ruka</code> identifier cannot be
-          shadowed or redefined by user code.
+          ordinary field-access and call syntax: <code>#.println(...)</code>,
+          <code>#.sqrt(...)</code>, etc. The <code>#</code> sigil cannot be shadowed or
+          rebound by user code.
         </p>
-        <pre class="grammar"><code>-- ruka is an implicitly imported compile-time record; no import needed.
--- Access uses standard postfix call syntax: ruka.fn(args)
+        <pre class="grammar"><code>-- # is an implicitly imported compile-time record; no import needed.
+-- Access uses standard postfix call syntax: #.fn(args)
 
--- ruka.print(string)              print to stdout without a trailing newline
--- ruka.println(string)            print to stdout with a trailing newline
--- ruka.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
--- ruka.type_of(expr)              return the compile-time type of an expression as a "type" value
--- ruka.abs(number)                absolute value
--- ruka.sqrt(number)               square root
--- ruka.len(collection)            length of an array, tuple, or string
--- ruka.assert_eq(a, b)            assert equality; panics at runtime on failure
--- ruka.compile_error(string-lit)  emit a compile-time error with the given message
--- ruka.heap_alloc(size)           raw heap allocation; returns [u8], untracked by GC
--- ruka.heap_free(bytes)           release memory obtained from heap_alloc
--- ruka.fields_of(t)               compile-time array of a type's field descriptors
--- ruka.methods_of(t)              compile-time array of a type's method descriptors
--- ruka.statics_of(t)              compile-time array of a type's static members
--- ruka.record_of(fields)          build a record type from compile-time field data</code></pre>
+-- #.print(string)              print to stdout without a trailing newline
+-- #.println(string)            print to stdout with a trailing newline
+-- #.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
+-- #.type_of(expr)              return the compile-time type of an expression as a "type" value
+-- #.abs(number)                absolute value
+-- #.sin(number)                sine
+-- #.cos(number)                cosine
+-- #.tan(number)                tangent
+-- #.sqrt(number)               square root
+-- #.assert_eq(a, b)            assert equality; panics at runtime on failure
+-- #.compile_error(string-lit)  emit a compile-time error with the given message
+-- #.size(type)                 size in bytes of a compile-time type value
+-- #.heap_alloc(size)           raw heap allocation; returns [u8], untracked by GC
+-- #.heap_free(bytes)           release memory obtained from heap_alloc
+-- #.fields_of(t)               compile-time array of a type's field descriptors
+-- #.methods_of(t)              compile-time array of a type's method descriptors
+-- #.statics_of(t)              compile-time array of a type's static members
+-- #.record_of(fields)          build a record type from compile-time field data
+-- #.now()                      current time as a timestamp value</code></pre>
       </section>
 
     </section><!-- /syntactic -->

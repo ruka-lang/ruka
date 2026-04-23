@@ -1,23 +1,23 @@
 share main = () do
     // Numeric range — i is bound per iteration
     for i in 1..=5 do
-        ruka.println("${i} ** 2 = ${i ** 2}")
+        #.println("${i} ** 2 = ${i ** 2}")
     end
 
     // Char range — iterate letters directly
     let word = ""
     for c in 'R'..='Z' do word = word.concat("${c}")
-    ruka.println("letters: ${word}")
+    #.println("letters: ${word}")
 
     // String indexing — returns a u8 that prints as its character
     let name = "Ruka"
-    ruka.println("first:   ${name[0]}")
-    ruka.println("slice:   ${name[1..=3]}")
+    #.println("first:   ${name[0]}")
+    #.println("slice:   ${name[1..=3]}")
 
     // break & continue
     for i in 0..20 do
         if i % 2 == 0 do continue
         if i > 9       do break
-        ruka.println("odd ${i}")
+        #.println("odd ${i}")
     end
 end

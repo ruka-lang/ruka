@@ -198,7 +198,7 @@ pub const Node = struct {
         for_expr,              // extra_data: [pattern node, iter node, body block node]
         match_expr,            // extra_data: [scrutinee node, arm count, ...arm nodes]
         match_arm,             // lhs=pattern node, rhs=body node
-        return_expr,           // lhs=value node (0 for bare return)
+        return_expr,           // lhs=value node (always present — `return` requires a payload)
         break_expr,
         continue_expr,
         defer_stmt,            // lhs=expr node
