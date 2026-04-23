@@ -1,9 +1,10 @@
 TODO (Features, Docs and playground)
-- Clarify in documentation
-	- let is mutable variable
-	- local is immutable variable or private static/field
-	- share is public static
-- Allow ranges in match arm guards
+- Documentation
+    - Clarify
+        - let is mutable variable
+        - local is immutable variable or private static/field
+        - share is public static
+    - Allow ranges in match arm guards
 - More playground language support (in order of importance)
 	- Playground input sanitization
 	- Explicit returns
@@ -21,6 +22,6 @@ TODO (Features, Docs and playground)
 	- More builtin functions
 - Playground functionality
 	- Make playground it's own page
-	- Multi-file support and saving code to localstorage so work isn't lost of refresh
-	- Context aware indentation and autoclosing for () {} [] do end
-	- Type information on hover
+	- User projects supporting multiple files, saved in local storage
+	- Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
+        - do is only closed with end if pressing enter right after it
