@@ -88,7 +88,7 @@ window.RUKA_EXAMPLES = {
 		'',
 		'    // Char range — iterate letters directly',
 		'    let word = ""',
-		'    for c in \'R\'..=\'Z\' do word = word + "${c}"',
+		'    for c in \'R\'..=\'Z\' do word = word.concat("${c}")',
 		'    ruka.println("letters: ${word}")',
 		'',
 		'    // String indexing — returns a u8 that prints as its character',

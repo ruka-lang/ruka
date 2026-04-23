@@ -82,12 +82,12 @@ let x = 12  // Inline comment</code></pre>
         identifier, or discarded with <code>_</code>.
       </p>
       <table>
-        <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
+        <thead><tr><th>Keyword</th><th>Mutability</th><th>When</th><th>Visibility</th></tr></thead>
         <tbody>
-          <tr><td><code>let</code></td><td>Mutable</td><td>Scoped to the enclosing block</td></tr>
-          <tr><td><code>share</code></td><td>Immutable</td><td>Public — exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
-          <tr><td><code>local</code></td><td>Immutable</td><td>Private — not exported</td></tr>
-          <tr><td><code>test</code></td><td>Immutable</td><td>Not exported — compiled in debug/test builds only</td></tr>
+          <tr><td><code>let</code></td><td>Mutable</td><td>Runtime</td><td>A mutable variable, scoped to the enclosing block. Not exported.</td></tr>
+          <tr><td><code>local</code></td><td>Immutable</td><td>Runtime or static</td><td>A private binding — either an immutable runtime value or a private static/field. Not exported.</td></tr>
+          <tr><td><code>share</code></td><td>Immutable</td><td>Static</td><td>A public static constant, exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
+          <tr><td><code>test</code></td><td>Immutable</td><td>Static</td><td>Not exported — compiled in debug/test builds only.</td></tr>
         </tbody>
       </table>
 <pre><code class="ruka">let count = 0          // mutable runtime value

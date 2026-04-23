@@ -1,15 +1,8 @@
 TODO (Features, Docs and playground)
 - Documentation
-    - Clarify
-        - let is mutable variable
-        - local is immutable variable or private static/field
-        - share is public static
     - Allow ranges in match arm guards
 - More playground language support (in order of importance)
 	- Playground input sanitization
-	- Explicit returns
-	- String concatenation done with method var.concat(...) not +
-	- Pipeline operator
 	- Modes
 	- Mutability/mode checks when mutating a binding or parameter
 	- Records
