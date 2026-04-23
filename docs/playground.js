@@ -117,6 +117,14 @@
         toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
         continue;
       }
+      // Built-in module sigil — `#` is the only way to reach the ruka built-ins
+      // (e.g. `#.println(...)`). Tokenized with t = '#' so the parser can accept
+      // it wherever an identifier-producing primary is expected.
+      if (src[i] === '#') {
+        toks.push({ t: '#', v: '#', line: tok_line });
+        i++;
+        continue;
+      }
       // three-char tokens (must precede two-char)
       var c3 = src.slice(i, i + 3);
       if (c3 === '..=') {
@@ -286,10 +294,9 @@
       if (check('continue')) { var ccl = peek().line; pos++; return { k: 'Continue', line: ccl }; }
       if (check('return')) {
         var rl = peek().line; pos++;
-        // bare `return` (end of line / end of block) returns unit
-        var bareReturn = check('NL') || check('end') || check('else') || check('EOF');
-        var rv = bareReturn ? null : parseExpr();
-        return { k: 'Return', value: rv, line: rl };
+        // Explicit `return` always requires a payload. Functions that return
+        // unit write `return ()` — the bare form is no longer accepted.
+        return { k: 'Return', value: parseExpr(), line: rl };
       }
       // for [name in] iterable do body end
       if (check('for')) return parseFor();
@@ -549,7 +556,16 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
-      if (tok.t === '(')     { eat('('); skipNL(); var e = parseExpr(); skipNL(); eat(')'); return e; }
+      // `#` — built-in module reference. Behaves like an identifier binding named "#",
+      // so `#.println(...)` parses through the normal Member/Call postfix chain.
+      if (tok.t === '#')     { pos++; return { k: 'Ident', name: '#', line: tok.line }; }
+      if (tok.t === '(')     {
+        eat('('); skipNL();
+        // `()` — unit literal. Distinguished from a parenthesised expression by
+        // the closing `)` appearing with no expression between the parens.
+        if (check(')')) { eat(')'); return { k: 'Unit', line: tok.line }; }
+        var e = parseExpr(); skipNL(); eat(')'); return e;
+      }
       // Array/tuple literal: .{a, b, c}
       if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
         var ll = tok.line;
@@ -648,7 +664,7 @@
   // Returns an Error with .line set on the first undeclared identifier,
   // or null if the program is clean.
   function checkScope(ast) {
-    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
+    var BUILTINS = new Set(['#', 'true', 'false', 'self']);
 
     // Top-level: hoist all binding names so mutually-recursive functions work.
     var topNames = new Set(BUILTINS);
@@ -707,6 +723,7 @@
       if (!node) return;
       switch (node.k) {
         case 'Lit':  return;
+        case 'Unit': return;
         case 'Char': return;
         case 'Str':  chkInterp(node.raw, scope, node.line); return;
         case 'Ident':
@@ -884,7 +901,7 @@
       }
     };
     var topEnv = { bindings: Object.create(null), parent: null };
-    topEnv.bindings['ruka']  = rukaModule;
+    topEnv.bindings['#']     = rukaModule;
     topEnv.bindings['true']  = { k: 'bool' };
     topEnv.bindings['false'] = { k: 'bool' };
     topEnv.bindings['self']  = { k: 'unknown' };
@@ -930,11 +947,9 @@
       if (node.k === 'ExprStmt') { inferExpr(node.expr, null, env); return; }
       if (node.k === 'Return') {
         if (retTyStack.length === 0) throw tyErr(node.line, "'return' outside function");
-        var expected = retTyStack[retTyStack.length - 1];
-        if (node.value) inferExpr(node.value, expected, env);
-        else if (expected && expected.k !== 'unknown' && expected.k !== 'unit') {
-          throw tyErr(node.line, 'bare return in function returning ' + tyStr(expected));
-        }
+        // `return` always carries a value after the parser change — unit-returning
+        // functions use `return ()`, which is a Unit literal typed as `unit`.
+        inferExpr(node.value, retTyStack[retTyStack.length - 1], env);
         return;
       }
       if (node.k === 'For') {
@@ -968,6 +983,7 @@
 
     function inferExpr(node, expected, env) {
       switch (node.k) {
+        case 'Unit': return conform(expected, { k: 'unit' }, node.line);
         case 'Lit': {
           if (typeof node.v === 'boolean') return conform(expected, { k: 'bool' }, node.line);
           // node.isFloat is authoritative — JS number has no int/float distinction
@@ -1262,7 +1278,7 @@
     }
 
     var globalEnv = mkEnv(null);
-    envSet(globalEnv, 'ruka', {
+    envSet(globalEnv, '#', {
       _obj: true,
       println:  { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
       print:    { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
@@ -1289,9 +1305,8 @@
         if (node.k === 'Break')    { var b = new Error('break outside loop');    b._break    = true; throw b; }
         if (node.k === 'Continue') { var c = new Error('continue outside loop'); c._continue = true; throw c; }
         if (node.k === 'Return') {
-          var rv = node.value ? evalExpr(node.value, env) : null;
           var r = new Error('return outside function');
-          r._return = true; r.value = rv;
+          r._return = true; r.value = evalExpr(node.value, env);
           throw r;
         }
         throw new Error('Unknown statement kind: ' + node.k);
@@ -1325,6 +1340,7 @@
       switch (node.k) {
 
         case 'Lit':   return node.v;
+        case 'Unit':  return null;
         case 'Char':  return { _char: true, v: node.v };
         case 'Str':   return interpStr(node.raw, env);
 

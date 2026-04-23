@@ -3,7 +3,7 @@
 	const KEYWORDS = new Set([
 		'let', 'share', 'local', 'if', 'match',
 		'while', 'for', 'return', 'record', 'variant', 'behaviour',
-		'true', 'false', 'self', 'test', 'break', 'continue', 'defer', 'ruka'
+		'true', 'false', 'self', 'test', 'break', 'continue', 'defer'
 	]);
 
 	const OPERATORS = new Set([
@@ -79,7 +79,15 @@
 			continue;
 		}
 
-		// Named-parameter label  ~name
+		// Built-in module sigil  `#` (replaces the old `ruka` identifier).
+		// Styled as a keyword since `#` cannot be shadowed or used as a name.
+			if (raw[i] === '#') {
+				out += span('kw', '#');
+				i++;
+				continue;
+			}
+
+			// Named-parameter label  ~name
 			if (raw[i] === '~') {
 				let j = i + 1;
 				while (j < raw.length && /\w/.test(raw[j])) j++;

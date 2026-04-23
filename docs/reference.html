@@ -1796,9 +1796,11 @@ end</code></pre>
           <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
           <tr><td><code>ruka.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
           <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>ruka.sin(number)</code></td><td>Sin value.</td></tr>
+          <tr><td><code>ruka.cos(number)</code></td><td>Cos value.</td></tr>
+          <tr><td><code>ruka.tan(number)</code></td><td>Tan value.</td></tr>
           <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
           <tr><td><code>ruka.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
-          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>uint</code>.</td></tr>
           <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
           <tr><td><code>ruka.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
           <tr><td><code>ruka.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>ruka.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
