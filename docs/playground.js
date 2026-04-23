@@ -97,15 +97,17 @@
         toks.push({ t: 'CHAR', v: cv, line: tok_line });
         continue;
       }
-      // number — stop the fractional part if we hit `..` (range operator)
+      // number — stop the fractional part if we hit `..` (range operator).
+      // Track float-ness explicitly because parseFloat("2.0") === 2 in JS.
       if (/\d/.test(src[i])) {
-        var n = '';
+        var n = '', isFloat = false;
         while (i < len && /\d/.test(src[i])) n += src[i++];
         if (src[i] === '.' && src[i + 1] !== '.' && /\d/.test(src[i + 1])) {
+          isFloat = true;
           n += src[i++];
           while (i < len && /\d/.test(src[i])) n += src[i++];
         }
-        toks.push({ t: 'NUM', v: parseFloat(n), line: tok_line });
+        toks.push({ t: 'NUM', v: parseFloat(n), isFloat: isFloat, line: tok_line });
         continue;
       }
       // identifier / keyword
@@ -164,6 +166,66 @@
     }
     function skipNL() { while (check('NL')) pos++; }
 
+    // Parse a type expression:
+    //   prim   : int | uint | i8..i128 | u8..u128 | float | f32 | f64 | string | bool
+    //   unit   : '(' ')'
+    //   coll   : '[' type (',' type)* ']'     -- 1 elem = array, 2+ = tuple
+    //   option : '?' '(' type ')'   |  'option' '(' type ')'
+    //   result : '!' '(' type ',' type ')'   |  'result' '(' type ',' type ')'
+    //   named  : <ID>                          -- user-defined / unresolved
+    // Primitive names are parsed as TyName and classified in the type checker.
+    function parseType() {
+      skipNL();
+      var tok = peek();
+      if (tok.t === '(') {
+        eat('('); skipNL(); eat(')');
+        return { k: 'TyUnit', line: tok.line };
+      }
+      if (tok.t === '[') {
+        eat('['); skipNL();
+        var elems = [parseType()];
+        skipNL();
+        while (tryMatch(',')) { skipNL(); elems.push(parseType()); skipNL(); }
+        eat(']');
+        if (elems.length === 1) return { k: 'TyArray', elem: elems[0], line: tok.line };
+        return { k: 'TyTuple', elems: elems, line: tok.line };
+      }
+      if (tok.t === '?') {
+        eat('?'); eat('('); skipNL();
+        var inner = parseType();
+        skipNL(); eat(')');
+        return { k: 'TyOption', inner: inner, line: tok.line };
+      }
+      if (tok.t === '!') {
+        eat('!'); eat('('); skipNL();
+        var ok = parseType();
+        skipNL(); eat(','); skipNL();
+        var err = parseType();
+        skipNL(); eat(')');
+        return { k: 'TyResult', ok: ok, err: err, line: tok.line };
+      }
+      if (tok.t === 'ID') {
+        var name = eat('ID').v;
+        if ((name === 'option' || name === 'result') && check('(')) {
+          eat('('); skipNL();
+          var first = parseType();
+          skipNL();
+          if (name === 'option') {
+            eat(')');
+            return { k: 'TyOption', inner: first, line: tok.line };
+          }
+          eat(','); skipNL();
+          var second = parseType();
+          skipNL(); eat(')');
+          return { k: 'TyResult', ok: first, err: second, line: tok.line };
+        }
+        return { k: 'TyName', name: name, line: tok.line };
+      }
+      var e = new Error("Expected type, got '" + tok.t + "' ('" + tok.v + "')");
+      e.line = tok.line;
+      throw e;
+    }
+
     // Lookahead: is '(' at current pos the start of a function literal?
     // A function literal is `(params) [-> ReturnType] do ...`.
     function isFnLiteral() {
@@ -206,11 +268,10 @@
             pos++;
           }
         }
-        // skip optional : Type
-        if (tryMatch(':')) while (!check('=') && !check('EOF')) pos++;
+        var bindType = tryMatch(':') ? parseType() : null;
         eat('=');
         skipNL();
-        return { k: 'Bind', kw: kw.v, name: name, value: parseExpr(), line: kw.line };
+        return { k: 'Bind', kw: kw.v, name: name, type: bindType, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
@@ -270,21 +331,24 @@
       var l = peek().line;
       eat('(');
       var params = [];
+      var paramTypes = [];
+      var paramModes = [];
       skipNL();
       while (!check(')') && !check('EOF')) {
-        tryMatch('*', '&', '$', '@'); // skip mode prefix sigil
+        var m = tryMatch('*', '&', '$', '@');
+        paramModes.push(m ? m.t : null);
         if (check('ID')) params.push(eat('ID').v);
-        if (tryMatch(':')) while (!check(',') && !check(')') && !check('EOF')) pos++; // skip type
+        paramTypes.push(tryMatch(':') ? parseType() : null);
         skipNL();
         if (tryMatch(',')) skipNL();
       }
       eat(')');
-      if (tryMatch('->')) while (!check('do') && !check('EOF')) pos++;
+      var returnType = tryMatch('->') ? parseType() : null;
       eat('do');
       var b = parseDoBody();
       if (b.multiline) eat('end');
       else tryMatch('end');
-      return { k: 'Fn', params: params, body: b.node, line: l };
+      return { k: 'Fn', params: params, paramTypes: paramTypes, paramModes: paramModes, returnType: returnType, body: b.node, line: l };
     }
 
     function parseWhile() {
@@ -454,7 +518,7 @@
     }
     function parsePrimary() {
       var tok = peek();
-      if (tok.t === 'NUM')   { pos++; return { k: 'Lit',   v: tok.v,    line: tok.line }; }
+      if (tok.t === 'NUM')   { pos++; return { k: 'Lit',   v: tok.v, isFloat: !!tok.isFloat, line: tok.line }; }
       if (tok.t === 'CHAR')  { pos++; return { k: 'Char',  v: tok.v,    line: tok.line }; }
       if (tok.t === 'STR')   { pos++; return { k: 'Str',   raw: tok.v,  line: tok.line }; }
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
@@ -473,7 +537,22 @@
           if (tryMatch(',')) skipNL();
         }
         eat('}');
-        return { k: 'List', elements: elements, line: ll };
+        return { k: 'List', typePrefix: null, elements: elements, line: ll };
+      }
+      // Type-prefixed collection literal: [i32].{2, 3} or [i32, string].{1, "hi"}
+      if (tok.t === '[') {
+        var pl = tok.line;
+        var prefix = parseType(); // consumes through `]`
+        eat('.'); eat('{');
+        skipNL();
+        var elems = [];
+        while (!check('}') && !check('EOF')) {
+          elems.push(parseExpr());
+          skipNL();
+          if (tryMatch(',')) skipNL();
+        }
+        eat('}');
+        return { k: 'List', typePrefix: prefix, elements: elems, line: pl };
       }
       if (tok.t === 'do')    {
         eat('do');
@@ -661,6 +740,396 @@
           chkExpr(node.expr, scope);
           return;
       }
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  // Type checker (bidirectional inference)
+  // ──────────────────────────────────────────────
+  // Primitives per docs/reference.html §Built-in Types.
+  var INT_TYS = new Set([
+    'int', 'uint',
+    'i8', 'i16', 'i32', 'i64', 'i128',
+    'u8', 'u16', 'u32', 'u64', 'u128'
+  ]);
+  var FLOAT_TYS = new Set(['float', 'f32', 'f64']);
+  var PRIM_TYS = new Set([].concat(
+    Array.from(INT_TYS), Array.from(FLOAT_TYS), ['string', 'bool']
+  ));
+  function isNumericKind(k) { return INT_TYS.has(k) || FLOAT_TYS.has(k); }
+
+  function tyStr(t) {
+    if (!t) return '?';
+    switch (t.k) {
+      case 'unit':    return '()';
+      case 'array':   return '[' + tyStr(t.elem) + ']';
+      case 'tuple':   return '[' + t.elems.map(tyStr).join(', ') + ']';
+      case 'option':  return '?(' + tyStr(t.inner) + ')';
+      case 'result':  return '!(' + tyStr(t.ok) + ', ' + tyStr(t.err) + ')';
+      case 'range':   return 'range(' + tyStr(t.elem) + ')';
+      case 'fn':      return '(' + (t.params||[]).map(tyStr).join(', ') + ') -> ' + tyStr(t.ret);
+      case 'module':  return '<module>';
+      case 'named':   return t.name;
+      case 'unknown': return '?';
+      default:        return t.k;   // primitive name stored directly in k
+    }
+  }
+
+  function tyEq(a, b) {
+    if (!a || !b) return false;
+    if (a.k === 'unknown' || b.k === 'unknown') return true;
+    if (a.k !== b.k) return false;
+    switch (a.k) {
+      case 'array':  return tyEq(a.elem, b.elem);
+      case 'tuple':
+        if (a.elems.length !== b.elems.length) return false;
+        for (var i = 0; i < a.elems.length; i++) if (!tyEq(a.elems[i], b.elems[i])) return false;
+        return true;
+      case 'option': return tyEq(a.inner, b.inner);
+      case 'result': return tyEq(a.ok, b.ok) && tyEq(a.err, b.err);
+      case 'range':  return tyEq(a.elem, b.elem);
+      case 'named':  return a.name === b.name;
+      case 'fn':
+        if ((a.params||[]).length !== (b.params||[]).length) return false;
+        for (var j = 0; j < a.params.length; j++) if (!tyEq(a.params[j], b.params[j])) return false;
+        return tyEq(a.ret, b.ret);
+      default: return true;  // primitive — tag equality suffices
+    }
+  }
+
+  // Parser type AST → internal Ty
+  function astToTy(node) {
+    if (!node) return null;
+    switch (node.k) {
+      case 'TyUnit':   return { k: 'unit' };
+      case 'TyArray':  return { k: 'array',  elem: astToTy(node.elem) };
+      case 'TyTuple':  return { k: 'tuple',  elems: node.elems.map(astToTy) };
+      case 'TyOption': return { k: 'option', inner: astToTy(node.inner) };
+      case 'TyResult': return { k: 'result', ok: astToTy(node.ok), err: astToTy(node.err) };
+      case 'TyName':   return PRIM_TYS.has(node.name) ? { k: node.name } : { k: 'named', name: node.name };
+    }
+    return { k: 'unknown' };
+  }
+
+  function tyErr(line, msg) { var e = new Error(msg); e.line = line; return e; }
+
+  // Static method resolution for built-in types
+  function methodOf(obj, name, line) {
+    if (!obj || obj.k === 'unknown') return { k: 'unknown' };
+    if (obj.k === 'array') {
+      if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
+      if (name === 'append') return { k: 'fn', params: [obj.elem], ret: { k: 'unit' } };
+      if (name === 'remove') return { k: 'fn', params: [{ k: 'int' }], ret: obj.elem };
+      throw tyErr(line, "no method '" + name + "' on " + tyStr(obj));
+    }
+    if (obj.k === 'string') {
+      if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
+      throw tyErr(line, "no method '" + name + "' on string");
+    }
+    if (obj.k === 'module') {
+      if (name in obj.members) return obj.members[name];
+      throw tyErr(line, "no member '" + name + "' on module");
+    }
+    // named / option / result / tuple — not yet supported here
+    return { k: 'unknown' };
+  }
+
+  // Check `actual` conforms to `expected`. Unknown tolerated in either direction.
+  // Returns the resolved type (prefers `expected` when provided, for literal defaulting).
+  function conform(expected, actual, line) {
+    if (!expected)             return actual;
+    if (actual.k === 'unknown') return expected;
+    if (expected.k === 'unknown') return actual;
+    if (!tyEq(expected, actual)) {
+      throw tyErr(line, 'type mismatch: expected ' + tyStr(expected) + ', got ' + tyStr(actual));
+    }
+    return actual;
+  }
+
+  function checkTypes(ast) {
+    var rukaModule = {
+      k: 'module',
+      members: {
+        println:  { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
+        print:    { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
+        assertEq: { k: 'fn', params: [{ k: 'unknown' }, { k: 'unknown' }],          ret: { k: 'unit' } }
+      }
+    };
+    var topEnv = { bindings: Object.create(null), parent: null };
+    topEnv.bindings['ruka']  = rukaModule;
+    topEnv.bindings['true']  = { k: 'bool' };
+    topEnv.bindings['false'] = { k: 'bool' };
+    topEnv.bindings['self']  = { k: 'unknown' };
+
+    // Hoist top-level names — annotated bindings get precise types; others
+    // are unknown until the second pass refines them.
+    ast.body.forEach(function (s) {
+      if (s.k === 'Bind') {
+        topEnv.bindings[s.name] = astToTy(s.type) || { k: 'unknown' };
+      }
+    });
+
+    try {
+      ast.body.forEach(function (s) { checkStmt(s, topEnv); });
+    } catch (e) { return e; }
+    return null;
+
+    function extend(env) { return { bindings: Object.create(null), parent: env }; }
+    function lookup(env, name) {
+      while (env) { if (name in env.bindings) return env.bindings[name]; env = env.parent; }
+      return null;
+    }
+
+    function checkStmt(node, env) {
+      if (node.k === 'Bind') {
+        var declared = astToTy(node.type);
+        var vt = inferExpr(node.value, declared, env);
+        env.bindings[node.name] = declared || vt;
+        return;
+      }
+      if (node.k === 'Assign') {
+        var t = lookup(env, node.name);
+        inferExpr(node.value, t, env);
+        return;
+      }
+      if (node.k === 'ExprStmt') { inferExpr(node.expr, null, env); return; }
+      if (node.k === 'For') {
+        var iter = inferExpr(node.iter, null, env);
+        var elemTy =
+          iter.k === 'range'  ? iter.elem  :
+          iter.k === 'array'  ? iter.elem  :
+          iter.k === 'string' ? { k: 'u8' } :
+                                { k: 'unknown' };
+        var fenv = extend(env);
+        if (node.name) fenv.bindings[node.name] = elemTy;
+        node.body.forEach(function (s) { checkStmt(s, fenv); });
+        return;
+      }
+      // Break / Continue: nothing to check
+    }
+
+    function checkInterp(raw, env, line) {
+      // Re-parse each ${...} and check in the enclosing env. Same approach as
+      // checkScope — errors re-tagged to the string's line.
+      var parts = splitInterp(raw);
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].interp !== undefined) {
+          try {
+            var innerAst = parse(tokenize(parts[i].interp));
+            innerAst.body.forEach(function (s) { checkStmt(s, env); });
+          } catch (e) { e.line = line; throw e; }
+        }
+      }
+    }
+
+    function inferExpr(node, expected, env) {
+      switch (node.k) {
+        case 'Lit': {
+          if (typeof node.v === 'boolean') return conform(expected, { k: 'bool' }, node.line);
+          // node.isFloat is authoritative — JS number has no int/float distinction
+          // at runtime, so `2.0 === 2` and Number.isInteger can't be trusted here.
+          if (!node.isFloat) {
+            if (expected && INT_TYS.has(expected.k)) return expected;
+            if (expected && expected.k !== 'unknown')
+              throw tyErr(node.line, 'expected ' + tyStr(expected) + ', got integer literal');
+            return { k: 'int' };
+          }
+          if (expected && FLOAT_TYS.has(expected.k)) return expected;
+          if (expected && expected.k !== 'unknown')
+            throw tyErr(node.line, 'expected ' + tyStr(expected) + ', got float literal');
+          return { k: 'float' };
+        }
+        case 'Char': return conform(expected, { k: 'u8' }, node.line);
+        case 'Str':
+          checkInterp(node.raw, env, node.line);
+          return conform(expected, { k: 'string' }, node.line);
+
+        case 'Ident': {
+          var t = lookup(env, node.name);
+          if (!t) return { k: 'unknown' };   // scope check reports undefined
+          return conform(expected, t, node.line);
+        }
+
+        case 'Block': {
+          var benv = extend(env);
+          var bt = { k: 'unit' };
+          for (var i = 0; i < node.body.length; i++) {
+            var s = node.body[i];
+            var isLast = i === node.body.length - 1;
+            if (isLast && s.k === 'ExprStmt') bt = inferExpr(s.expr, expected, benv);
+            else checkStmt(s, benv);
+          }
+          return bt;
+        }
+
+        case 'While': {
+          inferExpr(node.cond, { k: 'bool' }, env);
+          var wenv = extend(env);
+          var wt = { k: 'unit' };
+          for (var i = 0; i < node.body.length; i++) {
+            var s = node.body[i];
+            var isLast = i === node.body.length - 1;
+            if (isLast && s.k === 'ExprStmt') wt = inferExpr(s.expr, null, wenv);
+            else checkStmt(s, wenv);
+          }
+          return wt;
+        }
+
+        case 'If': {
+          inferExpr(node.cond, { k: 'bool' }, env);
+          var thenT = inferExpr(node.then, expected, env);
+          if (node.else_) {
+            var elseT = inferExpr(node.else_, expected || thenT, env);
+            if (thenT.k !== 'unknown' && elseT.k !== 'unknown' && !tyEq(thenT, elseT)) {
+              throw tyErr(node.line, 'if branches differ: ' + tyStr(thenT) + ' vs ' + tyStr(elseT));
+            }
+            if (thenT.k === 'unknown') return elseT;
+          }
+          return thenT;
+        }
+
+        case 'Range': {
+          var start = inferExpr(node.start, null, env);
+          var end   = inferExpr(node.end,   start, env);
+          var elem  = start.k !== 'unknown' ? start : end;
+          if (elem.k !== 'unknown' && !isNumericKind(elem.k) && elem.k !== 'u8') {
+            throw tyErr(node.line, 'range bound must be numeric, got ' + tyStr(elem));
+          }
+          return { k: 'range', elem: elem };
+        }
+
+        case 'List': {
+          var prefix = node.typePrefix ? astToTy(node.typePrefix) : null;
+          var ctx = prefix || (expected && (expected.k === 'array' || expected.k === 'tuple') ? expected : null);
+          if (ctx) {
+            if (ctx.k === 'array') {
+              node.elements.forEach(function (el) { inferExpr(el, ctx.elem, env); });
+              return conform(expected, ctx, node.line);
+            }
+            if (ctx.k === 'tuple') {
+              if (node.elements.length !== ctx.elems.length) {
+                throw tyErr(node.line,
+                  'tuple literal has ' + node.elements.length + ' element(s) but type '
+                  + tyStr(ctx) + ' expects ' + ctx.elems.length);
+              }
+              node.elements.forEach(function (el, i) { inferExpr(el, ctx.elems[i], env); });
+              return conform(expected, ctx, node.line);
+            }
+            throw tyErr(node.line, 'invalid collection type ' + tyStr(ctx));
+          }
+          // No context — infer each element, then apply the spec's rule.
+          if (node.elements.length === 0) {
+            throw tyErr(node.line, 'empty .{} needs a type context (annotation or [T].{…} prefix)');
+          }
+          var elemTys = node.elements.map(function (el) { return inferExpr(el, null, env); });
+          var allSame = elemTys.every(function (t) { return tyEq(t, elemTys[0]); });
+          if (allSame) {
+            throw tyErr(node.line,
+              'homogeneous .{…} is ambiguous — add an annotation ([' + tyStr(elemTys[0]) + ']) '
+              + 'or use the [' + tyStr(elemTys[0]) + '].{…} prefix');
+          }
+          return { k: 'tuple', elems: elemTys };
+        }
+
+        case 'Index': {
+          var obj = inferExpr(node.obj, null, env);
+          var idx = inferExpr(node.idx, null, env);
+          if (idx.k === 'range') {
+            if (obj.k === 'string') return conform(expected, { k: 'string' }, node.line);
+            if (obj.k === 'array')  return conform(expected, obj, node.line);
+            return { k: 'unknown' };
+          }
+          if (idx.k !== 'unknown' && !INT_TYS.has(idx.k) && idx.k !== 'u8') {
+            throw tyErr(node.line, 'index must be integer, got ' + tyStr(idx));
+          }
+          if (obj.k === 'string') return conform(expected, { k: 'u8' }, node.line);
+          if (obj.k === 'array')  return conform(expected, obj.elem, node.line);
+          if (obj.k === 'tuple')  return { k: 'unknown' };  // needs literal-index resolution
+          return { k: 'unknown' };
+        }
+
+        case 'Member': {
+          var obj = inferExpr(node.obj, null, env);
+          var mt  = methodOf(obj, node.prop, node.line);
+          return conform(expected, mt, node.line);
+        }
+
+        case 'Call': {
+          var fnT = inferExpr(node.callee, null, env);
+          if (fnT.k === 'fn') {
+            var params = fnT.params || [];
+            if (node.args.length !== params.length) {
+              throw tyErr(node.line, 'expected ' + params.length + ' arg(s), got ' + node.args.length);
+            }
+            for (var i = 0; i < node.args.length; i++) {
+              inferExpr(node.args[i], params[i], env);
+            }
+            return conform(expected, fnT.ret || { k: 'unknown' }, node.line);
+          }
+          // Unknown callee — still walk args so nested expressions get checked.
+          node.args.forEach(function (a) { inferExpr(a, null, env); });
+          return { k: 'unknown' };
+        }
+
+        case 'Fn': {
+          var fenv = extend(env);
+          var pTys = [];
+          for (var i = 0; i < node.params.length; i++) {
+            var pt = astToTy(node.paramTypes[i]);
+            pTys.push(pt);
+            fenv.bindings[node.params[i]] = pt || { k: 'unknown' };
+          }
+          var declaredRet = astToTy(node.returnType);
+          var bodyTy = inferExpr(node.body, declaredRet, fenv);
+          return { k: 'fn', params: pTys, ret: declaredRet || bodyTy };
+        }
+
+        case 'BinOp': {
+          var op = node.op;
+          if (op === 'and' || op === 'or') {
+            inferExpr(node.left,  { k: 'bool' }, env);
+            inferExpr(node.right, { k: 'bool' }, env);
+            return conform(expected, { k: 'bool' }, node.line);
+          }
+          if (op === '==' || op === '!=' || op === '<' || op === '>' || op === '<=' || op === '>=') {
+            var lcmp = inferExpr(node.left, null, env);
+            inferExpr(node.right, lcmp, env);
+            return conform(expected, { k: 'bool' }, node.line);
+          }
+          // Arithmetic. `+` doubles as string concat when either side is string,
+          // matching the current interpreter until the todo's .concat() lands.
+          var hint = (expected && isNumericKind(expected.k)) ? expected : null;
+          var lt = inferExpr(node.left,  hint, env);
+          if (op === '+' && lt.k === 'string') {
+            inferExpr(node.right, null, env);
+            return conform(expected, { k: 'string' }, node.line);
+          }
+          var rt = inferExpr(node.right, lt.k === 'unknown' ? hint : lt, env);
+          if (op === '+' && rt.k === 'string') {
+            return conform(expected, { k: 'string' }, node.line);
+          }
+          var res = lt.k !== 'unknown' ? lt : rt;
+          if (res.k !== 'unknown' && !isNumericKind(res.k) && res.k !== 'u8') {
+            throw tyErr(node.line, op + ' requires numeric operands, got ' + tyStr(res));
+          }
+          return conform(expected, res, node.line);
+        }
+
+        case 'Unary': {
+          if (node.op === '-') {
+            var t = inferExpr(node.expr, expected, env);
+            if (t.k !== 'unknown' && !isNumericKind(t.k))
+              throw tyErr(node.line, 'unary - requires numeric, got ' + tyStr(t));
+            return t;
+          }
+          if (node.op === 'not') {
+            inferExpr(node.expr, { k: 'bool' }, env);
+            return conform(expected, { k: 'bool' }, node.line);
+          }
+          return { k: 'unknown' };
+        }
+      }
+      return { k: 'unknown' };
     }
   }
 
@@ -1025,7 +1494,7 @@
         var err = null;
         try {
           var ast = parse(tokenize(source));
-          err = checkScope(ast); // null if clean
+          err = checkScope(ast) || checkTypes(ast);
         } catch (e) {
           err = e;
         }
@@ -1043,7 +1512,12 @@
       // Yield to the browser so the button state renders before we block
       setTimeout(function () {
         try {
-          var lines = evaluate(parse(tokenize(textarea.value)));
+          var ast = parse(tokenize(textarea.value));
+          var sErr = checkScope(ast);
+          if (sErr) throw sErr;
+          var tErr = checkTypes(ast);
+          if (tErr) throw tErr;
+          var lines = evaluate(ast);
           // Clear any previous error highlight on a successful run
           if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(textarea.value);
           output.textContent = lines.length ? lines.join('\n') : '(no output)';
