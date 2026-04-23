@@ -88,7 +88,6 @@ pub fn build(b: *std.Build) void {
     kcov_collect.addPrefixedDirectoryArg("--include-pattern=", b.path("src"));
     merge_step.addDirectoryArg(kcov_collect.addOutputFileArg(ruka_unit_tests.name));
     kcov_collect.addArtifactArg(ruka_unit_tests);
-    kcov_collect.enableTestRunnerMode();
 
     const install_coverage = b.addInstallDirectory(.{
         .source_dir = merged_coverage_output,
