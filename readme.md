@@ -7,7 +7,7 @@
 The `Ruka` programming language
 
 # Brief Overview
-`Ruka` is a compiled, (maybe) full-stack, programming language with a focus on simplicity and ease of use
+`Ruka` is a compiled and interpreted programming language with a focus on simplicity and ease of use
 
 # Installation
 When `Ruka` reaches a usable state, the instructions for installing and using the tools will live here
@@ -18,10 +18,6 @@ When `Ruka` reaches a usable state, the instructions for installing and using th
 - [Language Reference](https://ruka-lang.github.io/ruka/reference.html) — Full reference covering all language features with examples
 - [Language Grammar](https://ruka-lang.github.io/ruka/grammar.html) — EBNF formal grammar describing Ruka syntax
 - [Examples](https://www.github.com/ruka-lang/ruka/tree/main/docs/examples) - Ruka language example programs
-
-<!--## Important Repositories
-- [Toolchain](https://www.github.com/ruka-lang/rukaup)
-<!--- [Standard Library](https://www.github.com/ruka-lang/ruka-std)-->
 
 # License
 `Ruka` is distributed under the terms of both the MIT license and the Apache License (Version 2.0). See license-apache and license-mit for details
