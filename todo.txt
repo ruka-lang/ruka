@@ -7,6 +7,7 @@ TODO (Features, Docs and playground)
 	- Builtin types like arrays, tuples, strings, (maybe even primatives as well like integers) are treated like records and have methods
 	- Methods are only appliable in the scope the type is defined in. Maybe this rule has an expection for builtin types so you could add methods to a specific array type for example to satisfy an interface `let fold (self: [float]) = ...` so you wouldn't have to create a wrapper type around an array unless you needed more fields to keep track of data for whatever reason
 - More playground language support (in order of importance)
+	- Concat should mutate, not return a new string
 	- Playground input sanitization
 	- Modes
 	- Mutability/mode checks when mutating a binding or parameter
