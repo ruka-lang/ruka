@@ -57,7 +57,7 @@ window.RUKA_EXAMPLES = {
 
 	'arrays': [
 		'share main = () do',
-		'    let primes = .{2, 3, 5, 7, 11}',
+		'    let primes = [int].{2, 3, 5, 7, 11}',
 		'    ruka.println("primes:  ${primes}")',
 		'    ruka.println("length:  ${primes.length()}")',
 		'    ruka.println("first:   ${primes[0]}")',
