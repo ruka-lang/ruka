@@ -1,5 +1,5 @@
 share main = () do
     let name = "world"
-    ruka.println("Hello, ${name}!")
-    ruka.println("1 + 2 = ${1 + 2}")
+    #.println("Hello, ${name}!")
+    #.println("1 + 2 = ${1 + 2}")
 end

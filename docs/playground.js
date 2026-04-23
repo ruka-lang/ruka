@@ -117,6 +117,14 @@
         toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
         continue;
       }
+      // Built-in module sigil — `#` is the only way to reach the ruka built-ins
+      // (e.g. `#.println(...)`). Tokenized with t = '#' so the parser can accept
+      // it wherever an identifier-producing primary is expected.
+      if (src[i] === '#') {
+        toks.push({ t: '#', v: '#', line: tok_line });
+        i++;
+        continue;
+      }
       // three-char tokens (must precede two-char)
       var c3 = src.slice(i, i + 3);
       if (c3 === '..=') {
@@ -124,7 +132,7 @@
       }
       // two-char tokens
       var c2 = src.slice(i, i + 2);
-      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->' || c2 === '..' || c2 === '**') {
+      if (c2 === '==' || c2 === '!=' || c2 === '<=' || c2 === '>=' || c2 === '->' || c2 === '..' || c2 === '**' || c2 === '|>') {
         toks.push({ t: c2, v: c2, line: tok_line }); i += 2; continue;
       }
       // single-char token — track bracket depth so NL is suppressed inside
@@ -281,9 +289,15 @@
         skipNL();
         return { k: 'Assign', name: aname, value: parseExpr(), line: al };
       }
-      // break / continue
+      // break / continue / return
       if (check('break'))    { var bl = peek().line; pos++; return { k: 'Break',    line: bl }; }
       if (check('continue')) { var ccl = peek().line; pos++; return { k: 'Continue', line: ccl }; }
+      if (check('return')) {
+        var rl = peek().line; pos++;
+        // Explicit `return` always requires a payload. Functions that return
+        // unit write `return ()` — the bare form is no longer accepted.
+        return { k: 'Return', value: parseExpr(), line: rl };
+      }
       // for [name in] iterable do body end
       if (check('for')) return parseFor();
       var sl = peek().line;
@@ -399,8 +413,9 @@
     }
 
     // Ternary: `<expr> if <cond> else <expr>` (right-assoc, below `or`).
+    // LHS is an assign/pipeline expression; cond is or-expr per grammar.
     function parseTernary() {
-      var a = parseOr();
+      var a = parsePipeline();
       if (tryMatch('if')) {
         var cond = parseOr();
         skipNL();
@@ -410,6 +425,23 @@
         return { k: 'If', cond: cond, then: a, else_: b, line: a.line };
       }
       return a;
+    }
+
+    // Pipeline: `x |> f(a, b)` desugars to `f(x, a, b)`. Left-associative.
+    // If the RHS is not a Call (e.g. `x |> f`), synthesize `f(x)`.
+    function parsePipeline() {
+      var l = parseOr();
+      while (check('|>')) {
+        pos++;
+        skipNL();
+        var r = parseOr();
+        if (r.k === 'Call') {
+          l = { k: 'Call', callee: r.callee, args: [l].concat(r.args), line: r.line };
+        } else {
+          l = { k: 'Call', callee: r, args: [l], line: r.line || l.line };
+        }
+      }
+      return l;
     }
 
     // Stops at 'end', 'else', or EOF. NL between statements is filler.
@@ -524,7 +556,16 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
-      if (tok.t === '(')     { eat('('); skipNL(); var e = parseExpr(); skipNL(); eat(')'); return e; }
+      // `#` — built-in module reference. Behaves like an identifier binding named "#",
+      // so `#.println(...)` parses through the normal Member/Call postfix chain.
+      if (tok.t === '#')     { pos++; return { k: 'Ident', name: '#', line: tok.line }; }
+      if (tok.t === '(')     {
+        eat('('); skipNL();
+        // `()` — unit literal. Distinguished from a parenthesised expression by
+        // the closing `)` appearing with no expression between the parens.
+        if (check(')')) { eat(')'); return { k: 'Unit', line: tok.line }; }
+        var e = parseExpr(); skipNL(); eat(')'); return e;
+      }
       // Array/tuple literal: .{a, b, c}
       if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
         var ll = tok.line;
@@ -623,7 +664,7 @@
   // Returns an Error with .line set on the first undeclared identifier,
   // or null if the program is clean.
   function checkScope(ast) {
-    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
+    var BUILTINS = new Set(['#', 'true', 'false', 'self']);
 
     // Top-level: hoist all binding names so mutually-recursive functions work.
     var topNames = new Set(BUILTINS);
@@ -652,6 +693,8 @@
         var fScope = new Set(scope);
         if (node.name) fScope.add(node.name);
         node.body.forEach(function (s) { chkStmt(s, fScope); });
+      } else if (node.k === 'Return') {
+        if (node.value) chkExpr(node.value, scope);
       } else if (node.k === 'Break' || node.k === 'Continue') {
         // structural — nothing to resolve
       }
@@ -680,6 +723,7 @@
       if (!node) return;
       switch (node.k) {
         case 'Lit':  return;
+        case 'Unit': return;
         case 'Char': return;
         case 'Str':  chkInterp(node.raw, scope, node.line); return;
         case 'Ident':
@@ -824,6 +868,7 @@
     }
     if (obj.k === 'string') {
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
+      if (name === 'concat') return { k: 'fn', params: [{ k: 'string' }], ret: { k: 'string' } };
       throw tyErr(line, "no method '" + name + "' on string");
     }
     if (obj.k === 'module') {
@@ -856,7 +901,7 @@
       }
     };
     var topEnv = { bindings: Object.create(null), parent: null };
-    topEnv.bindings['ruka']  = rukaModule;
+    topEnv.bindings['#']     = rukaModule;
     topEnv.bindings['true']  = { k: 'bool' };
     topEnv.bindings['false'] = { k: 'bool' };
     topEnv.bindings['self']  = { k: 'unknown' };
@@ -868,6 +913,13 @@
         topEnv.bindings[s.name] = astToTy(s.type) || { k: 'unknown' };
       }
     });
+
+    // Stack of expected return types for the enclosing function(s). Top is the
+    // innermost fn. Empty = `return` at file scope, which is a hard error.
+    // NB: declared here (before the run) because `var` initializations don't
+    // hoist — only the declaration does. Placing it below the try/catch would
+    // leave it `undefined` when Fn/Return is visited from inside the try.
+    var retTyStack = [];
 
     try {
       ast.body.forEach(function (s) { checkStmt(s, topEnv); });
@@ -893,6 +945,13 @@
         return;
       }
       if (node.k === 'ExprStmt') { inferExpr(node.expr, null, env); return; }
+      if (node.k === 'Return') {
+        if (retTyStack.length === 0) throw tyErr(node.line, "'return' outside function");
+        // `return` always carries a value after the parser change — unit-returning
+        // functions use `return ()`, which is a Unit literal typed as `unit`.
+        inferExpr(node.value, retTyStack[retTyStack.length - 1], env);
+        return;
+      }
       if (node.k === 'For') {
         var iter = inferExpr(node.iter, null, env);
         var elemTy =
@@ -924,6 +983,7 @@
 
     function inferExpr(node, expected, env) {
       switch (node.k) {
+        case 'Unit': return conform(expected, { k: 'unit' }, node.line);
         case 'Lit': {
           if (typeof node.v === 'boolean') return conform(expected, { k: 'bool' }, node.line);
           // node.isFloat is authoritative — JS number has no int/float distinction
@@ -1080,7 +1140,10 @@
             fenv.bindings[node.params[i]] = pt || { k: 'unknown' };
           }
           var declaredRet = astToTy(node.returnType);
-          var bodyTy = inferExpr(node.body, declaredRet, fenv);
+          retTyStack.push(declaredRet || { k: 'unknown' });
+          var bodyTy;
+          try { bodyTy = inferExpr(node.body, declaredRet, fenv); }
+          finally { retTyStack.pop(); }
           return { k: 'fn', params: pTys, ret: declaredRet || bodyTy };
         }
 
@@ -1096,19 +1159,14 @@
             inferExpr(node.right, lcmp, env);
             return conform(expected, { k: 'bool' }, node.line);
           }
-          // Arithmetic. `+` doubles as string concat when either side is string,
-          // matching the current interpreter until the todo's .concat() lands.
+          // Arithmetic. Strings no longer concat with `+`; use s.concat(...).
           var hint = (expected && isNumericKind(expected.k)) ? expected : null;
           var lt = inferExpr(node.left,  hint, env);
-          if (op === '+' && lt.k === 'string') {
-            inferExpr(node.right, null, env);
-            return conform(expected, { k: 'string' }, node.line);
-          }
           var rt = inferExpr(node.right, lt.k === 'unknown' ? hint : lt, env);
-          if (op === '+' && rt.k === 'string') {
-            return conform(expected, { k: 'string' }, node.line);
-          }
           var res = lt.k !== 'unknown' ? lt : rt;
+          if (op === '+' && (lt.k === 'string' || rt.k === 'string')) {
+            throw tyErr(node.line, "'+' does not concatenate strings — use s.concat(...) instead");
+          }
           if (res.k !== 'unknown' && !isNumericKind(res.k) && res.k !== 'u8') {
             throw tyErr(node.line, op + ' requires numeric operands, got ' + tyStr(res));
           }
@@ -1220,7 +1278,7 @@
     }
 
     var globalEnv = mkEnv(null);
-    envSet(globalEnv, 'ruka', {
+    envSet(globalEnv, '#', {
       _obj: true,
       println:  { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
       print:    { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
@@ -1246,6 +1304,11 @@
         if (node.k === 'For')      return evalFor(node, env);
         if (node.k === 'Break')    { var b = new Error('break outside loop');    b._break    = true; throw b; }
         if (node.k === 'Continue') { var c = new Error('continue outside loop'); c._continue = true; throw c; }
+        if (node.k === 'Return') {
+          var r = new Error('return outside function');
+          r._return = true; r.value = evalExpr(node.value, env);
+          throw r;
+        }
         throw new Error('Unknown statement kind: ' + node.k);
       } catch(e) { throw annotate(e, node.line); }
     }
@@ -1277,6 +1340,7 @@
       switch (node.k) {
 
         case 'Lit':   return node.v;
+        case 'Unit':  return null;
         case 'Char':  return { _char: true, v: node.v };
         case 'Str':   return interpStr(node.raw, env);
 
@@ -1361,7 +1425,12 @@
             var fnEnv = mkEnv(callee.env);
             for (var i = 0; i < callee.params.length; i++)
               envSet(fnEnv, callee.params[i], i < args.length ? args[i] : null);
-            return evalExpr(callee.body, fnEnv);
+            try {
+              return evalExpr(callee.body, fnEnv);
+            } catch (e) {
+              if (e._return) return e.value;
+              throw e;
+            }
           } catch(e) { throw annotate(e, node.line); }
         }
 
@@ -1380,6 +1449,9 @@
             }
             if (typeof obj === 'string') {
               if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
+              if (node.prop === 'concat') return { _fn: true, call: function (a) {
+                return obj + a[0];
+              } };
               throw new Error("No method '" + node.prop + "' on string");
             }
             if (obj && typeof obj === 'object' && node.prop in obj) return obj[node.prop];
@@ -1396,8 +1468,7 @@
           // Tagged chars behave as u8 numbers for arithmetic and comparison.
           var ln = num(l), rn = num(r);
           switch (node.op) {
-            case '+':  return (typeof l === 'string' || typeof r === 'string')
-                              ? display(l) + display(r) : ln + rn;
+            case '+':  return ln + rn;
             case '-':  return ln - rn;
             case '*':  return ln * rn;
             case '/':  return ln / rn;

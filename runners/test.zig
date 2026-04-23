@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const Allocator = std.mem.Allocator;
-const Writer = std.io.Writer;
+const Writer = std.Io.Writer;
 
 const BORDER = "=" ** 80;
 
@@ -20,11 +20,12 @@ const Results = struct {
     count: usize
 };
 
-pub fn main() !void {
+pub fn main(inits: std.process.Init) !void {
     const gpa = std.heap.smp_allocator;
+	const io = inits.io;
 
     var stdout_buffer: [1024]u8 = undefined;
-    var stdout_file = std.fs.File.stdout().writer(&stdout_buffer);
+    var stdout_file = std.Io.File.stdout().writer(io, &stdout_buffer);
     const stdout = &stdout_file.interface;
 
     fmt(stdout, "\r\x1b[0K", .{});
@@ -38,15 +39,17 @@ pub fn main() !void {
         .count = 0
     };
 
-    const start = std.time.milliTimestamp();
+	const clock = std.Io.Clock.real;
+	const start = clock.now(io).toMilliseconds();
 
     for (builtin.test_functions) |t| {
         std.testing.allocator_instance = .{};
         try run_test(gpa, t, &results, stdout);
     }
 
-    const time_passed = std.time.milliTimestamp() - start;
-    const seconds = @divTrunc(time_passed, 1000);
+	const end = clock.now(io).toMilliseconds();
+    const time_passed = end - start;
+	const seconds = @divTrunc(time_passed, 1000);
     const milliseconds = time_passed - (seconds * 1000);
 
     const status: Status = if (results.fail == 0) .ok else .fail;
@@ -64,7 +67,7 @@ pub fn main() !void {
 
     try stdout.flush();
 
-    std.posix.exit(if (results.fail == 0) 0 else 1);
+    std.process.exit(if (results.fail == 0) 0 else 1);
 }
 
 fn run_test(gpa: Allocator, t: anytype, results: *Results, stdout: *Writer) !void {
@@ -91,9 +94,8 @@ fn run_test(gpa: Allocator, t: anytype, results: *Results, stdout: *Writer) !voi
                 status = .fail;
                 results.fail += 1;
                 wstatus(stdout, .fail, "\n{s}\n\"{s}\" - {s}\n{s}\n", .{ BORDER, test_name, @errorName(err), BORDER });
-                if (@errorReturnTrace()) |trace| {
-                    std.debug.dumpStackTrace(trace.*);
-                }
+
+				std.debug.dumpCurrentStackTrace(.{});
             },
         }
     }
@@ -106,8 +108,8 @@ fn run_test(gpa: Allocator, t: anytype, results: *Results, stdout: *Writer) !voi
     defer gpa.free(pass_two);
 
     var name_iter = std.mem.splitAny(u8, pass_two, ".");
-    var module: []const u8 = undefined;
-    var module_test: []const u8 = undefined;
+    var module: []const u8 = "";
+    var module_test: []const u8 = "";
 
     while (name_iter.next()) |name| {
         module = module_test;
@@ -115,7 +117,7 @@ fn run_test(gpa: Allocator, t: anytype, results: *Results, stdout: *Writer) !voi
     }
 
     fmt(stdout, "\t  ", .{});
-    wstatus(stdout, .skip, "{s:<15} ", .{module});
+	wstatus(stdout, .skip, "{s:<15} ", .{module});
     fmt(stdout, "{d:^5} {s}.\n", .{results.count, module_test});
 
     results.count += 1;

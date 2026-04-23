@@ -91,7 +91,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] `self` only inside method receivers
   - [ ] Undefined name errors with helpful suggestions (Levenshtein distance)
   - [ ] Type mismatch errors with actual/expected types in the message
-  - [ ] `ruka` builtin namespace — treat as a pre-declared record in the root scope
+  - [ ] `#` builtin namespace — treat as a pre-declared record in the root scope
 
 ---
 
@@ -120,15 +120,17 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] String interpolation (call `to_string` equivalent on each interpolated value)
   - [ ] Multiline string literals
   - [ ] `option` and `result` as built-in variant types
-- [ ] Built-in `ruka.*` functions
-  - [ ] `ruka.print(s)` / `ruka.println(s)`
-  - [ ] `ruka.import(path)` — load and evaluate another `.ruka` file, return as record
-  - [ ] `ruka.type_of(expr)` — return type as a string at runtime
-  - [ ] `ruka.len(collection)` — length of array, tuple, or string
-  - [ ] `ruka.abs(n)` / `ruka.sqrt(n)`
-  - [ ] `ruka.assert_eq(a, b)` — panic with message on failure
-  - [ ] `ruka.compile_error(msg)` — emit diagnostic during Sema
-  - [ ] `ruka.heap_alloc(size)` / `ruka.heap_free(bytes)`
+- [ ] Built-in `#.*` functions
+  - [ ] `#.print(s)` / `#.println(s)`
+  - [ ] `#.import(path)` — load and evaluate another `.ruka` file, return as record
+  - [ ] `#.type_of(expr)` — return type as a string at runtime
+  - [ ] `#.abs(n)` / `#.sqrt(n)`
+  - [ ] `#.sin(n)` / `#.cos(n)` / `#.tan(n)`
+  - [ ] `#.assert_eq(a, b)` — panic with message on failure
+  - [ ] `#.compile_error(msg)` — emit diagnostic during Sema
+  - [ ] `#.size(t)` — size in bytes of a compile-time type value
+  - [ ] `#.heap_alloc(size)` / `#.heap_free(bytes)`
+  - [ ] `#.now()` — current time as a timestamp value
 - [ ] `ruka run` subcommand: load `src/main.ruka`, run pipeline, call `main()`
 - [ ] Exit code reflects whether the program panicked or returned normally
 - [ ] Runtime panic messages include source file, line, and column
@@ -162,7 +164,7 @@ Goal: diagnostics, hover, and go-to-definition. Enough to make the language feel
 - [ ] Completion (`textDocument/completion`)
   - [ ] Emit all keywords
   - [ ] Emit all bindings in scope at the cursor position
-  - [ ] Emit `ruka.*` builtin names after `ruka.`
+  - [ ] Emit `#.*` builtin names after `#.`
 - [ ] `ruka lsp` subcommand starts the server
 
 ---
@@ -185,7 +187,7 @@ Goal: diagnostics, hover, and go-to-definition. Enough to make the language feel
 - [ ] `ruka new <name>` — scaffold directory: `src/main.ruka`, `ruka.toml`
 - [ ] `ruka build` — run the full pipeline over the project's source files
   - [ ] Walk `src/` for all `.ruka` files
-  - [ ] Process imports (`ruka.import`) to build a dependency graph
+  - [ ] Process imports (`#.import`) to build a dependency graph
   - [ ] Topological sort; analyse files in dependency order
 - [ ] `ruka check` — pipeline up to Sema only; print diagnostics; no output artifact
 - [ ] `ruka version` — print semver from build options

@@ -82,12 +82,12 @@ let x = 12  // Inline comment</code></pre>
         identifier, or discarded with <code>_</code>.
       </p>
       <table>
-        <thead><tr><th>Keyword</th><th>Mutability</th><th>Visibility</th></tr></thead>
+        <thead><tr><th>Keyword</th><th>Mutability</th><th>When</th><th>Visibility</th></tr></thead>
         <tbody>
-          <tr><td><code>let</code></td><td>Mutable</td><td>Scoped to the enclosing block</td></tr>
-          <tr><td><code>share</code></td><td>Immutable</td><td>Public — exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
-          <tr><td><code>local</code></td><td>Immutable</td><td>Private — not exported</td></tr>
-          <tr><td><code>test</code></td><td>Immutable</td><td>Not exported — compiled in debug/test builds only</td></tr>
+          <tr><td><code>let</code></td><td>Mutable</td><td>Runtime</td><td>A mutable variable, scoped to the enclosing block. Not exported.</td></tr>
+          <tr><td><code>local</code></td><td>Immutable</td><td>Runtime or static</td><td>A private binding — either an immutable runtime value or a private static/field. Not exported.</td></tr>
+          <tr><td><code>share</code></td><td>Immutable</td><td>Static</td><td>A public static constant, exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
+          <tr><td><code>test</code></td><td>Immutable</td><td>Static</td><td>Not exported — compiled in debug/test builds only.</td></tr>
         </tbody>
       </table>
 <pre><code class="ruka">let count = 0          // mutable runtime value
@@ -280,7 +280,7 @@ let inclusive = 0..=10   // 0, 1, ..., 10
 let start = 2
 let end = 7
 for i in start..end do
-    ruka.println("${i}")     // 2 3 4 5 6
+    #.println("${i}")     // 2 3 4 5 6
 end
 
 // Slice an array with a range
@@ -333,7 +333,7 @@ let upper = find_user(id).?().name</code></pre>
         <tbody>
           <tr><td><code>string</code></td><td>UTF-8 string</td></tr>
           <tr><td><code>bool</code></td><td>Boolean — <code>true</code> or <code>false</code></td></tr>
-          <tr><td><code>()</code></td><td>Unit type — the type of expressions with no meaningful value</td></tr>
+          <tr><td><code>()</code></td><td>Unit type — the type of expressions with no meaningful value. <code>()</code> is also a literal expression producing the unit value (used, for example, in <code>return ()</code>).</td></tr>
           <tr><td><code>type</code></td><td>The type of types — used in compile-time contexts</td></tr>
         </tbody>
       </table>
@@ -371,11 +371,11 @@ let upper = find_user(id).?().name</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">for i in 0..5 do
-    ruka.println("${i}")     // 0 1 2 3 4
+    #.println("${i}")     // 0 1 2 3 4
 end
 
 for i in 1..=5 do
-    ruka.println("${i}")     // 1 2 3 4 5
+    #.println("${i}")     // 1 2 3 4 5
 end
 
 // Ranges as slice indices
@@ -443,8 +443,8 @@ local { x, y } = p
 // x is 3.0, y is 4.0
 
 // Works with any record — including imported files
-local { sqrt, pow } = ruka.import("math")
-local { Dog, Cat }  = ruka.import("animals")</code></pre>
+local { sqrt, pow } = #.import("math")
+local { Dog, Cat }  = #.import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
@@ -550,7 +550,7 @@ share label (self) = () do "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
 share find = (values: [i32], target: i32) do
-    for i in 0..ruka.len(values) do
+    for i in 0..values.len do
         if values[i] == target do return .some(i)
     end
     .none
@@ -613,18 +613,18 @@ let result = double(10)  // 10 is produced as i32, not int</code></pre>
       </p>
 <pre><code class="ruka">// Multiline — one `end` closes the whole chain
 if x > 0 do
-    ruka.println("positive")
+    #.println("positive")
 else if x < 0 do
-    ruka.println("negative")
+    #.println("negative")
 else
-    ruka.println("zero")
+    #.println("zero")
 end
 
 // Single-line — body is on the same line; newline closes the branch
-if x > 0 do ruka.println("positive")
+if x > 0 do #.println("positive")
 
 // Single-line with else
-if x > 0 do ruka.println("positive") else ruka.println("non-positive")
+if x > 0 do #.println("positive") else #.println("non-positive")
 
 // Single-line chained
 if x > 0 do "positive" else if x < 0 do "negative" else "zero"
@@ -738,13 +738,13 @@ let nested = 2 ** 3 ** 2   // 2 ** 9 = 512</code></pre>
 
       <h4>Matching literals and conditions</h4>
 <pre><code class="ruka">match status_code with
-    200 do ruka.println("OK")
-    404 do ruka.println("Not Found")
+    200 do #.println("OK")
+    404 do #.println("Not Found")
     500 do
-        ruka.println("Internal Server Error")
+        #.println("Internal Server Error")
         log_error()
     end
-    else ruka.println("Unknown status")
+    else #.println("Unknown status")
 end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
@@ -762,8 +762,8 @@ end
 
 // option(T)
 match maybe_name with
-    some(name) do ruka.println("Hello, ${name}")
-    none do ruka.println("No name provided")
+    some(name) do #.println("Hello, ${name}")
+    none do #.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
@@ -783,7 +783,7 @@ end</code></pre>
       <h3>While Loop</h3>
 <pre><code class="ruka">let i = 0
 while i < 10 do
-    ruka.println("${i}")
+    #.println("${i}")
     i = i + 1
 end
 
@@ -799,7 +799,7 @@ while i < 10 do i = i + 1</code></pre>
 <pre><code class="ruka">// if with destructuring — body only runs if the option is .some
 let maybe: option(i32) = .some(42)
 if some(x) = maybe do
-    ruka.println("got ${x}")
+    #.println("got ${x}")
 end
 
 // while with destructuring — loop until the value is .none
@@ -814,31 +814,31 @@ end</code></pre>
       </p>
 <pre><code class="ruka">// Range — the common numeric loop idiom
 for i in 0..5 do
-    ruka.println("${i}")     // 0 1 2 3 4
+    #.println("${i}")     // 0 1 2 3 4
 end
 
 // Single-expression body — newline closes the block
-for i in 0..5 do ruka.println("${i}")
+for i in 0..5 do #.println("${i}")
 
 // Range without a binding variable
-for 0..10 do ruka.println("tick")
+for 0..10 do #.println("tick")
 
 // Inclusive range
 for i in 1..=3 do
-    ruka.println("${i}")     // 1 2 3
+    #.println("${i}")     // 1 2 3
 end
 
 // Iterating over an array
 let numbers = .{10, 20, 30}
 for n in numbers do
-    ruka.println("${n}")
+    #.println("${n}")
 end
 
 // Destructuring a tuple in a for loop
 let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
 
 for {k, v} in pairs do
-    ruka.println("${k} = ${v}")
+    #.println("${k} = ${v}")
 end</code></pre>
 
       <h3>Pattern-Filtered For Loop</h3>
@@ -850,7 +850,7 @@ end</code></pre>
 
 // Only visits elements where the option is .some; x is bound to the inner value
 for some(x) in values do
-    ruka.println("${x}")    // 1, 3, 5
+    #.println("${x}")    // 1, 3, 5
 end</code></pre>
 
       <h3>Break</h3>
@@ -862,7 +862,7 @@ end</code></pre>
 let i = 0
 while true do
     if i >= 5 do break
-    ruka.println("${i}")
+    #.println("${i}")
     i = i + 1
 end
 
@@ -883,7 +883,7 @@ end</code></pre>
 <pre><code class="ruka">// Print only odd numbers
 for i in 0..10 do
     if i % 2 == 0 do continue
-    ruka.println("${i}")     // 1 3 5 7 9
+    #.println("${i}")     // 1 3 5 7 9
 end
 
 // Skip invalid entries while processing
@@ -917,9 +917,9 @@ end   // file.close() is called here
 
 // Multiple defers execute in reverse declaration order
 share example = () do
-    defer ruka.println("third")    // runs last
-    defer ruka.println("second")
-    defer ruka.println("first")    // runs first
+    defer #.println("third")    // runs last
+    defer #.println("second")
+    defer #.println("first")    // runs first
     // Output on exit: first, second, third
 end
 
@@ -952,7 +952,9 @@ end</code></pre>
       </p>
       <p>
         The last expression in a block is returned. An early return can be written with
-        the <code>return</code> keyword.
+        the <code>return</code> keyword. <code>return</code> always requires a payload
+        expression — a function whose return type is <code>()</code> writes
+        <code>return ()</code> to exit early, where <code>()</code> is the unit literal.
       </p>
 
       <h4>Multiline function (do…end block)</h4>
@@ -962,7 +964,7 @@ end
 
 local greet = (name: string) do
     let msg = "Hello, ${name}!"
-    ruka.println(msg)
+    #.println(msg)
     // last expression is (), the unit value
 end</code></pre>
 
@@ -1010,7 +1012,7 @@ local square2: (i32) -> i32 = (x) do x * x</code></pre>
       </ul>
 <pre><code class="ruka">// Returns option(uint) — wrapping is automatic
 share find_index = (arr: [i32], target: i32) -> option(uint) do
-    for i in 0..ruka.len(arr) do
+    for i in 0..arr.len do
         if arr[i] == target do return i              // i (uint) → .some(i)
     end
     // () at end of block → .none
@@ -1025,7 +1027,7 @@ end</code></pre>
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
 <pre><code class="ruka">share main = () do
-    ruka.println("Hello, world!")
+    #.println("Hello, world!")
 end</code></pre>
     </section>
 
@@ -1079,7 +1081,7 @@ share BLUE (Color) = Color.{ r = 0,   g = 0,   b = 255 }
 
 share main = () do
     let c = Color.RED
-    ruka.println("r=${c.r}")   // r=255
+    #.println("r=${c.r}")   // r=255
 end</code></pre>
 
       <h3>Static Functions on Variants</h3>
@@ -1164,7 +1166,7 @@ end</code></pre>
 <pre><code class="ruka">// deinit — ownership of self is moved in; self cannot be used after this call
 share deinit (&self) = () do
     // flush pending writes, close handle, signal completion, etc.
-    ruka.println("Buffer flushed and freed")
+    #.println("Buffer flushed and freed")
 end
 
 share main = () do
@@ -1211,7 +1213,7 @@ share add (self) = (other) do
 end
 
 share length (self) = () do
-    ruka.sqrt(self.x * self.x + self.y * self.y)
+    #.sqrt(self.x * self.x + self.y * self.y)
 end
 
 // Private method
@@ -1221,7 +1223,7 @@ share main = () do
     let a = Vector.new(1.0, 0.0)
     let b = Vector.new(0.0, 1.0)
     let c = a.add(b)
-    ruka.println("Length: ${c.length()}")
+    #.println("Length: ${c.length()}")
 end</code></pre>
 
       <h3>Mutable Methods</h3>
@@ -1242,7 +1244,7 @@ share main = () do
     let c = Counter.new()
     c.increment()         // value is now 1
     c.increment()         // value is now 2
-    ruka.println("${c.value}")
+    #.println("${c.value}")
 end</code></pre>
 
       <h3>Methods on Variants</h3>
@@ -1273,7 +1275,7 @@ end
 
 share main = () do
     let d = Direction.north
-    ruka.println("${d.opposite().is_vertical()}")  // true
+    #.println("${d.opposite().is_vertical()}")  // true
 end</code></pre>
     </section>
 
@@ -1335,7 +1337,7 @@ end
 share repeat = (@times: uint, msg: string) do
     let i = 0
     while i < times do
-        ruka.println(msg)
+        #.println(msg)
         i = i + 1
     end
 end</code></pre>
@@ -1508,8 +1510,8 @@ share perimeter (self) = () do 2.0 * 3.14159 * self.radius
       </p>
 <pre><code class="ruka">// Behaviour type annotation on a parameter — dynamic dispatch is automatic
 share print_shape_info = (s: Shape) do
-    ruka.println("area: ${s.area()}")
-    ruka.println("perimeter: ${s.perimeter()}")
+    #.println("area: ${s.area()}")
+    #.println("perimeter: ${s.perimeter()}")
 end
 
 local Rect = record { w: f64, h: f64 }
@@ -1539,17 +1541,17 @@ end</code></pre>
     <section id="builtin-behaviours">
       <h2>Builtin Behaviours</h2>
       <p>
-        The <code>ruka</code> module exposes a small set of standard behaviours that the
+        The <code>#</code> module exposes a small set of standard behaviours that the
         compiler and runtime recognise specially. Satisfying them unlocks language-level
         features: string interpolation, <code>for</code> loops, and custom allocator support.
         Like all behaviours, they are satisfied implicitly — no declaration is needed.
       </p>
 
-      <h3>ruka.printable</h3>
+      <h3>#.printable</h3>
       <p>
-        Any type that satisfies <code>ruka.printable</code> can be interpolated inside a
-        <code>${…}</code> string expression and passed to <code>ruka.print</code> /
-        <code>ruka.println</code>. The compiler calls <code>format</code> automatically
+        Any type that satisfies <code>#.printable</code> can be interpolated inside a
+        <code>${…}</code> string expression and passed to <code>#.print</code> /
+        <code>#.println</code>. The compiler calls <code>format</code> automatically
         in those positions.
       </p>
 <pre><code class="ruka">share printable = behaviour {
@@ -1563,12 +1565,12 @@ share format (self) = () do "(${self.x}, ${self.y})"
 
 share main = () do
     let p = Point.{ x = 1.0, y = 2.0 }
-    ruka.println("point: ${p}")   // point: (1.0, 2.0)
+    #.println("point: ${p}")   // point: (1.0, 2.0)
 end</code></pre>
 
-      <h3>ruka.iterable</h3>
+      <h3>#.iterable</h3>
       <p>
-        Any type that satisfies <code>ruka.iterable</code> can be used in a <code>for</code>
+        Any type that satisfies <code>#.iterable</code> can be used in a <code>for</code>
         loop. The compiler calls <code>next</code> on each iteration; when it returns
         <code>.none</code> the loop ends.
       </p>
@@ -1591,13 +1593,13 @@ end
 share main = () do
     let c = Counter.{ current = 0, limit = 3 }
     for n in c do
-        ruka.println("${n}")   // 0, 1, 2
+        #.println("${n}")   // 0, 1, 2
     end
 end</code></pre>
 
-      <h3>ruka.allocator</h3>
+      <h3>#.allocator</h3>
       <p>
-        Any type that satisfies <code>ruka.allocator</code> can be passed to functions or
+        Any type that satisfies <code>#.allocator</code> can be passed to functions or
         data structures that need explicit heap control. This allows callers to supply arena
         allocators, pool allocators, or any other strategy without coupling the implementation
         to a specific allocator.
@@ -1608,21 +1610,21 @@ end</code></pre>
 }
 
 // A function that accepts any allocator
-share make_buffer = (alloc: ruka.allocator, cap: uint) do
+share make_buffer = (alloc: #.allocator, cap: uint) do
     Buffer.{ data = alloc.alloc(cap), len = 0 }
 end</code></pre>
 
       <div class="note">
-        <strong>ruka.allocator and the GC:</strong> The default allocator used by the runtime
-        is the GC. Passing a custom <code>ruka.allocator</code> opts a specific allocation out
+        <strong>#.allocator and the GC:</strong> The default allocator used by the runtime
+        is the GC. Passing a custom <code>#.allocator</code> opts a specific allocation out
         of GC management — the returned buffer is an ordinary reference, but the GC does not
         track it, so the caller is responsible for calling <code>free</code> (typically via
         <code>deinit</code>).
       </div>
       <div class="note">
         <strong>GC exclusion in manual-memory programs:</strong> If a program never uses
-        GC-allocated values — every heap allocation goes through <code>ruka.heap_alloc</code> or
-        a custom <code>ruka.allocator</code> — the compiler statically proves the GC has no
+        GC-allocated values — every heap allocation goes through <code>#.heap_alloc</code> or
+        a custom <code>#.allocator</code> — the compiler statically proves the GC has no
         roots to scan and excludes the GC runtime from the final binary entirely. This makes
         Ruka practical for embedded targets and low-latency code where a GC pause is
         unacceptable.
@@ -1638,13 +1640,13 @@ end</code></pre>
         in the order they are applied, which is easier to read than deeply nested calls.
       </p>
 <pre><code class="ruka">// Without pipeline
-ruka.println(trim(toUpperCase(getName(user))))
+#.println(trim(toUpperCase(getName(user))))
 
 // With pipeline — reads top to bottom, left to right
 getName(user)
     |> toUpperCase()
     |> trim()
-    |> ruka.println()</code></pre>
+    |> #.println()</code></pre>
     </section>
 
     <!-- Modules -->
@@ -1666,7 +1668,7 @@ getName(user)
         A file record is an <em>empty</em> record — it has no instance fields, only statics.
         It cannot be instantiated with <code>.{}</code>. Every declaration in the file is
         stored as a static field accessible via the record value returned by
-        <code>ruka.import</code>.
+        <code>#.import</code>.
       </p>
 <pre><code class="ruka">// stack.ruka — a file is a record; share bindings are its public fields
 
@@ -1696,25 +1698,25 @@ end</code></pre>
     <section id="imports">
       <h2>Imports</h2>
       <p>
-        <code>ruka.import</code> evaluates at compile time and returns the file's record value.
+        <code>#.import</code> evaluates at compile time and returns the file's record value.
         The result is always compile-time known — compile-time evaluation is implied. Accessing an
         export is ordinary field access; destructuring an import is ordinary record
         destructuring, using the same <code>{…}</code> syntax.
       </p>
 <pre><code class="ruka">// Field access on the imported record
-local math = ruka.import("math")
+local math = #.import("math")
 
 share main = () do
-    ruka.println("${math.sqrt(2.0)}")
+    #.println("${math.sqrt(2.0)}")
 end
 
 // Record destructuring — pull specific fields into scope
-local { sqrt, pow } = ruka.import("math")
-local { Dog, Cat }  = ruka.import("animals")
+local { sqrt, pow } = #.import("math")
+local { Dog, Cat }  = #.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-share describe = (t: type) do ruka.println("${t}")
-local animals = ruka.import("animals")
+share describe = (t: type) do #.println("${t}")
+local animals = #.import("animals")
 
 share main = () do
     describe(animals.Dog)   // passes the Dog type to a compile-time parameter
@@ -1740,13 +1742,13 @@ end</code></pre>
 <pre><code class="ruka">local add = (a: i32, b: i32) do a + b
 
 test addition = () do
-    ruka.assert_eq(add(1, 2), 3)
-    ruka.assert_eq(add(-1, 1), 0)
-    ruka.assert_eq(add(0, 0), 0)
+    #.assert_eq(add(1, 2), 3)
+    #.assert_eq(add(-1, 1), 0)
+    #.assert_eq(add(0, 0), 0)
 end
 
 test addition_is_commutative = () do
-    ruka.assert_eq(add(3, 4), add(4, 3))
+    #.assert_eq(add(3, 4), add(4, 3))
 end</code></pre>
 
       <p>
@@ -1759,15 +1761,15 @@ end</code></pre>
 local clamp_internal = (x: i32, lo: i32, hi: i32) do if x < lo do lo else if x > hi do hi else x
 
 test clamp_lower_bound = () do
-    ruka.assert_eq(clamp_internal(3, 5, 10), 5)
+    #.assert_eq(clamp_internal(3, 5, 10), 5)
 end
 
 test clamp_upper_bound = () do
-    ruka.assert_eq(clamp_internal(15, 5, 10), 10)
+    #.assert_eq(clamp_internal(15, 5, 10), 10)
 end
 
 test clamp_in_range = () do
-    ruka.assert_eq(clamp_internal(7, 5, 10), 7)
+    #.assert_eq(clamp_internal(7, 5, 10), 7)
 end</code></pre>
 
       <div class="note">
@@ -1775,7 +1777,7 @@ end</code></pre>
         <code>test</code> bindings are included in two build modes:
         <em>debug</em> (full code coverage analysis, all assertions active) and
         <em>test</em> (runs the test suite and reports pass/fail). They are stripped
-        in the <em>release</em> build. This means <code>ruka.assert_eq</code> and other
+        in the <em>release</em> build. This means <code>#.assert_eq</code> and other
         assertion calls inside a <code>test</code> binding never appear in a production
         binary.
       </div>
@@ -1785,33 +1787,37 @@ end</code></pre>
     <section id="builtins">
       <h2>Built-in Functions</h2>
       <p>
-        Built-in functions are accessed through the <code>ruka</code> module, which is
-        implicitly available in every scope without an import declaration.
+        Built-in functions are accessed through the <code>#</code> module, which is
+        implicitly available in every scope without an import declaration. The
+        <code>#</code> sigil cannot be shadowed or rebound.
       </p>
       <table>
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>ruka.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
-          <tr><td><code>ruka.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
-          <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
-          <tr><td><code>ruka.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
-          <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
-          <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
-          <tr><td><code>ruka.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
-          <tr><td><code>ruka.len(collection)</code></td><td>Returns the length of an array, tuple, or string as <code>uint</code>.</td></tr>
-          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
-          <tr><td><code>ruka.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
-          <tr><td><code>ruka.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>ruka.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
-          <tr><td><code>ruka.fields_of(@t: type) -> [ruka.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
-          <tr><td><code>ruka.methods_of(@t: type) -> [ruka.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
-          <tr><td><code>ruka.statics_of(@t: type) -> [ruka.static_info]</code></td><td>Return a compile-time array describing every static member (constructor, associated constant, etc.) attached to the type.</td></tr>
-          <tr><td><code>ruka.record_of(@fields: [ruka.field_info]) -> type</code></td><td>Construct a new <code>record</code> type from a compile-time array of field descriptors. The inverse of <code>ruka.fields_of</code>.</td></tr>
-          <tr><td><code>ruka.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
+          <tr><td><code>#.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
+          <tr><td><code>#.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
+          <tr><td><code>#.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
+          <tr><td><code>#.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>#.abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>#.sin(number)</code></td><td>Sin value.</td></tr>
+          <tr><td><code>#.cos(number)</code></td><td>Cos value.</td></tr>
+          <tr><td><code>#.tan(number)</code></td><td>Tan value.</td></tr>
+          <tr><td><code>#.sqrt(number)</code></td><td>Square root.</td></tr>
+          <tr><td><code>#.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
+          <tr><td><code>#.compile_error(string)</code></td><td>Emit a compile-time error with the given message. Only callable from compile-time contexts.</td></tr>
+          <tr><td><code>#.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>#.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>#.heap_free</code> to release it.</td></tr>
+          <tr><td><code>#.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>#.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
+          <tr><td><code>#.fields_of(@t: type) -> [#.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
+          <tr><td><code>#.methods_of(@t: type) -> [#.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
+          <tr><td><code>#.statics_of(@t: type) -> [#.static_info]</code></td><td>Return a compile-time array describing every static member (constructor, associated constant, etc.) attached to the type.</td></tr>
+          <tr><td><code>#.record_of(@fields: [#.field_info]) -> type</code></td><td>Construct a new <code>record</code> type from a compile-time array of field descriptors. The inverse of <code>#.fields_of</code>.</td></tr>
+          <tr><td><code>#.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">ruka.println("Hello!")                       // Hello!
-ruka.println("${ruka.type_of(42)}")               // int
-ruka.assert_eq(ruka.abs(-5), 5)
+<pre><code class="ruka">#.println("Hello!")                       // Hello!
+#.println("${#.type_of(42)}")               // int
+#.assert_eq(#.abs(-5), 5)
 </code></pre>
     </section>
 
@@ -1911,8 +1917,8 @@ let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
       </p>
 <pre><code class="ruka">share PI = 3.14159265358979
 
-// ruka.sqrt is a runtime built-in, but @ forces it to run at compile time
-local @SQRT_2: f64 = ruka.sqrt(2.0)          // literal — compile-time known
+// #.sqrt is a runtime built-in, but @ forces it to run at compile time
+local @SQRT_2: f64 = #.sqrt(2.0)          // literal — compile-time known
 local @INV_PI: f64 = 1.0 / PI                // constant PI — compile-time known
 
 // @ results are themselves compile-time known and can be chained
@@ -1924,19 +1930,19 @@ local @KEY_HASH = compute_hash("app-secret")</code></pre>
 
       <h3>Compile-Time Reflection</h3>
       <p>
-        <code>ruka.type_of</code> returns the type of any expression as a compile-time value,
+        <code>#.type_of</code> returns the type of any expression as a compile-time value,
         which can be passed to <code>@</code>-prefixed parameters or compared at compile time.
       </p>
 <pre><code class="ruka">share assertSameType = (a: type, b: type) do
     if not (a == b) do
-        ruka.compile_error("type mismatch: expected ${a}, got ${b}")
+        #.compile_error("type mismatch: expected ${a}, got ${b}")
     end
 end
 
 share main = () do
     let x: i32 = 10
     let y: i32 = 20
-    assertSameType(ruka.type_of(x), ruka.type_of(y))  // ok — both i32
+    assertSameType(#.type_of(x), #.type_of(y))  // ok — both i32
 end</code></pre>
 
       <div class="note">
@@ -1951,15 +1957,15 @@ end</code></pre>
       <p>
         At compile time, a type's structure can be inspected — its fields, methods, and
         static members are all readable as ordinary compile-time data. Combined with
-        <code>ruka.record_of</code>, this enables derive-macro-style generation: a
+        <code>#.record_of</code>, this enables derive-macro-style generation: a
         compile-time function analyses an existing type and produces a new type
         mechanically derived from it.
       </p>
 <pre><code class="ruka">// Given any record type, produce a version where every field is option(T).
 share Partial = (t: type) do
-    let fs = ruka.fields_of(t)
+    let fs = #.fields_of(t)
     let opt_fs = fs |> map((f) do .{ name = f.name, type = option(f.type) })
-    ruka.record_of(opt_fs)
+    #.record_of(opt_fs)
 end
 
 local User        = record { id: i32, name: string, email: string }
@@ -1974,15 +1980,15 @@ local PartialUser = Partial(User)
         the type system, and exported from a module.
       </p>
       <p>
-        <code>ruka.methods_of</code> and <code>ruka.statics_of</code> complete the introspection
+        <code>#.methods_of</code> and <code>#.statics_of</code> complete the introspection
         surface. They enable generation patterns that also carry behaviour — for example, a
         function that inspects a record's fields and emits a derived record together with a
         matching set of accessor or serialisation methods.
       </p>
       <div class="note">
-        <strong>Introspection is compile-time only.</strong> <code>ruka.fields_of</code>,
-        <code>ruka.methods_of</code>, <code>ruka.statics_of</code>, and
-        <code>ruka.record_of</code> all take <code>@</code>-prefixed type arguments and run
+        <strong>Introspection is compile-time only.</strong> <code>#.fields_of</code>,
+        <code>#.methods_of</code>, <code>#.statics_of</code>, and
+        <code>#.record_of</code> all take <code>@</code>-prefixed type arguments and run
         during compilation. There is no runtime reflection — everything is erased before
         code generation, so introspection has zero runtime cost.
       </div>
