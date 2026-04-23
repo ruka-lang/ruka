@@ -1,3 +1,3 @@
 - Explicit returns require payload
 - unit literals `()` used to return nothing
-- replaces `ruka` builtin with `#`
+- replaces `ruka` builtin record with `#`
