@@ -1,6 +1,7 @@
 TODO (Features, Docs and playground)
-- Documentation
+- Documentation/Language features
     - Allow ranges in match arm guards
+    - Consider compile-time builtins use @.type_of, and runtime builtins use #.abs, etc.
 - More playground language support (in order of importance)
 	- Playground input sanitization
 	- Modes
@@ -9,10 +10,9 @@ TODO (Features, Docs and playground)
 	- Variants
 	- Patterns / Matching / Destructuring
 	- Methods and statics
-	- Builtin functions
+	- Builtin functions (abs, sin, cos, tan, etc)
 	- Behaviours
 	- Builtin behaviours used by for loops and print functions
-	- More builtin functions
 - Playground functionality
 	- Make playground it's own page
 	- User projects supporting multiple files, saved in local storage
