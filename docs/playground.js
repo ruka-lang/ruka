@@ -563,11 +563,43 @@
         if (check(')')) { eat(')'); return { k: 'Unit', line: tok.line }; }
         var e = parseExpr(); skipNL(); eat(')'); return e;
       }
-      // Array/tuple literal: .{a, b, c}
+      // record type: record { name: Type, ... }
+      if (tok.t === 'record') {
+        pos++;
+        skipNL(); eat('{'); skipNL();
+        var rfs = [];
+        while (!check('}') && !check('EOF')) {
+          skipNL();
+          var rfn = eat('ID').v;
+          eat(':'); skipNL();
+          var rft = parseType();
+          rfs.push({ name: rfn, type: rft });
+          skipNL();
+          if (tryMatch(',')) skipNL();
+        }
+        eat('}');
+        return { k: 'RecordType', fields: rfs, line: tok.line };
+      }
+      // Record or array/tuple literal: .{ ... }
       if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
         var ll = tok.line;
-        eat('.'); eat('{');
-        skipNL();
+        eat('.'); eat('{'); skipNL();
+        // Record literal: .{ name = expr, ... } — distinguished from array by ID followed by '='
+        if (!check('}') && check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
+          var rlit = [];
+          while (!check('}') && !check('EOF')) {
+            skipNL();
+            var rlfn = eat('ID').v;
+            eat('='); skipNL();
+            var rlfv = parseExpr();
+            rlit.push({ name: rlfn, value: rlfv });
+            skipNL();
+            if (tryMatch(',')) skipNL();
+          }
+          eat('}');
+          return { k: 'RecordLit', fields: rlit, line: ll };
+        }
+        // Array/tuple literal: .{a, b, c}
         var elements = [];
         while (!check('}') && !check('EOF')) {
           elements.push(parseExpr());
@@ -661,11 +693,15 @@
   // Returns an Error with .line set on the first undeclared identifier,
   // or null if the program is clean.
   function checkScope(ast) {
-    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
+    // scope is Map<name, isMutable: boolean>
+    var topNames = new Map();
+    ['ruka', 'true', 'false', 'self'].forEach(function (b) { topNames.set(b, false); });
 
-    // Top-level: hoist all binding names so mutually-recursive functions work.
-    var topNames = new Set(BUILTINS);
-    ast.body.forEach(function (s) { if (s.k === 'Bind') topNames.add(s.name); });
+    // Hoist all top-level binding names (with mutability) so mutually-recursive
+    // functions work and forward references to mutable bindings are tracked.
+    ast.body.forEach(function (s) {
+      if (s.k === 'Bind') topNames.set(s.name, s.mode === '*');
+    });
 
     try {
       ast.body.forEach(function (s) { chkStmt(s, topNames); });
@@ -675,10 +711,15 @@
     function chkStmt(node, scope) {
       if (node.k === 'Bind') {
         chkExpr(node.value, scope);
-        scope.add(node.name); // available after this point in sequential blocks
+        scope.set(node.name, node.mode === '*'); // available after this point in sequential blocks
       } else if (node.k === 'Assign') {
         if (!scope.has(node.name)) {
           var e = new Error('Undefined: ' + node.name);
+          e.line = node.line;
+          throw e;
+        }
+        if (!scope.get(node.name)) {
+          var e = new Error("Cannot assign to immutable binding '" + node.name + "' (use 'let *" + node.name + "' to make it mutable)");
           e.line = node.line;
           throw e;
         }
@@ -687,8 +728,8 @@
         chkExpr(node.expr, scope);
       } else if (node.k === 'For') {
         chkExpr(node.iter, scope);
-        var fScope = new Set(scope);
-        if (node.name) fScope.add(node.name);
+        var fScope = new Map(scope);
+        if (node.name) fScope.set(node.name, false); // loop variable is immutable
         node.body.forEach(function (s) { chkStmt(s, fScope); });
       } else if (node.k === 'Return') {
         if (node.value) chkExpr(node.value, scope);
@@ -731,21 +772,21 @@
           }
           return;
         case 'Fn': {
-          var fnScope = new Set(scope);
+          var fnScope = new Map(scope);
           // The fn's own binding name is already in scope (hoisted at top level,
           // or added by chkStmt before we recurse into value).
-          node.params.forEach(function (p) { fnScope.add(p); });
+          node.params.forEach(function (p) { fnScope.set(p, false); }); // params are immutable
           chkExpr(node.body, fnScope);
           return;
         }
         case 'Block': {
-          var bScope = new Set(scope);
+          var bScope = new Map(scope);
           node.body.forEach(function (s) { chkStmt(s, bScope); });
           return;
         }
         case 'While': {
           chkExpr(node.cond, scope);
-          var wScope = new Set(scope);
+          var wScope = new Map(scope);
           node.body.forEach(function (s) { chkStmt(s, wScope); });
           return;
         }
@@ -779,6 +820,10 @@
           return;
         case 'Unary':
           chkExpr(node.expr, scope);
+          return;
+        case 'RecordType': return;
+        case 'RecordLit':
+          node.fields.forEach(function (f) { chkExpr(f.value, scope); });
           return;
       }
     }
@@ -889,12 +934,28 @@
   }
 
   function checkTypes(ast) {
+    var _numFn1 = { k: 'fn', params: [{ k: 'float' }], ret: { k: 'float' } };
+    var _numFn2 = { k: 'fn', params: [{ k: 'float' }, { k: 'float' }], ret: { k: 'float' } };
+    var _unkFn1 = { k: 'fn', params: [{ k: 'unknown' }], ret: { k: 'unknown' } };
+    var _unkFn2 = { k: 'fn', params: [{ k: 'unknown' }, { k: 'unknown' }], ret: { k: 'unknown' } };
     var rukaModule = {
       k: 'module',
       members: {
-        println:  { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
-        print:    { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
-        assertEq: { k: 'fn', params: [{ k: 'unknown' }, { k: 'unknown' }],          ret: { k: 'unit' } }
+        println:   { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } },
+        print:     { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } },
+        assertEq:  _unkFn2,
+        assert_eq: _unkFn2,
+        expect_eq: _unkFn2,
+        abs:   _unkFn1,
+        sin:   _numFn1,
+        cos:   _numFn1,
+        tan:   _numFn1,
+        sqrt:  _numFn1,
+        floor: _numFn1,
+        ceil:  _numFn1,
+        min:   _unkFn2,
+        max:   _unkFn2,
+        pow:   _numFn2,
       }
     };
     var topEnv = { bindings: Object.create(null), parent: null };
@@ -1183,6 +1244,11 @@
           }
           return { k: 'unknown' };
         }
+        case 'RecordType': return { k: 'unknown' };
+        case 'RecordLit': {
+          node.fields.forEach(function (f) { inferExpr(f.value, null, env); });
+          return { k: 'named', name: 'record' };
+        }
       }
       return { k: 'unknown' };
     }
@@ -1194,7 +1260,7 @@
   function evaluate(ast) {
     var output = [];
 
-    function mkEnv(parent) { return { vars: Object.create(null), parent: parent }; }
+    function mkEnv(parent) { return { vars: Object.create(null), mut: Object.create(null), parent: parent }; }
 
     function envGet(env, name) {
       if (name in env.vars) return env.vars[name];
@@ -1206,8 +1272,11 @@
 
     // Walk up the chain to mutate an existing binding (for = assignment)
     function envUpdate(env, name, val) {
-      if (name in env.vars) { env.vars[name] = val; return; }
-      if (env.parent)       { envUpdate(env.parent, name, val); return; }
+      if (name in env.vars) {
+        if (!env.mut[name]) throw new Error("Cannot assign to immutable binding '" + name + "' (use 'let *" + name + "' to make it mutable)");
+        env.vars[name] = val; return;
+      }
+      if (env.parent) { envUpdate(env.parent, name, val); return; }
       throw new Error('Undefined: ' + name);
     }
 
@@ -1224,6 +1293,12 @@
         return v.start + sep + v.end;
       }
       if (Array.isArray(v)) return '.{' + v.map(display).join(', ') + '}';
+      if (v && typeof v === 'object' && v._recordType) return '<record>';
+      if (v && typeof v === 'object' && v._record) {
+        var parts = Object.keys(v).filter(function (k) { return k !== '_record'; })
+          .map(function (k) { return k + ' = ' + display(v[k]); });
+        return '.{ ' + parts.join(', ') + ' }';
+      }
       return String(v);
     }
 
@@ -1275,14 +1350,27 @@
     }
 
     var globalEnv = mkEnv(null);
+    var _assertEqFn = { _fn: true, call: function (a) {
+      if (a[0] !== a[1]) throw new Error('assert_eq failed: ' + display(a[0]) + ' != ' + display(a[1]));
+      return null;
+    }};
     envSet(globalEnv, 'ruka', {
       _obj: true,
-      println:  { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
-      print:    { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
-      assertEq: { _fn: true, call: function (a) {
-        if (a[0] !== a[1]) throw new Error('assertEq failed: ' + display(a[0]) + ' != ' + display(a[1]));
-        return null;
-      }},
+      println:   { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
+      print:     { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
+      assertEq:  _assertEqFn,
+      assert_eq: _assertEqFn,
+      expect_eq: _assertEqFn,
+      abs:   { _fn: true, call: function (a) { return Math.abs(num(a[0])); } },
+      sin:   { _fn: true, call: function (a) { return Math.sin(num(a[0])); } },
+      cos:   { _fn: true, call: function (a) { return Math.cos(num(a[0])); } },
+      tan:   { _fn: true, call: function (a) { return Math.tan(num(a[0])); } },
+      sqrt:  { _fn: true, call: function (a) { return Math.sqrt(num(a[0])); } },
+      floor: { _fn: true, call: function (a) { return Math.floor(num(a[0])); } },
+      ceil:  { _fn: true, call: function (a) { return Math.ceil(num(a[0])); } },
+      min:   { _fn: true, call: function (a) { return Math.min(num(a[0]), num(a[1])); } },
+      max:   { _fn: true, call: function (a) { return Math.max(num(a[0]), num(a[1])); } },
+      pow:   { _fn: true, call: function (a) { return Math.pow(num(a[0]), num(a[1])); } },
     });
 
     function evalStmt(node, env) {
@@ -1290,6 +1378,7 @@
         if (node.k === 'Bind') {
           var val = evalExpr(node.value, env);
           envSet(env, node.name, val);
+          env.mut[node.name] = (node.mode === '*');
           return val;
         }
         if (node.k === 'Assign') {
@@ -1336,10 +1425,16 @@
     function evalExpr(node, env) {
       switch (node.k) {
 
-        case 'Lit':   return node.v;
-        case 'Unit':  return null;
-        case 'Char':  return { _char: true, v: node.v };
-        case 'Str':   return interpStr(node.raw, env);
+        case 'Lit':        return node.v;
+        case 'Unit':       return null;
+        case 'Char':       return { _char: true, v: node.v };
+        case 'Str':        return interpStr(node.raw, env);
+        case 'RecordType': return { _recordType: true, fields: node.fields };
+        case 'RecordLit': {
+          var rec = { _record: true };
+          node.fields.forEach(function (f) { rec[f.name] = evalExpr(f.value, env); });
+          return rec;
+        }
 
         case 'Ident': {
           try { return envGet(env, node.name); }
