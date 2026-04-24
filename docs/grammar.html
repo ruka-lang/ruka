@@ -221,7 +221,6 @@ identifier    ::=  letter ( letter | digit )*
         <div class="keyword-grid">
           <code>and</code>
           <code>break</code>
-          <code>share</code>
           <code>continue</code>
           <code>defer</code>
           <code>do</code>
@@ -251,10 +250,14 @@ identifier    ::=  letter ( letter | digit )*
           A mode prefix is placed directly before a parameter or binding identifier
           with no whitespace between the prefix and the identifier.
         </p>
-        <pre class="grammar"><code>mode-prefix   ::=  "*"    -- mutable reference; changes are visible to the caller
-               |   "&"    -- move (ownership transfer); caller cannot use the value after the call
+        <pre class="grammar"><code>mode-prefix   ::=  "*"    -- mutable reference; changes are visible to the caller (binding: mutable variable)
+               |   "&"    -- move (ownership transfer); caller cannot use the value after the call (parameter-only)
                |   "$"    -- stack-allocated; value cannot escape the function scope
                |   "@"    -- compile-time; value must be known at compile time</code></pre>
+        <div class="note">
+          The <code>&amp;</code> move mode is valid in parameter position only; it cannot appear on a binding.
+          All other modes are shared between parameters and bindings.
+        </div>
         <div class="note">
           <code>self</code> is a reserved keyword that refers to the method receiver instance.
           It may only appear in the receiver position of a binding declaration or as a parameter
@@ -328,10 +331,11 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
         <h3>Program</h3>
         <p>
           A Ruka source file is a flat sequence of declarations. Every file is implicitly
-          a compile-time record: <code>share</code> declarations become its public fields
-          and <code>local</code> declarations are private fields inaccessible to importers.
-          <code>#.import</code> returns this record value; there is no separate module concept.
-          (The <code>#</code> sigil is the built-in module reference; see Built-in Module below.)
+          a compile-time record: top-level <code>let</code> declarations become its public
+          fields, and <code>let local</code> declarations are private fields inaccessible to
+          importers. <code>ruka.import</code> returns this record value; there is no separate
+          module concept. (The <code>#</code> sigil is the built-in module reference; see
+          Built-in Module below.)
         </p>
         <pre class="grammar"><code>program       ::=  declaration*</code></pre>
       </section>
@@ -340,23 +344,20 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
       <section id="declarations">
         <h3>Declarations</h3>
         <p>
-          All declarations share a single binding form. The binding keyword determines
-          mutability and visibility; there is no separate <code>fn</code>,
-          <code>type</code>, or <code>mod</code> keyword.
+          There are two declaration forms: ordinary <code>let</code> bindings and
+          <code>test</code> bindings. There is no separate <code>fn</code>, <code>type</code>,
+          or <code>mod</code> keyword. Mutability, privacy, and evaluation time are all
+          expressed through modes and the optional <code>local</code> qualifier on the
+          binding left-hand side.
         </p>
-        <pre class="grammar"><code>declaration   ::=  binding
+        <pre class="grammar"><code>declaration   ::=  binding | test-binding
 
-binding       ::=  binding-kw binding-lhs "=" expr
-               |   binding-kw binding-lhs ":" type "=" expr
+binding       ::=  "let" binding-lhs "=" expr
+               |   "let" binding-lhs ":" type "=" expr
 
-binding-kw    ::=  "let"     -- mutable; scoped to the enclosing block
-               |   "share"   -- immutable; public (exported from its module)
-               |   "local"   -- immutable; private (not exported)
-               |   "test"    -- test function; compiled only in debug and test builds
-
-binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
-               |   mode-prefix? identifier receiver          -- function or method binding
-               |   destructure-pattern                -- destructuring binding
+binding-lhs   ::=  "local"? mode-prefix? identifier                  -- simple value binding
+               |   "local"? mode-prefix? identifier receiver          -- function or method binding
+               |   "local"? destructure-pattern                       -- destructuring binding
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                        -- static function: associated type name
@@ -365,22 +366,44 @@ type-receiver ::=  identifier                        -- static function: associa
 destructure-pattern
               ::=  "{" identifier ( "," identifier )* "}"
                    -- destructures any record value, including imported files
-                   -- e.g.  local { x, y } = point
-                   -- e.g.  local { sqrt, pow } = #.import("math")</code></pre>
+                   -- e.g.  let local { x, y } = point
+                   -- e.g.  let local { sqrt, pow } = ruka.import("math")
+
+test-binding  ::=  "test" identifier "=" expr
+                   -- the value must be a function expression; compiled in debug/test builds only</code></pre>
 
         <div class="note">
           <strong>Uniform declarations.</strong> Functions, types, behaviours, and modules
-          are all values stored in ordinary bindings. A <em>receiver</em> in the binding
-          left-hand side associates the value with a named type as either a static function
-          (type-name receiver) or a method (<code>self</code> receiver). The receiver appears
-          between the binding name and the <code>=</code> sign.
+          are all values stored in ordinary <code>let</code> bindings. A <em>receiver</em> in
+          the binding left-hand side associates the value with a named type as either a
+          static function (type-name receiver) or a method (<code>self</code> receiver). The
+          receiver appears between the binding name and the <code>=</code> sign.
         </div>
         <div class="note">
-          <strong>Test bindings.</strong> A <code>test</code> binding declares a zero-argument
-          function that is only compiled in debug and test builds; it is elided entirely in
-          optimised builds. The value must be a function expression. Test bindings have no
-          visibility — they are never exported — and a receiver clause is not permitted.
-          The name is an ordinary identifier used by the test runner to identify the test.
+          <strong>Privacy.</strong> The optional <code>local</code> qualifier marks a binding
+          as private. At file scope, bindings are public by default; <code>let local</code>
+          makes them private (not exported from the file record). On methods and statics,
+          <code>let local</code> makes the method or static private to the declaring module.
+        </div>
+        <div class="note">
+          <strong>Mutability.</strong> By default a <code>let</code> binding is immutable.
+          The <code>*</code> mode prefix makes the binding a mutable variable:
+          <code>let *count = 0</code>. Reassignment is only permitted on bindings declared
+          with <code>*</code>.
+        </div>
+        <div class="note">
+          <strong>Evaluation time.</strong> Bindings at file scope (including methods,
+          statics, and type declarations) are implicitly compile-time. The <code>@</code>
+          mode may be written explicitly but is redundant there. Inside an inner scope
+          (function body, block) a plain <code>let</code> is runtime; <code>@</code> must
+          be written explicitly to force compile-time evaluation of the right-hand side.
+        </div>
+        <div class="note">
+          <strong>Test bindings.</strong> A <code>test</code> binding declares a function
+          that is only compiled in debug and test builds and elided entirely in optimised
+          builds. The value must be a function expression. Test bindings have no visibility
+          qualifier and no receiver clause. The name is an ordinary identifier used by the
+          test runner to identify the test.
         </div>
       </section>
 
@@ -818,32 +841,32 @@ guard-pattern ::=  expr
         <p>
           Built-in functions are accessed through the <code>#</code> module, which is
           implicitly available in every scope without an import declaration. Access uses
-          ordinary field-access and call syntax: <code>#.println(...)</code>,
-          <code>#.sqrt(...)</code>, etc. The <code>#</code> sigil cannot be shadowed or
+          ordinary field-access and call syntax: <code>ruka.println(...)</code>,
+          <code>ruka.sqrt(...)</code>, etc. The <code>ruka</code> module cannot be shadowed or
           rebound by user code.
         </p>
-        <pre class="grammar"><code>-- # is an implicitly imported compile-time record; no import needed.
--- Access uses standard postfix call syntax: #.fn(args)
+        <pre class="grammar"><code>-- ruka is an implicitly imported compile-time record; no import needed.
+-- Access uses standard postfix call syntax: ruka.fn(args)
 
--- #.print(string)              print to stdout without a trailing newline
--- #.println(string)            print to stdout with a trailing newline
--- #.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
--- #.type_of(expr)              return the compile-time type of an expression as a "type" value
--- #.abs(number)                absolute value
--- #.sin(number)                sine
--- #.cos(number)                cosine
--- #.tan(number)                tangent
--- #.sqrt(number)               square root
--- #.assert_eq(a, b)            assert equality; panics at runtime on failure
--- #.compile_error(string-lit)  emit a compile-time error with the given message
--- #.size(type)                 size in bytes of a compile-time type value
--- #.heap_alloc(size)           raw heap allocation; returns [u8], untracked by GC
--- #.heap_free(bytes)           release memory obtained from heap_alloc
--- #.fields_of(t)               compile-time array of a type's field descriptors
--- #.methods_of(t)              compile-time array of a type's method descriptors
--- #.statics_of(t)              compile-time array of a type's static members
--- #.record_of(fields)          build a record type from compile-time field data
--- #.now()                      current time as a timestamp value</code></pre>
+-- ruka.print(string)              print to stdout without a trailing newline
+-- ruka.println(string)            print to stdout with a trailing newline
+-- ruka.import(string-lit)         evaluate at compile time; returns the file as a compile-time record value
+-- ruka.type_of(expr)              return the compile-time type of an expression as a "type" value
+-- ruka.abs(number)                absolute value
+-- ruka.sin(number)                sine
+-- ruka.cos(number)                cosine
+-- ruka.tan(number)                tangent
+-- ruka.sqrt(number)               square root
+-- ruka.assert_eq(a, b)            assert equality; panics at runtime on failure
+-- ruka.compile_error(string-lit)  emit a compile-time error with the given message
+-- ruka.size(type)                 size in bytes of a compile-time type value
+-- ruka.heap_alloc(size)           raw heap allocation; returns [u8], untracked by GC
+-- ruka.heap_free(bytes)           release memory obtained from heap_alloc
+-- ruka.fields_of(t)               compile-time array of a type's field descriptors
+-- ruka.methods_of(t)              compile-time array of a type's method descriptors
+-- ruka.statics_of(t)              compile-time array of a type's static members
+-- ruka.record_of(fields)          build a record type from compile-time field data
+-- ruka.now()                      current time as a timestamp value</code></pre>
       </section>
 
     </section><!-- /syntactic -->

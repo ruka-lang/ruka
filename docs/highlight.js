@@ -1,7 +1,7 @@
 /* ── Ruka syntax highlighter ── */
 (function () {
 	const KEYWORDS = new Set([
-		'let', 'share', 'local', 'if', 'match',
+		'let', 'local', 'if', 'match',
 		'while', 'for', 'return', 'record', 'variant', 'behaviour',
 		'true', 'false', 'self', 'test', 'break', 'continue', 'defer'
 	]);

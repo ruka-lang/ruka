@@ -148,14 +148,14 @@ pub const Node = struct {
 
         // ── declarations ──────────────────────────────────────
         binding_let,           // lhs=binding_lhs node, rhs=expr node
-        binding_share,
-        binding_local,
-        binding_test,
+        binding_test,          // lhs=identifier token, rhs=function-expr node
 
         // ── binding left-hand sides ────────────────────────────
-        binding_lhs_simple,    // main_token=identifier token; lhs=mode prefix token (0 if none)
+        // Each LHS carries: optional `local` privacy marker (flag on the node),
+        // optional mode prefix token, and the target identifier or pattern.
+        binding_lhs_simple,    // main_token=identifier token; lhs=mode prefix token (0 if none); flag=is_local
         binding_lhs_fn,        // lhs=binding_lhs_simple, rhs=receiver node
-        binding_lhs_destruct,  // lhs=first ident token, rhs=ident count  (in extra_data)
+        binding_lhs_destruct,  // lhs=first ident token, rhs=ident count  (in extra_data); flag=is_local
         receiver_static,       // main_token=type name token
         receiver_method,       // main_token=self token; lhs=mode prefix token (0 if none)
 

@@ -6,7 +6,7 @@
   // Tokenizer
   // ──────────────────────────────────────────────
   var KW = new Set([
-    'let', 'local', 'share', 'do', 'end',
+    'let', 'local', 'do', 'end',
     'if', 'else', 'while', 'return',
     'true', 'false', 'not', 'and', 'or',
     'match', 'with', 'for', 'in', 'break', 'continue',
@@ -263,11 +263,17 @@
     }
 
     function parseStmt() {
-      // binding: let/local/share name = expr
-      var kw = tryMatch('let', 'local', 'share');
+      // binding: let [local] [mode]name [: type] = expr
+      var kw = tryMatch('let');
       if (kw) {
+        var isLocal = !!tryMatch('local');
+        // optional mode prefix: *, $, @
+        var mode = null;
+        if (check('*') || check('$') || check('@')) {
+          mode = peek().v; pos++;
+        }
         var name = eat('ID').v;
-        // skip optional (self) / (self: T) receiver annotation
+        // skip optional (self) / (self: T) / (Type) receiver annotation
         if (check('(')) {
           var depth = 1; pos++;
           while (depth > 0 && !check('EOF')) {
@@ -279,7 +285,7 @@
         var bindType = tryMatch(':') ? parseType() : null;
         eat('=');
         skipNL();
-        return { k: 'Bind', kw: kw.v, name: name, type: bindType, value: parseExpr(), line: kw.line };
+        return { k: 'Bind', local: isLocal, mode: mode, name: name, type: bindType, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
@@ -1498,14 +1504,14 @@
     // Evaluate all top-level statements
     for (var i = 0; i < ast.body.length; i++) evalStmt(ast.body[i], globalEnv);
 
-    // Auto-call main() only if it was declared as `share` — `local` / `let`
-    // bindings are private and should not run as an entry point.
+    // Auto-call main() only if it was declared as a public (non-local) top-level
+    // let binding. `let local main` is private and should not run as an entry point.
     var mainBind = null;
     for (var i = 0; i < ast.body.length; i++) {
       var s = ast.body[i];
       if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
     }
-    if (mainBind && mainBind.kw === 'share'
+    if (mainBind && !mainBind.local
         && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
       evalExpr({ k: 'Call', callee: { k: 'Ident', name: 'main' }, args: [] }, globalEnv);
     }

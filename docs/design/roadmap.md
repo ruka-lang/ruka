@@ -43,7 +43,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
 
 - [ ] `Ast` container: `std.MultiArrayList(Node)` + `extra_data: []u32`
 - [ ] `Parser`: `[]Token` → `Ast`, recursive descent following `docs/grammar.html`
-  - [ ] Declarations: `let`, `share`, `local`, `test` bindings
+  - [ ] Declarations: `let` bindings (with optional `local` privacy qualifier) and `test` bindings
   - [ ] Binding LHS: simple, function+receiver (static/method), destructuring
   - [ ] Type annotations (all type forms from the grammar)
   - [ ] Literals: int, float, bool, char, string, multiline string
@@ -81,9 +81,9 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] Type-check binary and unary operators
   - [ ] Unify types at assignment and function call sites
   - [ ] Resolve collection literals to array or tuple based on context
-  - [ ] Check `share` RHS is a compile-time value
-  - [ ] Check `let` in mutable position, `local` is immutable
-  - [ ] Binding mode checking (`$`, `@`)
+  - [ ] Check file-scope and method/static `let` RHS is a compile-time value
+  - [ ] Check reassignment targets are bindings declared with `*` (mutable)
+  - [ ] Binding mode checking (`*`, `$`, `@`)
   - [ ] Named-parameter matching at call sites (order-independent)
   - [ ] `match` exhaustiveness checking for variant types
   - [ ] `return` type compatibility with enclosing function
@@ -102,7 +102,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
 - [ ] `Interpreter`: tree-walk over `Hir`
   - [ ] Evaluate all literal types
   - [ ] Evaluate arithmetic, comparison, logical, range operators
-  - [ ] Evaluate `let`, `local`, `share` bindings; mutable assignment
+  - [ ] Evaluate `let` bindings (including `let local` and modes `*`, `$`, `@`); mutable assignment
   - [ ] Evaluate block expressions (returns last value)
   - [ ] Evaluate `if` / `ternary`
   - [ ] Evaluate `while` and `for` with `break` / `continue`

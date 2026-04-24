@@ -1,11 +1,9 @@
 TODO (Features, Docs and playground)
 - Documentation/Language features
-	- Consider changing let to be immutable by default and requiring the mut mode `let *ident` to create a mutable variable mirroring the * parameter mode
-		- Also removing local/share and using the compile-time mode to specify compile-time constants `let @ALPHA = ...` `let @main = ...`. @ is implied for methods and statics `let start (self) = ...` doesn't need to specify `let @start (self)...`, and type definitions `let vec = record { ... }` @ is inferred as well. Privacy methods/statics uses `let local hash (self) = ...` for private and default to public to match records using local before the ident for private fields). Bindings declared directly in a file (not enclosed in any kind of block) can implicitly be treated as @ so `let main` is treated as `let @main`. Explicit @ binding mode annotation only needed to force runtime code to execute during compilation when inside of blocks. With this the only difference between parameter modes and binding modes is the mov & mode which only exists for parameters
+	- Consider go-ish `ident` for public and `Ident` for private instead of using local.
     - Allowing ranges in match arm guards when matching integer-typed variables
 	- Builtin types like arrays, tuples, strings, (maybe even primatives as well like integers) are treated like records and have methods
 	- Currently methods are only appliable in the scope the type is defined in. This rule should have an expection where you can add methods to foriegn or builtin type `let fold (self: [float]) = ...` but it only applies in that specific scope (this would be useful for adjusting a type to fit a behaviour, a new type is created with the new method and shadows the old type in that scope the method is defined in)
-	- Variables and parameters can be shadowed but method/static overloading will never be supported
 - More playground language support (in order of importance)
 	- Playground input sanitization
 	- Builtin functions (abs, sin, cos, tan, etc)
