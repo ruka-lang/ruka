@@ -535,7 +535,23 @@
           var ml = peek().line;
           eat('.');
           skipNL();
-          expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
+          // Type-prefixed record literal: Expr.{ field = val, ... }
+          if (check('{')) {
+            eat('{'); skipNL();
+            var trlit = [];
+            while (!check('}') && !check('EOF')) {
+              var trfn = eat('ID').v;
+              eat('='); skipNL();
+              var trfv = parseExpr();
+              trlit.push({ name: trfn, value: trfv });
+              skipNL();
+              if (tryMatch(',')) skipNL();
+            }
+            eat('}');
+            expr = { k: 'RecordLit', typeName: expr, fields: trlit, line: ml };
+          } else {
+            expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
+          }
         } else if (check('[')) {
           var il = peek().line;
           eat('[');
@@ -823,6 +839,7 @@
           return;
         case 'RecordType': return;
         case 'RecordLit':
+          if (node.typeName) chkExpr(node.typeName, scope);
           node.fields.forEach(function (f) { chkExpr(f.value, scope); });
           return;
       }
@@ -906,11 +923,13 @@
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
       if (name === 'append') return { k: 'fn', params: [obj.elem], ret: { k: 'unit' } };
       if (name === 'remove') return { k: 'fn', params: [{ k: 'int' }], ret: obj.elem };
+      if (name === 'concat') return { k: 'fn', params: [{ k: 'array', elem: obj.elem }], ret: { k: 'array', elem: obj.elem } };
       throw tyErr(line, "no method '" + name + "' on " + tyStr(obj));
     }
     if (obj.k === 'string') {
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
       if (name === 'concat') return { k: 'fn', params: [{ k: 'string' }], ret: { k: 'string' } };
+      if (name === 'append') return { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } };
       throw tyErr(line, "no method '" + name + "' on string");
     }
     if (obj.k === 'module') {
@@ -1244,10 +1263,94 @@
           }
           return { k: 'unknown' };
         }
-        case 'RecordType': return { k: 'unknown' };
+        case 'RecordType': {
+          // Build a recordDef type from the AST field list so that record literals
+          // can verify field presence and types against this definition.
+          var rdFields = node.fields.map(function (f) {
+            return { name: f.name, ty: astToTy(f.type) };
+          });
+          return { k: 'recordDef', fields: rdFields };
+        }
         case 'RecordLit': {
-          node.fields.forEach(function (f) { inferExpr(f.value, null, env); });
-          return { k: 'named', name: 'record' };
+          // Resolve a record type definition — either from an explicit typeName
+          // (Thing.{...}) or from the expected type annotation (let x: Thing = .{...}).
+          var recDef = null;
+          if (node.typeName && node.typeName.k === 'Ident') {
+            var nt = lookup(env, node.typeName.name);
+            if (nt && nt.k === 'recordDef') recDef = nt;
+            else if (nt && nt.k !== 'recordDef' && nt.k !== 'unknown')
+              throw tyErr(node.line, "'" + node.typeName.name + "' is not a record type");
+          } else if (expected && expected.k === 'named') {
+            var et = lookup(env, expected.name);
+            if (et && et.k === 'recordDef') recDef = et;
+          }
+          if (recDef) {
+            // Check for unknown fields
+            var defMap = {};
+            recDef.fields.forEach(function (df) { defMap[df.name] = df; });
+            node.fields.forEach(function (f) {
+              if (!defMap[f.name])
+                throw tyErr(node.line, "unknown field '" + f.name + "' in record literal");
+            });
+            // Check for missing fields
+            var provided = {};
+            node.fields.forEach(function (f) { provided[f.name] = true; });
+            recDef.fields.forEach(function (df) {
+              if (!provided[df.name])
+                throw tyErr(node.line, "record literal missing field '" + df.name + "'");
+            });
+            // Type-check each field value
+            node.fields.forEach(function (f) {
+              inferExpr(f.value, defMap[f.name].ty, env);
+            });
+            var recName = node.typeName ? node.typeName.name : expected.name;
+            return conform(expected, { k: 'named', name: recName }, node.line);
+          }
+          // No explicit type context — infer by scanning record types in scope.
+          // Build the literal's field signature for comparison.
+          var litFieldNames = node.fields.map(function (f) { return f.name; }).slice().sort().join(',');
+          var litFieldMap = {};
+          node.fields.forEach(function (f) { litFieldMap[f.name] = f; });
+
+          // Collect every recordDef visible in the current env chain (innermost wins).
+          var seen = new Set();
+          var candidates = [];
+          var walk = env;
+          while (walk) {
+            Object.keys(walk.bindings).forEach(function (name) {
+              if (!seen.has(name)) {
+                seen.add(name);
+                var bt = walk.bindings[name];
+                if (bt && bt.k === 'recordDef') candidates.push({ name: name, def: bt });
+              }
+            });
+            walk = walk.parent;
+          }
+
+          // Filter to those whose field names match exactly and whose field types
+          // are compatible. The inferExpr calls here are read-only (env unchanged).
+          var matches = candidates.filter(function (c) {
+            var defNames = c.def.fields.map(function (f) { return f.name; }).slice().sort().join(',');
+            if (defNames !== litFieldNames) return false;
+            try {
+              c.def.fields.forEach(function (df) {
+                inferExpr(litFieldMap[df.name].value, df.ty, env);
+              });
+              return true;
+            } catch (_) { return false; }
+          });
+
+          if (matches.length === 0)
+            throw tyErr(node.line, 'no record type in scope matches this literal');
+          if (matches.length > 1)
+            throw tyErr(node.line, 'ambiguous record literal: matches ' + matches.map(function (m) { return m.name; }).join(', ') + '; use Type.{...} to specify');
+
+          // Exactly one match — type-check with the resolved definition.
+          var inferred = matches[0];
+          inferred.def.fields.forEach(function (df) {
+            inferExpr(litFieldMap[df.name].value, df.ty, env);
+          });
+          return conform(expected, { k: 'named', name: inferred.name }, node.line);
         }
       }
       return { k: 'unknown' };
@@ -1537,12 +1640,18 @@
                 if (idx < 0 || idx >= obj.length) throw new Error('remove: index ' + idx + ' out of bounds (length ' + obj.length + ')');
                 return obj.splice(idx, 1)[0];
               } };
+              if (node.prop === 'concat') return { _fn: true, call: function (a) { return obj.concat(a[0]); } };
               throw new Error("No method '" + node.prop + "' on array");
             }
             if (typeof obj === 'string') {
               if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
-              if (node.prop === 'concat') return { _fn: true, call: function (a) {
-                return obj + a[0];
+              if (node.prop === 'concat') return { _fn: true, call: function (a) { return obj + a[0]; } };
+              if (node.prop === 'append') return { _fn: true, call: function (a) {
+                // JS strings are primitives, so we write the new value back into the
+                // source binding. Works for direct-binding receivers (s.append(...)).
+                if (node.obj.k !== 'Ident') throw new Error('append: receiver must be a direct binding');
+                envUpdate(env, node.obj.name, obj + a[0]);
+                return null;
               } };
               throw new Error("No method '" + node.prop + "' on string");
             }

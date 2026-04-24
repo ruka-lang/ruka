@@ -1,0 +1,39 @@
+let Vec2 = record { x: float, y: float }
+
+let add = (a: Vec2, b: Vec2) do
+    .{ x = a.x + b.x, y = a.y + b.y }
+end
+
+let scale = (v: Vec2, s: float) do
+    .{ x = v.x * s, y = v.y * s }
+end
+
+let magnitude = (v: Vec2) do
+    ruka.sqrt(v.x * v.x + v.y * v.y)
+end
+
+let round1 = (n: float) do
+    ruka.floor(n * 10.0) / 10.0
+end
+
+let main = () do
+    let gravity = .{ x = 0.0, y = -9.8 }
+    let *pos    = .{ x = 0.0, y = 20.0 }
+    let *vel    = .{ x = 8.0, y = 12.0 }
+    let dt      = 0.5
+    let *t      = 0.0
+
+    ruka.println("Projectile  v0=${round1(magnitude(vel))} m/s")
+    ruka.println("-----------------------------")
+
+    while pos.y > 0.0 do
+        vel = add(vel, scale(gravity, dt))
+        pos = add(pos, scale(vel, dt))
+        t   = t + dt
+        if pos.y < 0.0 do pos = Vec2.{ x = pos.x, y = 0.0 }
+        ruka.println("t=${round1(t)}s  x=${round1(pos.x)}m  y=${round1(pos.y)}m")
+    end
+
+    ruka.println("-----------------------------")
+    ruka.println("Range: ${round1(pos.x)}m   Time: ${round1(t)}s")
+end
