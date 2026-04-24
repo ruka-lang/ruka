@@ -1,18 +1,18 @@
 let Vec2 = record { x: float, y: float }
 
-let add = (a: Vec2, b: Vec2) do
+let add = (a, b) do
     .{ x = a.x + b.x, y = a.y + b.y }
 end
 
-let scale = (v: Vec2, s: float) do
+let scale = (v, s) do
     .{ x = v.x * s, y = v.y * s }
 end
 
-let magnitude = (v: Vec2) do
+let magnitude = (v) do
     ruka.sqrt(v.x * v.x + v.y * v.y)
 end
 
-let round1 = (n: float) do
+let round1 = (n) do
     ruka.floor(n * 10.0) / 10.0
 end
 

@@ -914,10 +914,44 @@
     return { k: 'unknown' };
   }
 
-  function tyErr(line, msg) { var e = new Error(msg); e.line = line; return e; }
+  function tyErr(line, msg, fatal) {
+    var e = new Error(msg); e.line = line;
+    if (fatal) e.fatalTypeError = true;
+    return e;
+  }
 
-  // Static method resolution for built-in types
-  function methodOf(obj, name, line) {
+  // Pure AST walker — visits every expression node, calling fn(node) on each.
+  // Used for constraint collection (no type-env side effects).
+  function walkAst(node, fn) {
+    if (!node) return;
+    fn(node);
+    switch (node.k) {
+      case 'Block': node.body.forEach(function (s) { walkAstStmt(s, fn); }); break;
+      case 'If': walkAst(node.cond, fn); walkAst(node.then, fn); if (node.else_) walkAst(node.else_, fn); break;
+      case 'While': walkAst(node.cond, fn); node.body.forEach(function (s) { walkAstStmt(s, fn); }); break;
+      case 'Call': walkAst(node.callee, fn); node.args.forEach(function (a) { walkAst(a, fn); }); break;
+      case 'Member': walkAst(node.obj, fn); break;
+      case 'Index': walkAst(node.obj, fn); walkAst(node.idx, fn); break;
+      case 'BinOp': walkAst(node.left, fn); walkAst(node.right, fn); break;
+      case 'Unary': walkAst(node.expr, fn); break;
+      case 'Range': walkAst(node.start, fn); if (node.end) walkAst(node.end, fn); break;
+      case 'List': node.elements.forEach(function (e) { walkAst(e, fn); }); break;
+      case 'RecordLit':
+        if (node.typeName) walkAst(node.typeName, fn);
+        node.fields.forEach(function (f) { walkAst(f.value, fn); }); break;
+      case 'Fn': walkAst(node.body, fn); break;
+    }
+  }
+  function walkAstStmt(node, fn) {
+    if (!node) return;
+    if (node.k === 'Bind' || node.k === 'Assign' || node.k === 'Return') { if (node.value) walkAst(node.value, fn); }
+    if (node.k === 'ExprStmt') walkAst(node.expr, fn);
+    if (node.k === 'For') { walkAst(node.iter, fn); node.body.forEach(function (s) { walkAstStmt(s, fn); }); }
+  }
+
+  // Static method/field resolution for built-in and user-defined types.
+  // env is optional; when provided, named record fields are resolved.
+  function methodOf(obj, name, line, env) {
     if (!obj || obj.k === 'unknown') return { k: 'unknown' };
     if (obj.k === 'array') {
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
@@ -936,7 +970,17 @@
       if (name in obj.members) return obj.members[name];
       throw tyErr(line, "no member '" + name + "' on module");
     }
-    // named / option / result / tuple — not yet supported here
+    if (obj.k === 'named' && env) {
+      var recDef = (function (e) {
+        while (e) { if (obj.name in e.bindings) return e.bindings[obj.name]; e = e.parent; }
+      }(env));
+      if (recDef && recDef.k === 'recordDef') {
+        for (var fi = 0; fi < recDef.fields.length; fi++) {
+          if (recDef.fields[fi].name === name) return recDef.fields[fi].ty;
+        }
+        throw tyErr(line, "no field '" + name + "' on " + obj.name, true);
+      }
+    }
     return { k: 'unknown' };
   }
 
@@ -1056,6 +1100,99 @@
           } catch (e) { e.line = line; throw e; }
         }
       }
+    }
+
+    // Pass 1: for each unannotated param, collect field names accessed on it and
+    // find the unique record type in scope that has all of them.
+    function inferParamRecordTypes(params, paramTypes, bodyNode, fenv, fnLine) {
+      var fieldUsages = {};
+      params.forEach(function (p, i) { if (!paramTypes[i]) fieldUsages[p] = []; });
+      if (!Object.keys(fieldUsages).length) return {};
+
+      walkAst(bodyNode, function (node) {
+        if (node.k === 'Member' && node.obj.k === 'Ident' && fieldUsages[node.obj.name] !== undefined
+            && fieldUsages[node.obj.name].indexOf(node.prop) < 0)
+          fieldUsages[node.obj.name].push(node.prop);
+      });
+
+      // Build set of all fields declared in any record type currently in scope.
+      // We use only these "known" fields for candidate matching — accesses to
+      // non-existent fields (e.g. b.z when no record has z) must not block type
+      // inference; they will be reported as errors when the body is type-checked.
+      var knownFields = new Set();
+      (function collectKnown(e) {
+        while (e) {
+          Object.keys(e.bindings).forEach(function (n) {
+            var t = e.bindings[n];
+            if (t && t.k === 'recordDef')
+              t.fields.forEach(function (f) { knownFields.add(f.name); });
+          });
+          e = e.parent;
+        }
+      }(fenv));
+
+      var inferred = {};
+      Object.keys(fieldUsages).forEach(function (pname) {
+        var fields = fieldUsages[pname];
+        if (!fields.length) return;
+        // Filter to fields that appear in at least one record type. Any fields not
+        // present in any record type are still reported below — they're caught by
+        // the zero-candidates branch or by the body type-check once a type is inferred.
+        var knownAccessed = fields.filter(function (f) { return knownFields.has(f); });
+        if (!knownAccessed.length) {
+          throw tyErr(fnLine,
+            "parameter '" + pname + "': no record type in scope has field(s) {" + fields.join(', ') + '}; add a type annotation', true);
+        }
+        var seen = new Set(), candidates = [];
+        var e = fenv;
+        while (e) {
+          Object.keys(e.bindings).forEach(function (name) {
+            if (!seen.has(name)) {
+              seen.add(name);
+              var t = e.bindings[name];
+              if (t && t.k === 'recordDef') {
+                var defNames = t.fields.map(function (f) { return f.name; });
+                if (knownAccessed.every(function (f) { return defNames.indexOf(f) >= 0; }))
+                  candidates.push(name);
+              }
+            }
+          });
+          e = e.parent;
+        }
+        if (candidates.length === 1) {
+          inferred[pname] = { k: 'named', name: candidates[0] };
+        } else if (candidates.length > 1) {
+          throw tyErr(fnLine,
+            "parameter '" + pname + "' is ambiguous: could be " + candidates.join(', ') + '; add a type annotation', true);
+        } else {
+          // knownAccessed is non-empty but no record type satisfies all of them —
+          // the accessed fields collectively belong to no single type in scope.
+          throw tyErr(fnLine,
+            "parameter '" + pname + "': no record type in scope has fields {" + knownAccessed.join(', ') + '}; add a type annotation', true);
+        }
+      });
+      return inferred;
+    }
+
+    // Pass 2: for each still-unknown param, scan arithmetic BinOps where the
+    // other operand's type is now known (using fenv populated by pass 1).
+    function inferParamNumericTypes(params, pTys, bodyNode, fenv) {
+      var ARITH = new Set(['+', '-', '*', '/', '%', '**']);
+      var inferred = {};
+      walkAst(bodyNode, function (node) {
+        if (node.k !== 'BinOp' || !ARITH.has(node.op)) return;
+        [[node.left, node.right], [node.right, node.left]].forEach(function (pair) {
+          var lhs = pair[0], rhs = pair[1];
+          if (lhs.k !== 'Ident') return;
+          var idx = params.indexOf(lhs.name);
+          if (idx < 0 || pTys[idx] || inferred[lhs.name]) return;
+          try {
+            var t = inferExpr(rhs, null, fenv);
+            if (isNumericKind(t.k)) inferred[lhs.name] = t;
+          } catch (_) {}
+        });
+      });
+      return inferred;
     }
 
     function inferExpr(node, expected, env) {
@@ -1187,7 +1324,7 @@
 
         case 'Member': {
           var obj = inferExpr(node.obj, null, env);
-          var mt  = methodOf(obj, node.prop, node.line);
+          var mt  = methodOf(obj, node.prop, node.line, env);
           return conform(expected, mt, node.line);
         }
 
@@ -1215,6 +1352,19 @@
             var pt = astToTy(node.paramTypes[i]);
             pTys.push(pt);
             fenv.bindings[node.params[i]] = pt || { k: 'unknown' };
+          }
+          // Infer unannotated parameter types from the function body.
+          if (node.params.some(function (_, i) { return !node.paramTypes[i]; })) {
+            // Pass 1: record types from field accesses on unknown params
+            var recInf = inferParamRecordTypes(node.params, node.paramTypes, node.body, fenv, node.line);
+            node.params.forEach(function (p, i) {
+              if (!pTys[i] && recInf[p]) { pTys[i] = recInf[p]; fenv.bindings[p] = recInf[p]; }
+            });
+            // Pass 2: scalar types from arithmetic context (fenv now has pass-1 types)
+            var numInf = inferParamNumericTypes(node.params, pTys, node.body, fenv);
+            node.params.forEach(function (p, i) {
+              if (!pTys[i] && numInf[p]) { pTys[i] = numInf[p]; fenv.bindings[p] = numInf[p]; }
+            });
           }
           var declaredRet = astToTy(node.returnType);
           retTyStack.push(declaredRet || { k: 'unknown' });
@@ -1329,6 +1479,8 @@
 
           // Filter to those whose field names match exactly and whose field types
           // are compatible. The inferExpr calls here are read-only (env unchanged).
+          // Fatal errors (e.g. accessing a field that doesn't exist on a known type)
+          // are re-thrown rather than treated as a failed candidate match.
           var matches = candidates.filter(function (c) {
             var defNames = c.def.fields.map(function (f) { return f.name; }).slice().sort().join(',');
             if (defNames !== litFieldNames) return false;
@@ -1337,7 +1489,10 @@
                 inferExpr(litFieldMap[df.name].value, df.ty, env);
               });
               return true;
-            } catch (_) { return false; }
+            } catch (err) {
+              if (err.fatalTypeError) throw err;
+              return false;
+            }
           });
 
           if (matches.length === 0)
@@ -1752,53 +1907,58 @@
 
     if (!runBtn || !textarea || !output) return;
 
-    // Debounce handle for the parse-error check
+    // Debounce handle for the check-as-you-type pass.
     var checkTimer = null;
+    // Cached AST from the last successful parse+check, used by the run handler.
+    var checkedAst = null;
 
-    // Called by highlight.js on every input/Tab event.
-    // Re-highlights immediately (fast), then after a short pause checks for
-    // parse errors so mid-expression typing doesn't flash spurious errors.
+    // Called by highlight.js on every input/Tab event and on example load.
+    // Re-highlights immediately (fast), then after a short pause runs the full
+    // static check and enables/disables the run button accordingly.
     window.rukaCheckAndHighlight = function (source) {
       // Immediate clean highlight — always snappy
       if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(source);
-      // Debounced parse check
+      // Debounced static check
       if (checkTimer) clearTimeout(checkTimer);
       checkTimer = setTimeout(function () {
         checkTimer = null;
+        if (textarea && textarea.value !== source) return;
         var err = null;
+        var ast = null;
         try {
-          var ast = parse(tokenize(source));
+          ast = parse(tokenize(source));
           err = checkScope(ast) || checkTypes(ast);
         } catch (e) {
           err = e;
         }
-        if (err && textarea && textarea.value === source) {
+        if (err) {
+          checkedAst = null;
+          runBtn.disabled = true;
           setEditorError(codeEl, source, err.line, err.message);
+        } else {
+          checkedAst = ast;
+          runBtn.disabled = false;
+          if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(source);
         }
       }, 400);
     };
 
     runBtn.addEventListener('click', function () {
-      // Cancel any pending check — the run result is authoritative
+      // Cancel any pending check so it doesn't interfere with the output state
       if (checkTimer) { clearTimeout(checkTimer); checkTimer = null; }
+      if (!checkedAst) return;
       runBtn.disabled = true;
       runBtn.textContent = 'RUNNING';
+      var ast = checkedAst;
       // Yield to the browser so the button state renders before we block
       setTimeout(function () {
         try {
-          var ast = parse(tokenize(textarea.value));
-          var sErr = checkScope(ast);
-          if (sErr) throw sErr;
-          var tErr = checkTypes(ast);
-          if (tErr) throw tErr;
           var lines = evaluate(ast);
-          // Clear any previous error highlight on a successful run
           if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(textarea.value);
           output.textContent = lines.length ? lines.join('\n') : '(no output)';
           if (panel) panel.setAttribute('data-state', 'ok');
         } catch (e) {
-          setEditorError(codeEl, textarea.value, e.line, e.message);
-          output.textContent = 'Error' + (e.line ? ' (line ' + e.line + ')' : '') + ': ' + e.message;
+          output.textContent = 'Runtime error' + (e.line ? ' (line ' + e.line + ')' : '') + ': ' + e.message;
           if (panel) panel.setAttribute('data-state', 'err');
         }
         runBtn.disabled = false;

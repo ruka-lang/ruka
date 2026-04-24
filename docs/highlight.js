@@ -256,7 +256,7 @@
 				if (!ex) return;
 				if (playgroundDesc)   playgroundDesc.innerHTML     = ex.desc;
 				playgroundTextarea.value = ex.code;
-				rehighlight(ex.code);
+				(window.rukaCheckAndHighlight || rehighlight)(ex.code);
 				if (playgroundOutput) playgroundOutput.textContent = '';
 				var panel = document.getElementById('playground-output-panel');
 				if (panel) panel.removeAttribute('data-state');
