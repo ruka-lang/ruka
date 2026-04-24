@@ -13,10 +13,10 @@ window.RUKA_EXAMPLES = {
 	].join('\n'),
 
 	'calculator': [
-		'let local add = (a, b) do a + b',
-		'let local sub = (a, b) do a - b',
-		'let local mul = (a, b) do a * b',
-		'let local div = (a, b) do a / b',
+		'let add = (a, b) do a + b',
+		'let sub = (a, b) do a - b',
+		'let mul = (a, b) do a * b',
+		'let div = (a, b) do a / b',
 		'',
 		'let main = () do',
 		'    let x = 12',
@@ -29,7 +29,7 @@ window.RUKA_EXAMPLES = {
 	].join('\n'),
 
 	'fibonacci': [
-		'let local fib = (n) do',
+		'let fib = (n) do',
 		'    n if n <= 1 else fib(n - 1) + fib(n - 2)',
 		'end',
 		'',

@@ -6,7 +6,7 @@
   // Tokenizer
   // ──────────────────────────────────────────────
   var KW = new Set([
-    'let', 'local', 'do', 'end',
+    'let', 'do', 'end',
     'if', 'else', 'while', 'return',
     'true', 'false', 'not', 'and', 'or',
     'match', 'with', 'for', 'in', 'break', 'continue',
@@ -115,14 +115,6 @@
         var w = '';
         while (i < len && /\w/.test(src[i])) w += src[i++];
         toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
-        continue;
-      }
-      // Built-in module sigil — `#` is the only way to reach the ruka built-ins
-      // (e.g. `#.println(...)`). Tokenized with t = '#' so the parser can accept
-      // it wherever an identifier-producing primary is expected.
-      if (src[i] === '#') {
-        toks.push({ t: '#', v: '#', line: tok_line });
-        i++;
         continue;
       }
       // three-char tokens (must precede two-char)
@@ -263,16 +255,18 @@
     }
 
     function parseStmt() {
-      // binding: let [local] [mode]name [: type] = expr
+      // binding: let [mode]name [: type] = expr
+      // Privacy is determined by name case: lowercase first letter = public,
+      // uppercase first letter = private. No separate qualifier.
       var kw = tryMatch('let');
       if (kw) {
-        var isLocal = !!tryMatch('local');
-        // optional mode prefix: *, $, @
+        // optional mode prefix: *, &, $, @
         var mode = null;
-        if (check('*') || check('$') || check('@')) {
+        if (check('*') || check('&') || check('$') || check('@')) {
           mode = peek().v; pos++;
         }
         var name = eat('ID').v;
+        var isLocal = /^[A-Z]/.test(name);
         // skip optional (self) / (self: T) / (Type) receiver annotation
         if (check('(')) {
           var depth = 1; pos++;
@@ -562,9 +556,6 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
-      // `#` — built-in module reference. Behaves like an identifier binding named "#",
-      // so `#.println(...)` parses through the normal Member/Call postfix chain.
-      if (tok.t === '#')     { pos++; return { k: 'Ident', name: '#', line: tok.line }; }
       if (tok.t === '(')     {
         eat('('); skipNL();
         // `()` — unit literal. Distinguished from a parenthesised expression by
@@ -670,7 +661,7 @@
   // Returns an Error with .line set on the first undeclared identifier,
   // or null if the program is clean.
   function checkScope(ast) {
-    var BUILTINS = new Set(['#', 'true', 'false', 'self']);
+    var BUILTINS = new Set(['ruka', 'true', 'false', 'self']);
 
     // Top-level: hoist all binding names so mutually-recursive functions work.
     var topNames = new Set(BUILTINS);
@@ -907,7 +898,7 @@
       }
     };
     var topEnv = { bindings: Object.create(null), parent: null };
-    topEnv.bindings['#']     = rukaModule;
+    topEnv.bindings['ruka']  = rukaModule;
     topEnv.bindings['true']  = { k: 'bool' };
     topEnv.bindings['false'] = { k: 'bool' };
     topEnv.bindings['self']  = { k: 'unknown' };
@@ -1284,7 +1275,7 @@
     }
 
     var globalEnv = mkEnv(null);
-    envSet(globalEnv, '#', {
+    envSet(globalEnv, 'ruka', {
       _obj: true,
       println:  { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
       print:    { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
@@ -1504,8 +1495,10 @@
     // Evaluate all top-level statements
     for (var i = 0; i < ast.body.length; i++) evalStmt(ast.body[i], globalEnv);
 
-    // Auto-call main() only if it was declared as a public (non-local) top-level
-    // let binding. `let local main` is private and should not run as an entry point.
+    // Auto-call main() only if it was declared as a public top-level let binding.
+    // Privacy is determined by name case (uppercase first letter = private); `main`
+    // is lowercase so it is public, and the check on mainBind.local reflects the
+    // parser's case-based flag.
     var mainBind = null;
     for (var i = 0; i < ast.body.length; i++) {
       var s = ast.body[i];

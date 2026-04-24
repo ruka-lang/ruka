@@ -46,7 +46,7 @@ pub const InternPool = struct {
 
     pub const Index = enum(u32) {
         // Pre-interned keyword indices assigned at comptime:
-        kw_let, kw_share, kw_local, kw_test,
+        kw_let, kw_test,
         kw_if, kw_else, kw_match, kw_with,
         kw_while, kw_for, kw_in, kw_do, kw_end,
         kw_return, kw_break, kw_continue, kw_defer,
@@ -77,7 +77,7 @@ pub const Token = struct {
 
     pub const Tag = enum(u8) {
         // keywords
-        kw_let, kw_share, kw_local, kw_test,
+        kw_let, kw_test,
         kw_if, kw_else, kw_match, kw_with,
         kw_while, kw_for, kw_in, kw_do, kw_end,
         kw_return, kw_break, kw_continue, kw_defer,
@@ -151,11 +151,12 @@ pub const Node = struct {
         binding_test,          // lhs=identifier token, rhs=function-expr node
 
         // ── binding left-hand sides ────────────────────────────
-        // Each LHS carries: optional `local` privacy marker (flag on the node),
-        // optional mode prefix token, and the target identifier or pattern.
-        binding_lhs_simple,    // main_token=identifier token; lhs=mode prefix token (0 if none); flag=is_local
+        // Each LHS carries an optional mode prefix token and the target identifier
+        // or pattern. Privacy is derived from the first letter of the identifier
+        // (lowercase = public, uppercase = private) — no flag is stored on the node.
+        binding_lhs_simple,    // main_token=identifier token; lhs=mode prefix token (0 if none)
         binding_lhs_fn,        // lhs=binding_lhs_simple, rhs=receiver node
-        binding_lhs_destruct,  // lhs=first ident token, rhs=ident count  (in extra_data); flag=is_local
+        binding_lhs_destruct,  // lhs=first ident token, rhs=ident count  (in extra_data)
         receiver_static,       // main_token=type name token
         receiver_method,       // main_token=self token; lhs=mode prefix token (0 if none)
 
@@ -226,7 +227,7 @@ pub const Node = struct {
         type_result,           // lhs=ok type node, rhs=err type node
         type_function,         // extra_data: [param count, ...param type nodes, return type node]
         type_record,           // extra_data: [field count, ...field nodes]
-        type_record_field,     // lhs=name token, rhs=type node; main_token=kw_local or 0
+        type_record_field,     // lhs=name token, rhs=type node  (privacy from name case)
         type_variant,          // extra_data: [tag count, ...tag nodes]
         type_variant_tag,      // lhs=name token, rhs=type node (0 if unit tag)
         type_behaviour,        // extra_data: [method_sig count, ...method_sig nodes]
@@ -287,8 +288,7 @@ pub const Hir = struct {
         data: Data,
 
         pub const Tag = enum {
-            function, global_let, global_share, global_local,
-            type_def, behaviour_def,
+            function, global_let, type_def, behaviour_def,
         };
         pub const Data = union {
             function: struct {

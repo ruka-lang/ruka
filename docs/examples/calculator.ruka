@@ -1,7 +1,7 @@
-let local add = (a, b) do a + b
-let local sub = (a, b) do a - b
-let local mul = (a, b) do a * b
-let local div = (a, b) do a / b
+let add = (a, b) do a + b
+let sub = (a, b) do a - b
+let mul = (a, b) do a * b
+let div = (a, b) do a / b
 
 let main = () do
     let x = 12

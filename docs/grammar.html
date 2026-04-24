@@ -232,7 +232,6 @@ identifier    ::=  letter ( letter | digit )*
           <code>in</code>
           <code>behaviour</code>
           <code>let</code>
-          <code>local</code>
           <code>match</code>
           <code>not</code>
           <code>or</code>
@@ -251,20 +250,24 @@ identifier    ::=  letter ( letter | digit )*
           with no whitespace between the prefix and the identifier.
         </p>
         <pre class="grammar"><code>mode-prefix   ::=  "*"    -- mutable reference; changes are visible to the caller (binding: mutable variable)
-               |   "&"    -- move (ownership transfer); caller cannot use the value after the call (parameter-only)
+               |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
+                          --   on runtime bindings, capture by a closure transfers ownership into the closure
                |   "$"    -- stack-allocated; value cannot escape the function scope
                |   "@"    -- compile-time; value must be known at compile time</code></pre>
         <div class="note">
-          The <code>&amp;</code> move mode is valid in parameter position only; it cannot appear on a binding.
-          All other modes are shared between parameters and bindings.
+          The <code>&amp;</code> move mode is valid on parameters and on runtime bindings.
+          A runtime binding declared with <code>&amp;</code> is moved into any closure that
+          captures it, and cannot be used afterwards. It has no meaning on compile-time
+          (<code>@</code>) bindings. All other modes are shared between parameters and
+          bindings.
         </div>
         <div class="note">
           <code>self</code> is a reserved keyword that refers to the method receiver instance.
           It may only appear in the receiver position of a binding declaration or as a parameter
           inside the function body of a method. <code>with</code> is a keyword used exclusively
-          as part of the <code>match</code> expression syntax. <code>#</code> is a reserved sigil
-          that refers to the built-in module; it may appear anywhere an identifier is valid as a
-          primary expression and cannot be shadowed.
+          as part of the <code>match</code> expression syntax. <code>ruka</code> is a reserved
+          identifier that refers to the built-in module; it is implicitly in scope in every
+          source file and cannot be shadowed or rebound.
         </div>
       </section>
 
@@ -331,10 +334,11 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
         <h3>Program</h3>
         <p>
           A Ruka source file is a flat sequence of declarations. Every file is implicitly
-          a compile-time record: top-level <code>let</code> declarations become its public
-          fields, and <code>let local</code> declarations are private fields inaccessible to
-          importers. <code>ruka.import</code> returns this record value; there is no separate
-          module concept. (The <code>#</code> sigil is the built-in module reference; see
+          a compile-time record: top-level <code>let</code> declarations whose names begin
+          with a lowercase letter become its public fields, and those whose names begin
+          with an uppercase letter are private fields inaccessible to importers.
+          <code>ruka.import</code> returns this record value; there is no separate module
+          concept. (The <code>ruka</code> identifier is the built-in module reference; see
           Built-in Module below.)
         </p>
         <pre class="grammar"><code>program       ::=  declaration*</code></pre>
@@ -346,18 +350,17 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code></pre>
         <p>
           There are two declaration forms: ordinary <code>let</code> bindings and
           <code>test</code> bindings. There is no separate <code>fn</code>, <code>type</code>,
-          or <code>mod</code> keyword. Mutability, privacy, and evaluation time are all
-          expressed through modes and the optional <code>local</code> qualifier on the
-          binding left-hand side.
+          or <code>mod</code> keyword. Mutability and evaluation time are expressed through
+          modes; privacy is determined by the case of the binding name.
         </p>
         <pre class="grammar"><code>declaration   ::=  binding | test-binding
 
 binding       ::=  "let" binding-lhs "=" expr
                |   "let" binding-lhs ":" type "=" expr
 
-binding-lhs   ::=  "local"? mode-prefix? identifier                  -- simple value binding
-               |   "local"? mode-prefix? identifier receiver          -- function or method binding
-               |   "local"? destructure-pattern                       -- destructuring binding
+binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
+               |   mode-prefix? identifier receiver          -- function or method binding
+               |   destructure-pattern                       -- destructuring binding
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                        -- static function: associated type name
@@ -366,8 +369,8 @@ type-receiver ::=  identifier                        -- static function: associa
 destructure-pattern
               ::=  "{" identifier ( "," identifier )* "}"
                    -- destructures any record value, including imported files
-                   -- e.g.  let local { x, y } = point
-                   -- e.g.  let local { sqrt, pow } = ruka.import("math")
+                   -- e.g.  let { x, y } = point
+                   -- e.g.  let { sqrt, pow } = ruka.import("math")
 
 test-binding  ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only</code></pre>
@@ -380,10 +383,12 @@ test-binding  ::=  "test" identifier "=" expr
           receiver appears between the binding name and the <code>=</code> sign.
         </div>
         <div class="note">
-          <strong>Privacy.</strong> The optional <code>local</code> qualifier marks a binding
-          as private. At file scope, bindings are public by default; <code>let local</code>
-          makes them private (not exported from the file record). On methods and statics,
-          <code>let local</code> makes the method or static private to the declaring module.
+          <strong>Privacy.</strong> Visibility is determined by the first letter of the
+          binding name — the inverse of Go's convention. A binding whose name begins with a
+          <em>lowercase</em> letter is public (exported from the file record); a binding
+          whose name begins with an <em>uppercase</em> letter is private. The same rule
+          applies to methods, statics, and record or variant fields. Privacy does not apply
+          inside function bodies, where name case is purely conventional.
         </div>
         <div class="note">
           <strong>Mutability.</strong> By default a <code>let</code> binding is immutable.
@@ -459,7 +464,7 @@ type-list     ::=  type ( "," type )*
 
 record-type   ::=  "record" "{" field-list? "}"
 field-list    ::=  field ( "," field )* ","?
-field         ::=  "local"? identifier ":" type      -- "local" marks a private field
+field         ::=  identifier ":" type               -- private iff the identifier starts with an uppercase letter
 
 variant-type  ::=  "variant" "{" tag-list? "}"
 tag-list      ::=  tag ( "," tag )* ","?
@@ -583,8 +588,7 @@ trailing-arg  ::=  "~" identifier "=" function-expr
       <section id="primary">
         <h3>Primary Expressions</h3>
         <pre class="grammar"><code>primary       ::=  literal-expr
-               |   identifier
-               |   "#"                                     -- built-in module reference; see Built-in Module
+               |   identifier                              -- `ruka` is reserved as the built-in module reference; see Built-in Module
                |   block-expr
                |   if-expr
                |   match-expr
@@ -839,11 +843,11 @@ guard-pattern ::=  expr
       <section id="builtins-grammar">
         <h3>Built-in Module</h3>
         <p>
-          Built-in functions are accessed through the <code>#</code> module, which is
+          Built-in functions are accessed through the <code>ruka</code> module, which is
           implicitly available in every scope without an import declaration. Access uses
           ordinary field-access and call syntax: <code>ruka.println(...)</code>,
-          <code>ruka.sqrt(...)</code>, etc. The <code>ruka</code> module cannot be shadowed or
-          rebound by user code.
+          <code>ruka.sqrt(...)</code>, etc. The <code>ruka</code> identifier is reserved and
+          cannot be shadowed or rebound by user code.
         </p>
         <pre class="grammar"><code>-- ruka is an implicitly imported compile-time record; no import needed.
 -- Access uses standard postfix call syntax: ruka.fn(args)

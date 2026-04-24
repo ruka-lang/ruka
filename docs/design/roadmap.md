@@ -43,7 +43,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
 
 - [ ] `Ast` container: `std.MultiArrayList(Node)` + `extra_data: []u32`
 - [ ] `Parser`: `[]Token` → `Ast`, recursive descent following `docs/grammar.html`
-  - [ ] Declarations: `let` bindings (with optional `local` privacy qualifier) and `test` bindings
+  - [ ] Declarations: `let` bindings (privacy determined by name case: lowercase = public, uppercase = private) and `test` bindings
   - [ ] Binding LHS: simple, function+receiver (static/method), destructuring
   - [ ] Type annotations (all type forms from the grammar)
   - [ ] Literals: int, float, bool, char, string, multiline string
@@ -83,7 +83,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] Resolve collection literals to array or tuple based on context
   - [ ] Check file-scope and method/static `let` RHS is a compile-time value
   - [ ] Check reassignment targets are bindings declared with `*` (mutable)
-  - [ ] Binding mode checking (`*`, `$`, `@`)
+  - [ ] Binding mode checking (`*`, `&`, `$`, `@`); `&` on a runtime binding forces move-on-closure-capture
   - [ ] Named-parameter matching at call sites (order-independent)
   - [ ] `match` exhaustiveness checking for variant types
   - [ ] `return` type compatibility with enclosing function
@@ -91,7 +91,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] `self` only inside method receivers
   - [ ] Undefined name errors with helpful suggestions (Levenshtein distance)
   - [ ] Type mismatch errors with actual/expected types in the message
-  - [ ] `#` builtin namespace — treat as a pre-declared record in the root scope
+  - [ ] `ruka` builtin namespace — treat as a pre-declared, non-shadowable record in the root scope
 
 ---
 
@@ -102,7 +102,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
 - [ ] `Interpreter`: tree-walk over `Hir`
   - [ ] Evaluate all literal types
   - [ ] Evaluate arithmetic, comparison, logical, range operators
-  - [ ] Evaluate `let` bindings (including `let local` and modes `*`, `$`, `@`); mutable assignment
+  - [ ] Evaluate `let` bindings (privacy by name case; modes `*`, `&`, `$`, `@`); mutable assignment; `&` runtime bindings move on closure capture
   - [ ] Evaluate block expressions (returns last value)
   - [ ] Evaluate `if` / `ternary`
   - [ ] Evaluate `while` and `for` with `break` / `continue`
@@ -120,17 +120,17 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] String interpolation (call `to_string` equivalent on each interpolated value)
   - [ ] Multiline string literals
   - [ ] `option` and `result` as built-in variant types
-- [ ] Built-in `#.*` functions
-  - [ ] `#.print(s)` / `#.println(s)`
-  - [ ] `#.import(path)` — load and evaluate another `.ruka` file, return as record
-  - [ ] `#.type_of(expr)` — return type as a string at runtime
-  - [ ] `#.abs(n)` / `#.sqrt(n)`
-  - [ ] `#.sin(n)` / `#.cos(n)` / `#.tan(n)`
-  - [ ] `#.assert_eq(a, b)` — panic with message on failure
-  - [ ] `#.compile_error(msg)` — emit diagnostic during Sema
-  - [ ] `#.size(t)` — size in bytes of a compile-time type value
-  - [ ] `#.heap_alloc(size)` / `#.heap_free(bytes)`
-  - [ ] `#.now()` — current time as a timestamp value
+- [ ] Built-in `ruka.*` functions
+  - [ ] `ruka.print(s)` / `ruka.println(s)`
+  - [ ] `ruka.import(path)` — load and evaluate another `.ruka` file, return as record
+  - [ ] `ruka.type_of(expr)` — return type as a string at runtime
+  - [ ] `ruka.abs(n)` / `ruka.sqrt(n)`
+  - [ ] `ruka.sin(n)` / `ruka.cos(n)` / `ruka.tan(n)`
+  - [ ] `ruka.assert_eq(a, b)` — panic with message on failure
+  - [ ] `ruka.compile_error(msg)` — emit diagnostic during Sema
+  - [ ] `ruka.size(t)` — size in bytes of a compile-time type value
+  - [ ] `ruka.heap_alloc(size)` / `ruka.heap_free(bytes)`
+  - [ ] `ruka.now()` — current time as a timestamp value
 - [ ] `ruka run` subcommand: load `src/main.ruka`, run pipeline, call `main()`
 - [ ] Exit code reflects whether the program panicked or returned normally
 - [ ] Runtime panic messages include source file, line, and column
@@ -164,7 +164,7 @@ Goal: diagnostics, hover, and go-to-definition. Enough to make the language feel
 - [ ] Completion (`textDocument/completion`)
   - [ ] Emit all keywords
   - [ ] Emit all bindings in scope at the cursor position
-  - [ ] Emit `#.*` builtin names after `#.`
+  - [ ] Emit `ruka.*` builtin names after `ruka.`
 - [ ] `ruka lsp` subcommand starts the server
 
 ---
@@ -187,7 +187,7 @@ Goal: diagnostics, hover, and go-to-definition. Enough to make the language feel
 - [ ] `ruka new <name>` — scaffold directory: `src/main.ruka`, `ruka.toml`
 - [ ] `ruka build` — run the full pipeline over the project's source files
   - [ ] Walk `src/` for all `.ruka` files
-  - [ ] Process imports (`#.import`) to build a dependency graph
+  - [ ] Process imports (`ruka.import`) to build a dependency graph
   - [ ] Topological sort; analyse files in dependency order
 - [ ] `ruka check` — pipeline up to Sema only; print diagnostics; no output artifact
 - [ ] `ruka version` — print semver from build options
