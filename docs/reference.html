@@ -77,45 +77,79 @@ let x = 12  // Inline comment</code></pre>
     <section id="bindings">
       <h2>Bindings</h2>
       <p>
-        Ruka has four binding forms. All bindings are declared with an initial value;
-        there are no uninitialized variables. Bindings can be shadowed by reusing the same
-        identifier, or discarded with <code>_</code>.
+        All runtime and compile-time values are introduced with <code>let</code>. Bindings
+        are always initialized — there are no uninitialized variables. A binding can be
+        shadowed by reusing the same identifier, or discarded with <code>_</code>.
+        Mutability and evaluation time are expressed through modes; privacy is determined
+        by the case of the binding name (see <a href="#privacy">Privacy</a>). There is no
+        separate binding keyword for each axis. Test functions use the <code>test</code>
+        keyword (see <a href="#test-bindings">Test Bindings</a>).
       </p>
+      <p>The shape of a binding is:</p>
+<pre><code class="ruka">let [mode]name [: type] = value</code></pre>
+      <p>The mode prefix is optional; the defaults depend on where the binding appears.</p>
+
+      <h3>Defaults by scope</h3>
       <table>
-        <thead><tr><th>Keyword</th><th>Mutability</th><th>When</th><th>Visibility</th></tr></thead>
+        <thead><tr><th>Scope</th><th>Default mutability</th><th>Default evaluation time</th><th>Default visibility</th></tr></thead>
         <tbody>
-          <tr><td><code>let</code></td><td>Mutable</td><td>Runtime</td><td>A mutable variable, scoped to the enclosing block. Not exported.</td></tr>
-          <tr><td><code>local</code></td><td>Immutable</td><td>Runtime or static</td><td>A private binding — either an immutable runtime value or a private static/field. Not exported.</td></tr>
-          <tr><td><code>share</code></td><td>Immutable</td><td>Static</td><td>A public static constant, exported from its module. <strong>Static values only</strong> — the right-hand side must be a compile-time-known value.</td></tr>
-          <tr><td><code>test</code></td><td>Immutable</td><td>Static</td><td>Not exported — compiled in debug/test builds only.</td></tr>
+          <tr><td>File (top level)</td><td>Immutable</td><td>Compile-time (inferred)</td><td>By name case</td></tr>
+          <tr><td>Method / static / type declaration</td><td>Immutable</td><td>Compile-time (inferred)</td><td>By name case</td></tr>
+          <tr><td>Inner scope (function body, block)</td><td>Immutable</td><td>Runtime</td><td>n/a (not exported)</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">let count = 0          // mutable runtime value
-count = count + 1
 
-share PI = 3.14159     // public static constant
-local max_retries = 5  // private static constant</code></pre>
+      <h3 id="privacy">Privacy: identifier case</h3>
       <p>
-        Functions and types are stored as values in <code>share</code> or <code>local</code>
-        bindings. There is no separate <code>fn</code> or <code>type</code> declaration syntax —
-        the binding keyword determines visibility. Test functions use the <code>test</code>
-        keyword and are only present in debug and test builds.
+        Visibility is determined by the first let ter of the binding name — the inverse of
+        Go's convention. A name beginning with a <strong>lowercase let ter</strong> (or
+        underscore followed by a lowercase let ter) is <strong>public</strong> and exported
+        from the file record; a name beginning with an <strong>uppercase let ter</strong>
+        is <strong>private</strong> and not exported. The same rule applies to methods,
+        statics, and record or variant fields. Inside a function body, privacy does not
+        apply — name case is purely a convention there.
       </p>
-      <div class="note">
-        <strong><code>share</code> is for static values only.</strong> The right-hand side of a
-        <code>share</code> binding must be a value known at compile time — a type, a function,
-        a literal, or the result of a compile-time expression. <code>let</code> and
-        <code>local</code> can hold runtime-evaluated values.
-      </div>
+<pre><code class="ruka">let pi = 3.14159             // public static constant (file scope)
+let MaxRetries = 5           // private static constant
+
+let main = () do             // public entry point
+    ruka.println("Hello")
+end
+
+let Helper = () do           // private function
+    // ...
+end</code></pre>
+
+      <h3>Mutability: <code>*</code></h3>
+      <p>
+        A plain <code>let</code> binding is immutable. To make it a mutable variable, prefix
+        the name with <code>*</code>. Reassignment (<code>name = expr</code>) is only
+        permitted on bindings declared with <code>*</code>.
+      </p>
+<pre><code class="ruka">let x = 12         // immutable
+// x = 13          // error — x was not declared with *
+
+let *count = 0     // mutable
+count = count + 1  // ok</code></pre>
 
       <h3>Binding Modes</h3>
       <p>
-        By default, variables and constants are allocated by the GC. Binding modes allow the user to adjust this behaviour.
-        A mode prefix is placed directly before the identifier with no space between them.
+        A <em>mode prefix</em> is placed directly before the binding identifier with no
+        space between them. Modes let you adjust how a binding is stored or evaluated.
       </p>
       <table>
         <thead><tr><th>Prefix</th><th>Syntax</th><th>Behaviour</th></tr></thead>
         <tbody>
+          <tr>
+            <td><code>*</code></td>
+            <td><code>let *name = ...</code></td>
+            <td>Mutable variable. The binding may be reassigned; without <code>*</code> a <code>let</code> is immutable.</td>
+          </tr>
+          <tr>
+            <td><code>&amp;</code></td>
+            <td><code>let &amp;name = ...</code></td>
+            <td>Move-on-capture. A runtime binding declared with <code>&amp;</code> has its ownership transferred into any closure that captures it; after capture the original binding is invalid and further use is a compile error. Valid on runtime bindings only — it has no meaning at compile time.</td>
+          </tr>
           <tr>
             <td><code>$</code></td>
             <td><code>let $name = ...</code></td>
@@ -123,20 +157,36 @@ local max_retries = 5  // private static constant</code></pre>
           </tr>
           <tr>
             <td><code>@</code></td>
-            <td><code>local @name = ...</code> / <code>share @name = ...</code></td>
-            <td>Forces a <em>runtime</em> function to be evaluated at compile time. All arguments must be compile-time known. The result is stored as a compile-time constant.</td>
+            <td><code>let @name = ...</code></td>
+            <td>Forces the right-hand side to be evaluated at compile time. Required only inside inner scopes, where the default is runtime evaluation; at file scope and on methods/statics <code>@</code> is inferred and writing it is redundant.</td>
           </tr>
         </tbody>
       </table>
       <p>
-        For more detail see: <a href="#comptime">Compile-Time Evaluation</a>.
+        The <code>&amp;</code> (move) mode is valid on parameters and on runtime bindings.
+        Because it only takes effect when a runtime value is captured by a closure, it has
+        no meaning on compile-time (<code>@</code>) bindings.
       </p>
+<pre><code class="ruka">let run = () do
+    let &amp;buffer = open_buffer()
+    let emit = () do buffer.write("log")   // closure captures buffer — ownership moves in
+    emit()
+    // buffer.close()   // error — buffer was moved into emit
+end</code></pre>
       <div class="note">
-        <code>@</code> on a binding is only needed when you want to force a <em>runtime</em>
-        function to run at compile time. Results from calling functions that already have
-        <code>@</code>-prefixed parameters are automatically compile-time — no annotation is required
-        on the binding, but it must be <code>share</code> or <code>local</code>.
-      </div>
+        <strong>Why <code>@</code> is almost always inferred.</strong> A Ruka file is not a
+        script — its top level cannot contain executable statements, only declarations. Every
+        file-level binding is therefore a static whose right-hand side is evaluated at
+        compile time. The same applies to methods, statics, and type declarations. <code>@</code>
+        only becomes meaningful inside a function body, where you can use it to force an
+        otherwise-runtime computation to be resolved at compile time:
+      </p>
+<pre><code class="ruka">let run = () do
+    let @table = build_lookup_table()   // evaluated at compile time
+    let rows   = fetch_rows()           // evaluated at runtime
+    // ...
+end</code></pre>
+      <p>For more detail see: <a href="#comptime">Compile-Time Evaluation</a>.</p>
     </section>
 
     <!-- Literals -->
@@ -196,7 +246,7 @@ let empty: [i32] = .{}
 let two = primes[0]
 
 // Type context from a function parameter resolves the ambiguity
-share sum_all = (values: [i32]) -> i32 do // ...
+let sum_all = (values: [i32]) -> i32 do // ...
 
 sum_all(.{1, 2, 3})  // .{...} produced as [i32] (array) from parameter type</code></pre>
 
@@ -230,7 +280,7 @@ let squares = [i32].{ for i in 1..=5 do i * i }
         Record literals use dot-brace notation with <code>=</code> for named fields.
         If a local variable shares the name of a field, the field can be omitted (shorthand).
       </p>
-<pre><code class="ruka">local Vector = record {
+<pre><code class="ruka">let Vector = record {
     x: f64,
     y: f64
 }
@@ -246,7 +296,7 @@ let x = w.x</code></pre>
 
       <h3>Variant Constructors</h3>
       <p>Variant values are constructed using dot-prefix notation on the variant tag name.</p>
-<pre><code class="ruka">local Color = variant {
+<pre><code class="ruka">let Color = variant {
     red,
     green,
     blue,
@@ -280,7 +330,7 @@ let inclusive = 0..=10   // 0, 1, ..., 10
 let start = 2
 let end = 7
 for i in start..end do
-    #.println("${i}")     // 2 3 4 5 6
+    ruka.println("${i}")     // 2 3 4 5 6
 end
 
 // Slice an array with a range
@@ -371,11 +421,11 @@ let upper = find_user(id).?().name</code></pre>
         </tbody>
       </table>
 <pre><code class="ruka">for i in 0..5 do
-    #.println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
 
 for i in 1..=5 do
-    #.println("${i}")     // 1 2 3 4 5
+    ruka.println("${i}")     // 1 2 3 4 5
 end
 
 // Ranges as slice indices
@@ -405,23 +455,26 @@ let pair: [i32, string] = .{1, "one"}</code></pre>
     <section id="user-types">
       <h2>User-defined Types</h2>
       <p>
-        Types are values stored in <code>share</code> or <code>local</code> bindings.
-        A type definition describes the memory layout only — behaviour (methods and static
+        Types are values stored in <code>let</code> bindings. A lowercase name (e.g.
+        <code>vec</code>) makes the type public; an uppercase name (e.g. <code>Vec</code>)
+        makes it private to the file (see <a href="#privacy">Privacy</a>). A type
+        definition describes the memory layout only — behaviour (methods and static
         functions) is declared separately.
       </p>
 
       <h3>Records</h3>
       <p>Records are product types (similar to structs). Fields are separated by commas.
-         A field can be made private with the <code>local</code> keyword.</p>
-<pre><code class="ruka">local Vector = record {
+         A field is private when its name begins with an uppercase letter (see
+         <a href="#privacy">Privacy</a>).</p>
+<pre><code class="ruka">let Vector = record {
     x: f64,
     y: f64
 }
 
-local User = record {
+let User = record {
     name: string,
     email: string,
-    local password_hash: string  // private field
+    PasswordHash: string  // private field — uppercase first letter
 }
 
 // Inline (anonymous) record types are also valid
@@ -434,37 +487,37 @@ let origin: record { x: f64, y: f64 } = .{ x = 0.0, y = 0.0 }</code></pre>
         keyword determines visibility and mutability of the resulting names.
         This is the same mechanism used when destructuring imported files.
       </p>
-<pre><code class="ruka">local Point = record { x: f64, y: f64 }
+<pre><code class="ruka">let Point = record { x: f64, y: f64 }
 
 let p = Point.{ x = 3.0, y = 4.0 }
 
 // Destructure into separate bindings
-local { x, y } = p
+let { x, y } = p
 // x is 3.0, y is 4.0
 
 // Works with any record — including imported files
-local { sqrt, pow } = #.import("math")
-local { Dog, Cat }  = #.import("animals")</code></pre>
+let { sqrt, pow } = ruka.import("math")
+let { Dog, Cat }  = ruka.import("animals")</code></pre>
 
       <h3>Variants (Tagged Unions)</h3>
       <p>
         Variants are sum types. Each tag can optionally carry a payload. A tag with no payload
         has the unit type.
       </p>
-<pre><code class="ruka">local Shape = variant {
+<pre><code class="ruka">let Shape = variant {
     circle: f64,               // payload: radius
     rectangle: [f64, f64],     // payload: [width, height]
     point                      // no payload
 }
 
 // Variants can be nested or reference other types
-local Tree = variant {
+let Tree = variant {
     leaf: i32,
     node: record { left: Tree, right: Tree }
 }
 
 // Inline variants inside a record field
-local Cat = record {
+let Cat = record {
     name: string,
     colour: variant {
         black,
@@ -497,23 +550,23 @@ local Cat = record {
         exists on more than one type, an explicit annotation
         <code>(self: TypeName)</code> is required — and the compiler will tell you.
       </p>
-<pre><code class="ruka">local Circle = record { radius: f64 }
-local Rect = record { width: f64, height: f64 }
+<pre><code class="ruka">let Circle = record { radius: f64 }
+let Rect = record { width: f64, height: f64 }
 
 // self inferred as Circle — only type in scope with `radius`
 // return type inferred as f64 from the expression
-share area (self) = () do 3.14159 * self.radius * self.radius
+let area (self) = () do 3.14159 * self.radius * self.radius
 
 // self inferred as Rect — only type with both `width` and `height`
-share area (self) = () do self.width * self.height
+let area (self) = () do self.width * self.height
 
-local Dog = record { name: string, breed: string }
-local Cat = record { name: string, indoor: bool }
+let Dog = record { name: string, breed: string }
+let Cat = record { name: string, indoor: bool }
 
 // Inferred as Dog — only Dog has both `name` and `breed`
-share label (self) = () do "${self.name} (${self.breed})"
+let label (self) = () do "${self.name} (${self.breed})"
 // Explicit annotation required — both types have a `name` field
-share label (self: Cat) = () do "${self.name}"</code></pre>
+let label (self: Cat) = () do "${self.name}"</code></pre>
 
       <h3>Record Literal Inference</h3>
       <p>
@@ -521,8 +574,8 @@ share label (self: Cat) = () do "${self.name}"</code></pre>
         fields provided. If exactly one type in scope has that field set, no type prefix is
         needed. This applies to bindings, function arguments, and return expressions.
       </p>
-<pre><code class="ruka">local Circle = record { radius: f64 }
-local Rect = record { width: f64, height: f64 }
+<pre><code class="ruka">let Circle = record { radius: f64 }
+let Rect = record { width: f64, height: f64 }
 
 // Inferred as Circle — only type with `radius`
 let c = .{ radius = 5.0 }
@@ -530,8 +583,8 @@ let c = .{ radius = 5.0 }
 // Inferred as Rect — only type with `width` and `height`
 let r = .{ width = 4.0, height = 6.0 }
 
-local Dog = record { name: string, breed: string }
-local Cat = record { name: string, indoor: bool }
+let Dog = record { name: string, breed: string }
+let Cat = record { name: string, indoor: bool }
 
 let d  = .{ name = "Rex",      breed = "Labrador" }  // Dog — Cat has no `breed`
 let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `indoor`</code></pre>
@@ -543,13 +596,13 @@ let c2 = .{ name = "Whiskers", indoor = true }        // Cat — Dog has no `ind
         ambiguous, or as documentation at a public API boundary.
       </p>
 <pre><code class="ruka">// Return type inferred as f64
-share circumference (self) = () do 2.0 * 3.14159 * self.radius
+let circumference (self) = () do 2.0 * 3.14159 * self.radius
 
 // Return type inferred as string — interpolation always produces string
-share label (self) = () do "Circle(r=${self.radius})"
+let label (self) = () do "Circle(r=${self.radius})"
 
 // Return type inferred as option(i32) from the .some / .none arms
-share find = (values: [i32], target: i32) do
+let find = (values: [i32], target: i32) do
     for i in 0..values.len do
         if values[i] == target do return .some(i)
     end
@@ -584,7 +637,7 @@ let c: u8  = 42    // u8  — annotation provides context
 let d: f64 = 3.14  // f64 — annotation provides context
 
 // Function parameter type provides context
-share double = (x: i32) do x * 2
+let double = (x: i32) do x * 2
 let result = double(10)  // 10 is produced as i32, not int</code></pre>
 
       <div class="note">
@@ -613,18 +666,18 @@ let result = double(10)  // 10 is produced as i32, not int</code></pre>
       </p>
 <pre><code class="ruka">// Multiline — one `end` closes the whole chain
 if x > 0 do
-    #.println("positive")
+    ruka.println("positive")
 else if x < 0 do
-    #.println("negative")
+    ruka.println("negative")
 else
-    #.println("zero")
+    ruka.println("zero")
 end
 
 // Single-line — body is on the same line; newline closes the branch
-if x > 0 do #.println("positive")
+if x > 0 do ruka.println("positive")
 
 // Single-line with else
-if x > 0 do #.println("positive") else #.println("non-positive")
+if x > 0 do ruka.println("positive") else ruka.println("non-positive")
 
 // Single-line chained
 if x > 0 do "positive" else if x < 0 do "negative" else "zero"
@@ -663,7 +716,7 @@ let grade =
     "C"
 
 // Useful in single-expression function bodies
-local fib = (n) do n if n &lt;= 1 else fib(n - 1) + fib(n - 2)</code></pre>
+let fib = (n) do n if n &lt;= 1 else fib(n - 1) + fib(n - 2)</code></pre>
     </section>
 
     <!-- Operators -->
@@ -738,17 +791,17 @@ let nested = 2 ** 3 ** 2   // 2 ** 9 = 512</code></pre>
 
       <h4>Matching literals and conditions</h4>
 <pre><code class="ruka">match status_code with
-    200 do #.println("OK")
-    404 do #.println("Not Found")
+    200 do ruka.println("OK")
+    404 do ruka.println("Not Found")
     500 do
-        #.println("Internal Server Error")
+        ruka.println("Internal Server Error")
         log_error()
     end
-    else #.println("Unknown status")
+    else ruka.println("Unknown status")
 end</code></pre>
 
       <h4>Matching and binding variant payloads</h4>
-<pre><code class="ruka">local Shape = variant {
+<pre><code class="ruka">let Shape = variant {
     circle: f64,
     rectangle: [f64, f64],
     point
@@ -762,8 +815,8 @@ end
 
 // option(T)
 match maybe_name with
-    some(name) do #.println("Hello, ${name}")
-    none do #.println("No name provided")
+    some(name) do ruka.println("Hello, ${name}")
+    none do ruka.println("No name provided")
 end</code></pre>
 
       <h4>Guard conditions</h4>
@@ -781,9 +834,9 @@ end</code></pre>
       <h2>Loops</h2>
 
       <h3>While Loop</h3>
-<pre><code class="ruka">let i = 0
+<pre><code class="ruka">let *i = 0
 while i < 10 do
-    #.println("${i}")
+    ruka.println("${i}")
     i = i + 1
 end
 
@@ -799,7 +852,7 @@ while i < 10 do i = i + 1</code></pre>
 <pre><code class="ruka">// if with destructuring — body only runs if the option is .some
 let maybe: option(i32) = .some(42)
 if some(x) = maybe do
-    #.println("got ${x}")
+    ruka.println("got ${x}")
 end
 
 // while with destructuring — loop until the value is .none
@@ -814,31 +867,31 @@ end</code></pre>
       </p>
 <pre><code class="ruka">// Range — the common numeric loop idiom
 for i in 0..5 do
-    #.println("${i}")     // 0 1 2 3 4
+    ruka.println("${i}")     // 0 1 2 3 4
 end
 
 // Single-expression body — newline closes the block
-for i in 0..5 do #.println("${i}")
+for i in 0..5 do ruka.println("${i}")
 
 // Range without a binding variable
-for 0..10 do #.println("tick")
+for 0..10 do ruka.println("tick")
 
 // Inclusive range
 for i in 1..=3 do
-    #.println("${i}")     // 1 2 3
+    ruka.println("${i}")     // 1 2 3
 end
 
 // Iterating over an array
 let numbers = .{10, 20, 30}
 for n in numbers do
-    #.println("${n}")
+    ruka.println("${n}")
 end
 
 // Destructuring a tuple in a for loop
 let pairs: [[i32, string]] = .{ .{1, "one"}, .{2, "two"}, .{3, "three"} }
 
 for {k, v} in pairs do
-    #.println("${k} = ${v}")
+    ruka.println("${k} = ${v}")
 end</code></pre>
 
       <h3>Pattern-Filtered For Loop</h3>
@@ -850,7 +903,7 @@ end</code></pre>
 
 // Only visits elements where the option is .some; x is bound to the inner value
 for some(x) in values do
-    #.println("${x}")    // 1, 3, 5
+    ruka.println("${x}")    // 1, 3, 5
 end</code></pre>
 
       <h3>Break</h3>
@@ -859,15 +912,15 @@ end</code></pre>
         or <code>for</code> loop.
       </p>
 <pre><code class="ruka">// Exit a while loop early
-let i = 0
+let *i = 0
 while true do
     if i >= 5 do break
-    #.println("${i}")
+    ruka.println("${i}")
     i = i + 1
 end
 
 // Stop searching once a match is found
-let found = false
+let *found = false
 for item in items do
     if item == target do
         found = true
@@ -883,7 +936,7 @@ end</code></pre>
 <pre><code class="ruka">// Print only odd numbers
 for i in 0..10 do
     if i % 2 == 0 do continue
-    #.println("${i}")     // 1 3 5 7 9
+    ruka.println("${i}")     // 1 3 5 7 9
 end
 
 // Skip invalid entries while processing
@@ -908,7 +961,7 @@ end</code></pre>
       </p>
 
 <pre><code class="ruka">// Guaranteed cleanup: close() always runs when the block exits
-share read_file = (path: string) do
+let read_file = (path: string) do
     let file = open(path)
     defer file.close()
 
@@ -916,15 +969,15 @@ share read_file = (path: string) do
 end   // file.close() is called here
 
 // Multiple defers execute in reverse declaration order
-share example = () do
-    defer #.println("third")    // runs last
-    defer #.println("second")
-    defer #.println("first")    // runs first
+let example = () do
+    defer ruka.println("third")    // runs last
+    defer ruka.println("second")
+    defer ruka.println("first")    // runs first
     // Output on exit: first, second, third
 end
 
 // Defer works at any scope depth — it binds to the nearest enclosing block
-share process = (items: [i32]) do
+let process = (items: [i32]) do
     let resource = acquire()
     defer resource.release()       // released when process() returns
 
@@ -958,13 +1011,13 @@ end</code></pre>
       </p>
 
       <h4>Multiline function (do…end block)</h4>
-<pre><code class="ruka">local add = (a: i32, b: i32) do
+<pre><code class="ruka">let add = (a: i32, b: i32) do
     a + b
 end
 
-local greet = (name: string) do
+let greet = (name: string) do
     let msg = "Hello, ${name}!"
-    #.println(msg)
+    ruka.println(msg)
     // last expression is (), the unit value
 end</code></pre>
 
@@ -974,12 +1027,12 @@ end</code></pre>
         newline closes the function — no <code>end</code> is required. For bodies that
         span multiple lines, the <code>do…end</code> block form is used.
       </p>
-<pre><code class="ruka">local square = (x: i32) do x * x
+<pre><code class="ruka">let square = (x: i32) do x * x
 
-local abs = (x: i32) do if x < 0 do -x else x
+let abs = (x: i32) do if x < 0 do -x else x
 
 // Multi-line body — closed by `end`
-local max = (a: i32, b: i32) do
+let max = (a: i32, b: i32) do
     if a > b do a else b
 end</code></pre>
 
@@ -989,15 +1042,15 @@ end</code></pre>
         to both single-expression and <code>do…end</code> bodies.
       </p>
 <pre><code class="ruka">// Inline — return type after the parameter list
-local square = (x: i32) -> i32 do x * x
+let square = (x: i32) -> i32 do x * x
 
 // Works identically with multi-line bodies
-local clamp = (x: i32, lo: i32, hi: i32) -> i32 do
+let clamp = (x: i32, lo: i32, hi: i32) -> i32 do
     if x < lo do lo else if x > hi do hi else x
 end
 
 // Binding-side annotation — function type written as parameter list then return type
-local square2: (i32) -> i32 = (x) do x * x</code></pre>
+let square2: (i32) -> i32 = (x) do x * x</code></pre>
 
       <h4>Automatic Return Wrapping</h4>
       <p>
@@ -1011,7 +1064,7 @@ local square2: (i32) -> i32 = (x) do x * x</code></pre>
         <li><strong><code>result(T, E)</code>:</strong> a <code>T</code> value is wrapped as <code>.ok(T)</code>; an <code>E</code> value is wrapped as <code>.err(E)</code>.</li>
       </ul>
 <pre><code class="ruka">// Returns option(uint) — wrapping is automatic
-share find_index = (arr: [i32], target: i32) -> option(uint) do
+let find_index = (arr: [i32], target: i32) -> option(uint) do
     for i in 0..arr.len do
         if arr[i] == target do return i              // i (uint) → .some(i)
     end
@@ -1019,15 +1072,15 @@ share find_index = (arr: [i32], target: i32) -> option(uint) do
 end
 
 // Returns result(f64, string) — wrapping is automatic
-share safe_div = (a: f64, b: f64) -> result(f64, string) do
+let safe_div = (a: f64, b: f64) -> result(f64, string) do
     if b == 0.0 do return "division by zero"        // string → .err(...)
     a / b                                           // f64   → .ok(...)
 end</code></pre>
 
       <h4>Entry point</h4>
       <p>The program entry point is a public constant named <code>main</code>.</p>
-<pre><code class="ruka">share main = () do
-    #.println("Hello, world!")
+<pre><code class="ruka">let main = () do
+    ruka.println("Hello, world!")
 end</code></pre>
     </section>
 
@@ -1041,20 +1094,20 @@ end</code></pre>
         tables are all valid. Using a type name in the receiver position — rather than the
         reserved keyword <code>self</code> — is what distinguishes a static from a method.
       </p>
-<pre><code class="ruka">local Vector = record {
+<pre><code class="ruka">let Vector = record {
     x: f64,
     y: f64
 }
 
 // Public static function — called as Vector.new(...)
-share new (Vector) = (x, y) do
+let new (Vector) = (x, y) do
     .{ x, y }
 end
 
 // Private static function
-local zero (Vector) = () do .{ x = 0.0, y = 0.0 }
+let zero (Vector) = () do .{ x = 0.0, y = 0.0 }
 
-share main = () do
+let main = () do
     let v = Vector.new(1.0, 2.0)
     let origin = Vector.zero()
 end</code></pre>
@@ -1072,16 +1125,16 @@ end</code></pre>
         Any compile-time value — a constant, a default instance, a type — can be attached
         as a static. Access uses the same <code>TypeName.name</code> dot notation.
       </p>
-<pre><code class="ruka">local Color = record { r: u8, g: u8, b: u8 }
+<pre><code class="ruka">let Color = record { r: u8, g: u8, b: u8 }
 
 // Constant values attached as statics
-share RED (Color) = Color.{ r = 255, g = 0,   b = 0   }
-share GREEN (Color) = Color.{ r = 0,   g = 255, b = 0   }
-share BLUE (Color) = Color.{ r = 0,   g = 0,   b = 255 }
+let RED (Color) = Color.{ r = 255, g = 0,   b = 0   }
+let GREEN (Color) = Color.{ r = 0,   g = 255, b = 0   }
+let BLUE (Color) = Color.{ r = 0,   g = 0,   b = 255 }
 
-share main = () do
+let main = () do
     let c = Color.RED
-    #.println("r=${c.r}")   // r=255
+    ruka.println("r=${c.r}")   // r=255
 end</code></pre>
 
       <h3>Static Functions on Variants</h3>
@@ -1089,14 +1142,14 @@ end</code></pre>
         Static functions can be attached to variant types using the same receiver syntax.
         This is useful for named constructors and factory helpers.
       </p>
-<pre><code class="ruka">local Direction = variant {
+<pre><code class="ruka">let Direction = variant {
     north,
     south,
     east,
     west
 }
 
-share from_str (Direction) = (s) do
+let from_str (Direction) = (s) do
     match s with
         "north" do .some(Direction.north)
         "south" do .some(Direction.south)
@@ -1106,16 +1159,19 @@ share from_str (Direction) = (s) do
     end
 end
 
-share main = () do
+let main = () do
     let d = Direction.from_str("east")
 end</code></pre>
 
       <div class="note">
-        <strong>Scope restriction:</strong> Static functions and methods may only be declared
-        in the same scope or module where the type is defined. This is required for type
-        inference — the compiler resolves receiver types and record literals by checking
-        which types are in the current scope. Attaching behaviour from a foreign module
-        would make that resolution ambiguous.
+        <strong>Any type can carry methods and statics.</strong> The receiver syntax
+        works uniformly across every type in the language: user-defined records and
+        variants, built-in generics (<code>option(T)</code>, <code>result(T, E)</code>,
+        arrays, ranges), and primitives (<code>i32</code>, <code>f64</code>,
+        <code>bool</code>, <code>string</code>, …) all accept methods with <code>self</code>
+        receivers and statics with type-name receivers. A primitive is simply a type
+        whose layout is fixed by the compiler; it has no privileged or restricted
+        status with respect to behaviour.
       </div>
     </section>
 
@@ -1134,20 +1190,20 @@ end</code></pre>
         A constructor is a static function named <code>new</code>. It allocates and initialises
         a value of the associated type, then returns it. Any additional setup logic lives here.
       </p>
-<pre><code class="ruka">local Buffer = record {
+<pre><code class="ruka">let Buffer = record {
     data: [u8],
     len:  uint,
 }
 
 // Public constructor — called as Buffer.new(capacity)
-share new (Buffer) = (cap: uint) do
+let new (Buffer) = (cap: uint) do
     Buffer.{
         data = [u8; cap].{},
         len  = 0,
     }
 end
 
-share main = () do
+let main = () do
     let buf = Buffer.new(64)
 end</code></pre>
 
@@ -1164,12 +1220,12 @@ end</code></pre>
         has completed its work. It is not limited to deallocation.
       </p>
 <pre><code class="ruka">// deinit — ownership of self is moved in; self cannot be used after this call
-share deinit (&self) = () do
+let deinit (&self) = () do
     // flush pending writes, close handle, signal completion, etc.
-    #.println("Buffer flushed and freed")
+    ruka.println("Buffer flushed and freed")
 end
 
-share main = () do
+let main = () do
     let buf = Buffer.new(64)
     // ... use buf ...
     buf.deinit()
@@ -1202,28 +1258,28 @@ end</code></pre>
         a static function. Because <code>self</code> is a keyword, the difference is
         unambiguous regardless of naming conventions.
       </p>
-<pre><code class="ruka">local Vector = record {
+<pre><code class="ruka">let Vector = record {
     x: f64,
     y: f64
 }
 
 // Public method — self is the receiver instance; its type is inferred as Vector
-share add (self) = (other) do
+let add (self) = (other) do
     .{ x = self.x + other.x, y = self.y + other.y }
 end
 
-share length (self) = () do
-    #.sqrt(self.x * self.x + self.y * self.y)
+let length (self) = () do
+    ruka.sqrt(self.x * self.x + self.y * self.y)
 end
 
 // Private method
-local negate (self) = () do .{ x = -self.x, y = -self.y }
+let negate (self) = () do .{ x = -self.x, y = -self.y }
 
-share main = () do
+let main = () do
     let a = Vector.new(1.0, 0.0)
     let b = Vector.new(0.0, 1.0)
     let c = a.add(b)
-    #.println("Length: ${c.length()}")
+    ruka.println("Length: ${c.length()}")
 end</code></pre>
 
       <h3>Mutable Methods</h3>
@@ -1231,20 +1287,20 @@ end</code></pre>
         To mutate the receiver inside a method, apply the <code>*</code> prefix to
         <code>self</code>. The caller must hold a mutable binding.
       </p>
-<pre><code class="ruka">local Counter = record { value: i32 }
+<pre><code class="ruka">let Counter = record { value: i32 }
 
-share new (Counter) = () do .{ value = 0 }
+let new (Counter) = () do .{ value = 0 }
 
 // *self — the receiver is a mutable reference
-share increment (*self) = () do
+let increment (*self) = () do
     self.value = self.value + 1
 end
 
-share main = () do
-    let c = Counter.new()
+let main = () do
+    let *c = Counter.new()
     c.increment()         // value is now 1
     c.increment()         // value is now 2
-    #.println("${c.value}")
+    ruka.println("${c.value}")
 end</code></pre>
 
       <h3>Methods on Variants</h3>
@@ -1253,14 +1309,14 @@ end</code></pre>
         receiver syntax. Pattern matching on <code>self</code> inside the body handles
         each tag.
       </p>
-<pre><code class="ruka">local Direction = variant {
+<pre><code class="ruka">let Direction = variant {
     north,
     south,
     east,
     west
 }
 
-share opposite (self) = () do
+let opposite (self) = () do
     match self with
         north do Direction.south
         south do Direction.north
@@ -1269,14 +1325,64 @@ share opposite (self) = () do
     end
 end
 
-share is_vertical (self) = () do
+let is_vertical (self) = () do
     self == Direction.north or self == Direction.south
 end
 
-share main = () do
+let main = () do
     let d = Direction.north
-    #.println("${d.opposite().is_vertical()}")  // true
+    ruka.println("${d.opposite().is_vertical()}")  // true
 end</code></pre>
+
+      <h3 id="type-extension">Extending Types Outside Their Declaring Scope</h3>
+      <p>
+        Methods and statics can be attached to a type from any scope, not only the one
+        where the type is declared. This applies uniformly to user types, built-in
+        generics, and primitives. An extension never mutates the original type; instead,
+        the extending scope gets a new type of the same name that <em>shadows</em> the
+        original for the duration of that scope. The extended type has every member of
+        the original plus the newly declared ones. Code in other scopes continues to see
+        the unextended type.
+      </p>
+      <p>
+        This lets a module tailor a type to satisfy a behaviour — or add convenience
+        helpers — without affecting any other user of that type.
+      </p>
+<pre><code class="ruka">// Add a method to the primitive `i32` in this file only.
+// Elsewhere in the program `i32` is unchanged.
+let squared (self: i32) = () -> i32 do self * self
+
+let main = () do
+    let n: i32 = 7
+    ruka.println("${n.squared()}")   // 49
+end</code></pre>
+
+<pre><code class="ruka">// Extend a built-in generic locally to satisfy a behaviour.
+let printable = behaviour { print_self (self) = () -> () }
+
+let print_self (self: option(i32)) = () do
+    match self with
+        .some(n) do ruka.println("${n}")
+        .none    do ruka.println("(none)")
+    end
+end
+
+let show = (x: printable) do x.print_self()
+
+let main = () do
+    show(.some(42))   // ok — within this scope option(i32) satisfies `printable`
+    show(.none)
+end</code></pre>
+
+      <div class="note">
+        <strong>Shadowing, not monkey-patching.</strong> An extension is lexically scoped:
+        it is visible only where the extending bindings are in scope (the file they are
+        declared in, or any scope that imports them and brings the names in). Two files
+        may independently extend the same type in incompatible ways without conflict;
+        each sees its own shadowed version. The underlying in-memory representation is
+        unchanged, so extended and unextended values are interchangeable — the extension
+        only adds dispatch entries resolvable from the extending scope.
+      </div>
     </section>
 
     <!-- Parameter Modes -->
@@ -1319,25 +1425,25 @@ end</code></pre>
       </table>
 
 <pre><code class="ruka">// * — in-place mutation
-share fill (*self) = (value: u8) do
+let fill (*self) = (value: u8) do
     // modifies caller's buffer
 end
 
 // & — consume / transfer ownership
-share close = (&handle: FileHandle) do
+let close = (&handle: FileHandle) do
     // handle is invalid for the caller after this call
 end
 
 // $ — stack allocated pass-by-copy
-share hash = ($data: [u8]) -> u64 do
+let hash = ($data: [u8]) -> u64 do
     // data is on the stack
 end
 
 // @ — compile-time value (explicit annotation)
-share repeat = (@times: uint, msg: string) do
-    let i = 0
+let repeat = (@times: uint, msg: string) do
+    let *i = 0
     while i < times do
-        #.println(msg)
+        ruka.println(msg)
         i = i + 1
     end
 end</code></pre>
@@ -1361,12 +1467,12 @@ end</code></pre>
 
       <h3>Declaring Named Parameters</h3>
 <pre><code class="ruka">// Both parameters are named — order at call site doesn't matter
-share greet = (~name: string, ~greeting: string) do
+let greet = (~name: string, ~greeting: string) do
     "${greeting}, ${name}!"
 end
 
 // Mix of positional and named
-share clamp = (x: int, ~lo: int, ~hi: int) do
+let clamp = (x: int, ~lo: int, ~hi: int) do
     if x < lo do
     	lo
      else if x > hi do
@@ -1398,7 +1504,7 @@ greet(~name, ~greeting)   // shorthand for greet(~name=name, ~greeting=greeting)
         When a value is supplied, it is automatically wrapped in <code>.some(...)</code> — no
         explicit wrapping is needed.
       </p>
-<pre><code class="ruka">share greet = (~name: string, ~title: option(string)) do
+<pre><code class="ruka">let greet = (~name: string, ~title: option(string)) do
     "${t} ${name}" if .some(t) = title else name
 end
 
@@ -1413,7 +1519,7 @@ greet(~name="Ruka", ~title=.none)      // explicit .none also valid</code></pre>
         named argument reads as a block visually attached to the call.
         Only one trailing argument is permitted per call.
       </p>
-<pre><code class="ruka">share apply_twice = (x: int, ~f: (int) -> int) do f(f(x))
+<pre><code class="ruka">let apply_twice = (x: int, ~f: (int) -> int) do f(f(x))
 
 // Named param inside the argument list — standard form
 let r1 = apply_twice(3, ~f=(x) do x * 2)    // 12
@@ -1433,9 +1539,9 @@ end                                           // 14</code></pre>
         closure parameters are placed last in the definition so callers can trail them.
       </p>
 <pre><code class="ruka">// `t: type` and `u: type` infer eva automatically
-share map = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
-share filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
-share reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
+let map = (t: type, u: type, arr: [t], ~f: (t) -> u) -> [u] do ... end
+let filter = (t: type, arr: [t], ~pred: (t) -> bool) -> [t] do ... end
+let reduce = (t: type, u: type, arr: [t], init: u, ~f: (u, t) -> u) -> u do ... end
 
 let nums = .{1, 2, 3, 4, 5}
 
@@ -1471,17 +1577,17 @@ end</code></pre>
 
       <h3>Declaring a Behaviour</h3>
 <pre><code class="ruka">// A type that can be printed
-share Printable = behaviour {
+let Printable = behaviour {
     print(self): () -> ()
 }
 
 // A type that supports a binary add operation
-share Adder = behaviour {
+let Adder = behaviour {
     add(mut self): (b: uint) -> ()
 }
 
 // Multiple methods
-share Shape = behaviour {
+let Shape = behaviour {
     area(self): () -> f64,
     perimeter(self): () -> f64
 }</code></pre>
@@ -1493,12 +1599,12 @@ share Shape = behaviour {
         behaviour. Receiver and return types are typically inferred — annotations are only
         needed when the field set is ambiguous.
       </p>
-<pre><code class="ruka">local Circle = record { radius: f64 }
+<pre><code class="ruka">let Circle = record { radius: f64 }
 
 // self inferred as Circle (only type in scope with `radius`);
 // return types inferred from the expressions
-share area (self) = () do 3.14159 * self.radius * self.radius
-share perimeter (self) = () do 2.0 * 3.14159 * self.radius
+let area (self) = () do 3.14159 * self.radius * self.radius
+let perimeter (self) = () do 2.0 * 3.14159 * self.radius
 
 // Circle now satisfies the Shape behaviour — no declaration needed</code></pre>
 
@@ -1509,17 +1615,17 @@ share perimeter (self) = () do 2.0 * 3.14159 * self.radius
         inferred — they must always be written explicitly as a type annotation.
       </p>
 <pre><code class="ruka">// Behaviour type annotation on a parameter — dynamic dispatch is automatic
-share print_shape_info = (s: Shape) do
-    #.println("area: ${s.area()}")
-    #.println("perimeter: ${s.perimeter()}")
+let print_shape_info = (s: Shape) do
+    ruka.println("area: ${s.area()}")
+    ruka.println("perimeter: ${s.perimeter()}")
 end
 
-local Rect = record { w: f64, h: f64 }
+let Rect = record { w: f64, h: f64 }
 
-share area (self) = () do self.w * self.h
-share perimeter (self) = () do 2.0 * (self.w + self.h)
+let area (self) = () do self.w * self.h
+let perimeter (self) = () do 2.0 * (self.w + self.h)
 
-share main = () do
+let main = () do
     let c = Circle.{ radius = 5.0 }
     let r = Rect.{ w = 4.0, h = 6.0 }
 
@@ -1541,47 +1647,47 @@ end</code></pre>
     <section id="builtin-behaviours">
       <h2>Builtin Behaviours</h2>
       <p>
-        The <code>#</code> module exposes a small set of standard behaviours that the
+        The <code>ruka</code> module exposes a small set of standard behaviours that the
         compiler and runtime recognise specially. Satisfying them unlocks language-level
         features: string interpolation, <code>for</code> loops, and custom allocator support.
         Like all behaviours, they are satisfied implicitly — no declaration is needed.
       </p>
 
-      <h3>#.printable</h3>
+      <h3>ruka.printable</h3>
       <p>
-        Any type that satisfies <code>#.printable</code> can be interpolated inside a
-        <code>${…}</code> string expression and passed to <code>#.print</code> /
-        <code>#.println</code>. The compiler calls <code>format</code> automatically
+        Any type that satisfies <code>ruka.printable</code> can be interpolated inside a
+        <code>${…}</code> string expression and passed to <code>ruka.print</code> /
+        <code>ruka.println</code>. The compiler calls <code>format</code> automatically
         in those positions.
       </p>
-<pre><code class="ruka">share printable = behaviour {
+<pre><code class="ruka">let printable = behaviour {
     format(self): () -> string
 }
 
 // Example — make a Point printable
-local Point = record { x: f64, y: f64 }
+let Point = record { x: f64, y: f64 }
 
-share format (self) = () do "(${self.x}, ${self.y})"
+let format (self) = () do "(${self.x}, ${self.y})"
 
-share main = () do
+let main = () do
     let p = Point.{ x = 1.0, y = 2.0 }
-    #.println("point: ${p}")   // point: (1.0, 2.0)
+    ruka.println("point: ${p}")   // point: (1.0, 2.0)
 end</code></pre>
 
-      <h3>#.iterable</h3>
+      <h3>ruka.iterable</h3>
       <p>
-        Any type that satisfies <code>#.iterable</code> can be used in a <code>for</code>
+        Any type that satisfies <code>ruka.iterable</code> can be used in a <code>for</code>
         loop. The compiler calls <code>next</code> on each iteration; when it returns
         <code>.none</code> the loop ends.
       </p>
-<pre><code class="ruka">share iterable = behaviour {
+<pre><code class="ruka">let iterable = behaviour {
     next(*self): () -> ?(T)
 }
 
 // Example — a simple counter iterator
-local Counter = record { current: uint, limit: uint }
+let Counter = record { current: uint, limit: uint }
 
-share next (*self) = () do
+let next (*self) = () do
     if self.current >= self.limit do .none
     else
         let val = self.current
@@ -1590,41 +1696,41 @@ share next (*self) = () do
     end
 end
 
-share main = () do
-    let c = Counter.{ current = 0, limit = 3 }
+let main = () do
+    let *c = Counter.{ current = 0, limit = 3 }
     for n in c do
-        #.println("${n}")   // 0, 1, 2
+        ruka.println("${n}")   // 0, 1, 2
     end
 end</code></pre>
 
-      <h3>#.allocator</h3>
+      <h3>ruka.allocator</h3>
       <p>
-        Any type that satisfies <code>#.allocator</code> can be passed to functions or
+        Any type that satisfies <code>ruka.allocator</code> can be passed to functions or
         data structures that need explicit heap control. This allows callers to supply arena
         allocators, pool allocators, or any other strategy without coupling the implementation
         to a specific allocator.
       </p>
-<pre><code class="ruka">share allocator = behaviour {
+<pre><code class="ruka">let allocator = behaviour {
     alloc  (*self): (@size: uint) -> [u8],
     free   (*self): (&bytes: [u8]) -> ()
 }
 
 // A function that accepts any allocator
-share make_buffer = (alloc: #.allocator, cap: uint) do
+let make_buffer = (alloc: ruka.allocator, cap: uint) do
     Buffer.{ data = alloc.alloc(cap), len = 0 }
 end</code></pre>
 
       <div class="note">
-        <strong>#.allocator and the GC:</strong> The default allocator used by the runtime
-        is the GC. Passing a custom <code>#.allocator</code> opts a specific allocation out
+        <strong>ruka.allocator and the GC:</strong> The default allocator used by the runtime
+        is the GC. Passing a custom <code>ruka.allocator</code> opts a specific allocation out
         of GC management — the returned buffer is an ordinary reference, but the GC does not
         track it, so the caller is responsible for calling <code>free</code> (typically via
         <code>deinit</code>).
       </div>
       <div class="note">
         <strong>GC exclusion in manual-memory programs:</strong> If a program never uses
-        GC-allocated values — every heap allocation goes through <code>#.heap_alloc</code> or
-        a custom <code>#.allocator</code> — the compiler statically proves the GC has no
+        GC-allocated values — every heap allocation goes through <code>ruka.heap_alloc</code> or
+        a custom <code>ruka.allocator</code> — the compiler statically proves the GC has no
         roots to scan and excludes the GC runtime from the final binary entirely. This makes
         Ruka practical for embedded targets and low-latency code where a GC pause is
         unacceptable.
@@ -1640,13 +1746,13 @@ end</code></pre>
         in the order they are applied, which is easier to read than deeply nested calls.
       </p>
 <pre><code class="ruka">// Without pipeline
-#.println(trim(toUpperCase(getName(user))))
+ruka.println(trim(toUpperCase(getName(user))))
 
 // With pipeline — reads top to bottom, left to right
 getName(user)
     |> toUpperCase()
     |> trim()
-    |> #.println()</code></pre>
+    |> ruka.println()</code></pre>
     </section>
 
     <!-- Modules -->
@@ -1655,41 +1761,42 @@ getName(user)
       <p>
         A file is a record. There is no separate module concept — every Ruka source file
         implicitly defines a compile-time record value whose fields are the file's
-        <code>share</code> bindings. <code>local</code> bindings at file scope are private
-        fields: they are accessible within the file but not from any importer.
+        top-level <code>let</code> bindings. Bindings whose names begin with a lowercase
+        letter are public fields; those whose names begin with an uppercase letter are
+        private and not accessible to importers (see <a href="#privacy">Privacy</a>).
       </p>
       <p>
         Because files are records, all of the language's record machinery applies directly:
         field access retrieves exports, and destructuring pulls named fields into scope.
-        The <code>local</code> keyword marks privacy consistently whether on a record field
-        or a file-scope binding.
+        Name case determines privacy consistently whether on a record field or a
+        file-scope binding.
       </p>
       <p>
         A file record is an <em>empty</em> record — it has no instance fields, only statics.
         It cannot be instantiated with <code>.{}</code>. Every declaration in the file is
         stored as a static field accessible via the record value returned by
-        <code>#.import</code>.
+        <code>ruka.import</code>.
       </p>
-<pre><code class="ruka">// stack.ruka — a file is a record; share bindings are its public fields
+<pre><code class="ruka">// stack.ruka — a file is a record; lowercase-named top-level bindings are public fields
 
-local t = record {         // local binding — private to this file
-    local data: [i32],
-    local len:  uint
+let Stack = record {     // uppercase name — private to this file
+    Data: [i32],         // uppercase field — private
+    Len:  uint
 }
 
-share new (t) = () do .{ data = .{}, len = 0 }   // public field
+let new (Stack) = () do .{ Data = .{}, Len = 0 }    // public field
 
-share push (*self) = (value: i32) do           // public field
-    // append value to self.data
-    self.len = self.len + 1
+let push (*self) = (value: i32) do                  // public field
+    // append value to self.Data
+    self.Len = self.Len + 1
 end
 
-share pop (mut self) = () -> option(i32) do       // public field
-    if self.len == 0 do
+let pop (*self) = () -> option(i32) do              // public field
+    if self.Len == 0 do
         .none
     else
-        self.len = self.len - 1
-        .some(self.data[self.len])
+        self.Len = self.Len - 1
+        .some(self.Data[self.Len])
     end
 end</code></pre>
     </section>
@@ -1698,27 +1805,27 @@ end</code></pre>
     <section id="imports">
       <h2>Imports</h2>
       <p>
-        <code>#.import</code> evaluates at compile time and returns the file's record value.
+        <code>ruka.import</code> evaluates at compile time and returns the file's record value.
         The result is always compile-time known — compile-time evaluation is implied. Accessing an
         export is ordinary field access; destructuring an import is ordinary record
         destructuring, using the same <code>{…}</code> syntax.
       </p>
 <pre><code class="ruka">// Field access on the imported record
-local math = #.import("math")
+let math = ruka.import("math")
 
-share main = () do
-    #.println("${math.sqrt(2.0)}")
+let main = () do
+    ruka.println("${math.sqrt(2.0)}")
 end
 
 // Record destructuring — pull specific fields into scope
-local { sqrt, pow } = #.import("math")
-local { Dog, Cat }  = #.import("animals")
+let { sqrt, pow } = ruka.import("math")
+let { Dog, Cat }  = ruka.import("animals")
 
 // Imported records can be passed to eva parameters like any compile-time value
-share describe = (t: type) do #.println("${t}")
-local animals = #.import("animals")
+let describe = (t: type) do ruka.println("${t}")
+let animals = ruka.import("animals")
 
-share main = () do
+let main = () do
     describe(animals.Dog)   // passes the Dog type to a compile-time parameter
 end</code></pre>
     </section>
@@ -1735,41 +1842,41 @@ end</code></pre>
       </p>
       <p>
         Tests are never exported. They can access everything in their module's scope,
-        including <code>local</code> (private) bindings, which makes it straightforward
+        including uppercase-named (private) bindings, which makes it straightforward
         to test internal implementation details without exposing them.
       </p>
 
-<pre><code class="ruka">local add = (a: i32, b: i32) do a + b
+<pre><code class="ruka">let add = (a: i32, b: i32) do a + b
 
 test addition = () do
-    #.assert_eq(add(1, 2), 3)
-    #.assert_eq(add(-1, 1), 0)
-    #.assert_eq(add(0, 0), 0)
+    ruka.assert_eq(add(1, 2), 3)
+    ruka.assert_eq(add(-1, 1), 0)
+    ruka.assert_eq(add(0, 0), 0)
 end
 
 test addition_is_commutative = () do
-    #.assert_eq(add(3, 4), add(4, 3))
+    ruka.assert_eq(add(3, 4), add(4, 3))
 end</code></pre>
 
       <p>
         Because tests live in the same scope as the module, they have access to
-        <code>local</code> (private) definitions directly — no special test-visibility
+        uppercase-named (private) definitions directly — no special test-visibility
         mechanism is needed.
       </p>
 
 <pre><code class="ruka">// Private implementation detail — not exported
-local clamp_internal = (x: i32, lo: i32, hi: i32) do if x < lo do lo else if x > hi do hi else x
+let clamp_internal = (x: i32, lo: i32, hi: i32) do if x < lo do lo else if x > hi do hi else x
 
 test clamp_lower_bound = () do
-    #.assert_eq(clamp_internal(3, 5, 10), 5)
+    ruka.assert_eq(clamp_internal(3, 5, 10), 5)
 end
 
 test clamp_upper_bound = () do
-    #.assert_eq(clamp_internal(15, 5, 10), 10)
+    ruka.assert_eq(clamp_internal(15, 5, 10), 10)
 end
 
 test clamp_in_range = () do
-    #.assert_eq(clamp_internal(7, 5, 10), 7)
+    ruka.assert_eq(clamp_internal(7, 5, 10), 7)
 end</code></pre>
 
       <div class="note">
@@ -1777,7 +1884,7 @@ end</code></pre>
         <code>test</code> bindings are included in two build modes:
         <em>debug</em> (full code coverage analysis, all assertions active) and
         <em>test</em> (runs the test suite and reports pass/fail). They are stripped
-        in the <em>release</em> build. This means <code>#.assert_eq</code> and other
+        in the <em>release</em> build. This means <code>ruka.expect_eq</code> and other
         assertion calls inside a <code>test</code> binding never appear in a production
         binary.
       </div>
@@ -1787,37 +1894,37 @@ end</code></pre>
     <section id="builtins">
       <h2>Built-in Functions</h2>
       <p>
-        Built-in functions are accessed through the <code>#</code> module, which is
+        Built-in functions are accessed through the <code>ruka</code> module, which is
         implicitly available in every scope without an import declaration. The
-        <code>#</code> sigil cannot be shadowed or rebound.
+        <code>ruka</code> identifier is reserved and cannot be shadowed or rebound.
       </p>
       <table>
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>#.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
-          <tr><td><code>#.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
-          <tr><td><code>#.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
-          <tr><td><code>#.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
-          <tr><td><code>#.abs(number)</code></td><td>Absolute value.</td></tr>
-          <tr><td><code>#.sin(number)</code></td><td>Sin value.</td></tr>
-          <tr><td><code>#.cos(number)</code></td><td>Cos value.</td></tr>
-          <tr><td><code>#.tan(number)</code></td><td>Tan value.</td></tr>
-          <tr><td><code>#.sqrt(number)</code></td><td>Square root.</td></tr>
-          <tr><td><code>#.assert_eq(a, b)</code></td><td>Assert that two values are equal. Panics on failure.</td></tr>
-          <tr><td><code>#.compile_error(string)</code></td><td>Emit a compile-time error with the given message. Only callable from compile-time contexts.</td></tr>
-          <tr><td><code>#.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
-          <tr><td><code>#.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>#.heap_free</code> to release it.</td></tr>
-          <tr><td><code>#.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>#.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
-          <tr><td><code>#.fields_of(@t: type) -> [#.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
-          <tr><td><code>#.methods_of(@t: type) -> [#.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
-          <tr><td><code>#.statics_of(@t: type) -> [#.static_info]</code></td><td>Return a compile-time array describing every static member (constructor, associated constant, etc.) attached to the type.</td></tr>
-          <tr><td><code>#.record_of(@fields: [#.field_info]) -> type</code></td><td>Construct a new <code>record</code> type from a compile-time array of field descriptors. The inverse of <code>#.fields_of</code>.</td></tr>
-          <tr><td><code>#.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
+          <tr><td><code>ruka.print(string)</code></td><td>Print a string to standard output without a trailing newline.</td></tr>
+          <tr><td><code>ruka.println(string)</code></td><td>Print a string to standard output followed by a newline.</td></tr>
+          <tr><td><code>ruka.import(path)</code></td><td>Import a file as a module. Returns the module value. Evaluated at compile time.</td></tr>
+          <tr><td><code>ruka.type_of(value)</code></td><td>Return the compile-time type of a value.</td></tr>
+          <tr><td><code>ruka.abs(number)</code></td><td>Absolute value.</td></tr>
+          <tr><td><code>ruka.sin(number)</code></td><td>Sin value.</td></tr>
+          <tr><td><code>ruka.cos(number)</code></td><td>Cos value.</td></tr>
+          <tr><td><code>ruka.tan(number)</code></td><td>Tan value.</td></tr>
+          <tr><td><code>ruka.sqrt(number)</code></td><td>Square root.</td></tr>
+          <tr><td><code>ruka.expect_eq(a, b)</code></td><td>Assert that two values are equal. Returns a result.</td></tr>
+          <tr><td><code>ruka.compile_error(string)</code></td><td>Emit a compile-time error with the given message. Only callable from compile-time contexts.</td></tr>
+          <tr><td><code>ruka.size(type)</code></td><td>Returns the size in bytes of the given type as a compile-time <code>uint</code>. The argument must be a compile-time type value.</td></tr>
+          <tr><td><code>ruka.heap_alloc(@size: uint) -> [u8]</code></td><td>Request <code>size</code> bytes of raw, uninitialised heap memory. Returns an ordinary reference just as a GC-allocated buffer would, but the allocation is <em>not</em> tracked by the GC — the caller owns it and must pass it to <code>ruka.heap_free</code> to release it.</td></tr>
+          <tr><td><code>ruka.heap_free(&amp;bytes: [u8]) -> ()</code></td><td>Release a buffer previously obtained from <code>ruka.heap_alloc</code>. The move prefix (<code>&amp;</code>) consumes the binding; using it afterwards is a compile error.</td></tr>
+          <tr><td><code>ruka.fields_of(@t: type) -> [ruka.field_info]</code></td><td>Return a compile-time array describing every instance field of a <code>record</code> or <code>variant</code> type. Each entry has <code>name: string</code> and <code>type: type</code>.</td></tr>
+          <tr><td><code>ruka.methods_of(@t: type) -> [ruka.method_info]</code></td><td>Return a compile-time array describing every method bound to the given type. Each entry has <code>name: string</code>, <code>params: [type]</code>, and <code>return_type: type</code>.</td></tr>
+          <tr><td><code>ruka.statics_of(@t: type) -> [ruka.static_info]</code></td><td>Return a compile-time array describing every static member (constructor, associated constant, etc.) attached to the type.</td></tr>
+          <tr><td><code>ruka.record_of(@fields: [ruka.field_info]) -> type</code></td><td>Construct a new <code>record</code> type from a compile-time array of field descriptors. The inverse of <code>ruka.fields_of</code>.</td></tr>
+          <tr><td><code>ruka.now()</code></td><td>Returns the current time as a timestamp value.</td></tr>
         </tbody>
       </table>
-<pre><code class="ruka">#.println("Hello!")                       // Hello!
-#.println("${#.type_of(42)}")               // int
-#.assert_eq(#.abs(-5), 5)
+<pre><code class="ruka">ruka.println("Hello!")                       // Hello!
+ruka.println("${ruka.type_of(42)}")               // int
+ruka.assert_eq(ruka.abs(-5), 5)
 </code></pre>
     </section>
 
@@ -1841,16 +1948,16 @@ end</code></pre>
         <code>type</code> annotation are inferred.
       </p>
 <pre><code class="ruka">// Explicit — valid, but redundant
-share min = (@t: type, a: t, b: t) do if a < b do a else b
+let min = (@t: type, a: t, b: t) do if a < b do a else b
 
 // Inferred — preferred; `@` is implied by the `type` annotation
-share min = (t: type, a: t, b: t) do if a < b do a else b
+let min = (t: type, a: t, b: t) do if a < b do a else b
 
 // Both `@` and `: type` inferred — `t` is used to annotate `a` and `b`
-share min = (t, a: t, b: t) do if a < b do a else b
+let min = (t, a: t, b: t) do if a < b do a else b
 
 // Compile-time type constructor — same rules apply
-share Pair = (a, b) do
+let Pair = (a, b) do
     record { first: a, second: b }
 end</code></pre>
 
@@ -1860,11 +1967,11 @@ end</code></pre>
         each unique set of compile-time arguments, similar to monomorphisation in Rust or
         comptime in Zig.
       </p>
-<pre><code class="ruka">share min = (t, a: t, b: t) do if a < b do a else b
+<pre><code class="ruka">let min = (t, a: t, b: t) do if a < b do a else b
 
-share main = () do
-    local x = min(i32, 3, 7)     // compiler emits an i32 version
-    local y = min(f64, 1.5, 2.0) // compiler emits an f64 version
+let main = () do
+    let x = min(i32, 3, 7)     // compiler emits an i32 version
+    let y = min(f64, 1.5, 2.0) // compiler emits an f64 version
 end</code></pre>
 
       <h3>Generating Types at Compile Time</h3>
@@ -1874,7 +1981,7 @@ end</code></pre>
         an explicit <code>@</code> prefix.
       </p>
 <pre><code class="ruka">// Returns a record type — `cap` requires explicit @ because it is not type-annotated as `type`
-share FixedArray = (t, @cap: uint) do
+let FixedArray = (t, @cap: uint) do
     record {
         data: [t],
         len:  uint
@@ -1882,113 +1989,124 @@ share FixedArray = (t, @cap: uint) do
 end
 
 // Instantiate at compile time — these are concrete types
-local IntBuf   = FixedArray(i32, 64)
-local FloatBuf = FixedArray(f64, 16)
+let IntBuf   = FixedArray(i32, 64)
+let FloatBuf = FixedArray(f64, 16)
 
-share main = () do
+let main = () do
     let buf = IntBuf.{ data = .{}, len = 0 }
 end</code></pre>
 
       <h3>Storing Compile-Time Results</h3>
       <p>
-        If a function has any <code>@</code>-prefixed parameters, it runs at compile time and its
-        result is automatically a compile-time constant. The binding must be <code>share</code>
-        or <code>local</code> — assigning a compile-time result to a <code>let</code> binding
-        is a compile error. Results can also be used inline without a binding.
+        If a function has any <code>@</code>-prefixed parameters, it runs at compile time
+        and its result is automatically a compile-time constant. At file scope the binding
+        is implicitly compile-time, so no mode prefix is required. Inside an inner scope the
+        binding must be declared with <code>@</code>, since the default there is runtime.
+        Results can also be used inline without a binding.
       </p>
-<pre><code class="ruka">share Pair = (a, b) do
+<pre><code class="ruka">let Pair = (a, b) do
     record { first: a, second: b }
 end
 
-// Binding must be share or local
-local IntStrPair = Pair(i32, string)
+// File scope — compile-time is inferred
+let IntStrPair = Pair(i32, string)
 
-// let IntStrPair = Pair(i32, string)  // compile error — mutable binding
+let main = () do
+    // Inner scope — @ is required to store the compile-time result as a constant
+    let @IntStrPair = Pair(i32, string)
 
-// Used inline without a binding — also valid
-let p = Pair(i32, string).{ first = 1, second = "one" }</code></pre>
+    // Used inline without a binding — also valid
+    let p = Pair(i32, string).{ first = 1, second = "one" }
+end</code></pre>
 
       <h3>Forcing Runtime Functions at Compile Time</h3>
       <p>
-        A binding declared with the <code>@</code> prefix forces any function — including ordinary
-        runtime functions — to execute at compile time. All arguments must be compile-time
-        known. This is distinct from calling a function that already has <code>@</code>-prefixed
-        parameters, which runs at compile time automatically.
+        Inside an inner scope, the <code>@</code> mode on a binding forces any function —
+        including ordinary runtime functions — to execute at compile time. All arguments
+        must be compile-time known. This is distinct from calling a function that already
+        has <code>@</code>-prefixed parameters, which runs at compile time automatically.
+        At file scope <code>@</code> is redundant: top-level bindings are already evaluated
+        at compile time.
       </p>
-<pre><code class="ruka">share PI = 3.14159265358979
+<pre><code class="ruka">let PI = 3.14159265358979
 
-// #.sqrt is a runtime built-in, but @ forces it to run at compile time
-local @SQRT_2: f64 = #.sqrt(2.0)          // literal — compile-time known
-local @INV_PI: f64 = 1.0 / PI                // constant PI — compile-time known
+// File scope — compile-time is implicit; ruka.sqrt runs at compile time here
+let SQRT_2: f64 = ruka.sqrt(2.0)
+let INV_PI: f64 = 1.0 / PI
 
-// @ results are themselves compile-time known and can be chained
-local @DOUBLE_SQRT_2 = SQRT_2 * 2.0
+// Chained use is still compile-time
+let DOUBLE_SQRT_2 = SQRT_2 * 2.0
 
 // Useful for any expensive or non-trivial constant
-local @LOOKUP = generate_lookup_table(256)
-local @KEY_HASH = compute_hash("app-secret")</code></pre>
+let LOOKUP = generate_lookup_table(256)
+let KEY_HASH = compute_hash("app-secret")
+
+let run = () do
+    // Inside a function body, @ is required to force compile-time evaluation
+    let @table = generate_lookup_table(256)
+    // ...
+end</code></pre>
 
       <h3>Compile-Time Reflection</h3>
       <p>
-        <code>#.type_of</code> returns the type of any expression as a compile-time value,
+        <code>ruka.type_of</code> returns the type of any expression as a compile-time value,
         which can be passed to <code>@</code>-prefixed parameters or compared at compile time.
       </p>
-<pre><code class="ruka">share assertSameType = (a: type, b: type) do
+<pre><code class="ruka">let assertSameType = (a: type, b: type) do
     if not (a == b) do
-        #.compile_error("type mismatch: expected ${a}, got ${b}")
+        ruka.compile_error("type mismatch: expected ${a}, got ${b}")
     end
 end
 
-share main = () do
+let main = () do
     let x: i32 = 10
     let y: i32 = 20
-    assertSameType(#.type_of(x), #.type_of(y))  // ok — both i32
+    assertSameType(ruka.type_of(x), ruka.type_of(y))  // ok — both i32
 end</code></pre>
 
       <div class="note">
         <strong>Note:</strong> Only values that are provably known at compile time may be
         passed to <code>@</code>-prefixed parameters. Passing a runtime value to an <code>@</code>-prefixed
         parameter is a compile error. Compile-time known values include: literals,
-        <code>share</code> and <code>local</code> constants, and results of other
-        compile-time evaluations.
+        top-level <code>let</code> bindings, and results of other compile-time evaluations.
       </div>
 
       <h3>Compile-Time Type Introspection</h3>
       <p>
         At compile time, a type's structure can be inspected — its fields, methods, and
         static members are all readable as ordinary compile-time data. Combined with
-        <code>#.record_of</code>, this enables derive-macro-style generation: a
+        <code>ruka.record_of</code>, this enables derive-macro-style generation: a
         compile-time function analyses an existing type and produces a new type
         mechanically derived from it.
       </p>
 <pre><code class="ruka">// Given any record type, produce a version where every field is option(T).
-share Partial = (t: type) do
-    let fs = #.fields_of(t)
+let Partial = (t: type) do
+    let fs = ruka.fields_of(t)
     let opt_fs = fs |> map((f) do .{ name = f.name, type = option(f.type) })
-    #.record_of(opt_fs)
+    ruka.record_of(opt_fs)
 end
 
-local User        = record { id: i32, name: string, email: string }
-local PartialUser = Partial(User)
+let User        = record { id: i32, name: string, email: string }
+let PartialUser = Partial(User)
 // PartialUser is equivalent to:
 //   record { id: option(i32), name: option(string), email: option(string) }</code></pre>
 
       <p>
         Because the result of any <code>@</code>-parameterised function is a compile-time value,
-        the synthesised type can be bound with <code>share</code> or <code>local</code> and used
-        exactly like a type written by hand — instantiated with <code>.{…}</code>, checked by
-        the type system, and exported from a module.
+        the synthesised type can be bound with <code>let</code> (or <code>let</code>) at
+        file scope and used exactly like a type written by hand — instantiated with
+        <code>.{…}</code>, checked by the type system, and exported from a module.
       </p>
       <p>
-        <code>#.methods_of</code> and <code>#.statics_of</code> complete the introspection
+        <code>ruka.methods_of</code> and <code>ruka.statics_of</code> complete the introspection
         surface. They enable generation patterns that also carry behaviour — for example, a
         function that inspects a record's fields and emits a derived record together with a
         matching set of accessor or serialisation methods.
       </p>
       <div class="note">
-        <strong>Introspection is compile-time only.</strong> <code>#.fields_of</code>,
-        <code>#.methods_of</code>, <code>#.statics_of</code>, and
-        <code>#.record_of</code> all take <code>@</code>-prefixed type arguments and run
+        <strong>Introspection is compile-time only.</strong> <code>ruka.fields_of</code>,
+        <code>ruka.methods_of</code>, <code>ruka.statics_of</code>, and
+        <code>ruka.record_of</code> all take <code>@</code>-prefixed type arguments and run
         during compilation. There is no runtime reflection — everything is erased before
         code generation, so introspection has zero runtime cost.
       </div>

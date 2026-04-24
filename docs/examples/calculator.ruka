@@ -1,13 +1,13 @@
-local add = (a, b) do a + b
-local sub = (a, b) do a - b
-local mul = (a, b) do a * b
-local div = (a, b) do a / b
+let add = (a, b) do a + b
+let sub = (a, b) do a - b
+let mul = (a, b) do a * b
+let div = (a, b) do a / b
 
-share main = () do
+let main = () do
     let x = 12
     let y = 4
-    #.println("${x} + ${y} = ${add(x, y)}")
-    #.println("${x} - ${y} = ${sub(x, y)}")
-    #.println("${x} * ${y} = ${mul(x, y)}")
-    #.println("${x} / ${y} = ${div(x, y)}")
+    ruka.println("${x} + ${y} = ${add(x, y)}")
+    ruka.println("${x} - ${y} = ${sub(x, y)}")
+    ruka.println("${x} * ${y} = ${mul(x, y)}")
+    ruka.println("${x} / ${y} = ${div(x, y)}")
 end

@@ -6,7 +6,7 @@
   // Tokenizer
   // ──────────────────────────────────────────────
   var KW = new Set([
-    'let', 'local', 'share', 'do', 'end',
+    'let', 'do', 'end',
     'if', 'else', 'while', 'return',
     'true', 'false', 'not', 'and', 'or',
     'match', 'with', 'for', 'in', 'break', 'continue',
@@ -115,14 +115,6 @@
         var w = '';
         while (i < len && /\w/.test(src[i])) w += src[i++];
         toks.push({ t: KW.has(w) ? w : 'ID', v: w, line: tok_line });
-        continue;
-      }
-      // Built-in module sigil — `#` is the only way to reach the ruka built-ins
-      // (e.g. `#.println(...)`). Tokenized with t = '#' so the parser can accept
-      // it wherever an identifier-producing primary is expected.
-      if (src[i] === '#') {
-        toks.push({ t: '#', v: '#', line: tok_line });
-        i++;
         continue;
       }
       // three-char tokens (must precede two-char)
@@ -263,11 +255,19 @@
     }
 
     function parseStmt() {
-      // binding: let/local/share name = expr
-      var kw = tryMatch('let', 'local', 'share');
+      // binding: let [mode]name [: type] = expr
+      // Privacy is determined by name case: lowercase first letter = public,
+      // uppercase first letter = private. No separate qualifier.
+      var kw = tryMatch('let');
       if (kw) {
+        // optional mode prefix: *, &, $, @
+        var mode = null;
+        if (check('*') || check('&') || check('$') || check('@')) {
+          mode = peek().v; pos++;
+        }
         var name = eat('ID').v;
-        // skip optional (self) / (self: T) receiver annotation
+        var isLocal = /^[A-Z]/.test(name);
+        // skip optional (self) / (self: T) / (Type) receiver annotation
         if (check('(')) {
           var depth = 1; pos++;
           while (depth > 0 && !check('EOF')) {
@@ -279,7 +279,7 @@
         var bindType = tryMatch(':') ? parseType() : null;
         eat('=');
         skipNL();
-        return { k: 'Bind', kw: kw.v, name: name, type: bindType, value: parseExpr(), line: kw.line };
+        return { k: 'Bind', local: isLocal, mode: mode, name: name, type: bindType, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
@@ -535,7 +535,23 @@
           var ml = peek().line;
           eat('.');
           skipNL();
-          expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
+          // Type-prefixed record literal: Expr.{ field = val, ... }
+          if (check('{')) {
+            eat('{'); skipNL();
+            var trlit = [];
+            while (!check('}') && !check('EOF')) {
+              var trfn = eat('ID').v;
+              eat('='); skipNL();
+              var trfv = parseExpr();
+              trlit.push({ name: trfn, value: trfv });
+              skipNL();
+              if (tryMatch(',')) skipNL();
+            }
+            eat('}');
+            expr = { k: 'RecordLit', typeName: expr, fields: trlit, line: ml };
+          } else {
+            expr = { k: 'Member', obj: expr, prop: eat('ID').v, line: ml };
+          }
         } else if (check('[')) {
           var il = peek().line;
           eat('[');
@@ -556,9 +572,6 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
-      // `#` — built-in module reference. Behaves like an identifier binding named "#",
-      // so `#.println(...)` parses through the normal Member/Call postfix chain.
-      if (tok.t === '#')     { pos++; return { k: 'Ident', name: '#', line: tok.line }; }
       if (tok.t === '(')     {
         eat('('); skipNL();
         // `()` — unit literal. Distinguished from a parenthesised expression by
@@ -566,11 +579,43 @@
         if (check(')')) { eat(')'); return { k: 'Unit', line: tok.line }; }
         var e = parseExpr(); skipNL(); eat(')'); return e;
       }
-      // Array/tuple literal: .{a, b, c}
+      // record type: record { name: Type, ... }
+      if (tok.t === 'record') {
+        pos++;
+        skipNL(); eat('{'); skipNL();
+        var rfs = [];
+        while (!check('}') && !check('EOF')) {
+          skipNL();
+          var rfn = eat('ID').v;
+          eat(':'); skipNL();
+          var rft = parseType();
+          rfs.push({ name: rfn, type: rft });
+          skipNL();
+          if (tryMatch(',')) skipNL();
+        }
+        eat('}');
+        return { k: 'RecordType', fields: rfs, line: tok.line };
+      }
+      // Record or array/tuple literal: .{ ... }
       if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
         var ll = tok.line;
-        eat('.'); eat('{');
-        skipNL();
+        eat('.'); eat('{'); skipNL();
+        // Record literal: .{ name = expr, ... } — distinguished from array by ID followed by '='
+        if (!check('}') && check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
+          var rlit = [];
+          while (!check('}') && !check('EOF')) {
+            skipNL();
+            var rlfn = eat('ID').v;
+            eat('='); skipNL();
+            var rlfv = parseExpr();
+            rlit.push({ name: rlfn, value: rlfv });
+            skipNL();
+            if (tryMatch(',')) skipNL();
+          }
+          eat('}');
+          return { k: 'RecordLit', fields: rlit, line: ll };
+        }
+        // Array/tuple literal: .{a, b, c}
         var elements = [];
         while (!check('}') && !check('EOF')) {
           elements.push(parseExpr());
@@ -664,11 +709,15 @@
   // Returns an Error with .line set on the first undeclared identifier,
   // or null if the program is clean.
   function checkScope(ast) {
-    var BUILTINS = new Set(['#', 'true', 'false', 'self']);
+    // scope is Map<name, isMutable: boolean>
+    var topNames = new Map();
+    ['ruka', 'true', 'false', 'self'].forEach(function (b) { topNames.set(b, false); });
 
-    // Top-level: hoist all binding names so mutually-recursive functions work.
-    var topNames = new Set(BUILTINS);
-    ast.body.forEach(function (s) { if (s.k === 'Bind') topNames.add(s.name); });
+    // Hoist all top-level binding names (with mutability) so mutually-recursive
+    // functions work and forward references to mutable bindings are tracked.
+    ast.body.forEach(function (s) {
+      if (s.k === 'Bind') topNames.set(s.name, s.mode === '*');
+    });
 
     try {
       ast.body.forEach(function (s) { chkStmt(s, topNames); });
@@ -678,10 +727,15 @@
     function chkStmt(node, scope) {
       if (node.k === 'Bind') {
         chkExpr(node.value, scope);
-        scope.add(node.name); // available after this point in sequential blocks
+        scope.set(node.name, node.mode === '*'); // available after this point in sequential blocks
       } else if (node.k === 'Assign') {
         if (!scope.has(node.name)) {
           var e = new Error('Undefined: ' + node.name);
+          e.line = node.line;
+          throw e;
+        }
+        if (!scope.get(node.name)) {
+          var e = new Error("Cannot assign to immutable binding '" + node.name + "' (use 'let *" + node.name + "' to make it mutable)");
           e.line = node.line;
           throw e;
         }
@@ -690,8 +744,8 @@
         chkExpr(node.expr, scope);
       } else if (node.k === 'For') {
         chkExpr(node.iter, scope);
-        var fScope = new Set(scope);
-        if (node.name) fScope.add(node.name);
+        var fScope = new Map(scope);
+        if (node.name) fScope.set(node.name, false); // loop variable is immutable
         node.body.forEach(function (s) { chkStmt(s, fScope); });
       } else if (node.k === 'Return') {
         if (node.value) chkExpr(node.value, scope);
@@ -734,21 +788,21 @@
           }
           return;
         case 'Fn': {
-          var fnScope = new Set(scope);
+          var fnScope = new Map(scope);
           // The fn's own binding name is already in scope (hoisted at top level,
           // or added by chkStmt before we recurse into value).
-          node.params.forEach(function (p) { fnScope.add(p); });
+          node.params.forEach(function (p) { fnScope.set(p, false); }); // params are immutable
           chkExpr(node.body, fnScope);
           return;
         }
         case 'Block': {
-          var bScope = new Set(scope);
+          var bScope = new Map(scope);
           node.body.forEach(function (s) { chkStmt(s, bScope); });
           return;
         }
         case 'While': {
           chkExpr(node.cond, scope);
-          var wScope = new Set(scope);
+          var wScope = new Map(scope);
           node.body.forEach(function (s) { chkStmt(s, wScope); });
           return;
         }
@@ -782,6 +836,11 @@
           return;
         case 'Unary':
           chkExpr(node.expr, scope);
+          return;
+        case 'RecordType': return;
+        case 'RecordLit':
+          if (node.typeName) chkExpr(node.typeName, scope);
+          node.fields.forEach(function (f) { chkExpr(f.value, scope); });
           return;
       }
     }
@@ -855,27 +914,73 @@
     return { k: 'unknown' };
   }
 
-  function tyErr(line, msg) { var e = new Error(msg); e.line = line; return e; }
+  function tyErr(line, msg, fatal) {
+    var e = new Error(msg); e.line = line;
+    if (fatal) e.fatalTypeError = true;
+    return e;
+  }
 
-  // Static method resolution for built-in types
-  function methodOf(obj, name, line) {
+  // Pure AST walker — visits every expression node, calling fn(node) on each.
+  // Used for constraint collection (no type-env side effects).
+  function walkAst(node, fn) {
+    if (!node) return;
+    fn(node);
+    switch (node.k) {
+      case 'Block': node.body.forEach(function (s) { walkAstStmt(s, fn); }); break;
+      case 'If': walkAst(node.cond, fn); walkAst(node.then, fn); if (node.else_) walkAst(node.else_, fn); break;
+      case 'While': walkAst(node.cond, fn); node.body.forEach(function (s) { walkAstStmt(s, fn); }); break;
+      case 'Call': walkAst(node.callee, fn); node.args.forEach(function (a) { walkAst(a, fn); }); break;
+      case 'Member': walkAst(node.obj, fn); break;
+      case 'Index': walkAst(node.obj, fn); walkAst(node.idx, fn); break;
+      case 'BinOp': walkAst(node.left, fn); walkAst(node.right, fn); break;
+      case 'Unary': walkAst(node.expr, fn); break;
+      case 'Range': walkAst(node.start, fn); if (node.end) walkAst(node.end, fn); break;
+      case 'List': node.elements.forEach(function (e) { walkAst(e, fn); }); break;
+      case 'RecordLit':
+        if (node.typeName) walkAst(node.typeName, fn);
+        node.fields.forEach(function (f) { walkAst(f.value, fn); }); break;
+      case 'Fn': walkAst(node.body, fn); break;
+    }
+  }
+  function walkAstStmt(node, fn) {
+    if (!node) return;
+    if (node.k === 'Bind' || node.k === 'Assign' || node.k === 'Return') { if (node.value) walkAst(node.value, fn); }
+    if (node.k === 'ExprStmt') walkAst(node.expr, fn);
+    if (node.k === 'For') { walkAst(node.iter, fn); node.body.forEach(function (s) { walkAstStmt(s, fn); }); }
+  }
+
+  // Static method/field resolution for built-in and user-defined types.
+  // env is optional; when provided, named record fields are resolved.
+  function methodOf(obj, name, line, env) {
     if (!obj || obj.k === 'unknown') return { k: 'unknown' };
     if (obj.k === 'array') {
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
       if (name === 'append') return { k: 'fn', params: [obj.elem], ret: { k: 'unit' } };
       if (name === 'remove') return { k: 'fn', params: [{ k: 'int' }], ret: obj.elem };
+      if (name === 'concat') return { k: 'fn', params: [{ k: 'array', elem: obj.elem }], ret: { k: 'array', elem: obj.elem } };
       throw tyErr(line, "no method '" + name + "' on " + tyStr(obj));
     }
     if (obj.k === 'string') {
       if (name === 'length') return { k: 'fn', params: [], ret: { k: 'int' } };
       if (name === 'concat') return { k: 'fn', params: [{ k: 'string' }], ret: { k: 'string' } };
+      if (name === 'append') return { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } };
       throw tyErr(line, "no method '" + name + "' on string");
     }
     if (obj.k === 'module') {
       if (name in obj.members) return obj.members[name];
       throw tyErr(line, "no member '" + name + "' on module");
     }
-    // named / option / result / tuple — not yet supported here
+    if (obj.k === 'named' && env) {
+      var recDef = (function (e) {
+        while (e) { if (obj.name in e.bindings) return e.bindings[obj.name]; e = e.parent; }
+      }(env));
+      if (recDef && recDef.k === 'recordDef') {
+        for (var fi = 0; fi < recDef.fields.length; fi++) {
+          if (recDef.fields[fi].name === name) return recDef.fields[fi].ty;
+        }
+        throw tyErr(line, "no field '" + name + "' on " + obj.name, true);
+      }
+    }
     return { k: 'unknown' };
   }
 
@@ -892,16 +997,32 @@
   }
 
   function checkTypes(ast) {
+    var _numFn1 = { k: 'fn', params: [{ k: 'float' }], ret: { k: 'float' } };
+    var _numFn2 = { k: 'fn', params: [{ k: 'float' }, { k: 'float' }], ret: { k: 'float' } };
+    var _unkFn1 = { k: 'fn', params: [{ k: 'unknown' }], ret: { k: 'unknown' } };
+    var _unkFn2 = { k: 'fn', params: [{ k: 'unknown' }, { k: 'unknown' }], ret: { k: 'unknown' } };
     var rukaModule = {
       k: 'module',
       members: {
-        println:  { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
-        print:    { k: 'fn', params: [{ k: 'string' }],                             ret: { k: 'unit' } },
-        assertEq: { k: 'fn', params: [{ k: 'unknown' }, { k: 'unknown' }],          ret: { k: 'unit' } }
+        println:   { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } },
+        print:     { k: 'fn', params: [{ k: 'string' }], ret: { k: 'unit' } },
+        assertEq:  _unkFn2,
+        assert_eq: _unkFn2,
+        expect_eq: _unkFn2,
+        abs:   _unkFn1,
+        sin:   _numFn1,
+        cos:   _numFn1,
+        tan:   _numFn1,
+        sqrt:  _numFn1,
+        floor: _numFn1,
+        ceil:  _numFn1,
+        min:   _unkFn2,
+        max:   _unkFn2,
+        pow:   _numFn2,
       }
     };
     var topEnv = { bindings: Object.create(null), parent: null };
-    topEnv.bindings['#']     = rukaModule;
+    topEnv.bindings['ruka']  = rukaModule;
     topEnv.bindings['true']  = { k: 'bool' };
     topEnv.bindings['false'] = { k: 'bool' };
     topEnv.bindings['self']  = { k: 'unknown' };
@@ -979,6 +1100,99 @@
           } catch (e) { e.line = line; throw e; }
         }
       }
+    }
+
+    // Pass 1: for each unannotated param, collect field names accessed on it and
+    // find the unique record type in scope that has all of them.
+    function inferParamRecordTypes(params, paramTypes, bodyNode, fenv, fnLine) {
+      var fieldUsages = {};
+      params.forEach(function (p, i) { if (!paramTypes[i]) fieldUsages[p] = []; });
+      if (!Object.keys(fieldUsages).length) return {};
+
+      walkAst(bodyNode, function (node) {
+        if (node.k === 'Member' && node.obj.k === 'Ident' && fieldUsages[node.obj.name] !== undefined
+            && fieldUsages[node.obj.name].indexOf(node.prop) < 0)
+          fieldUsages[node.obj.name].push(node.prop);
+      });
+
+      // Build set of all fields declared in any record type currently in scope.
+      // We use only these "known" fields for candidate matching — accesses to
+      // non-existent fields (e.g. b.z when no record has z) must not block type
+      // inference; they will be reported as errors when the body is type-checked.
+      var knownFields = new Set();
+      (function collectKnown(e) {
+        while (e) {
+          Object.keys(e.bindings).forEach(function (n) {
+            var t = e.bindings[n];
+            if (t && t.k === 'recordDef')
+              t.fields.forEach(function (f) { knownFields.add(f.name); });
+          });
+          e = e.parent;
+        }
+      }(fenv));
+
+      var inferred = {};
+      Object.keys(fieldUsages).forEach(function (pname) {
+        var fields = fieldUsages[pname];
+        if (!fields.length) return;
+        // Filter to fields that appear in at least one record type. Any fields not
+        // present in any record type are still reported below — they're caught by
+        // the zero-candidates branch or by the body type-check once a type is inferred.
+        var knownAccessed = fields.filter(function (f) { return knownFields.has(f); });
+        if (!knownAccessed.length) {
+          throw tyErr(fnLine,
+            "parameter '" + pname + "': no record type in scope has field(s) {" + fields.join(', ') + '}; add a type annotation', true);
+        }
+        var seen = new Set(), candidates = [];
+        var e = fenv;
+        while (e) {
+          Object.keys(e.bindings).forEach(function (name) {
+            if (!seen.has(name)) {
+              seen.add(name);
+              var t = e.bindings[name];
+              if (t && t.k === 'recordDef') {
+                var defNames = t.fields.map(function (f) { return f.name; });
+                if (knownAccessed.every(function (f) { return defNames.indexOf(f) >= 0; }))
+                  candidates.push(name);
+              }
+            }
+          });
+          e = e.parent;
+        }
+        if (candidates.length === 1) {
+          inferred[pname] = { k: 'named', name: candidates[0] };
+        } else if (candidates.length > 1) {
+          throw tyErr(fnLine,
+            "parameter '" + pname + "' is ambiguous: could be " + candidates.join(', ') + '; add a type annotation', true);
+        } else {
+          // knownAccessed is non-empty but no record type satisfies all of them —
+          // the accessed fields collectively belong to no single type in scope.
+          throw tyErr(fnLine,
+            "parameter '" + pname + "': no record type in scope has fields {" + knownAccessed.join(', ') + '}; add a type annotation', true);
+        }
+      });
+      return inferred;
+    }
+
+    // Pass 2: for each still-unknown param, scan arithmetic BinOps where the
+    // other operand's type is now known (using fenv populated by pass 1).
+    function inferParamNumericTypes(params, pTys, bodyNode, fenv) {
+      var ARITH = new Set(['+', '-', '*', '/', '%', '**']);
+      var inferred = {};
+      walkAst(bodyNode, function (node) {
+        if (node.k !== 'BinOp' || !ARITH.has(node.op)) return;
+        [[node.left, node.right], [node.right, node.left]].forEach(function (pair) {
+          var lhs = pair[0], rhs = pair[1];
+          if (lhs.k !== 'Ident') return;
+          var idx = params.indexOf(lhs.name);
+          if (idx < 0 || pTys[idx] || inferred[lhs.name]) return;
+          try {
+            var t = inferExpr(rhs, null, fenv);
+            if (isNumericKind(t.k)) inferred[lhs.name] = t;
+          } catch (_) {}
+        });
+      });
+      return inferred;
     }
 
     function inferExpr(node, expected, env) {
@@ -1110,7 +1324,7 @@
 
         case 'Member': {
           var obj = inferExpr(node.obj, null, env);
-          var mt  = methodOf(obj, node.prop, node.line);
+          var mt  = methodOf(obj, node.prop, node.line, env);
           return conform(expected, mt, node.line);
         }
 
@@ -1138,6 +1352,19 @@
             var pt = astToTy(node.paramTypes[i]);
             pTys.push(pt);
             fenv.bindings[node.params[i]] = pt || { k: 'unknown' };
+          }
+          // Infer unannotated parameter types from the function body.
+          if (node.params.some(function (_, i) { return !node.paramTypes[i]; })) {
+            // Pass 1: record types from field accesses on unknown params
+            var recInf = inferParamRecordTypes(node.params, node.paramTypes, node.body, fenv, node.line);
+            node.params.forEach(function (p, i) {
+              if (!pTys[i] && recInf[p]) { pTys[i] = recInf[p]; fenv.bindings[p] = recInf[p]; }
+            });
+            // Pass 2: scalar types from arithmetic context (fenv now has pass-1 types)
+            var numInf = inferParamNumericTypes(node.params, pTys, node.body, fenv);
+            node.params.forEach(function (p, i) {
+              if (!pTys[i] && numInf[p]) { pTys[i] = numInf[p]; fenv.bindings[p] = numInf[p]; }
+            });
           }
           var declaredRet = astToTy(node.returnType);
           retTyStack.push(declaredRet || { k: 'unknown' });
@@ -1186,6 +1413,100 @@
           }
           return { k: 'unknown' };
         }
+        case 'RecordType': {
+          // Build a recordDef type from the AST field list so that record literals
+          // can verify field presence and types against this definition.
+          var rdFields = node.fields.map(function (f) {
+            return { name: f.name, ty: astToTy(f.type) };
+          });
+          return { k: 'recordDef', fields: rdFields };
+        }
+        case 'RecordLit': {
+          // Resolve a record type definition — either from an explicit typeName
+          // (Thing.{...}) or from the expected type annotation (let x: Thing = .{...}).
+          var recDef = null;
+          if (node.typeName && node.typeName.k === 'Ident') {
+            var nt = lookup(env, node.typeName.name);
+            if (nt && nt.k === 'recordDef') recDef = nt;
+            else if (nt && nt.k !== 'recordDef' && nt.k !== 'unknown')
+              throw tyErr(node.line, "'" + node.typeName.name + "' is not a record type");
+          } else if (expected && expected.k === 'named') {
+            var et = lookup(env, expected.name);
+            if (et && et.k === 'recordDef') recDef = et;
+          }
+          if (recDef) {
+            // Check for unknown fields
+            var defMap = {};
+            recDef.fields.forEach(function (df) { defMap[df.name] = df; });
+            node.fields.forEach(function (f) {
+              if (!defMap[f.name])
+                throw tyErr(node.line, "unknown field '" + f.name + "' in record literal");
+            });
+            // Check for missing fields
+            var provided = {};
+            node.fields.forEach(function (f) { provided[f.name] = true; });
+            recDef.fields.forEach(function (df) {
+              if (!provided[df.name])
+                throw tyErr(node.line, "record literal missing field '" + df.name + "'");
+            });
+            // Type-check each field value
+            node.fields.forEach(function (f) {
+              inferExpr(f.value, defMap[f.name].ty, env);
+            });
+            var recName = node.typeName ? node.typeName.name : expected.name;
+            return conform(expected, { k: 'named', name: recName }, node.line);
+          }
+          // No explicit type context — infer by scanning record types in scope.
+          // Build the literal's field signature for comparison.
+          var litFieldNames = node.fields.map(function (f) { return f.name; }).slice().sort().join(',');
+          var litFieldMap = {};
+          node.fields.forEach(function (f) { litFieldMap[f.name] = f; });
+
+          // Collect every recordDef visible in the current env chain (innermost wins).
+          var seen = new Set();
+          var candidates = [];
+          var walk = env;
+          while (walk) {
+            Object.keys(walk.bindings).forEach(function (name) {
+              if (!seen.has(name)) {
+                seen.add(name);
+                var bt = walk.bindings[name];
+                if (bt && bt.k === 'recordDef') candidates.push({ name: name, def: bt });
+              }
+            });
+            walk = walk.parent;
+          }
+
+          // Filter to those whose field names match exactly and whose field types
+          // are compatible. The inferExpr calls here are read-only (env unchanged).
+          // Fatal errors (e.g. accessing a field that doesn't exist on a known type)
+          // are re-thrown rather than treated as a failed candidate match.
+          var matches = candidates.filter(function (c) {
+            var defNames = c.def.fields.map(function (f) { return f.name; }).slice().sort().join(',');
+            if (defNames !== litFieldNames) return false;
+            try {
+              c.def.fields.forEach(function (df) {
+                inferExpr(litFieldMap[df.name].value, df.ty, env);
+              });
+              return true;
+            } catch (err) {
+              if (err.fatalTypeError) throw err;
+              return false;
+            }
+          });
+
+          if (matches.length === 0)
+            throw tyErr(node.line, 'no record type in scope matches this literal');
+          if (matches.length > 1)
+            throw tyErr(node.line, 'ambiguous record literal: matches ' + matches.map(function (m) { return m.name; }).join(', ') + '; use Type.{...} to specify');
+
+          // Exactly one match — type-check with the resolved definition.
+          var inferred = matches[0];
+          inferred.def.fields.forEach(function (df) {
+            inferExpr(litFieldMap[df.name].value, df.ty, env);
+          });
+          return conform(expected, { k: 'named', name: inferred.name }, node.line);
+        }
       }
       return { k: 'unknown' };
     }
@@ -1197,7 +1518,7 @@
   function evaluate(ast) {
     var output = [];
 
-    function mkEnv(parent) { return { vars: Object.create(null), parent: parent }; }
+    function mkEnv(parent) { return { vars: Object.create(null), mut: Object.create(null), parent: parent }; }
 
     function envGet(env, name) {
       if (name in env.vars) return env.vars[name];
@@ -1209,8 +1530,11 @@
 
     // Walk up the chain to mutate an existing binding (for = assignment)
     function envUpdate(env, name, val) {
-      if (name in env.vars) { env.vars[name] = val; return; }
-      if (env.parent)       { envUpdate(env.parent, name, val); return; }
+      if (name in env.vars) {
+        if (!env.mut[name]) throw new Error("Cannot assign to immutable binding '" + name + "' (use 'let *" + name + "' to make it mutable)");
+        env.vars[name] = val; return;
+      }
+      if (env.parent) { envUpdate(env.parent, name, val); return; }
       throw new Error('Undefined: ' + name);
     }
 
@@ -1227,6 +1551,12 @@
         return v.start + sep + v.end;
       }
       if (Array.isArray(v)) return '.{' + v.map(display).join(', ') + '}';
+      if (v && typeof v === 'object' && v._recordType) return '<record>';
+      if (v && typeof v === 'object' && v._record) {
+        var parts = Object.keys(v).filter(function (k) { return k !== '_record'; })
+          .map(function (k) { return k + ' = ' + display(v[k]); });
+        return '.{ ' + parts.join(', ') + ' }';
+      }
       return String(v);
     }
 
@@ -1278,14 +1608,27 @@
     }
 
     var globalEnv = mkEnv(null);
-    envSet(globalEnv, '#', {
+    var _assertEqFn = { _fn: true, call: function (a) {
+      if (a[0] !== a[1]) throw new Error('assert_eq failed: ' + display(a[0]) + ' != ' + display(a[1]));
+      return null;
+    }};
+    envSet(globalEnv, 'ruka', {
       _obj: true,
-      println:  { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
-      print:    { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
-      assertEq: { _fn: true, call: function (a) {
-        if (a[0] !== a[1]) throw new Error('assertEq failed: ' + display(a[0]) + ' != ' + display(a[1]));
-        return null;
-      }},
+      println:   { _fn: true, call: function (a) { output.push(a.map(display).join(' ')); return null; } },
+      print:     { _fn: true, call: function (a) { output.push(a.map(display).join(''));  return null; } },
+      assertEq:  _assertEqFn,
+      assert_eq: _assertEqFn,
+      expect_eq: _assertEqFn,
+      abs:   { _fn: true, call: function (a) { return Math.abs(num(a[0])); } },
+      sin:   { _fn: true, call: function (a) { return Math.sin(num(a[0])); } },
+      cos:   { _fn: true, call: function (a) { return Math.cos(num(a[0])); } },
+      tan:   { _fn: true, call: function (a) { return Math.tan(num(a[0])); } },
+      sqrt:  { _fn: true, call: function (a) { return Math.sqrt(num(a[0])); } },
+      floor: { _fn: true, call: function (a) { return Math.floor(num(a[0])); } },
+      ceil:  { _fn: true, call: function (a) { return Math.ceil(num(a[0])); } },
+      min:   { _fn: true, call: function (a) { return Math.min(num(a[0]), num(a[1])); } },
+      max:   { _fn: true, call: function (a) { return Math.max(num(a[0]), num(a[1])); } },
+      pow:   { _fn: true, call: function (a) { return Math.pow(num(a[0]), num(a[1])); } },
     });
 
     function evalStmt(node, env) {
@@ -1293,6 +1636,7 @@
         if (node.k === 'Bind') {
           var val = evalExpr(node.value, env);
           envSet(env, node.name, val);
+          env.mut[node.name] = (node.mode === '*');
           return val;
         }
         if (node.k === 'Assign') {
@@ -1339,10 +1683,16 @@
     function evalExpr(node, env) {
       switch (node.k) {
 
-        case 'Lit':   return node.v;
-        case 'Unit':  return null;
-        case 'Char':  return { _char: true, v: node.v };
-        case 'Str':   return interpStr(node.raw, env);
+        case 'Lit':        return node.v;
+        case 'Unit':       return null;
+        case 'Char':       return { _char: true, v: node.v };
+        case 'Str':        return interpStr(node.raw, env);
+        case 'RecordType': return { _recordType: true, fields: node.fields };
+        case 'RecordLit': {
+          var rec = { _record: true };
+          node.fields.forEach(function (f) { rec[f.name] = evalExpr(f.value, env); });
+          return rec;
+        }
 
         case 'Ident': {
           try { return envGet(env, node.name); }
@@ -1445,12 +1795,18 @@
                 if (idx < 0 || idx >= obj.length) throw new Error('remove: index ' + idx + ' out of bounds (length ' + obj.length + ')');
                 return obj.splice(idx, 1)[0];
               } };
+              if (node.prop === 'concat') return { _fn: true, call: function (a) { return obj.concat(a[0]); } };
               throw new Error("No method '" + node.prop + "' on array");
             }
             if (typeof obj === 'string') {
               if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
-              if (node.prop === 'concat') return { _fn: true, call: function (a) {
-                return obj + a[0];
+              if (node.prop === 'concat') return { _fn: true, call: function (a) { return obj + a[0]; } };
+              if (node.prop === 'append') return { _fn: true, call: function (a) {
+                // JS strings are primitives, so we write the new value back into the
+                // source binding. Works for direct-binding receivers (s.append(...)).
+                if (node.obj.k !== 'Ident') throw new Error('append: receiver must be a direct binding');
+                envUpdate(env, node.obj.name, obj + a[0]);
+                return null;
               } };
               throw new Error("No method '" + node.prop + "' on string");
             }
@@ -1498,14 +1854,16 @@
     // Evaluate all top-level statements
     for (var i = 0; i < ast.body.length; i++) evalStmt(ast.body[i], globalEnv);
 
-    // Auto-call main() only if it was declared as `share` — `local` / `let`
-    // bindings are private and should not run as an entry point.
+    // Auto-call main() only if it was declared as a public top-level let binding.
+    // Privacy is determined by name case (uppercase first letter = private); `main`
+    // is lowercase so it is public, and the check on mainBind.local reflects the
+    // parser's case-based flag.
     var mainBind = null;
     for (var i = 0; i < ast.body.length; i++) {
       var s = ast.body[i];
       if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
     }
-    if (mainBind && mainBind.kw === 'share'
+    if (mainBind && !mainBind.local
         && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
       evalExpr({ k: 'Call', callee: { k: 'Ident', name: 'main' }, args: [] }, globalEnv);
     }
@@ -1549,53 +1907,58 @@
 
     if (!runBtn || !textarea || !output) return;
 
-    // Debounce handle for the parse-error check
+    // Debounce handle for the check-as-you-type pass.
     var checkTimer = null;
+    // Cached AST from the last successful parse+check, used by the run handler.
+    var checkedAst = null;
 
-    // Called by highlight.js on every input/Tab event.
-    // Re-highlights immediately (fast), then after a short pause checks for
-    // parse errors so mid-expression typing doesn't flash spurious errors.
+    // Called by highlight.js on every input/Tab event and on example load.
+    // Re-highlights immediately (fast), then after a short pause runs the full
+    // static check and enables/disables the run button accordingly.
     window.rukaCheckAndHighlight = function (source) {
       // Immediate clean highlight — always snappy
       if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(source);
-      // Debounced parse check
+      // Debounced static check
       if (checkTimer) clearTimeout(checkTimer);
       checkTimer = setTimeout(function () {
         checkTimer = null;
+        if (textarea && textarea.value !== source) return;
         var err = null;
+        var ast = null;
         try {
-          var ast = parse(tokenize(source));
+          ast = parse(tokenize(source));
           err = checkScope(ast) || checkTypes(ast);
         } catch (e) {
           err = e;
         }
-        if (err && textarea && textarea.value === source) {
+        if (err) {
+          checkedAst = null;
+          runBtn.disabled = true;
           setEditorError(codeEl, source, err.line, err.message);
+        } else {
+          checkedAst = ast;
+          runBtn.disabled = false;
+          if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(source);
         }
       }, 400);
     };
 
     runBtn.addEventListener('click', function () {
-      // Cancel any pending check — the run result is authoritative
+      // Cancel any pending check so it doesn't interfere with the output state
       if (checkTimer) { clearTimeout(checkTimer); checkTimer = null; }
+      if (!checkedAst) return;
       runBtn.disabled = true;
       runBtn.textContent = 'RUNNING';
+      var ast = checkedAst;
       // Yield to the browser so the button state renders before we block
       setTimeout(function () {
         try {
-          var ast = parse(tokenize(textarea.value));
-          var sErr = checkScope(ast);
-          if (sErr) throw sErr;
-          var tErr = checkTypes(ast);
-          if (tErr) throw tErr;
           var lines = evaluate(ast);
-          // Clear any previous error highlight on a successful run
           if (codeEl && window.highlightRuka) codeEl.innerHTML = window.highlightRuka(textarea.value);
           output.textContent = lines.length ? lines.join('\n') : '(no output)';
           if (panel) panel.setAttribute('data-state', 'ok');
         } catch (e) {
-          setEditorError(codeEl, textarea.value, e.line, e.message);
-          output.textContent = 'Error' + (e.line ? ' (line ' + e.line + ')' : '') + ': ' + e.message;
+          output.textContent = 'Runtime error' + (e.line ? ' (line ' + e.line + ')' : '') + ': ' + e.message;
           if (panel) panel.setAttribute('data-state', 'err');
         }
         runBtn.disabled = false;

@@ -1,10 +1,13 @@
 /* ── Ruka syntax highlighter ── */
 (function () {
 	const KEYWORDS = new Set([
-		'let', 'share', 'local', 'if', 'match',
+		'let', 'if', 'match',
 		'while', 'for', 'return', 'record', 'variant', 'behaviour',
 		'true', 'false', 'self', 'test', 'break', 'continue', 'defer'
 	]);
+
+	// `ruka` is the reserved built-in module identifier; styled as a keyword.
+	const BUILTIN_IDENTS = new Set(['ruka']);
 
 	const OPERATORS = new Set([
 		'+', '-', '*', '**', '/', '%', '==', '!=', '<', '>', '<=', '>=', ',', '=',
@@ -78,14 +81,6 @@
 			i = j;
 			continue;
 		}
-
-		// Built-in module sigil  `#` (replaces the old `ruka` identifier).
-		// Styled as a keyword since `#` cannot be shadowed or used as a name.
-			if (raw[i] === '#') {
-				out += span('kw', '#');
-				i++;
-				continue;
-			}
 
 			// Named-parameter label  ~name
 			if (raw[i] === '~') {
@@ -188,6 +183,7 @@
 					}
 				}
 				if (KEYWORDS.has(word)) out += span('kw', word);
+					else if (BUILTIN_IDENTS.has(word)) out += span('kw', word);
 					// types don't have to be capitalized, they are always proceeded by a `: ` or `-> `
 					// with any amount of spaces beforehand
 					else if (previous_nonspace && previous_nonspace.second === ':'
@@ -249,7 +245,7 @@
 
 		if (exampleSelect && playgroundCode && playgroundTextarea) {
 			var EXAMPLES = {};
-			var EXAMPLE_KEYS = ['hello-world', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars'];
+			var EXAMPLE_KEYS = ['hello-world', 'projectile', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars'];
 
 			function rehighlight(source) {
 				playgroundCode.innerHTML = highlight(source);
@@ -260,7 +256,7 @@
 				if (!ex) return;
 				if (playgroundDesc)   playgroundDesc.innerHTML     = ex.desc;
 				playgroundTextarea.value = ex.code;
-				rehighlight(ex.code);
+				(window.rukaCheckAndHighlight || rehighlight)(ex.code);
 				if (playgroundOutput) playgroundOutput.textContent = '';
 				var panel = document.getElementById('playground-output-panel');
 				if (panel) panel.removeAttribute('data-state');
