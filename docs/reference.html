@@ -1164,11 +1164,14 @@ let main = () do
 end</code></pre>
 
       <div class="note">
-        <strong>Scope restriction:</strong> Static functions and methods may only be declared
-        in the same scope or module where the type is defined. This is required for type
-        inference — the compiler resolves receiver types and record literals by checking
-        which types are in the current scope. Attaching behaviour from a foreign module
-        would make that resolution ambiguous.
+        <strong>Any type can carry methods and statics.</strong> The receiver syntax
+        works uniformly across every type in the language: user-defined records and
+        variants, built-in generics (<code>option(T)</code>, <code>result(T, E)</code>,
+        arrays, ranges), and primitives (<code>i32</code>, <code>f64</code>,
+        <code>bool</code>, <code>string</code>, …) all accept methods with <code>self</code>
+        receivers and statics with type-name receivers. A primitive is simply a type
+        whose layout is fixed by the compiler; it has no privileged or restricted
+        status with respect to behaviour.
       </div>
     </section>
 
@@ -1330,6 +1333,56 @@ let main = () do
     let d = Direction.north
     ruka.println("${d.opposite().is_vertical()}")  // true
 end</code></pre>
+
+      <h3 id="type-extension">Extending Types Outside Their Declaring Scope</h3>
+      <p>
+        Methods and statics can be attached to a type from any scope, not only the one
+        where the type is declared. This applies uniformly to user types, built-in
+        generics, and primitives. An extension never mutates the original type; instead,
+        the extending scope gets a new type of the same name that <em>shadows</em> the
+        original for the duration of that scope. The extended type has every member of
+        the original plus the newly declared ones. Code in other scopes continues to see
+        the unextended type.
+      </p>
+      <p>
+        This lets a module tailor a type to satisfy a behaviour — or add convenience
+        helpers — without affecting any other user of that type.
+      </p>
+<pre><code class="ruka">// Add a method to the primitive `i32` in this file only.
+// Elsewhere in the program `i32` is unchanged.
+let squared (self: i32) = () -> i32 do self * self
+
+let main = () do
+    let n: i32 = 7
+    ruka.println("${n.squared()}")   // 49
+end</code></pre>
+
+<pre><code class="ruka">// Extend a built-in generic locally to satisfy a behaviour.
+let printable = behaviour { print_self (self) = () -> () }
+
+let print_self (self: option(i32)) = () do
+    match self with
+        .some(n) do ruka.println("${n}")
+        .none    do ruka.println("(none)")
+    end
+end
+
+let show = (x: printable) do x.print_self()
+
+let main = () do
+    show(.some(42))   // ok — within this scope option(i32) satisfies `printable`
+    show(.none)
+end</code></pre>
+
+      <div class="note">
+        <strong>Shadowing, not monkey-patching.</strong> An extension is lexically scoped:
+        it is visible only where the extending bindings are in scope (the file they are
+        declared in, or any scope that imports them and brings the names in). Two files
+        may independently extend the same type in incompatible ways without conflict;
+        each sees its own shadowed version. The underlying in-memory representation is
+        unchanged, so extended and unextended values are interchangeable — the extension
+        only adds dispatch entries resolvable from the extending scope.
+      </div>
     </section>
 
     <!-- Parameter Modes -->

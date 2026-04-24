@@ -89,6 +89,7 @@ Phases are sequential. Within a phase, items can be parallelized. Each item is a
   - [ ] `return` type compatibility with enclosing function
   - [ ] `break` / `continue` only inside loops
   - [ ] `self` only inside method receivers
+  - [ ] Type extension: receiver binding whose target type is declared elsewhere creates a scope-local shadow type that extends the original with the new member; original type is unchanged outside the extending scope. Applies to primitives and built-in generics as well.
   - [ ] Undefined name errors with helpful suggestions (Levenshtein distance)
   - [ ] Type mismatch errors with actual/expected types in the message
   - [ ] `ruka` builtin namespace — treat as a pre-declared, non-shadowable record in the root scope

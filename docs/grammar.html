@@ -383,6 +383,17 @@ test-binding  ::=  "test" identifier "=" expr
           receiver appears between the binding name and the <code>=</code> sign.
         </div>
         <div class="note">
+          <strong>Type extension.</strong> The type named by a receiver is not required
+          to be declared in the current scope — any type is a valid receiver, including
+          primitives (<code>i32</code>, <code>bool</code>, etc.) and built-in generics.
+          An extension declared outside the type's original scope shadows the type
+          within the extending scope rather than mutating it: callers in that scope see
+          a new type of the same name with the added members, while the type is
+          unchanged elsewhere. See the
+          <a href="reference.html#type-extension">Type Extension</a> section of the
+          Reference.
+        </div>
+        <div class="note">
           <strong>Privacy.</strong> Visibility is determined by the first letter of the
           binding name — the inverse of Go's convention. A binding whose name begins with a
           <em>lowercase</em> letter is public (exported from the file record); a binding
