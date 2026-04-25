@@ -245,7 +245,7 @@
 
 		if (exampleSelect && playgroundCode && playgroundTextarea) {
 			var EXAMPLES = {};
-			var EXAMPLE_KEYS = ['hello-world', 'projectile', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars'];
+			var EXAMPLE_KEYS = ['hello-world', 'projectile', 'combat', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars'];
 
 			function rehighlight(source) {
 				playgroundCode.innerHTML = highlight(source);

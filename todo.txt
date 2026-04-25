@@ -1,22 +1,38 @@
 TODO (Features, Docs and playground)
 - [ ] More playground language support (in order of importance)
-	- [ ] Playground input sanitization
+    - [ ] bug: Examples are not runnable on refresh without typing or switching examples
+	- [x] bug: single-line if-else chain as last statement in block consumed enclosing `end`
+	- [ ] Destructuring patterns never start with `.`. `.` is used for instanciation of types
 	- [x] Builtin functions (abs, sin, cos, tan, sqrt, floor, ceil, min, max, pow)
-	- [ ] Modes
+	- [x] Modes
+		- [ ] @ 'Compile-time' mode simulation so we can use functions to generate parameterized types
+			- [ ] Builtin option(T) function `...do variant { some: T, none }`
+			- [ ] Builtin result(T, E) function `...do variant { ok: T, err: E }`
+		- [ ] & (mov) mode not allowing binding to be used afterwards
+		- [ ] $ needs some way to simulate stack mode
+		- [ ] Pass parameters by reference if not too complicated
 	- [x] Mutability/mode checks when mutating a binding or parameter (runtime)
 	- [x] Records
 		- [x] Explicit record initialization `thing.{...}`
 		- [x] Inner type checking `let x: thing = .{...}` should ensure all fields are provided
 		- [ ] Privacy check on record field access
-	- [ ] Variants
-	- [ ] Methods and statics
+	- [x] Variants
+		- [ ] Variant instanciation and parameter inference
+			- For example matching parameter a with red requires the type of a to be a variant with a red member with no payload
+	- [ ] Methods and statics including privacy
+		- [ ] Methods defined on types from different scopes can only access public members
     - [x] Array/String.concat returns new string, .append mutates the array/string
-	- [ ] Patterns / Matching / Destructuring
+	- [x] Patterns / Matching / Destructuring
+		- [ ] Record destructuring only allowing public members
+		- [ ] Tuple destructuring
+		- [ ] Range matching for integers
 	- [ ] Behaviours
-	- [ ] Builtin behaviours used by for loops and print functions
-	- [ ] Operators use behaviours as well allowing use of custom types with operators
+	- [ ] Builtin behaviours 
+		- [ ] ruka.iteratable used by for loops (defined by default for relevant builtins and primatives)
+		- [ ] ruka.printable used by print functions (only builtin types and primatives have this behaviour defined by default) 
+		- [ ] operators (allowing operator functionality like +, /, [] to be supported for custom types, defined by default for relevant builtin and primatives)
 - [ ] Playground functionality
 	- [ ] Make playground it's own page
 	- [ ] User projects supporting multiple files, saved with indexedDB
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
-        - do is only autoclosed with end if pressing enter right after it
+        - [ ] do is only autoclosed with end if pressing enter right after it
