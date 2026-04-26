@@ -118,8 +118,7 @@ window.RUKA_EXAMPLES = {
         'end',
         '',
 		'let main = () do',
-		'    poem("Ruka")',
-		'	     |> ruka.println()',
+		'    poem("Ruka") |> ruka.println()',
 		'end',
 	].join('\n'),
 
