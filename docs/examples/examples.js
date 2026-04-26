@@ -107,7 +107,6 @@ window.RUKA_EXAMPLES = {
 	].join('\n'),
 
 	'multiline-strings': [
-        '',
 		'let poem = (name) do',
         '    |"',
 		'    | Roses are red,',
