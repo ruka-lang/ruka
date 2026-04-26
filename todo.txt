@@ -4,7 +4,7 @@ TODO (Features, Docs and playground)
 	- [x] Bug: single-line if-else chain as last statement in block consumed enclosing `end`
 	- [x] Destructuring patterns never start with `.`. `.` is used for instanciation of types
 	- [x] Builtin functions (abs, sin, cos, tan, sqrt, floor, ceil, min, max, pow)
-	- [ ] Bug: pipelines don't work when placed on next line
+	- [x] Bug: pipelines don't work when placed on next line
 	- [x] Modes
 		- [ ] @ 'Compile-time' mode simulation so we can use functions to generate parameterized types
 			- [ ] Builtin option(T) function `...do variant { some: T, none }`
@@ -16,16 +16,16 @@ TODO (Features, Docs and playground)
 	- [x] Records
 		- [x] Explicit record initialization `thing.{...}`
 		- [x] Inner type checking `let x: thing = .{...}` should ensure all fields are provided
-		- [ ] Privacy check on record field access
+		- [x] Privacy check on record field access
 	- [x] Variants
 		- [ ] Variant instanciation and parameter inference
 			- For example matching parameter a with red requires the type of a to be a variant with a red member with no payload
-	- [ ] Methods and statics including privacy
+	- [x] Methods and statics including privacy
 		- [ ] Methods defined on types from different scopes can only access public members
     - [x] Array/String.concat returns new string, .append mutates the array/string
 	- [x] Patterns / Matching / Destructuring
 		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.
-		- [ ] Record destructuring only allowing public members (idents must match the member name)
+		- [x] Record destructuring only allowing public members (idents must match the member name)
 		- [x] Tuple destructuring
 		- [x] Range matching for integers
 	- [x] Multiline strings
