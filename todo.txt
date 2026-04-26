@@ -1,9 +1,10 @@
 TODO (Features, Docs and playground)
 - [ ] More playground language support (in order of importance)
     - [x] Bug: Examples are not runnable on refresh without typing or switching examples
-	- [x] bug: single-line if-else chain as last statement in block consumed enclosing `end`
-	- [ ] Destructuring patterns never start with `.`. `.` is used for instanciation of types
+	- [x] Bug: single-line if-else chain as last statement in block consumed enclosing `end`
+	- [x] Destructuring patterns never start with `.`. `.` is used for instanciation of types
 	- [x] Builtin functions (abs, sin, cos, tan, sqrt, floor, ceil, min, max, pow)
+	- [ ] Bug: pipelines don't work when placed on next line
 	- [x] Modes
 		- [ ] @ 'Compile-time' mode simulation so we can use functions to generate parameterized types
 			- [ ] Builtin option(T) function `...do variant { some: T, none }`
