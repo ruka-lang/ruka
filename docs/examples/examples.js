@@ -135,7 +135,7 @@ window.RUKA_EXAMPLES = {
 		'',
 		'// Private static helper. Uppercase first letter = private:',
 		'// only code in the type\'s declaring scope may name it.',
-		'let Doubled (counter) = (n: int) do n * 2 end',
+		'let Doubled (counter) = (n: int) do n * 2',
 		'',
 		'// Instance method — `self` refers to the receiver value',
 		'let bump (self) = () do',
