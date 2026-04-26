@@ -23,7 +23,7 @@ TODO (Features, Docs and playground)
 		- [ ] Methods defined on types from different scopes can only access public members
     - [x] Array/String.concat returns new string, .append mutates the array/string
 	- [x] Patterns / Matching / Destructuring
-		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language, exaustiveness should be checked before the code is run. If the code is allowed to run the code should be assumed to be correct there should be errors showing up like `err:match: no arm matched`. We're simulating a statically typed and compiled language here...
+		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language, exaustiveness should be checked before the code is run. If the code is allowed to run the code should be assumed to be correct there should'nt be errors showing up like `err:match: no arm matched`. We're simulating a statically typed and compiled language here...
 		- [ ] Record destructuring only allowing public members
 		- [ ] Tuple destructuring
 		- [ ] Range matching for integers
