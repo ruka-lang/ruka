@@ -17,6 +17,7 @@ TODO (Features, Docs and playground)
 		- [x] Explicit record initialization `thing.{...}`
 		- [x] Inner type checking `let x: thing = .{...}` should ensure all fields are provided
 		- [x] Privacy check on record field access
+        - [ ] Assign to record fields only if the reciever is mutable and the field is not private or the field is private but the access is from the same scope as the record definition
 	- [x] Variants
 		- [ ] Variant instanciation and parameter inference
 			- For example matching parameter a with red requires the type of a to be a variant with a red member with no payload

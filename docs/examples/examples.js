@@ -125,6 +125,8 @@ window.RUKA_EXAMPLES = {
 		'end',
 	].join('\n'),
 
+    'blank': [''].join('\n'),
+
 	'multiline-strings': [
 		'let poem = (name) do',
         '    |"',
