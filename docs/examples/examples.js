@@ -45,7 +45,7 @@ window.RUKA_EXAMPLES = {
 		'        vel = add(vel, scale(gravity, dt))',
 		'        pos = add(pos, scale(vel, dt))',
 		'        t   = t + dt',
-		'        if pos.y < 0.0 do pos = Vec2.{ x = pos.x, y = 0.0 }',
+		'        if pos.y < 0.0 do pos = .{ x = pos.x, y = 0.0 }',
 		'        ruka.println("t=${round1(t)}s  x=${round1(pos.x)}m  y=${round1(pos.y)}m")',
 		'    end',
 		'',
