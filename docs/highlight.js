@@ -30,6 +30,36 @@
 		return '<span class="' + cls + '">' + esc(s) + '</span>';
 	}
 
+	// Render a raw string body (already stripped of outer quotes) with ${...}
+	// interpolation highlighted. Handles \-escape sequences. Returns HTML spans.
+	function highlightStrContent(raw) {
+		let out = '', i = 0;
+		while (i < raw.length) {
+			if (raw[i] === '$' && raw[i + 1] === '{') {
+				out += span('str', '$' + '{');
+				i += 2;
+				let depth = 1, inner = '';
+				while (i < raw.length && depth > 0) {
+					if (raw[i] === '{') depth++;
+					else if (raw[i] === '}') { if (--depth === 0) break; }
+					inner += raw[i++];
+				}
+				out += highlight(inner);
+				out += span('str', '}');
+				i++;
+			} else {
+				// collect plain text (including escape sequences) up to next ${
+				let start = i;
+				while (i < raw.length && !(raw[i] === '$' && raw[i + 1] === '{')) {
+					if (raw[i] === '\\' && i + 1 < raw.length) { i += 2; continue; }
+					i++;
+				}
+				if (i > start) out += span('str', raw.slice(start, i));
+			}
+		}
+		return out;
+	}
+
 	function highlight(raw) {
 		let out = '', i = 0;
 
@@ -43,30 +73,33 @@
 				continue;
 			}
 
+			// Multiline string: |" ... |"
+			if (raw[i] === '|' && raw[i + 1] === '"') {
+				let j = i + 2; // skip opening |"
+				let content = '';
+				// collect everything up to the closing |"
+				while (j < raw.length) {
+					if (raw[j] === '|' && raw[j + 1] === '"') { j += 2; break; }
+					content += raw[j++];
+				}
+				out += span('str', '|"');
+				out += highlightStrContent(content);
+				out += span('str', '|"');
+				i = j;
+				continue;
+			}
+
 			// String
 			if (raw[i] === '"') {
-				let j = i + 1, strOut = '"';
+				let j = i + 1, strContent = '';
+				// collect raw string content up to closing quote, respecting escapes
 				while (j < raw.length && raw[j] !== '"') {
-					if (raw[j] === '\\') { strOut += raw[j] + (raw[j + 1] ?? ''); j += 2; continue; }
-					if (raw[j] === '$' && raw[j + 1] === '{') {
-						out += span('str', strOut);
-						strOut = '';
-						out += span('str', '${');
-						j += 2;
-						let depth = 1, inner = '';
-						while (j < raw.length && depth > 0) {
-							if (raw[j] === '{') depth++;
-								else if (raw[j] === '}') { if (--depth === 0) break; }
-							inner += raw[j++];
-						}
-						out += highlight(inner);
-						out += span('str', '}');
-						j++;
-						continue;
-					}
-					strOut += raw[j++];
+					if (raw[j] === '\\' && j + 1 < raw.length) { strContent += raw[j] + raw[j + 1]; j += 2; continue; }
+					strContent += raw[j++];
 				}
-				out += span('str', strOut + '"');
+				out += span('str', '"');
+				out += highlightStrContent(strContent);
+				out += span('str', '"');
 				i = j + 1;
 				continue;
 			}
@@ -245,7 +278,7 @@
 
 		if (exampleSelect && playgroundCode && playgroundTextarea) {
 			var EXAMPLES = {};
-			var EXAMPLE_KEYS = ['hello-world', 'projectile', 'combat', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars'];
+			var EXAMPLE_KEYS = ['hello-world', 'projectile', 'combat', 'calculator', 'fibonacci', 'fizzbuzz', 'arrays', 'ranges-and-chars', 'range-match', 'destructuring', 'multiline-strings'];
 
 			function rehighlight(source) {
 				playgroundCode.innerHTML = highlight(source);

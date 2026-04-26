@@ -29,6 +29,45 @@
         continue;
       }
       var tok_line = line;
+      // multiline string: |"  ...  |"
+      // Each content line begins with | (stripped). Supports ${...} interpolation.
+      if (src[i] === '|' && src[i + 1] === '"') {
+        i += 2; // consume |"
+        // skip remainder of opening line (should be empty or whitespace)
+        while (i < len && src[i] !== '\n') i++;
+        var mlraw = '';
+        var firstLine = true;
+        while (i < len) {
+          // advance past newline
+          if (src[i] === '\n') { line++; i++; }
+          // skip leading whitespace on this line
+          while (i < len && src[i] !== '\n' && /[ \t]/.test(src[i])) i++;
+          // closing delimiter |"
+          if (src[i] === '|' && src[i + 1] === '"') { i += 2; break; }
+          // content line: must start with |
+          if (src[i] !== '|') break; // malformed — stop collecting
+          i++; // consume |
+          if (src[i] === ' ') i++; // strip one optional space after |
+          if (!firstLine) mlraw += '\n';
+          firstLine = false;
+          // collect the rest of this line (including ${...} expressions verbatim)
+          while (i < len && src[i] !== '\n') {
+            if (src[i] === '$' && src[i + 1] === '{') {
+              mlraw += '${'; i += 2;
+              var miDepth = 1;
+              while (i < len && miDepth > 0) {
+                if (src[i] === '{') { miDepth++; mlraw += src[i++]; }
+                else if (src[i] === '}') { miDepth--; if (miDepth === 0) { mlraw += '}'; i++; break; } mlraw += src[i++]; }
+                else mlraw += src[i++];
+              }
+            } else {
+              mlraw += src[i++];
+            }
+          }
+        }
+        toks.push({ t: 'STR', v: mlraw, line: tok_line });
+        continue;
+      }
       // string literal — preserve raw content including ${...}
       if (src[i] === '"') {
         i++;
@@ -255,15 +294,27 @@
     }
 
     function parseStmt() {
-      // binding: let [mode]name [: type] = expr
-      // Privacy is determined by name case: lowercase first letter = public,
-      // uppercase first letter = private. No separate qualifier.
+      // binding: let [mode](ident | {a, b, ...}) [: type] = expr
       var kw = tryMatch('let');
       if (kw) {
         // optional mode prefix: *, &, $, @
         var mode = null;
         if (check('*') || check('&') || check('$') || check('@')) {
           mode = peek().v; pos++;
+        }
+        // Tuple/record destructuring: let {a, b, ...} = expr
+        if (check('{')) {
+          eat('{'); skipNL();
+          var dpNames = [];
+          while (!check('}') && !check('EOF')) {
+            dpNames.push(eat('ID').v);
+            skipNL();
+            if (tryMatch(',')) skipNL();
+          }
+          eat('}');
+          eat('='); skipNL();
+          var dpPat = { k: 'TuplePat', names: dpNames };
+          return { k: 'Bind', local: false, mode: mode, pat: dpPat, type: null, value: parseExpr(), line: kw.line };
         }
         var name = eat('ID').v;
         var isLocal = /^[A-Z]/.test(name);
@@ -279,7 +330,8 @@
         var bindType = tryMatch(':') ? parseType() : null;
         eat('=');
         skipNL();
-        return { k: 'Bind', local: isLocal, mode: mode, name: name, type: bindType, value: parseExpr(), line: kw.line };
+        var idPat = { k: 'IdentPat', name: name };
+        return { k: 'Bind', local: isLocal, mode: mode, pat: idPat, name: name, type: bindType, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
@@ -378,30 +430,54 @@
     }
 
     function parsePattern() {
-      // Variant pattern: .tagName or .tagName(binding) or .tagName(.{a, b})
-      if (check('.') && toks[pos + 1] && toks[pos + 1].t === 'ID') {
-        eat('.');
-        var tag = eat('ID').v;
-        var binding = null;
-        if (tryMatch('(')) {
-          skipNL();
-          if (check('.') && toks[pos + 1] && toks[pos + 1].t === '{') {
-            // Tuple-destructure payload: .{a, b, ...}
-            eat('.'); eat('{'); skipNL();
-            var names = [];
+      // Variant pattern: tagName  or  tagName(binding)  or  tagName({a, b})
+      // Disambiguation: a bare ID before `do`/NL is a variant tag; ID(ID) or
+      // ID({...}) are variant patterns with payload; anything else is a guard.
+      if (check('ID')) {
+        var nxt = toks[pos + 1];
+        var isBareTag = !nxt || nxt.t === 'NL' || nxt.t === 'do' || nxt.t === 'EOF';
+        var isTagCall = nxt && nxt.t === '(';
+        if (isBareTag) {
+          return { k: 'VariantPat', tag: eat('ID').v, binding: null };
+        }
+        if (isTagCall) {
+          // look inside the parens: if content is ID or { ... } → variant
+          var la = pos + 2;
+          while (toks[la] && toks[la].t === 'NL') la++;
+          var laTok = toks[la];
+          if (laTok && laTok.t === 'ID') {
+            var la2 = la + 1;
+            while (toks[la2] && toks[la2].t === 'NL') la2++;
+            if (toks[la2] && toks[la2].t === ')') {
+              // tagName(name) — simple binding
+              var vtag = eat('ID').v; eat('('); skipNL();
+              var vbind = { k: 'BindPat', name: eat('ID').v };
+              skipNL(); eat(')');
+              return { k: 'VariantPat', tag: vtag, binding: vbind };
+            }
+          }
+          if (laTok && laTok.t === '{') {
+            // tagName({a, b, ...}) — tuple destructuring of payload
+            var vtag = eat('ID').v; eat('('); skipNL();
+            eat('{'); skipNL();
+            var vpnames = [];
             while (!check('}') && !check('EOF')) {
-              names.push(eat('ID').v);
+              vpnames.push(eat('ID').v);
               skipNL();
               if (tryMatch(',')) skipNL();
             }
-            eat('}');
-            binding = { k: 'TuplePat', names: names };
-          } else {
-            binding = { k: 'BindPat', name: eat('ID').v };
+            eat('}'); skipNL(); eat(')');
+            return { k: 'VariantPat', tag: vtag, binding: { k: 'TuplePat', names: vpnames } };
           }
-          eat(')');
         }
-        return { k: 'VariantPat', tag: tag, binding: binding };
+      }
+      // Range pattern: NUM..NUM  or  NUM..=NUM  (integers and chars)
+      if ((check('NUM') || check('CHAR')) && (toks[pos + 1] && (toks[pos + 1].t === '..' || toks[pos + 1].t === '..='))) {
+        var lo = parsePrimary();
+        var inclusive = peek().t === '..=';
+        eat(inclusive ? '..=' : '..');
+        var hi = parsePrimary();
+        return { k: 'RangePat', lo: lo, hi: hi, inclusive: inclusive };
       }
       // Literal pattern: NUM, STR, CHAR, true, false
       if (check('NUM') || check('STR') || check('CHAR') || check('true') || check('false')) {
@@ -807,7 +883,10 @@
     // Hoist all top-level binding names (with mutability) so mutually-recursive
     // functions work and forward references to mutable bindings are tracked.
     ast.body.forEach(function (s) {
-      if (s.k === 'Bind') topNames.set(s.name, s.mode === '*');
+      if (s.k === 'Bind') {
+        if (s.pat.k === 'IdentPat') topNames.set(s.pat.name, s.mode === '*');
+        else if (s.pat.k === 'TuplePat') s.pat.names.forEach(function (n) { topNames.set(n, s.mode === '*'); });
+      }
     });
 
     try {
@@ -818,7 +897,8 @@
     function chkStmt(node, scope) {
       if (node.k === 'Bind') {
         chkExpr(node.value, scope);
-        scope.set(node.name, node.mode === '*'); // available after this point in sequential blocks
+        if (node.pat.k === 'IdentPat') scope.set(node.pat.name, node.mode === '*');
+        else if (node.pat.k === 'TuplePat') node.pat.names.forEach(function (n) { scope.set(n, node.mode === '*'); });
       } else if (node.k === 'Assign') {
         if (!scope.has(node.name)) {
           var e = new Error('Undefined: ' + node.name);
@@ -948,6 +1028,7 @@
             }
             if (marm.pat.k === 'GuardPat') chkExpr(marm.pat.expr, scope);
             if (marm.pat.k === 'LitPat')   chkExpr(marm.pat.expr, scope);
+            if (marm.pat.k === 'RangePat') { chkExpr(marm.pat.lo, scope); chkExpr(marm.pat.hi, scope); }
             chkExpr(marm.body, mScope);
           }
           if (node.elseArm) chkExpr(node.elseArm, scope);
@@ -1058,6 +1139,7 @@
         node.arms.forEach(function (a) {
           if (a.pat.k === 'GuardPat') walkAst(a.pat.expr, fn);
           if (a.pat.k === 'LitPat')   walkAst(a.pat.expr, fn);
+          if (a.pat.k === 'RangePat') { walkAst(a.pat.lo, fn); walkAst(a.pat.hi, fn); }
           walkAst(a.body, fn);
         });
         if (node.elseArm) walkAst(node.elseArm, fn);
@@ -1163,7 +1245,9 @@
     // are unknown until the second pass refines them.
     ast.body.forEach(function (s) {
       if (s.k === 'Bind') {
-        topEnv.bindings[s.name] = astToTy(s.type) || { k: 'unknown' };
+        var hty = astToTy(s.type) || { k: 'unknown' };
+        if (s.pat.k === 'IdentPat') topEnv.bindings[s.pat.name] = hty;
+        else if (s.pat.k === 'TuplePat') s.pat.names.forEach(function (n) { topEnv.bindings[n] = { k: 'unknown' }; });
       }
     });
 
@@ -1189,8 +1273,13 @@
       if (node.k === 'Bind') {
         var declared = astToTy(node.type);
         var vt = inferExpr(node.value, declared, env);
-        if (vt && vt.k === 'variantDef') vt.name = node.name;
-        env.bindings[node.name] = declared || vt;
+        if (node.pat.k === 'IdentPat') {
+          if (vt && vt.k === 'variantDef') vt.name = node.pat.name;
+          env.bindings[node.pat.name] = declared || vt;
+        } else if (node.pat.k === 'TuplePat') {
+          var elemTys = (vt && vt.k === 'tuple') ? vt.elems : [];
+          node.pat.names.forEach(function (n, i) { env.bindings[n] = elemTys[i] || { k: 'unknown' }; });
+        }
         return;
       }
       if (node.k === 'Assign') {
@@ -1635,6 +1724,7 @@
             }
             if (marm.pat.k === 'GuardPat') inferExpr(marm.pat.expr, { k: 'bool' }, env);
             if (marm.pat.k === 'LitPat')   inferExpr(marm.pat.expr, null, env);
+            if (marm.pat.k === 'RangePat') { inferExpr(marm.pat.lo, null, env); inferExpr(marm.pat.hi, null, env); }
             var mbt = inferExpr(marm.body, expected, menv);
             if (matchTy.k === 'unknown') matchTy = mbt;
           }
@@ -1867,9 +1957,17 @@
       try {
         if (node.k === 'Bind') {
           var val = evalExpr(node.value, env);
-          if (val && val._variantType) val.name = node.name;
-          envSet(env, node.name, val);
-          env.mut[node.name] = (node.mode === '*');
+          if (node.pat.k === 'IdentPat') {
+            if (val && val._variantType) val.name = node.pat.name;
+            envSet(env, node.pat.name, val);
+            env.mut[node.pat.name] = (node.mode === '*');
+          } else if (node.pat.k === 'TuplePat') {
+            var arr = Array.isArray(val) ? val : [];
+            node.pat.names.forEach(function (n, i) {
+              envSet(env, n, arr[i] !== undefined ? arr[i] : null);
+              env.mut[n] = (node.mode === '*');
+            });
+          }
           return val;
         }
         if (node.k === 'Assign') {
@@ -1909,6 +2007,15 @@
         if (litVal && litVal._char) litVal = litVal.v;
         var sval = subject && subject._char ? subject.v : subject;
         return litVal === sval ? {} : null;
+      }
+      if (pat.k === 'RangePat') {
+        var loVal = evalExpr(pat.lo, env);
+        var hiVal = evalExpr(pat.hi, env);
+        if (loVal && loVal._char) loVal = loVal.v;
+        if (hiVal && hiVal._char) hiVal = hiVal.v;
+        var sv = subject && subject._char ? subject.v : subject;
+        if (typeof sv !== 'number') return null;
+        return sv >= loVal && (pat.inclusive ? sv <= hiVal : sv < hiVal) ? {} : null;
       }
       if (pat.k === 'GuardPat') {
         return evalExpr(pat.expr, env) ? {} : null;
@@ -2159,7 +2266,7 @@
     var mainBind = null;
     for (var i = 0; i < ast.body.length; i++) {
       var s = ast.body[i];
-      if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
+      if (s.k === 'Bind' && s.pat && s.pat.k === 'IdentPat' && s.pat.name === 'main') { mainBind = s; break; }
     }
     if (mainBind && !mainBind.local
         && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
@@ -2257,6 +2364,12 @@
         }
       }, 400);
     };
+
+    // Trigger an initial check on whatever example highlight.js already loaded.
+    // highlight.js's DOMContentLoaded runs first (earlier <script> tag) and
+    // calls setExample before rukaCheckAndHighlight exists, so checkedAst is
+    // never set — this re-runs the check now that the function is defined.
+    if (textarea.value) window.rukaCheckAndHighlight(textarea.value);
 
     runBtn.addEventListener('click', function () {
       // Cancel any pending check so it doesn't interfere with the output state
