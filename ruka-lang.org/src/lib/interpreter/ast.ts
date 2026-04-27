@@ -1,257 +1,285 @@
-// AST node types. Field names are kept identical to the JS playground so the
-// type checker and evaluator can port verbatim against the same structure.
+// AST node types. Field names are kept consistent across the codebase: every
+// node uses `kind:` as its discriminator; literal `value:` carries the parsed
+// payload; positional metadata uses descriptive names.
 
-// ── Types ──────────────────────────────────────────────────────────────
-export type Ty =
-	| { k: "TyUnit"; line: number }
-	| { k: "TyArray"; elem: Ty; line: number }
-	| { k: "TyTuple"; elems: Ty[]; line: number }
-	| { k: "TyOption"; inner: Ty; line: number }
-	| { k: "TyResult"; ok: Ty; err: Ty; line: number }
-	| { k: "TyName"; name: string; line: number };
+// ── Type expressions (parser-level) ──────────────────────────────────────
+export type TypeExpr =
+	| { kind: "UnitType"; line: number }
+	| { kind: "ArrayType"; element: TypeExpr; line: number }
+	| { kind: "TupleType"; elements: TypeExpr[]; line: number }
+	| { kind: "OptionType"; inner: TypeExpr; line: number }
+	| { kind: "ResultType"; ok: TypeExpr; err: TypeExpr; line: number }
+	| { kind: "NamedType"; name: string; line: number };
 
-// ── Patterns ───────────────────────────────────────────────────────────
-// Used in `let` bindings:
-export type BindTarget = { k: "IdentPat"; name: string } | { k: "TuplePat"; names: string[] };
+// ── Patterns ──────────────────────────────────────────────────────────────
+// Used on the left-hand side of `let`:
+export type LetPattern =
+	| { kind: "IdentifierPattern"; name: string }
+	| { kind: "TuplePattern"; names: string[] };
 
 // Used in `match` arms:
-export type MatchPat =
-	| { k: "VariantPat"; tag: string; binding: BindPat | TuplePat | null }
-	| { k: "RangePat"; lo: Expr; hi: Expr; inclusive: boolean }
-	| { k: "LitPat"; expr: Expr }
-	| { k: "GuardPat"; expr: Expr };
+export type MatchPattern =
+	| { kind: "VariantPattern"; tag: string; binding: BindingPattern | TuplePattern | null }
+	| { kind: "RangePattern"; low: Expression; high: Expression; inclusive: boolean }
+	| { kind: "LiteralPattern"; expression: Expression }
+	| { kind: "GuardPattern"; expression: Expression };
 
-export type BindPat = { k: "BindPat"; name: string };
-export type TuplePat = { k: "TuplePat"; names: string[] };
+export type BindingPattern = { kind: "BindingPattern"; name: string };
+export type TuplePattern = { kind: "TuplePattern"; names: string[] };
 
-// ── Receivers (method/static syntax sugar) ─────────────────────────────
-export type Receiver = { kind: "self"; tyAnno: Ty | null } | { kind: "static"; tyName: string };
+// ── Receivers (method/static syntax sugar) ───────────────────────────────
+// `resolvedTypeName` is filled in by the type checker once the receiver's
+// target type is known; the evaluator reads it to attach the method/static
+// to the right value at runtime.
+export type Receiver =
+	| { kind: "self"; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
+	| { kind: "static"; typeName: string; resolvedTypeName?: string };
 
-// ── Statements ─────────────────────────────────────────────────────────
-export type Stmt = Bind | Assign | Break | Continue | Return | For | ExprStmt;
+// ── Statements ────────────────────────────────────────────────────────────
+export type Statement = Binding | Assign | Break | Continue | Return | For | ExpressionStmt;
 
-export interface Bind {
-	k: "Bind";
+export type Binding = {
+	kind: "Binding";
 	local: boolean;
 	mode: "*" | "&" | "$" | "@" | null;
-	pat: BindTarget;
+	pattern: LetPattern;
 	name?: string;
-	type: Ty | null;
+	type: TypeExpr | null;
 	receiver?: Receiver | null;
-	value: Expr;
+	value: Expression;
 	line: number;
-}
-export interface Assign {
-	k: "Assign";
-	name: string;
-	value: Expr;
-	line: number;
-}
-export interface Break {
-	k: "Break";
-	line: number;
-}
-export interface Continue {
-	k: "Continue";
-	line: number;
-}
-export interface Return {
-	k: "Return";
-	value: Expr;
-	line: number;
-}
-export interface For {
-	k: "For";
-	name: string | null;
-	iter: Expr;
-	body: Stmt[];
-	line: number;
-}
-export interface ExprStmt {
-	k: "ExprStmt";
-	expr: Expr;
-	line: number;
-}
+};
 
-// ── Expressions ────────────────────────────────────────────────────────
-export type Expr =
-	| Lit
-	| CharLit
-	| StrLit
+export type Assign = {
+	kind: "Assign";
+	name: string;
+	value: Expression;
+	line: number;
+};
+
+export type Break = {
+	kind: "Break";
+	line: number;
+};
+
+export type Continue = {
+	kind: "Continue";
+	line: number;
+};
+
+export type Return = {
+	kind: "Return";
+	value: Expression;
+	line: number;
+};
+
+export type For = {
+	kind: "For";
+	name: string | null;
+	iterable: Expression;
+	body: Statement[];
+	line: number;
+};
+
+export type ExpressionStmt = {
+	kind: "ExpressionStmt";
+	expression: Expression;
+	line: number;
+};
+
+// ── Expressions ───────────────────────────────────────────────────────────
+export type Expression =
+	| Literal
+	| CharLiteral
+	| StringLiteral
 	| Ident
 	| Unit
-	| Fn
+	| FunctionExpr
 	| Block
 	| If
 	| While
 	| Match
-	| BinOp
+	| BinaryOp
 	| Range
-	| Unary
+	| UnaryOp
 	| Call
 	| Member
 	| Index
 	| RecordType
 	| VariantType
-	| VariantCtor
-	| RecordLit
-	| ListLit;
+	| VariantConstructor
+	| RecordLiteral
+	| ListLiteral;
 
-export interface Lit {
-	k: "Lit";
-	v: number | boolean;
+export type Literal = {
+	kind: "Literal";
+	value: number | boolean;
 	isFloat?: boolean;
 	line: number;
-}
-export interface CharLit {
-	k: "Char";
-	v: number;
+};
+
+export type CharLiteral = {
+	kind: "CharLiteral";
+	value: number;
 	line: number;
-}
-export interface StrLit {
-	k: "Str";
+};
+
+export type StringLiteral = {
+	kind: "StringLiteral";
 	raw: string;
 	line: number;
-}
-export interface Ident {
-	k: "Ident";
+};
+
+export type Ident = {
+	kind: "Ident";
 	name: string;
 	line: number;
-}
-export interface Unit {
-	k: "Unit";
-	line: number;
-}
+};
 
-export interface Fn {
-	k: "Fn";
+export type Unit = {
+	kind: "Unit";
+	line: number;
+};
+
+export type FunctionExpr = {
+	kind: "FunctionExpr";
 	params: string[];
-	paramTypes: (Ty | null)[];
+	paramTypes: (TypeExpr | null)[];
 	paramModes: (string | null)[];
-	returnType: Ty | null;
+	returnType: TypeExpr | null;
 	body: Block;
 	line: number;
-}
+};
 
-export interface Block {
-	k: "Block";
-	body: Stmt[];
-}
+export type Block = {
+	kind: "Block";
+	body: Statement[];
+};
 
-export interface If {
-	k: "If";
-	cond: Expr;
-	then: Block | Expr;
-	else_: Block | Expr | null;
+export type If = {
+	kind: "If";
+	condition: Expression;
+	thenBranch: Block | Expression;
+	elseBranch: Block | Expression | null;
 	line: number;
 	/** Internal: parser flag indicating this if-chain owns an explicit `end`. */
 	_multiline?: boolean;
-}
+};
 
-export interface While {
-	k: "While";
-	cond: Expr;
-	body: Stmt[];
+export type While = {
+	kind: "While";
+	condition: Expression;
+	body: Statement[];
 	line: number;
-}
+};
 
-export interface MatchArm {
-	pat: MatchPat;
+export type MatchArm = {
+	pattern: MatchPattern;
 	body: Block;
-}
-export interface Match {
-	k: "Match";
-	subject: Expr;
+};
+
+export type Match = {
+	kind: "Match";
+	subject: Expression;
 	arms: MatchArm[];
 	elseArm: Block | null;
 	line: number;
-}
+};
 
-export interface BinOp {
-	k: "BinOp";
+export type BinaryOp = {
+	kind: "BinaryOp";
 	op: string;
-	left: Expr;
-	right: Expr;
-}
-export interface Range {
-	k: "Range";
-	start: Expr;
-	end: Expr;
+	left: Expression;
+	right: Expression;
+};
+
+export type Range = {
+	kind: "Range";
+	start: Expression;
+	end: Expression;
 	inclusive: boolean;
 	line: number;
-}
-export interface Unary {
-	k: "Unary";
+};
+
+export type UnaryOp = {
+	kind: "UnaryOp";
 	op: "-" | "not";
-	expr: Expr;
-}
+	expression: Expression;
+};
 
-export interface Call {
-	k: "Call";
-	callee: Expr;
-	args: Expr[];
+export type Call = {
+	kind: "Call";
+	callee: Expression;
+	args: Expression[];
 	line: number;
-}
-export interface Member {
-	k: "Member";
-	obj: Expr;
-	prop: string;
-	line: number;
-}
-export interface Index {
-	k: "Index";
-	obj: Expr;
-	idx: Expr;
-	line: number;
-}
+};
 
-export interface RecordTypeField {
+export type Member = {
+	kind: "Member";
+	object: Expression;
+	property: string;
+	line: number;
+};
+
+export type Index = {
+	kind: "Index";
+	object: Expression;
+	index: Expression;
+	line: number;
+};
+
+export type RecordTypeField = {
 	name: string;
-	type: Ty;
-}
-export interface RecordType {
-	k: "RecordType";
+	type: TypeExpr;
+};
+
+export type RecordType = {
+	kind: "RecordType";
 	fields: RecordTypeField[];
 	line: number;
-}
+};
 
-export interface VariantTag {
+export type VariantTag = {
 	name: string;
-	type: Ty | null;
-}
-export interface VariantType {
-	k: "VariantType";
+	type: TypeExpr | null;
+};
+
+export type VariantType = {
+	kind: "VariantType";
 	tags: VariantTag[];
 	line: number;
-}
+};
 
-export interface VariantCtor {
-	k: "VariantCtor";
+export type VariantConstructor = {
+	kind: "VariantConstructor";
 	tag: string;
-	payload: Expr | null;
+	payload: Expression | null;
 	line: number;
-}
+};
 
-export interface RecordLitField {
+export type RecordLiteralField = {
 	name: string;
-	value: Expr;
-}
-export interface RecordLit {
-	k: "RecordLit";
-	typeName?: Expr;
-	fields: RecordLitField[];
-	line: number;
-}
+	value: Expression;
+};
 
-export interface ListLit {
-	k: "List";
-	typePrefix: Ty | null;
-	elements: Expr[];
+export type RecordLiteral = {
+	kind: "RecordLiteral";
+	typeName?: Expression;
+	fields: RecordLiteralField[];
 	line: number;
-}
+	/** Set by the type checker when the literal's target record type is resolved. */
+	resolvedTypeName?: string;
+};
 
-// ── Program ────────────────────────────────────────────────────────────
-export interface Program {
-	k: "Program";
-	body: Stmt[];
-}
+export type ListLiteral = {
+	kind: "ListLiteral";
+	typePrefix: TypeExpr | null;
+	elements: Expression[];
+	line: number;
+};
+
+// ── Program ───────────────────────────────────────────────────────────────
+export type Program = {
+	kind: "Program";
+	body: Statement[];
+};

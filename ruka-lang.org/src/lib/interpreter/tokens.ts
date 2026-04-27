@@ -53,18 +53,19 @@ export type TokenKind =
 	// on a closed literal union here.
 	| string;
 
-export interface Token {
+/**
+ * `value` payload by token kind:
+ * - NUM: the raw numeric text (e.g. "2", "2.0", "0.5"). The parser decides
+ *   integer vs. float by scanning for a `.` and converts to a number.
+ * - STR: raw string body with `${...}` and escape sequences preserved.
+ * - CHAR: u8 byte value (already decoded from the source escape).
+ * - everything else: the literal source text of the token.
+ */
+export type Token = {
 	kind: TokenKind;
-	/**
-	 * - NUM: the raw numeric text (e.g. "2", "2.0", "0.5"). The parser decides
-	 *   integer vs. float by scanning for a `.` and converts to a number.
-	 * - STR: raw string body with `${...}` and escape sequences preserved.
-	 * - CHAR: u8 byte value (already decoded from the source escape).
-	 * - everything else: the literal source text of the token.
-	 */
-	val: string | number;
+	value: string | number;
 	line: number;
-}
+};
 
 export function isKeyword(s: string): s is Keyword {
 	return (KEYWORDS as Set<string>).has(s);

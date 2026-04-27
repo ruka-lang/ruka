@@ -13,10 +13,10 @@ function pretty(toks: Token[]): string {
 		.map((t) => {
 			if (t.kind === "NL") return "NL";
 			if (t.kind === "EOF") return "EOF";
-			if (t.kind === "NUM") return `NUM(${t.val})`;
-			if (t.kind === "STR") return `STR(${JSON.stringify(t.val)})`;
-			if (t.kind === "CHAR") return `CHAR(${t.val})`;
-			if (t.kind === "ID") return `ID(${t.val})`;
+			if (t.kind === "NUM") return `NUM(${t.value})`;
+			if (t.kind === "STR") return `STR(${JSON.stringify(t.value)})`;
+			if (t.kind === "CHAR") return `CHAR(${t.value})`;
+			if (t.kind === "ID") return `ID(${t.value})`;
 			return `${t.kind}`;
 		})
 		.join(" ");
@@ -45,10 +45,10 @@ describe("tokenize: edge cases", () => {
 	it("distinguishes `..` from a numeric fractional part", () => {
 		const toks = tokenize("1..5");
 		expect(toks.slice(0, 4)).toEqual([
-			{ t: "NUM", v: "1", line: 1 },
-			{ t: "..", v: "..", line: 1 },
-			{ t: "NUM", v: "5", line: 1 },
-			{ t: "EOF", v: "", line: 1 }
+			{ kind: "NUM", value: "1", line: 1 },
+			{ kind: "..", value: "..", line: 1 },
+			{ kind: "NUM", value: "5", line: 1 },
+			{ kind: "EOF", value: "", line: 1 }
 		]);
 	});
 
@@ -59,17 +59,17 @@ describe("tokenize: edge cases", () => {
 
 	it("preserves numeric literal text verbatim", () => {
 		const toks = tokenize("2.0 2 0.5 100");
-		expect(toks.filter((t) => t.kind === "NUM").map((t) => t.val)).toEqual(["2.0", "2", "0.5", "100"]);
+		expect(toks.filter((t) => t.kind === "NUM").map((t) => t.value)).toEqual(["2.0", "2", "0.5", "100"]);
 	});
 
 	it("keeps ${...} verbatim inside strings, including nested strings", () => {
 		const toks = tokenize('"a${ "b" + c }d"');
-		expect(toks[0]).toMatchObject({ t: "STR", v: 'a${ "b" + c }d' });
+		expect(toks[0]).toMatchObject({ kind: "STR", value: 'a${ "b" + c }d' });
 	});
 
 	it("handles nested braces inside ${...}", () => {
 		const toks = tokenize('"x${ {y} }z"');
-		expect(toks[0]).toMatchObject({ t: "STR", v: "x${ {y} }z" });
+		expect(toks[0]).toMatchObject({ kind: "STR", value: "x${ {y} }z" });
 	});
 
 	it("decodes char escapes to u8 codepoints", () => {
@@ -82,7 +82,7 @@ describe("tokenize: edge cases", () => {
 		];
 		for (const [src, code] of cases) {
 			const toks = tokenize(src);
-			expect(toks[0]).toMatchObject({ t: "CHAR", v: code });
+			expect(toks[0]).toMatchObject({ kind: "CHAR", value: code });
 		}
 	});
 
@@ -95,8 +95,8 @@ describe("tokenize: edge cases", () => {
 		expect(ts).toContain("else");
 		expect(ts).toContain("end");
 		// `foo` and `x` are identifiers, not keywords
-		expect(toks.find((t) => t.val === "foo")?.kind).toBe("ID");
-		expect(toks.find((t) => t.val === "x")?.kind).toBe("ID");
+		expect(toks.find((t) => t.value === "foo")?.kind).toBe("ID");
+		expect(toks.find((t) => t.value === "x")?.kind).toBe("ID");
 	});
 
 	it("emits ~ as its own token (named-parameter sigil)", () => {
@@ -107,13 +107,13 @@ describe("tokenize: edge cases", () => {
 	it("multiline string strips leading | and one optional space", () => {
 		const src = ['|"', "| line 1", "|  line 2", '|"'].join("\n");
 		const toks = tokenize(src);
-		expect(toks[0]).toMatchObject({ t: "STR", v: "line 1\n line 2" });
+		expect(toks[0]).toMatchObject({ kind: "STR", value: "line 1\n line 2" });
 	});
 
 	it("multiline string preserves ${...} verbatim", () => {
 		const src = ['|"', "| hello ${name}!", '|"'].join("\n");
 		const toks = tokenize(src);
-		expect(toks[0]).toMatchObject({ t: "STR", v: "hello ${name}!" });
+		expect(toks[0]).toMatchObject({ kind: "STR", value: "hello ${name}!" });
 	});
 
 	it("skips line comments", () => {
@@ -123,8 +123,8 @@ describe("tokenize: edge cases", () => {
 
 	it("tracks line numbers across newlines and comments", () => {
 		const toks = tokenize("a\n// c\nb");
-		expect(toks.find((t) => t.val === "a")?.line).toBe(1);
-		expect(toks.find((t) => t.val === "b")?.line).toBe(3);
+		expect(toks.find((t) => t.value === "a")?.line).toBe(1);
+		expect(toks.find((t) => t.value === "b")?.line).toBe(3);
 	});
 
 	it("hits all multi-char punctuators", () => {

@@ -13,10 +13,20 @@ export interface Diagnostic {
  */
 export class RukaError extends Error {
 	line?: number;
-	constructor(message: string, line?: number) {
+	/**
+	 * Set on type errors that should not be swallowed during candidate-matching
+	 * inference (record-literal resolution, variant constructor resolution,
+	 * etc.). Such errors propagate even when the surrounding code is exploring
+	 * multiple type alternatives.
+	 */
+	fatal?: boolean;
+	constructor(message: string, line?: number, fatal = false) {
 		super(message);
 		this.name = "RukaError";
 		this.line = line;
+		if (fatal) {
+			this.fatal = true;
+		}
 	}
 }
 

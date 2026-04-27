@@ -1,0 +1,4 @@
+// expect: expected bool
+let main = () do
+    if 5 do 1
+end

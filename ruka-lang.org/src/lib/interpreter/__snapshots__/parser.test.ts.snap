@@ -4,13 +4,13 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -19,13 +19,13 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 2,
               "local": false,
               "mode": "*",
               "name": "primes",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "primes",
               },
               "receiver": null,
@@ -34,354 +34,354 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                 "elements": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 2,
+                    "value": 2,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 3,
+                    "value": 3,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 5,
+                    "value": 5,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 7,
+                    "value": 7,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 11,
+                    "value": 11,
                   },
                 ],
-                "k": "List",
+                "kind": "ListLiteral",
                 "line": 2,
                 "typePrefix": {
-                  "elem": {
-                    "k": "TyName",
+                  "element": {
+                    "kind": "NamedType",
                     "line": 2,
                     "name": "int",
                   },
-                  "k": "TyArray",
+                  "kind": "ArrayType",
                   "line": 2,
                 },
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 3,
                     "raw": "primes:  \${primes}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 3,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 3,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 3,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 4,
                     "raw": "length:  \${primes.length()}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 4,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 4,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 4,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 4,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 5,
                     "raw": "first:   \${primes[0]}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 5,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 5,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 5,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 5,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 6,
                     "raw": "last:    \${primes[primes.length() - 1]}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 6,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 6,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 6,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 6,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 8,
-                    "v": 13,
+                    "value": 13,
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 8,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 8,
                     "name": "primes",
                   },
-                  "prop": "append",
+                  "property": "append",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 8,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 8,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 9,
                     "raw": "after append(13): \${primes}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 9,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 9,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 9,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 9,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 11,
-                    "v": 0,
+                    "value": 0,
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 11,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 11,
                     "name": "primes",
                   },
-                  "prop": "remove",
+                  "property": "remove",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 11,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 11,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 12,
                     "raw": "after remove(0):  \${primes}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 12,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 12,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 12,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 12,
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 15,
               "local": false,
               "mode": "*",
               "name": "sum",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "sum",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": false,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 15,
-                "v": 0,
+                "value": 0,
               },
             },
             {
               "body": [
                 {
-                  "k": "Assign",
+                  "kind": "Assign",
                   "line": 16,
                   "name": "sum",
                   "value": {
-                    "k": "BinOp",
+                    "kind": "BinaryOp",
                     "left": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 16,
                       "name": "sum",
                     },
                     "op": "+",
                     "right": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 16,
                       "name": "p",
                     },
                   },
                 },
               ],
-              "iter": {
-                "k": "Ident",
+              "iterable": {
+                "kind": "Ident",
                 "line": 16,
                 "name": "primes",
               },
-              "k": "For",
+              "kind": "For",
               "line": 16,
               "name": "p",
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 17,
                     "raw": "sum:     \${sum}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 17,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 17,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 17,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 17,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 20,
                     "raw": "slice:   \${primes[1..4]}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 20,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 20,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 20,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 20,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
         "paramTypes": [],
@@ -390,14 +390,14 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
 exports[`parse: fixture snapshots > blank.ruka 1`] = `
 {
   "body": [],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -405,13 +405,13 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "add",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "add",
       },
       "receiver": null,
@@ -420,27 +420,27 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 1,
                   "name": "a",
                 },
                 "op": "+",
                 "right": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 1,
                   "name": "b",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 1,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
           null,
@@ -458,13 +458,13 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 2,
       "local": false,
       "mode": null,
       "name": "sub",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "sub",
       },
       "receiver": null,
@@ -473,27 +473,27 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 2,
                   "name": "a",
                 },
                 "op": "-",
                 "right": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 2,
                   "name": "b",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 2,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 2,
         "paramModes": [
           null,
@@ -511,13 +511,13 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 3,
       "local": false,
       "mode": null,
       "name": "mul",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "mul",
       },
       "receiver": null,
@@ -526,27 +526,27 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 3,
                   "name": "a",
                 },
                 "op": "*",
                 "right": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 3,
                   "name": "b",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
           null,
@@ -564,13 +564,13 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 4,
       "local": false,
       "mode": null,
       "name": "div",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "div",
       },
       "receiver": null,
@@ -579,27 +579,27 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 4,
                   "name": "a",
                 },
                 "op": "/",
                 "right": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 4,
                   "name": "b",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 4,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 4,
         "paramModes": [
           null,
@@ -617,13 +617,13 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 6,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -632,147 +632,147 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 7,
               "local": false,
               "mode": null,
               "name": "x",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "x",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": false,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 7,
-                "v": 12,
+                "value": 12,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 8,
               "local": false,
               "mode": null,
               "name": "y",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "y",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": false,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 8,
-                "v": 4,
+                "value": 4,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 9,
                     "raw": "\${x} + \${y} = \${add(x, y)}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 9,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 9,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 9,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 9,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 10,
                     "raw": "\${x} - \${y} = \${sub(x, y)}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 10,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 10,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 10,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 11,
                     "raw": "\${x} * \${y} = \${mul(x, y)}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 11,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 11,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 11,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 11,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 12,
                     "raw": "\${x} / \${y} = \${div(x, y)}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 12,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 12,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 12,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 12,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 6,
         "paramModes": [],
         "paramTypes": [],
@@ -781,7 +781,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -789,25 +789,25 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": true,
       "mode": null,
       "name": "Hit",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "Hit",
       },
       "receiver": null,
       "type": null,
       "value": {
-        "k": "VariantType",
+        "kind": "VariantType",
         "line": 1,
         "tags": [
           {
             "name": "critical",
             "type": {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 2,
               "name": "int",
             },
@@ -815,7 +815,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
           {
             "name": "normal",
             "type": {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 3,
               "name": "int",
             },
@@ -828,13 +828,13 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 7,
       "local": false,
       "mode": null,
       "name": "attack",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "attack",
       },
       "receiver": null,
@@ -843,143 +843,143 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 8,
               "local": false,
               "mode": null,
               "name": "score",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "score",
               },
               "receiver": null,
               "type": null,
               "value": {
-                "k": "BinOp",
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 8,
                   "name": "power",
                 },
                 "op": "+",
                 "right": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 8,
                   "name": "accuracy",
                 },
               },
             },
             {
-              "expr": {
+              "expression": {
                 "_multiline": false,
-                "cond": {
-                  "k": "BinOp",
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 9,
                     "name": "score",
                   },
                   "op": ">=",
                   "right": {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 9,
-                    "v": 15,
+                    "value": 15,
                   },
                 },
-                "else_": {
+                "elseBranch": {
                   "_multiline": false,
-                  "cond": {
-                    "k": "BinOp",
+                  "condition": {
+                    "kind": "BinaryOp",
                     "left": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 10,
                       "name": "score",
                     },
                     "op": ">=",
                     "right": {
                       "isFloat": false,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 10,
-                      "v": 6,
+                      "value": 6,
                     },
                   },
-                  "else_": {
+                  "elseBranch": {
                     "body": [
                       {
-                        "expr": {
-                          "k": "VariantCtor",
+                        "expression": {
+                          "kind": "VariantConstructor",
                           "line": 11,
                           "payload": null,
                           "tag": "miss",
                         },
-                        "k": "ExprStmt",
+                        "kind": "ExpressionStmt",
                         "line": 11,
                       },
                     ],
-                    "k": "Block",
+                    "kind": "Block",
                   },
-                  "k": "If",
+                  "kind": "If",
                   "line": 10,
-                  "then": {
+                  "thenBranch": {
                     "body": [
                       {
-                        "expr": {
-                          "k": "VariantCtor",
+                        "expression": {
+                          "kind": "VariantConstructor",
                           "line": 10,
                           "payload": {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 10,
                             "name": "score",
                           },
                           "tag": "normal",
                         },
-                        "k": "ExprStmt",
+                        "kind": "ExpressionStmt",
                         "line": 10,
                       },
                     ],
-                    "k": "Block",
+                    "kind": "Block",
                   },
                 },
-                "k": "If",
+                "kind": "If",
                 "line": 9,
-                "then": {
+                "thenBranch": {
                   "body": [
                     {
-                      "expr": {
-                        "k": "VariantCtor",
+                      "expression": {
+                        "kind": "VariantConstructor",
                         "line": 9,
                         "payload": {
-                          "k": "BinOp",
+                          "kind": "BinaryOp",
                           "left": {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 9,
                             "name": "score",
                           },
                           "op": "*",
                           "right": {
                             "isFloat": false,
-                            "k": "Lit",
+                            "kind": "Literal",
                             "line": 9,
-                            "v": 2,
+                            "value": 2,
                           },
                         },
                         "tag": "critical",
                       },
-                      "k": "ExprStmt",
+                      "kind": "ExpressionStmt",
                       "line": 9,
                     },
                   ],
-                  "k": "Block",
+                  "kind": "Block",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 9,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 7,
         "paramModes": [
           null,
@@ -997,13 +997,13 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 14,
       "local": false,
       "mode": null,
       "name": "report",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "report",
       },
       "receiver": null,
@@ -1012,29 +1012,29 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "arms": [
                   {
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 16,
                             "raw": "*** Critical hit for \${dmg} damage! ***",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 16,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
+                    "pattern": {
                       "binding": {
-                        "k": "BindPat",
+                        "kind": "BindingPattern",
                         "name": "dmg",
                       },
-                      "k": "VariantPat",
+                      "kind": "VariantPattern",
                       "tag": "critical",
                     },
                   },
@@ -1042,23 +1042,23 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 17,
                             "raw": "Hit for \${dmg} damage.",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 17,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
+                    "pattern": {
                       "binding": {
-                        "k": "BindPat",
+                        "kind": "BindingPattern",
                         "name": "dmg",
                       },
-                      "k": "VariantPat",
+                      "kind": "VariantPattern",
                       "tag": "normal",
                     },
                   },
@@ -1066,40 +1066,40 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 18,
                             "raw": "Missed!",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 18,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
+                    "pattern": {
                       "binding": null,
-                      "k": "VariantPat",
+                      "kind": "VariantPattern",
                       "tag": "miss",
                     },
                   },
                 ],
                 "elseArm": null,
-                "k": "Match",
+                "kind": "Match",
                 "line": 15,
                 "subject": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 15,
                   "name": "hit",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 15,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 14,
         "paramModes": [
           null,
@@ -1114,13 +1114,13 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 22,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -1129,10 +1129,10 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 24,
                     "raw": "=== Battle Report ===
 
@@ -1144,25 +1144,25 @@ Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 23,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 23,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 23,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 23,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 22,
         "paramModes": [],
         "paramTypes": [],
@@ -1171,7 +1171,7 @@ Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -1179,13 +1179,13 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "swap",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "swap",
       },
       "receiver": null,
@@ -1194,45 +1194,45 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "elements": [
                   {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 1,
                     "name": "b",
                   },
                   {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 1,
                     "name": "a",
                   },
                 ],
-                "k": "List",
+                "kind": "ListLiteral",
                 "line": 1,
                 "typePrefix": {
-                  "elems": [
+                  "elements": [
                     {
-                      "k": "TyName",
+                      "kind": "NamedType",
                       "line": 1,
                       "name": "int",
                     },
                     {
-                      "k": "TyName",
+                      "kind": "NamedType",
                       "line": 1,
                       "name": "int",
                     },
                   ],
-                  "k": "TyTuple",
+                  "kind": "TupleType",
                   "line": 1,
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 1,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
           null,
@@ -1250,13 +1250,13 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 3,
       "local": false,
       "mode": null,
       "name": "minmax",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "minmax",
       },
       "receiver": null,
@@ -1265,84 +1265,84 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "_multiline": false,
-                "cond": {
-                  "k": "BinOp",
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 4,
                     "name": "a",
                   },
                   "op": "<",
                   "right": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 4,
                     "name": "b",
                   },
                 },
-                "else_": {
+                "elseBranch": {
                   "body": [
                     {
-                      "expr": {
+                      "expression": {
                         "elements": [
                           {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 5,
                             "name": "b",
                           },
                           {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 5,
                             "name": "a",
                           },
                         ],
-                        "k": "List",
+                        "kind": "ListLiteral",
                         "line": 5,
                         "typePrefix": null,
                       },
-                      "k": "ExprStmt",
+                      "kind": "ExpressionStmt",
                       "line": 5,
                     },
                   ],
-                  "k": "Block",
+                  "kind": "Block",
                 },
-                "k": "If",
+                "kind": "If",
                 "line": 4,
-                "then": {
+                "thenBranch": {
                   "body": [
                     {
-                      "expr": {
+                      "expression": {
                         "elements": [
                           {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 4,
                             "name": "a",
                           },
                           {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 4,
                             "name": "b",
                           },
                         ],
-                        "k": "List",
+                        "kind": "ListLiteral",
                         "line": 4,
                         "typePrefix": null,
                       },
-                      "k": "ExprStmt",
+                      "kind": "ExpressionStmt",
                       "line": 4,
                     },
                   ],
-                  "k": "Block",
+                  "kind": "Block",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 4,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
           null,
@@ -1357,31 +1357,31 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           "b",
         ],
         "returnType": {
-          "elems": [
+          "elements": [
             {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 3,
               "name": "int",
             },
             {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 3,
               "name": "int",
             },
           ],
-          "k": "TyTuple",
+          "kind": "TupleType",
           "line": 3,
         },
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 8,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -1390,12 +1390,12 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 9,
               "local": false,
               "mode": null,
-              "pat": {
-                "k": "TuplePat",
+              "pattern": {
+                "kind": "TuplePattern",
                 "names": [
                   "x",
                   "y",
@@ -1406,58 +1406,58 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "args": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 9,
-                    "v": 3,
+                    "value": 3,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 9,
-                    "v": 7,
+                    "value": 7,
                   },
                 ],
                 "callee": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 9,
                   "name": "swap",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 9,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 10,
                     "raw": "swap(3, 7) = \${x}, \${y}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 10,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 10,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 10,
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 12,
               "local": false,
               "mode": null,
-              "pat": {
-                "k": "TuplePat",
+              "pattern": {
+                "kind": "TuplePattern",
                 "names": [
                   "lo",
                   "hi",
@@ -1468,55 +1468,55 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "args": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 10,
+                    "value": 10,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 4,
+                    "value": 4,
                   },
                 ],
                 "callee": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 12,
                   "name": "minmax",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 12,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 13,
                     "raw": "minmax(10, 4) = \${lo}, \${hi}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 13,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 13,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 13,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 13,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
         "paramTypes": [],
@@ -1525,7 +1525,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -1533,13 +1533,13 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "fib",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "fib",
       },
       "receiver": null,
@@ -1548,93 +1548,93 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "cond": {
-                  "k": "BinOp",
+              "expression": {
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 2,
                     "name": "n",
                   },
                   "op": "<=",
                   "right": {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 2,
-                    "v": 1,
+                    "value": 1,
                   },
                 },
-                "else_": {
-                  "k": "BinOp",
+                "elseBranch": {
+                  "kind": "BinaryOp",
                   "left": {
                     "args": [
                       {
-                        "k": "BinOp",
+                        "kind": "BinaryOp",
                         "left": {
-                          "k": "Ident",
+                          "kind": "Ident",
                           "line": 2,
                           "name": "n",
                         },
                         "op": "-",
                         "right": {
                           "isFloat": false,
-                          "k": "Lit",
+                          "kind": "Literal",
                           "line": 2,
-                          "v": 1,
+                          "value": 1,
                         },
                       },
                     ],
                     "callee": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 2,
                       "name": "fib",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 2,
                   },
                   "op": "+",
                   "right": {
                     "args": [
                       {
-                        "k": "BinOp",
+                        "kind": "BinaryOp",
                         "left": {
-                          "k": "Ident",
+                          "kind": "Ident",
                           "line": 2,
                           "name": "n",
                         },
                         "op": "-",
                         "right": {
                           "isFloat": false,
-                          "k": "Lit",
+                          "kind": "Literal",
                           "line": 2,
-                          "v": 2,
+                          "value": 2,
                         },
                       },
                     ],
                     "callee": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 2,
                       "name": "fib",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 2,
                   },
                 },
-                "k": "If",
+                "kind": "If",
                 "line": 2,
-                "then": {
-                  "k": "Ident",
+                "thenBranch": {
+                  "kind": "Ident",
                   "line": 2,
                   "name": "n",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 2,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
           null,
@@ -1649,13 +1649,13 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 5,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -1664,98 +1664,98 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 6,
               "local": false,
               "mode": "*",
               "name": "i",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "i",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": false,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 6,
-                "v": 0,
+                "value": 0,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "body": [
                   {
-                    "expr": {
+                    "expression": {
                       "args": [
                         {
-                          "k": "Str",
+                          "kind": "StringLiteral",
                           "line": 8,
                           "raw": "fib(\${i}) = \${fib(i)}",
                         },
                       ],
                       "callee": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 8,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 8,
                           "name": "ruka",
                         },
-                        "prop": "println",
+                        "property": "println",
                       },
-                      "k": "Call",
+                      "kind": "Call",
                       "line": 8,
                     },
-                    "k": "ExprStmt",
+                    "kind": "ExpressionStmt",
                     "line": 8,
                   },
                   {
-                    "k": "Assign",
+                    "kind": "Assign",
                     "line": 9,
                     "name": "i",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 9,
                         "name": "i",
                       },
                       "op": "+",
                       "right": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 9,
-                        "v": 1,
+                        "value": 1,
                       },
                     },
                   },
                 ],
-                "cond": {
-                  "k": "BinOp",
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 7,
                     "name": "i",
                   },
                   "op": "<=",
                   "right": {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 7,
-                    "v": 10,
+                    "value": 10,
                   },
                 },
-                "k": "While",
+                "kind": "While",
                 "line": 7,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 7,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [],
         "paramTypes": [],
@@ -1764,7 +1764,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -1772,13 +1772,13 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -1787,287 +1787,287 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 2,
               "local": false,
               "mode": "*",
               "name": "i",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "i",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": false,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 2,
-                "v": 1,
+                "value": 1,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "body": [
                   {
-                    "expr": {
+                    "expression": {
                       "_multiline": false,
-                      "cond": {
-                        "k": "BinOp",
+                      "condition": {
+                        "kind": "BinaryOp",
                         "left": {
-                          "k": "BinOp",
+                          "kind": "BinaryOp",
                           "left": {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 4,
                             "name": "i",
                           },
                           "op": "%",
                           "right": {
                             "isFloat": false,
-                            "k": "Lit",
+                            "kind": "Literal",
                             "line": 4,
-                            "v": 15,
+                            "value": 15,
                           },
                         },
                         "op": "==",
                         "right": {
                           "isFloat": false,
-                          "k": "Lit",
+                          "kind": "Literal",
                           "line": 4,
-                          "v": 0,
+                          "value": 0,
                         },
                       },
-                      "else_": {
+                      "elseBranch": {
                         "_multiline": false,
-                        "cond": {
-                          "k": "BinOp",
+                        "condition": {
+                          "kind": "BinaryOp",
                           "left": {
-                            "k": "BinOp",
+                            "kind": "BinaryOp",
                             "left": {
-                              "k": "Ident",
+                              "kind": "Ident",
                               "line": 5,
                               "name": "i",
                             },
                             "op": "%",
                             "right": {
                               "isFloat": false,
-                              "k": "Lit",
+                              "kind": "Literal",
                               "line": 5,
-                              "v": 3,
+                              "value": 3,
                             },
                           },
                           "op": "==",
                           "right": {
                             "isFloat": false,
-                            "k": "Lit",
+                            "kind": "Literal",
                             "line": 5,
-                            "v": 0,
+                            "value": 0,
                           },
                         },
-                        "else_": {
+                        "elseBranch": {
                           "_multiline": false,
-                          "cond": {
-                            "k": "BinOp",
+                          "condition": {
+                            "kind": "BinaryOp",
                             "left": {
-                              "k": "BinOp",
+                              "kind": "BinaryOp",
                               "left": {
-                                "k": "Ident",
+                                "kind": "Ident",
                                 "line": 6,
                                 "name": "i",
                               },
                               "op": "%",
                               "right": {
                                 "isFloat": false,
-                                "k": "Lit",
+                                "kind": "Literal",
                                 "line": 6,
-                                "v": 5,
+                                "value": 5,
                               },
                             },
                             "op": "==",
                             "right": {
                               "isFloat": false,
-                              "k": "Lit",
+                              "kind": "Literal",
                               "line": 6,
-                              "v": 0,
+                              "value": 0,
                             },
                           },
-                          "else_": {
+                          "elseBranch": {
                             "body": [
                               {
-                                "expr": {
+                                "expression": {
                                   "args": [
                                     {
-                                      "k": "Str",
+                                      "kind": "StringLiteral",
                                       "line": 7,
                                       "raw": "\${i}",
                                     },
                                   ],
                                   "callee": {
-                                    "k": "Member",
+                                    "kind": "Member",
                                     "line": 7,
-                                    "obj": {
-                                      "k": "Ident",
+                                    "object": {
+                                      "kind": "Ident",
                                       "line": 7,
                                       "name": "ruka",
                                     },
-                                    "prop": "println",
+                                    "property": "println",
                                   },
-                                  "k": "Call",
+                                  "kind": "Call",
                                   "line": 7,
                                 },
-                                "k": "ExprStmt",
+                                "kind": "ExpressionStmt",
                                 "line": 7,
                               },
                             ],
-                            "k": "Block",
+                            "kind": "Block",
                           },
-                          "k": "If",
+                          "kind": "If",
                           "line": 6,
-                          "then": {
+                          "thenBranch": {
                             "body": [
                               {
-                                "expr": {
+                                "expression": {
                                   "args": [
                                     {
-                                      "k": "Str",
+                                      "kind": "StringLiteral",
                                       "line": 6,
                                       "raw": "Buzz",
                                     },
                                   ],
                                   "callee": {
-                                    "k": "Member",
+                                    "kind": "Member",
                                     "line": 6,
-                                    "obj": {
-                                      "k": "Ident",
+                                    "object": {
+                                      "kind": "Ident",
                                       "line": 6,
                                       "name": "ruka",
                                     },
-                                    "prop": "println",
+                                    "property": "println",
                                   },
-                                  "k": "Call",
+                                  "kind": "Call",
                                   "line": 6,
                                 },
-                                "k": "ExprStmt",
+                                "kind": "ExpressionStmt",
                                 "line": 6,
                               },
                             ],
-                            "k": "Block",
+                            "kind": "Block",
                           },
                         },
-                        "k": "If",
+                        "kind": "If",
                         "line": 5,
-                        "then": {
+                        "thenBranch": {
                           "body": [
                             {
-                              "expr": {
+                              "expression": {
                                 "args": [
                                   {
-                                    "k": "Str",
+                                    "kind": "StringLiteral",
                                     "line": 5,
                                     "raw": "Fizz",
                                   },
                                 ],
                                 "callee": {
-                                  "k": "Member",
+                                  "kind": "Member",
                                   "line": 5,
-                                  "obj": {
-                                    "k": "Ident",
+                                  "object": {
+                                    "kind": "Ident",
                                     "line": 5,
                                     "name": "ruka",
                                   },
-                                  "prop": "println",
+                                  "property": "println",
                                 },
-                                "k": "Call",
+                                "kind": "Call",
                                 "line": 5,
                               },
-                              "k": "ExprStmt",
+                              "kind": "ExpressionStmt",
                               "line": 5,
                             },
                           ],
-                          "k": "Block",
+                          "kind": "Block",
                         },
                       },
-                      "k": "If",
+                      "kind": "If",
                       "line": 4,
-                      "then": {
+                      "thenBranch": {
                         "body": [
                           {
-                            "expr": {
+                            "expression": {
                               "args": [
                                 {
-                                  "k": "Str",
+                                  "kind": "StringLiteral",
                                   "line": 4,
                                   "raw": "FizzBuzz",
                                 },
                               ],
                               "callee": {
-                                "k": "Member",
+                                "kind": "Member",
                                 "line": 4,
-                                "obj": {
-                                  "k": "Ident",
+                                "object": {
+                                  "kind": "Ident",
                                   "line": 4,
                                   "name": "ruka",
                                 },
-                                "prop": "println",
+                                "property": "println",
                               },
-                              "k": "Call",
+                              "kind": "Call",
                               "line": 4,
                             },
-                            "k": "ExprStmt",
+                            "kind": "ExpressionStmt",
                             "line": 4,
                           },
                         ],
-                        "k": "Block",
+                        "kind": "Block",
                       },
                     },
-                    "k": "ExprStmt",
+                    "kind": "ExpressionStmt",
                     "line": 4,
                   },
                   {
-                    "k": "Assign",
+                    "kind": "Assign",
                     "line": 8,
                     "name": "i",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 8,
                         "name": "i",
                       },
                       "op": "+",
                       "right": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 8,
-                        "v": 1,
+                        "value": 1,
                       },
                     },
                   },
                 ],
-                "cond": {
-                  "k": "BinOp",
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Ident",
+                    "kind": "Ident",
                     "line": 3,
                     "name": "i",
                   },
                   "op": "<=",
                   "right": {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 3,
-                    "v": 20,
+                    "value": 20,
                   },
                 },
-                "k": "While",
+                "kind": "While",
                 "line": 3,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
         "paramTypes": [],
@@ -2076,7 +2076,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -2084,13 +2084,13 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -2099,52 +2099,52 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 2,
               "local": false,
               "mode": null,
               "name": "name",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "name",
               },
               "receiver": null,
               "type": null,
               "value": {
-                "k": "Str",
+                "kind": "StringLiteral",
                 "line": 2,
                 "raw": "world",
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 3,
                     "raw": "Hello, \${name}!",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 3,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 3,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 3,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
         "paramTypes": [],
@@ -2153,7 +2153,7 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -2161,13 +2161,13 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "counter",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "counter",
       },
       "receiver": null,
@@ -2177,56 +2177,56 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
           {
             "name": "count",
             "type": {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 1,
               "name": "int",
             },
           },
         ],
-        "k": "RecordType",
+        "kind": "RecordType",
         "line": 1,
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 3,
       "local": false,
       "mode": null,
       "name": "new",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "new",
       },
       "receiver": {
         "kind": "static",
-        "tyName": "counter",
+        "typeName": "counter",
       },
       "type": null,
       "value": {
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "fields": [
                   {
                     "name": "count",
                     "value": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 3,
                       "name": "start",
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 3,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
           null,
@@ -2241,18 +2241,18 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 4,
       "local": false,
       "mode": null,
       "name": "zero",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "zero",
       },
       "receiver": {
         "kind": "static",
-        "tyName": "counter",
+        "typeName": "counter",
       },
       "type": null,
       "value": {
@@ -2261,57 +2261,57 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
             "name": "count",
             "value": {
               "isFloat": false,
-              "k": "Lit",
+              "kind": "Literal",
               "line": 4,
-              "v": 0,
+              "value": 0,
             },
           },
         ],
-        "k": "RecordLit",
+        "kind": "RecordLiteral",
         "line": 4,
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 5,
       "local": true,
       "mode": null,
       "name": "Doubled",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "Doubled",
       },
       "receiver": {
         "kind": "static",
-        "tyName": "counter",
+        "typeName": "counter",
       },
       "type": null,
       "value": {
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 5,
                   "name": "n",
                 },
                 "op": "*",
                 "right": {
                   "isFloat": false,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 5,
-                  "v": 2,
+                  "value": 2,
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 5,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [
           null,
@@ -2326,60 +2326,60 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 7,
       "local": false,
       "mode": null,
       "name": "bump",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "bump",
       },
       "receiver": {
         "kind": "self",
-        "tyAnno": null,
+        "typeAnnotation": null,
       },
       "type": null,
       "value": {
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "fields": [
                   {
                     "name": "count",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 7,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 7,
                           "name": "self",
                         },
-                        "prop": "count",
+                        "property": "count",
                       },
                       "op": "+",
                       "right": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 7,
-                        "v": 1,
+                        "value": 1,
                       },
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 7,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 7,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 7,
         "paramModes": [],
         "paramTypes": [],
@@ -2388,76 +2388,76 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 8,
       "local": false,
       "mode": null,
       "name": "bumpDouble",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "bumpDouble",
       },
       "receiver": {
         "kind": "self",
-        "tyAnno": null,
+        "typeAnnotation": null,
       },
       "type": null,
       "value": {
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "fields": [
                   {
                     "name": "count",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 8,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 8,
                           "name": "self",
                         },
-                        "prop": "count",
+                        "property": "count",
                       },
                       "op": "+",
                       "right": {
                         "args": [
                           {
                             "isFloat": false,
-                            "k": "Lit",
+                            "kind": "Literal",
                             "line": 8,
-                            "v": 1,
+                            "value": 1,
                           },
                         ],
                         "callee": {
-                          "k": "Member",
+                          "kind": "Member",
                           "line": 8,
-                          "obj": {
-                            "k": "Ident",
+                          "object": {
+                            "kind": "Ident",
                             "line": 8,
                             "name": "counter",
                           },
-                          "prop": "Doubled",
+                          "property": "Doubled",
                         },
-                        "k": "Call",
+                        "kind": "Call",
                         "line": 8,
                       },
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 8,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 8,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
         "paramTypes": [],
@@ -2466,13 +2466,13 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 10,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -2481,36 +2481,36 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 11,
               "local": false,
               "mode": null,
               "name": "a",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "a",
               },
               "receiver": null,
               "type": null,
               "value": {
-                "k": "Member",
+                "kind": "Member",
                 "line": 11,
-                "obj": {
-                  "k": "Ident",
+                "object": {
+                  "kind": "Ident",
                   "line": 11,
                   "name": "counter",
                 },
-                "prop": "zero",
+                "property": "zero",
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 12,
               "local": false,
               "mode": null,
               "name": "b",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "b",
               },
               "receiver": null,
@@ -2519,33 +2519,33 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                 "args": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 10,
+                    "value": 10,
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 12,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 12,
                     "name": "counter",
                   },
-                  "prop": "new",
+                  "property": "new",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 12,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 13,
               "local": false,
               "mode": null,
               "name": "c",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "c",
               },
               "receiver": null,
@@ -2553,27 +2553,27 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "value": {
                 "args": [],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 13,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 13,
                     "name": "b",
                   },
-                  "prop": "bump",
+                  "property": "bump",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 13,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 14,
               "local": false,
               "mode": null,
               "name": "d",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "d",
               },
               "receiver": null,
@@ -2581,24 +2581,24 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "value": {
                 "args": [],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 14,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 14,
                     "name": "c",
                   },
-                  "prop": "bumpDouble",
+                  "property": "bumpDouble",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 14,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 17,
                     "raw": "a=\${a.count}
 b=\${b.count}
@@ -2607,25 +2607,25 @@ d=\${d.count}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 16,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 16,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 16,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 16,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 10,
         "paramModes": [],
         "paramTypes": [],
@@ -2634,7 +2634,7 @@ d=\${d.count}",
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -2642,13 +2642,13 @@ exports[`parse: fixture snapshots > multiline-strings.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "poem",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "poem",
       },
       "receiver": null,
@@ -2657,21 +2657,21 @@ exports[`parse: fixture snapshots > multiline-strings.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "Str",
+              "expression": {
+                "kind": "StringLiteral",
                 "line": 2,
                 "raw": "Roses are red,
 Violets are blue.
 \${name} is great,
 And so are you!",
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 2,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
           null,
@@ -2686,13 +2686,13 @@ And so are you!",
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 10,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -2701,45 +2701,45 @@ And so are you!",
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
                     "args": [
                       {
-                        "k": "Str",
+                        "kind": "StringLiteral",
                         "line": 10,
                         "raw": "Ruka",
                       },
                     ],
                     "callee": {
-                      "k": "Ident",
+                      "kind": "Ident",
                       "line": 10,
                       "name": "poem",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 10,
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 10,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 10,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 10,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 10,
         "paramModes": [],
         "paramTypes": [],
@@ -2748,7 +2748,7 @@ And so are you!",
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -2756,13 +2756,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": true,
       "mode": null,
       "name": "Vec2",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "Vec2",
       },
       "receiver": null,
@@ -2772,7 +2772,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           {
             "name": "x",
             "type": {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 1,
               "name": "float",
             },
@@ -2780,24 +2780,24 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           {
             "name": "y",
             "type": {
-              "k": "TyName",
+              "kind": "NamedType",
               "line": 1,
               "name": "float",
             },
           },
         ],
-        "k": "RecordType",
+        "kind": "RecordType",
         "line": 1,
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 3,
       "local": false,
       "mode": null,
       "name": "add",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "add",
       },
       "receiver": null,
@@ -2806,73 +2806,73 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "fields": [
                   {
                     "name": "x",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 3,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 3,
                           "name": "a",
                         },
-                        "prop": "x",
+                        "property": "x",
                       },
                       "op": "+",
                       "right": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 3,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 3,
                           "name": "b",
                         },
-                        "prop": "x",
+                        "property": "x",
                       },
                     },
                   },
                   {
                     "name": "y",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 3,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 3,
                           "name": "a",
                         },
-                        "prop": "y",
+                        "property": "y",
                       },
                       "op": "+",
                       "right": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 3,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 3,
                           "name": "b",
                         },
-                        "prop": "y",
+                        "property": "y",
                       },
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 3,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 3,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
           null,
@@ -2890,13 +2890,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 4,
       "local": false,
       "mode": null,
       "name": "scale",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "scale",
       },
       "receiver": null,
@@ -2905,25 +2905,25 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "fields": [
                   {
                     "name": "x",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 4,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 4,
                           "name": "v",
                         },
-                        "prop": "x",
+                        "property": "x",
                       },
                       "op": "*",
                       "right": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 4,
                         "name": "s",
                       },
@@ -2932,36 +2932,36 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   {
                     "name": "y",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 4,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 4,
                           "name": "v",
                         },
-                        "prop": "y",
+                        "property": "y",
                       },
                       "op": "*",
                       "right": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 4,
                         "name": "s",
                       },
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 4,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 4,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 4,
         "paramModes": [
           null,
@@ -2979,13 +2979,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 5,
       "local": false,
       "mode": null,
       "name": "magnitude",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "magnitude",
       },
       "receiver": null,
@@ -2994,81 +2994,81 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "BinOp",
+                    "kind": "BinaryOp",
                     "left": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 5,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 5,
                           "name": "v",
                         },
-                        "prop": "x",
+                        "property": "x",
                       },
                       "op": "*",
                       "right": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 5,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 5,
                           "name": "v",
                         },
-                        "prop": "x",
+                        "property": "x",
                       },
                     },
                     "op": "+",
                     "right": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 5,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 5,
                           "name": "v",
                         },
-                        "prop": "y",
+                        "property": "y",
                       },
                       "op": "*",
                       "right": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 5,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 5,
                           "name": "v",
                         },
-                        "prop": "y",
+                        "property": "y",
                       },
                     },
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 5,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 5,
                     "name": "ruka",
                   },
-                  "prop": "sqrt",
+                  "property": "sqrt",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 5,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 5,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [
           null,
@@ -3083,13 +3083,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 6,
       "local": false,
       "mode": null,
       "name": "round1",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "round1",
       },
       "receiver": null,
@@ -3098,54 +3098,54 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
-                "k": "BinOp",
+              "expression": {
+                "kind": "BinaryOp",
                 "left": {
                   "args": [
                     {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 6,
                         "name": "n",
                       },
                       "op": "*",
                       "right": {
                         "isFloat": true,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 6,
-                        "v": 10,
+                        "value": 10,
                       },
                     },
                   ],
                   "callee": {
-                    "k": "Member",
+                    "kind": "Member",
                     "line": 6,
-                    "obj": {
-                      "k": "Ident",
+                    "object": {
+                      "kind": "Ident",
                       "line": 6,
                       "name": "ruka",
                     },
-                    "prop": "floor",
+                    "property": "floor",
                   },
-                  "k": "Call",
+                  "kind": "Call",
                   "line": 6,
                 },
                 "op": "/",
                 "right": {
                   "isFloat": true,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 6,
-                  "v": 10,
+                  "value": 10,
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 6,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 6,
         "paramModes": [
           null,
@@ -3160,13 +3160,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 8,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -3175,13 +3175,13 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 9,
               "local": false,
               "mode": null,
               "name": "gravity",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "gravity",
               },
               "receiver": null,
@@ -3192,37 +3192,37 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "name": "x",
                     "value": {
                       "isFloat": true,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 9,
-                      "v": 0,
+                      "value": 0,
                     },
                   },
                   {
                     "name": "y",
                     "value": {
-                      "expr": {
+                      "expression": {
                         "isFloat": true,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 9,
-                        "v": 9.8,
+                        "value": 9.8,
                       },
-                      "k": "Unary",
+                      "kind": "UnaryOp",
                       "op": "-",
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 9,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 10,
               "local": false,
               "mode": "*",
               "name": "pos",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "pos",
               },
               "receiver": null,
@@ -3233,33 +3233,33 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "name": "x",
                     "value": {
                       "isFloat": true,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 10,
-                      "v": 0,
+                      "value": 0,
                     },
                   },
                   {
                     "name": "y",
                     "value": {
                       "isFloat": true,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 10,
-                      "v": 20,
+                      "value": 20,
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 10,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 11,
               "local": false,
               "mode": "*",
               "name": "vel",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "vel",
               },
               "receiver": null,
@@ -3270,249 +3270,249 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "name": "x",
                     "value": {
                       "isFloat": true,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 11,
-                      "v": 8,
+                      "value": 8,
                     },
                   },
                   {
                     "name": "y",
                     "value": {
                       "isFloat": true,
-                      "k": "Lit",
+                      "kind": "Literal",
                       "line": 11,
-                      "v": 12,
+                      "value": 12,
                     },
                   },
                 ],
-                "k": "RecordLit",
+                "kind": "RecordLiteral",
                 "line": 11,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 12,
               "local": false,
               "mode": null,
               "name": "dt",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "dt",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": true,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 12,
-                "v": 0.5,
+                "value": 0.5,
               },
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 13,
               "local": false,
               "mode": "*",
               "name": "t",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "t",
               },
               "receiver": null,
               "type": null,
               "value": {
                 "isFloat": true,
-                "k": "Lit",
+                "kind": "Literal",
                 "line": 13,
-                "v": 0,
+                "value": 0,
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 15,
                     "raw": "Projectile  v0=\${round1(magnitude(vel))} m/s",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 15,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 15,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 15,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 15,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 16,
                     "raw": "-----------------------------",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 16,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 16,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 16,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 16,
             },
             {
-              "expr": {
+              "expression": {
                 "body": [
                   {
-                    "k": "Assign",
+                    "kind": "Assign",
                     "line": 19,
                     "name": "vel",
                     "value": {
                       "args": [
                         {
-                          "k": "Ident",
+                          "kind": "Ident",
                           "line": 19,
                           "name": "vel",
                         },
                         {
                           "args": [
                             {
-                              "k": "Ident",
+                              "kind": "Ident",
                               "line": 19,
                               "name": "gravity",
                             },
                             {
-                              "k": "Ident",
+                              "kind": "Ident",
                               "line": 19,
                               "name": "dt",
                             },
                           ],
                           "callee": {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 19,
                             "name": "scale",
                           },
-                          "k": "Call",
+                          "kind": "Call",
                           "line": 19,
                         },
                       ],
                       "callee": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 19,
                         "name": "add",
                       },
-                      "k": "Call",
+                      "kind": "Call",
                       "line": 19,
                     },
                   },
                   {
-                    "k": "Assign",
+                    "kind": "Assign",
                     "line": 20,
                     "name": "pos",
                     "value": {
                       "args": [
                         {
-                          "k": "Ident",
+                          "kind": "Ident",
                           "line": 20,
                           "name": "pos",
                         },
                         {
                           "args": [
                             {
-                              "k": "Ident",
+                              "kind": "Ident",
                               "line": 20,
                               "name": "vel",
                             },
                             {
-                              "k": "Ident",
+                              "kind": "Ident",
                               "line": 20,
                               "name": "dt",
                             },
                           ],
                           "callee": {
-                            "k": "Ident",
+                            "kind": "Ident",
                             "line": 20,
                             "name": "scale",
                           },
-                          "k": "Call",
+                          "kind": "Call",
                           "line": 20,
                         },
                       ],
                       "callee": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 20,
                         "name": "add",
                       },
-                      "k": "Call",
+                      "kind": "Call",
                       "line": 20,
                     },
                   },
                   {
-                    "k": "Assign",
+                    "kind": "Assign",
                     "line": 21,
                     "name": "t",
                     "value": {
-                      "k": "BinOp",
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 21,
                         "name": "t",
                       },
                       "op": "+",
                       "right": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 21,
                         "name": "dt",
                       },
                     },
                   },
                   {
-                    "expr": {
+                    "expression": {
                       "_multiline": false,
-                      "cond": {
-                        "k": "BinOp",
+                      "condition": {
+                        "kind": "BinaryOp",
                         "left": {
-                          "k": "Member",
+                          "kind": "Member",
                           "line": 23,
-                          "obj": {
-                            "k": "Ident",
+                          "object": {
+                            "kind": "Ident",
                             "line": 23,
                             "name": "pos",
                           },
-                          "prop": "y",
+                          "property": "y",
                         },
                         "op": "<",
                         "right": {
                           "isFloat": true,
-                          "k": "Lit",
+                          "kind": "Literal",
                           "line": 23,
-                          "v": 0,
+                          "value": 0,
                         },
                       },
-                      "else_": null,
-                      "k": "If",
+                      "elseBranch": null,
+                      "kind": "If",
                       "line": 23,
-                      "then": {
+                      "thenBranch": {
                         "body": [
                           {
-                            "k": "Assign",
+                            "kind": "Assign",
                             "line": 23,
                             "name": "pos",
                             "value": {
@@ -3520,143 +3520,143 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                                 {
                                   "name": "x",
                                   "value": {
-                                    "k": "Member",
+                                    "kind": "Member",
                                     "line": 23,
-                                    "obj": {
-                                      "k": "Ident",
+                                    "object": {
+                                      "kind": "Ident",
                                       "line": 23,
                                       "name": "pos",
                                     },
-                                    "prop": "x",
+                                    "property": "x",
                                   },
                                 },
                                 {
                                   "name": "y",
                                   "value": {
                                     "isFloat": true,
-                                    "k": "Lit",
+                                    "kind": "Literal",
                                     "line": 23,
-                                    "v": 0,
+                                    "value": 0,
                                   },
                                 },
                               ],
-                              "k": "RecordLit",
+                              "kind": "RecordLiteral",
                               "line": 23,
                             },
                           },
                         ],
-                        "k": "Block",
+                        "kind": "Block",
                       },
                     },
-                    "k": "ExprStmt",
+                    "kind": "ExpressionStmt",
                     "line": 23,
                   },
                   {
-                    "expr": {
+                    "expression": {
                       "args": [
                         {
-                          "k": "Str",
+                          "kind": "StringLiteral",
                           "line": 25,
                           "raw": "t=\${round1(t)}s  x=\${round1(pos.x)}m  y=\${round1(pos.y)}m",
                         },
                       ],
                       "callee": {
-                        "k": "Member",
+                        "kind": "Member",
                         "line": 25,
-                        "obj": {
-                          "k": "Ident",
+                        "object": {
+                          "kind": "Ident",
                           "line": 25,
                           "name": "ruka",
                         },
-                        "prop": "println",
+                        "property": "println",
                       },
-                      "k": "Call",
+                      "kind": "Call",
                       "line": 25,
                     },
-                    "k": "ExprStmt",
+                    "kind": "ExpressionStmt",
                     "line": 25,
                   },
                 ],
-                "cond": {
-                  "k": "BinOp",
+                "condition": {
+                  "kind": "BinaryOp",
                   "left": {
-                    "k": "Member",
+                    "kind": "Member",
                     "line": 18,
-                    "obj": {
-                      "k": "Ident",
+                    "object": {
+                      "kind": "Ident",
                       "line": 18,
                       "name": "pos",
                     },
-                    "prop": "y",
+                    "property": "y",
                   },
                   "op": ">",
                   "right": {
                     "isFloat": true,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 18,
-                    "v": 0,
+                    "value": 0,
                   },
                 },
-                "k": "While",
+                "kind": "While",
                 "line": 18,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 18,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 28,
                     "raw": "-----------------------------",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 28,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 28,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 28,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 28,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 29,
                     "raw": "Range: \${round1(pos.x)}m   Time: \${round1(t)}s",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 29,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 29,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 29,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 29,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
         "paramTypes": [],
@@ -3665,7 +3665,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -3673,13 +3673,13 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "grade",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "grade",
       },
       "receiver": null,
@@ -3688,37 +3688,37 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
         "body": {
           "body": [
             {
-              "expr": {
+              "expression": {
                 "arms": [
                   {
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 3,
                             "raw": "A",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 3,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
-                      "hi": {
+                    "pattern": {
+                      "high": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 3,
-                        "v": 100,
+                        "value": 100,
                       },
                       "inclusive": true,
-                      "k": "RangePat",
-                      "lo": {
+                      "kind": "RangePattern",
+                      "low": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 3,
-                        "v": 90,
+                        "value": 90,
                       },
                     },
                   },
@@ -3726,31 +3726,31 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 4,
                             "raw": "B",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 4,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
-                      "hi": {
+                    "pattern": {
+                      "high": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 4,
-                        "v": 89,
+                        "value": 89,
                       },
                       "inclusive": true,
-                      "k": "RangePat",
-                      "lo": {
+                      "kind": "RangePattern",
+                      "low": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 4,
-                        "v": 80,
+                        "value": 80,
                       },
                     },
                   },
@@ -3758,31 +3758,31 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 5,
                             "raw": "C",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 5,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
-                      "hi": {
+                    "pattern": {
+                      "high": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 5,
-                        "v": 79,
+                        "value": 79,
                       },
                       "inclusive": true,
-                      "k": "RangePat",
-                      "lo": {
+                      "kind": "RangePattern",
+                      "low": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 5,
-                        "v": 70,
+                        "value": 70,
                       },
                     },
                   },
@@ -3790,31 +3790,31 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
-                          "expr": {
-                            "k": "Str",
+                          "expression": {
+                            "kind": "StringLiteral",
                             "line": 6,
                             "raw": "D",
                           },
-                          "k": "ExprStmt",
+                          "kind": "ExpressionStmt",
                           "line": 6,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
-                    "pat": {
-                      "hi": {
+                    "pattern": {
+                      "high": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 6,
-                        "v": 69,
+                        "value": 69,
                       },
                       "inclusive": true,
-                      "k": "RangePat",
-                      "lo": {
+                      "kind": "RangePattern",
+                      "low": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 6,
-                        "v": 60,
+                        "value": 60,
                       },
                     },
                   },
@@ -3822,32 +3822,32 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                 "elseArm": {
                   "body": [
                     {
-                      "expr": {
-                        "k": "Str",
+                      "expression": {
+                        "kind": "StringLiteral",
                         "line": 7,
                         "raw": "F",
                       },
-                      "k": "ExprStmt",
+                      "kind": "ExpressionStmt",
                       "line": 7,
                     },
                   ],
-                  "k": "Block",
+                  "kind": "Block",
                 },
-                "k": "Match",
+                "kind": "Match",
                 "line": 2,
                 "subject": {
-                  "k": "Ident",
+                  "kind": "Ident",
                   "line": 2,
                   "name": "score",
                 },
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 2,
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
           null,
@@ -3862,13 +3862,13 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
       },
     },
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 11,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -3877,13 +3877,13 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
         "body": {
           "body": [
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 12,
               "local": false,
               "mode": null,
               "name": "scores",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "scores",
               },
               "receiver": null,
@@ -3892,44 +3892,44 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                 "elements": [
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 95,
+                    "value": 95,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 83,
+                    "value": 83,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 71,
+                    "value": 71,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 65,
+                    "value": 65,
                   },
                   {
                     "isFloat": false,
-                    "k": "Lit",
+                    "kind": "Literal",
                     "line": 12,
-                    "v": 42,
+                    "value": 42,
                   },
                 ],
-                "k": "List",
+                "kind": "ListLiteral",
                 "line": 12,
                 "typePrefix": {
-                  "elem": {
-                    "k": "TyName",
+                  "element": {
+                    "kind": "NamedType",
                     "line": 12,
                     "name": "int",
                   },
-                  "k": "TyArray",
+                  "kind": "ArrayType",
                   "line": 12,
                 },
               },
@@ -3937,44 +3937,44 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
             {
               "body": [
                 {
-                  "expr": {
+                  "expression": {
                     "args": [
                       {
-                        "k": "Str",
+                        "kind": "StringLiteral",
                         "line": 14,
                         "raw": "Score \${s}: \${grade(s)}",
                       },
                     ],
                     "callee": {
-                      "k": "Member",
+                      "kind": "Member",
                       "line": 14,
-                      "obj": {
-                        "k": "Ident",
+                      "object": {
+                        "kind": "Ident",
                         "line": 14,
                         "name": "ruka",
                       },
-                      "prop": "println",
+                      "property": "println",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 14,
                   },
-                  "k": "ExprStmt",
+                  "kind": "ExpressionStmt",
                   "line": 14,
                 },
               ],
-              "iter": {
-                "k": "Ident",
+              "iterable": {
+                "kind": "Ident",
                 "line": 13,
                 "name": "scores",
               },
-              "k": "For",
+              "kind": "For",
               "line": 13,
               "name": "s",
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 11,
         "paramModes": [],
         "paramTypes": [],
@@ -3983,7 +3983,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;
 
@@ -3991,13 +3991,13 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
 {
   "body": [
     {
-      "k": "Bind",
+      "kind": "Binding",
       "line": 1,
       "local": false,
       "mode": null,
       "name": "main",
-      "pat": {
-        "k": "IdentPat",
+      "pattern": {
+        "kind": "IdentifierPattern",
         "name": "main",
       },
       "receiver": null,
@@ -4008,66 +4008,66 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
             {
               "body": [
                 {
-                  "expr": {
+                  "expression": {
                     "args": [
                       {
-                        "k": "Str",
+                        "kind": "StringLiteral",
                         "line": 4,
                         "raw": "\${i} ** 2 = \${i ** 2}",
                       },
                     ],
                     "callee": {
-                      "k": "Member",
+                      "kind": "Member",
                       "line": 4,
-                      "obj": {
-                        "k": "Ident",
+                      "object": {
+                        "kind": "Ident",
                         "line": 4,
                         "name": "ruka",
                       },
-                      "prop": "println",
+                      "property": "println",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 4,
                   },
-                  "k": "ExprStmt",
+                  "kind": "ExpressionStmt",
                   "line": 4,
                 },
               ],
-              "iter": {
+              "iterable": {
                 "end": {
                   "isFloat": false,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 3,
-                  "v": 5,
+                  "value": 5,
                 },
                 "inclusive": true,
-                "k": "Range",
+                "kind": "Range",
                 "line": 3,
                 "start": {
                   "isFloat": false,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 3,
-                  "v": 1,
+                  "value": 1,
                 },
               },
-              "k": "For",
+              "kind": "For",
               "line": 3,
               "name": "i",
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 8,
               "local": false,
               "mode": "*",
               "name": "word",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "word",
               },
               "receiver": null,
               "type": null,
               "value": {
-                "k": "Str",
+                "kind": "StringLiteral",
                 "line": 8,
                 "raw": "",
               },
@@ -4075,275 +4075,275 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
             {
               "body": [
                 {
-                  "k": "Assign",
+                  "kind": "Assign",
                   "line": 9,
                   "name": "word",
                   "value": {
                     "args": [
                       {
-                        "k": "Str",
+                        "kind": "StringLiteral",
                         "line": 9,
                         "raw": "\${c}",
                       },
                     ],
                     "callee": {
-                      "k": "Member",
+                      "kind": "Member",
                       "line": 9,
-                      "obj": {
-                        "k": "Ident",
+                      "object": {
+                        "kind": "Ident",
                         "line": 9,
                         "name": "word",
                       },
-                      "prop": "concat",
+                      "property": "concat",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 9,
                   },
                 },
               ],
-              "iter": {
+              "iterable": {
                 "end": {
-                  "k": "Char",
+                  "kind": "CharLiteral",
                   "line": 9,
-                  "v": 90,
+                  "value": 90,
                 },
                 "inclusive": true,
-                "k": "Range",
+                "kind": "Range",
                 "line": 9,
                 "start": {
-                  "k": "Char",
+                  "kind": "CharLiteral",
                   "line": 9,
-                  "v": 82,
+                  "value": 82,
                 },
               },
-              "k": "For",
+              "kind": "For",
               "line": 9,
               "name": "c",
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 10,
                     "raw": "letters: \${word}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 10,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 10,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 10,
             },
             {
-              "k": "Bind",
+              "kind": "Binding",
               "line": 13,
               "local": false,
               "mode": null,
               "name": "name",
-              "pat": {
-                "k": "IdentPat",
+              "pattern": {
+                "kind": "IdentifierPattern",
                 "name": "name",
               },
               "receiver": null,
               "type": null,
               "value": {
-                "k": "Str",
+                "kind": "StringLiteral",
                 "line": 13,
                 "raw": "Ruka",
               },
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 14,
                     "raw": "first:   \${name[0]}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 14,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 14,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 14,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 14,
             },
             {
-              "expr": {
+              "expression": {
                 "args": [
                   {
-                    "k": "Str",
+                    "kind": "StringLiteral",
                     "line": 15,
                     "raw": "slice:   \${name[1..=3]}",
                   },
                 ],
                 "callee": {
-                  "k": "Member",
+                  "kind": "Member",
                   "line": 15,
-                  "obj": {
-                    "k": "Ident",
+                  "object": {
+                    "kind": "Ident",
                     "line": 15,
                     "name": "ruka",
                   },
-                  "prop": "println",
+                  "property": "println",
                 },
-                "k": "Call",
+                "kind": "Call",
                 "line": 15,
               },
-              "k": "ExprStmt",
+              "kind": "ExpressionStmt",
               "line": 15,
             },
             {
               "body": [
                 {
-                  "expr": {
+                  "expression": {
                     "_multiline": false,
-                    "cond": {
-                      "k": "BinOp",
+                    "condition": {
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "BinOp",
+                        "kind": "BinaryOp",
                         "left": {
-                          "k": "Ident",
+                          "kind": "Ident",
                           "line": 19,
                           "name": "i",
                         },
                         "op": "%",
                         "right": {
                           "isFloat": false,
-                          "k": "Lit",
+                          "kind": "Literal",
                           "line": 19,
-                          "v": 2,
+                          "value": 2,
                         },
                       },
                       "op": "==",
                       "right": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 19,
-                        "v": 0,
+                        "value": 0,
                       },
                     },
-                    "else_": null,
-                    "k": "If",
+                    "elseBranch": null,
+                    "kind": "If",
                     "line": 19,
-                    "then": {
+                    "thenBranch": {
                       "body": [
                         {
-                          "k": "Continue",
+                          "kind": "Continue",
                           "line": 19,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
                   },
-                  "k": "ExprStmt",
+                  "kind": "ExpressionStmt",
                   "line": 19,
                 },
                 {
-                  "expr": {
+                  "expression": {
                     "_multiline": false,
-                    "cond": {
-                      "k": "BinOp",
+                    "condition": {
+                      "kind": "BinaryOp",
                       "left": {
-                        "k": "Ident",
+                        "kind": "Ident",
                         "line": 20,
                         "name": "i",
                       },
                       "op": ">",
                       "right": {
                         "isFloat": false,
-                        "k": "Lit",
+                        "kind": "Literal",
                         "line": 20,
-                        "v": 9,
+                        "value": 9,
                       },
                     },
-                    "else_": null,
-                    "k": "If",
+                    "elseBranch": null,
+                    "kind": "If",
                     "line": 20,
-                    "then": {
+                    "thenBranch": {
                       "body": [
                         {
-                          "k": "Break",
+                          "kind": "Break",
                           "line": 20,
                         },
                       ],
-                      "k": "Block",
+                      "kind": "Block",
                     },
                   },
-                  "k": "ExprStmt",
+                  "kind": "ExpressionStmt",
                   "line": 20,
                 },
                 {
-                  "expr": {
+                  "expression": {
                     "args": [
                       {
-                        "k": "Str",
+                        "kind": "StringLiteral",
                         "line": 21,
                         "raw": "odd \${i}",
                       },
                     ],
                     "callee": {
-                      "k": "Member",
+                      "kind": "Member",
                       "line": 21,
-                      "obj": {
-                        "k": "Ident",
+                      "object": {
+                        "kind": "Ident",
                         "line": 21,
                         "name": "ruka",
                       },
-                      "prop": "println",
+                      "property": "println",
                     },
-                    "k": "Call",
+                    "kind": "Call",
                     "line": 21,
                   },
-                  "k": "ExprStmt",
+                  "kind": "ExpressionStmt",
                   "line": 21,
                 },
               ],
-              "iter": {
+              "iterable": {
                 "end": {
                   "isFloat": false,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 18,
-                  "v": 20,
+                  "value": 20,
                 },
                 "inclusive": false,
-                "k": "Range",
+                "kind": "Range",
                 "line": 18,
                 "start": {
                   "isFloat": false,
-                  "k": "Lit",
+                  "kind": "Literal",
                   "line": 18,
-                  "v": 0,
+                  "value": 0,
                 },
               },
-              "k": "For",
+              "kind": "For",
               "line": 18,
               "name": "i",
             },
           ],
-          "k": "Block",
+          "kind": "Block",
         },
-        "k": "Fn",
+        "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
         "paramTypes": [],
@@ -4352,6 +4352,6 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
       },
     },
   ],
-  "k": "Program",
+  "kind": "Program",
 }
 `;

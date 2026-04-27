@@ -26,7 +26,7 @@ export function tokenize(source: string): Token[] {
 		// Newline: emit NL only at bracket-depth 0; inside brackets it's whitespace.
 		if (source[pos] === "\n") {
 			if (bracketDepth === 0) {
-				tokens.push({ kind: "NL", val: "\n", line });
+				tokens.push({ kind: "NL", value: "\n", line });
 			}
 			line++;
 			pos++;
@@ -109,7 +109,7 @@ export function tokenize(source: string): Token[] {
 					}
 				}
 			}
-			tokens.push({ kind: "STR", val: body, line: tokenLine });
+			tokens.push({ kind: "STR", value: body, line: tokenLine });
 			continue;
 		}
 
@@ -162,7 +162,7 @@ export function tokenize(source: string): Token[] {
 				}
 			}
 			pos++; // closing "
-			tokens.push({ kind: "STR", val: body, line: tokenLine });
+			tokens.push({ kind: "STR", value: body, line: tokenLine });
 			continue;
 		}
 
@@ -207,7 +207,7 @@ export function tokenize(source: string): Token[] {
 			if (source[pos] === "'") {
 				pos++;
 			}
-			tokens.push({ kind: "CHAR", val: charValue, line: tokenLine });
+			tokens.push({ kind: "CHAR", value: charValue, line: tokenLine });
 			continue;
 		}
 
@@ -229,7 +229,7 @@ export function tokenize(source: string): Token[] {
 					numberText += source[pos++];
 				}
 			}
-			tokens.push({ kind: "NUM", val: numberText, line: tokenLine });
+			tokens.push({ kind: "NUM", value: numberText, line: tokenLine });
 			continue;
 		}
 
@@ -240,21 +240,21 @@ export function tokenize(source: string): Token[] {
 				word += source[pos++];
 			}
 			const kind = (KEYWORDS as Set<string>).has(word) ? word : "ID";
-			tokens.push({ kind: kind, val: word, line: tokenLine });
+			tokens.push({ kind: kind, value: word, line: tokenLine });
 			continue;
 		}
 
 		// Three-char punctuators (must precede two-char).
 		const threeChar = source.slice(pos, pos + 3);
 		if (PUNCT3_SET.has(threeChar)) {
-			tokens.push({ kind: threeChar, val: threeChar, line: tokenLine });
+			tokens.push({ kind: threeChar, value: threeChar, line: tokenLine });
 			pos += 3;
 			continue;
 		}
 		// Two-char punctuators.
 		const twoChar = source.slice(pos, pos + 2);
 		if (PUNCT2_SET.has(twoChar)) {
-			tokens.push({ kind: twoChar, val: twoChar, line: tokenLine });
+			tokens.push({ kind: twoChar, value: twoChar, line: tokenLine });
 			pos += 2;
 			continue;
 		}
@@ -265,10 +265,10 @@ export function tokenize(source: string): Token[] {
 		} else if (currentChar === ")" || currentChar === "]" || currentChar === "}") {
 			bracketDepth--;
 		}
-		tokens.push({ kind: currentChar, val: currentChar, line: tokenLine });
+		tokens.push({ kind: currentChar, value: currentChar, line: tokenLine });
 		pos++;
 	}
 
-	tokens.push({ kind: "EOF", val: "", line });
+	tokens.push({ kind: "EOF", value: "", line });
 	return tokens;
 }

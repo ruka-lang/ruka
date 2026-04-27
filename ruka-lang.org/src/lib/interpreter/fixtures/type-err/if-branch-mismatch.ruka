@@ -1,0 +1,4 @@
+// expect: type mismatch
+let main = () do
+    let x = if true do 1 else "two"
+end
