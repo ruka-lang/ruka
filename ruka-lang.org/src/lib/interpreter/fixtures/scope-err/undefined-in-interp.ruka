@@ -1,0 +1,4 @@
+// expect: Undefined: who
+let main = () do
+    ruka.println("hello ${who}")
+end

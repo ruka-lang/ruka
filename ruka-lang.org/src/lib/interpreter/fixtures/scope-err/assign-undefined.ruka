@@ -1,0 +1,4 @@
+// expect: Undefined: y
+let main = () do
+    y = 5
+end

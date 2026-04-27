@@ -36,9 +36,9 @@ TODO (Features, Docs and playground)
         - [x] Syntax highlighting for multiline string interpolation
 		- [ ] `|` of multiline string should be highlighted like comments
 	- [ ] Behaviours
-	- [ ] Builtin behaviours 
+	- [ ] Builtin behaviours
 		- [ ] ruka.iteratable used by for loops (defined by default for relevant builtins and primatives)
-		- [ ] ruka.printable used by print functions (only builtin types and primatives have this behaviour defined by default) 
+		- [ ] ruka.printable used by print functions (only builtin types and primatives have this behaviour defined by default)
 		- [ ] operators (allowing operator functionality like +, /, [] to be supported for custom types, defined by default for relevant builtin and primatives)
     - [ ] Builtin import function for importing other files in the playground
         - [ ] Mock standard library with function for io operations like clearing the console, getting user input, etc

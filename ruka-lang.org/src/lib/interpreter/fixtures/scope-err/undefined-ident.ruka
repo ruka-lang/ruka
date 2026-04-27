@@ -1,0 +1,4 @@
+// expect: Undefined: missing
+let main = () do
+    ruka.println(missing)
+end

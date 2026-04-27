@@ -1,0 +1,4357 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parse: fixture snapshots > arrays.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 2,
+              "local": false,
+              "mode": "*",
+              "name": "primes",
+              "pat": {
+                "k": "IdentPat",
+                "name": "primes",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "elements": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 2,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 3,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 5,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 7,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 11,
+                  },
+                ],
+                "k": "List",
+                "line": 2,
+                "typePrefix": {
+                  "elem": {
+                    "k": "TyName",
+                    "line": 2,
+                    "name": "int",
+                  },
+                  "k": "TyArray",
+                  "line": 2,
+                },
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 3,
+                    "raw": "primes:  \${primes}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 3,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 3,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 3,
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 4,
+                    "raw": "length:  \${primes.length()}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 4,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 4,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 4,
+              },
+              "k": "ExprStmt",
+              "line": 4,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 5,
+                    "raw": "first:   \${primes[0]}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 5,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 5,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 5,
+              },
+              "k": "ExprStmt",
+              "line": 5,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 6,
+                    "raw": "last:    \${primes[primes.length() - 1]}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 6,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 6,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 6,
+              },
+              "k": "ExprStmt",
+              "line": 6,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 8,
+                    "v": 13,
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 8,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 8,
+                    "name": "primes",
+                  },
+                  "prop": "append",
+                },
+                "k": "Call",
+                "line": 8,
+              },
+              "k": "ExprStmt",
+              "line": 8,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 9,
+                    "raw": "after append(13): \${primes}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 9,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 9,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 9,
+              },
+              "k": "ExprStmt",
+              "line": 9,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 11,
+                    "v": 0,
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 11,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 11,
+                    "name": "primes",
+                  },
+                  "prop": "remove",
+                },
+                "k": "Call",
+                "line": 11,
+              },
+              "k": "ExprStmt",
+              "line": 11,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 12,
+                    "raw": "after remove(0):  \${primes}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 12,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 12,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 12,
+              },
+              "k": "ExprStmt",
+              "line": 12,
+            },
+            {
+              "k": "Bind",
+              "line": 15,
+              "local": false,
+              "mode": "*",
+              "name": "sum",
+              "pat": {
+                "k": "IdentPat",
+                "name": "sum",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": false,
+                "k": "Lit",
+                "line": 15,
+                "v": 0,
+              },
+            },
+            {
+              "body": [
+                {
+                  "k": "Assign",
+                  "line": 16,
+                  "name": "sum",
+                  "value": {
+                    "k": "BinOp",
+                    "left": {
+                      "k": "Ident",
+                      "line": 16,
+                      "name": "sum",
+                    },
+                    "op": "+",
+                    "right": {
+                      "k": "Ident",
+                      "line": 16,
+                      "name": "p",
+                    },
+                  },
+                },
+              ],
+              "iter": {
+                "k": "Ident",
+                "line": 16,
+                "name": "primes",
+              },
+              "k": "For",
+              "line": 16,
+              "name": "p",
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 17,
+                    "raw": "sum:     \${sum}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 17,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 17,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 17,
+              },
+              "k": "ExprStmt",
+              "line": 17,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 20,
+                    "raw": "slice:   \${primes[1..4]}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 20,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 20,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 20,
+              },
+              "k": "ExprStmt",
+              "line": 20,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > blank.ruka 1`] = `
+{
+  "body": [],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > calculator.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "add",
+      "pat": {
+        "k": "IdentPat",
+        "name": "add",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 1,
+                  "name": "a",
+                },
+                "op": "+",
+                "right": {
+                  "k": "Ident",
+                  "line": 1,
+                  "name": "b",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 1,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 2,
+      "local": false,
+      "mode": null,
+      "name": "sub",
+      "pat": {
+        "k": "IdentPat",
+        "name": "sub",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 2,
+                  "name": "a",
+                },
+                "op": "-",
+                "right": {
+                  "k": "Ident",
+                  "line": 2,
+                  "name": "b",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 2,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 2,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "mul",
+      "pat": {
+        "k": "IdentPat",
+        "name": "mul",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 3,
+                  "name": "a",
+                },
+                "op": "*",
+                "right": {
+                  "k": "Ident",
+                  "line": 3,
+                  "name": "b",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 3,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 4,
+      "local": false,
+      "mode": null,
+      "name": "div",
+      "pat": {
+        "k": "IdentPat",
+        "name": "div",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 4,
+                  "name": "a",
+                },
+                "op": "/",
+                "right": {
+                  "k": "Ident",
+                  "line": 4,
+                  "name": "b",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 4,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 4,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 6,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 7,
+              "local": false,
+              "mode": null,
+              "name": "x",
+              "pat": {
+                "k": "IdentPat",
+                "name": "x",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": false,
+                "k": "Lit",
+                "line": 7,
+                "v": 12,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 8,
+              "local": false,
+              "mode": null,
+              "name": "y",
+              "pat": {
+                "k": "IdentPat",
+                "name": "y",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": false,
+                "k": "Lit",
+                "line": 8,
+                "v": 4,
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 9,
+                    "raw": "\${x} + \${y} = \${add(x, y)}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 9,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 9,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 9,
+              },
+              "k": "ExprStmt",
+              "line": 9,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 10,
+                    "raw": "\${x} - \${y} = \${sub(x, y)}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 10,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 10,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 10,
+              },
+              "k": "ExprStmt",
+              "line": 10,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 11,
+                    "raw": "\${x} * \${y} = \${mul(x, y)}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 11,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 11,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 11,
+              },
+              "k": "ExprStmt",
+              "line": 11,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 12,
+                    "raw": "\${x} / \${y} = \${div(x, y)}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 12,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 12,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 12,
+              },
+              "k": "ExprStmt",
+              "line": 12,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 6,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > combat.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": true,
+      "mode": null,
+      "name": "Hit",
+      "pat": {
+        "k": "IdentPat",
+        "name": "Hit",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "k": "VariantType",
+        "line": 1,
+        "tags": [
+          {
+            "name": "critical",
+            "type": {
+              "k": "TyName",
+              "line": 2,
+              "name": "int",
+            },
+          },
+          {
+            "name": "normal",
+            "type": {
+              "k": "TyName",
+              "line": 3,
+              "name": "int",
+            },
+          },
+          {
+            "name": "miss",
+            "type": null,
+          },
+        ],
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 7,
+      "local": false,
+      "mode": null,
+      "name": "attack",
+      "pat": {
+        "k": "IdentPat",
+        "name": "attack",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 8,
+              "local": false,
+              "mode": null,
+              "name": "score",
+              "pat": {
+                "k": "IdentPat",
+                "name": "score",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 8,
+                  "name": "power",
+                },
+                "op": "+",
+                "right": {
+                  "k": "Ident",
+                  "line": 8,
+                  "name": "accuracy",
+                },
+              },
+            },
+            {
+              "expr": {
+                "_multiline": false,
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Ident",
+                    "line": 9,
+                    "name": "score",
+                  },
+                  "op": ">=",
+                  "right": {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 9,
+                    "v": 15,
+                  },
+                },
+                "else_": {
+                  "_multiline": false,
+                  "cond": {
+                    "k": "BinOp",
+                    "left": {
+                      "k": "Ident",
+                      "line": 10,
+                      "name": "score",
+                    },
+                    "op": ">=",
+                    "right": {
+                      "isFloat": false,
+                      "k": "Lit",
+                      "line": 10,
+                      "v": 6,
+                    },
+                  },
+                  "else_": {
+                    "body": [
+                      {
+                        "expr": {
+                          "k": "VariantCtor",
+                          "line": 11,
+                          "payload": null,
+                          "tag": "miss",
+                        },
+                        "k": "ExprStmt",
+                        "line": 11,
+                      },
+                    ],
+                    "k": "Block",
+                  },
+                  "k": "If",
+                  "line": 10,
+                  "then": {
+                    "body": [
+                      {
+                        "expr": {
+                          "k": "VariantCtor",
+                          "line": 10,
+                          "payload": {
+                            "k": "Ident",
+                            "line": 10,
+                            "name": "score",
+                          },
+                          "tag": "normal",
+                        },
+                        "k": "ExprStmt",
+                        "line": 10,
+                      },
+                    ],
+                    "k": "Block",
+                  },
+                },
+                "k": "If",
+                "line": 9,
+                "then": {
+                  "body": [
+                    {
+                      "expr": {
+                        "k": "VariantCtor",
+                        "line": 9,
+                        "payload": {
+                          "k": "BinOp",
+                          "left": {
+                            "k": "Ident",
+                            "line": 9,
+                            "name": "score",
+                          },
+                          "op": "*",
+                          "right": {
+                            "isFloat": false,
+                            "k": "Lit",
+                            "line": 9,
+                            "v": 2,
+                          },
+                        },
+                        "tag": "critical",
+                      },
+                      "k": "ExprStmt",
+                      "line": 9,
+                    },
+                  ],
+                  "k": "Block",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 9,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 7,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "power",
+          "accuracy",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 14,
+      "local": false,
+      "mode": null,
+      "name": "report",
+      "pat": {
+        "k": "IdentPat",
+        "name": "report",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "arms": [
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 16,
+                            "raw": "*** Critical hit for \${dmg} damage! ***",
+                          },
+                          "k": "ExprStmt",
+                          "line": 16,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "binding": {
+                        "k": "BindPat",
+                        "name": "dmg",
+                      },
+                      "k": "VariantPat",
+                      "tag": "critical",
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 17,
+                            "raw": "Hit for \${dmg} damage.",
+                          },
+                          "k": "ExprStmt",
+                          "line": 17,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "binding": {
+                        "k": "BindPat",
+                        "name": "dmg",
+                      },
+                      "k": "VariantPat",
+                      "tag": "normal",
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 18,
+                            "raw": "Missed!",
+                          },
+                          "k": "ExprStmt",
+                          "line": 18,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "binding": null,
+                      "k": "VariantPat",
+                      "tag": "miss",
+                    },
+                  },
+                ],
+                "elseArm": null,
+                "k": "Match",
+                "line": 15,
+                "subject": {
+                  "k": "Ident",
+                  "line": 15,
+                  "name": "hit",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 15,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 14,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "hit",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 22,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 24,
+                    "raw": "=== Battle Report ===
+
+Iron Sword  (pow=8,  acc=6):  \${report(attack(8,  6))}
+Rusty Knife (pow=3,  acc=4):  \${report(attack(3,  4))}
+Great Axe   (pow=14, acc=1):  \${report(attack(14, 1))}
+Magic Wand  (pow=10, acc=5):  \${report(attack(10, 5))}
+Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 23,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 23,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 23,
+              },
+              "k": "ExprStmt",
+              "line": 23,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 22,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "swap",
+      "pat": {
+        "k": "IdentPat",
+        "name": "swap",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "elements": [
+                  {
+                    "k": "Ident",
+                    "line": 1,
+                    "name": "b",
+                  },
+                  {
+                    "k": "Ident",
+                    "line": 1,
+                    "name": "a",
+                  },
+                ],
+                "k": "List",
+                "line": 1,
+                "typePrefix": {
+                  "elems": [
+                    {
+                      "k": "TyName",
+                      "line": 1,
+                      "name": "int",
+                    },
+                    {
+                      "k": "TyName",
+                      "line": 1,
+                      "name": "int",
+                    },
+                  ],
+                  "k": "TyTuple",
+                  "line": 1,
+                },
+              },
+              "k": "ExprStmt",
+              "line": 1,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "minmax",
+      "pat": {
+        "k": "IdentPat",
+        "name": "minmax",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "_multiline": false,
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Ident",
+                    "line": 4,
+                    "name": "a",
+                  },
+                  "op": "<",
+                  "right": {
+                    "k": "Ident",
+                    "line": 4,
+                    "name": "b",
+                  },
+                },
+                "else_": {
+                  "body": [
+                    {
+                      "expr": {
+                        "elements": [
+                          {
+                            "k": "Ident",
+                            "line": 5,
+                            "name": "b",
+                          },
+                          {
+                            "k": "Ident",
+                            "line": 5,
+                            "name": "a",
+                          },
+                        ],
+                        "k": "List",
+                        "line": 5,
+                        "typePrefix": null,
+                      },
+                      "k": "ExprStmt",
+                      "line": 5,
+                    },
+                  ],
+                  "k": "Block",
+                },
+                "k": "If",
+                "line": 4,
+                "then": {
+                  "body": [
+                    {
+                      "expr": {
+                        "elements": [
+                          {
+                            "k": "Ident",
+                            "line": 4,
+                            "name": "a",
+                          },
+                          {
+                            "k": "Ident",
+                            "line": 4,
+                            "name": "b",
+                          },
+                        ],
+                        "k": "List",
+                        "line": 4,
+                        "typePrefix": null,
+                      },
+                      "k": "ExprStmt",
+                      "line": 4,
+                    },
+                  ],
+                  "k": "Block",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 4,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 3,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": {
+          "elems": [
+            {
+              "k": "TyName",
+              "line": 3,
+              "name": "int",
+            },
+            {
+              "k": "TyName",
+              "line": 3,
+              "name": "int",
+            },
+          ],
+          "k": "TyTuple",
+          "line": 3,
+        },
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 8,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 9,
+              "local": false,
+              "mode": null,
+              "pat": {
+                "k": "TuplePat",
+                "names": [
+                  "x",
+                  "y",
+                ],
+              },
+              "type": null,
+              "value": {
+                "args": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 9,
+                    "v": 3,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 9,
+                    "v": 7,
+                  },
+                ],
+                "callee": {
+                  "k": "Ident",
+                  "line": 9,
+                  "name": "swap",
+                },
+                "k": "Call",
+                "line": 9,
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 10,
+                    "raw": "swap(3, 7) = \${x}, \${y}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 10,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 10,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 10,
+              },
+              "k": "ExprStmt",
+              "line": 10,
+            },
+            {
+              "k": "Bind",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "pat": {
+                "k": "TuplePat",
+                "names": [
+                  "lo",
+                  "hi",
+                ],
+              },
+              "type": null,
+              "value": {
+                "args": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 10,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 4,
+                  },
+                ],
+                "callee": {
+                  "k": "Ident",
+                  "line": 12,
+                  "name": "minmax",
+                },
+                "k": "Call",
+                "line": 12,
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 13,
+                    "raw": "minmax(10, 4) = \${lo}, \${hi}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 13,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 13,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 13,
+              },
+              "k": "ExprStmt",
+              "line": 13,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 8,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "fib",
+      "pat": {
+        "k": "IdentPat",
+        "name": "fib",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Ident",
+                    "line": 2,
+                    "name": "n",
+                  },
+                  "op": "<=",
+                  "right": {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 2,
+                    "v": 1,
+                  },
+                },
+                "else_": {
+                  "k": "BinOp",
+                  "left": {
+                    "args": [
+                      {
+                        "k": "BinOp",
+                        "left": {
+                          "k": "Ident",
+                          "line": 2,
+                          "name": "n",
+                        },
+                        "op": "-",
+                        "right": {
+                          "isFloat": false,
+                          "k": "Lit",
+                          "line": 2,
+                          "v": 1,
+                        },
+                      },
+                    ],
+                    "callee": {
+                      "k": "Ident",
+                      "line": 2,
+                      "name": "fib",
+                    },
+                    "k": "Call",
+                    "line": 2,
+                  },
+                  "op": "+",
+                  "right": {
+                    "args": [
+                      {
+                        "k": "BinOp",
+                        "left": {
+                          "k": "Ident",
+                          "line": 2,
+                          "name": "n",
+                        },
+                        "op": "-",
+                        "right": {
+                          "isFloat": false,
+                          "k": "Lit",
+                          "line": 2,
+                          "v": 2,
+                        },
+                      },
+                    ],
+                    "callee": {
+                      "k": "Ident",
+                      "line": 2,
+                      "name": "fib",
+                    },
+                    "k": "Call",
+                    "line": 2,
+                  },
+                },
+                "k": "If",
+                "line": 2,
+                "then": {
+                  "k": "Ident",
+                  "line": 2,
+                  "name": "n",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 2,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "n",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 5,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 6,
+              "local": false,
+              "mode": "*",
+              "name": "i",
+              "pat": {
+                "k": "IdentPat",
+                "name": "i",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": false,
+                "k": "Lit",
+                "line": 6,
+                "v": 0,
+              },
+            },
+            {
+              "expr": {
+                "body": [
+                  {
+                    "expr": {
+                      "args": [
+                        {
+                          "k": "Str",
+                          "line": 8,
+                          "raw": "fib(\${i}) = \${fib(i)}",
+                        },
+                      ],
+                      "callee": {
+                        "k": "Member",
+                        "line": 8,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 8,
+                          "name": "ruka",
+                        },
+                        "prop": "println",
+                      },
+                      "k": "Call",
+                      "line": 8,
+                    },
+                    "k": "ExprStmt",
+                    "line": 8,
+                  },
+                  {
+                    "k": "Assign",
+                    "line": 9,
+                    "name": "i",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Ident",
+                        "line": 9,
+                        "name": "i",
+                      },
+                      "op": "+",
+                      "right": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 9,
+                        "v": 1,
+                      },
+                    },
+                  },
+                ],
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Ident",
+                    "line": 7,
+                    "name": "i",
+                  },
+                  "op": "<=",
+                  "right": {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 7,
+                    "v": 10,
+                  },
+                },
+                "k": "While",
+                "line": 7,
+              },
+              "k": "ExprStmt",
+              "line": 7,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 5,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 2,
+              "local": false,
+              "mode": "*",
+              "name": "i",
+              "pat": {
+                "k": "IdentPat",
+                "name": "i",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": false,
+                "k": "Lit",
+                "line": 2,
+                "v": 1,
+              },
+            },
+            {
+              "expr": {
+                "body": [
+                  {
+                    "expr": {
+                      "_multiline": false,
+                      "cond": {
+                        "k": "BinOp",
+                        "left": {
+                          "k": "BinOp",
+                          "left": {
+                            "k": "Ident",
+                            "line": 4,
+                            "name": "i",
+                          },
+                          "op": "%",
+                          "right": {
+                            "isFloat": false,
+                            "k": "Lit",
+                            "line": 4,
+                            "v": 15,
+                          },
+                        },
+                        "op": "==",
+                        "right": {
+                          "isFloat": false,
+                          "k": "Lit",
+                          "line": 4,
+                          "v": 0,
+                        },
+                      },
+                      "else_": {
+                        "_multiline": false,
+                        "cond": {
+                          "k": "BinOp",
+                          "left": {
+                            "k": "BinOp",
+                            "left": {
+                              "k": "Ident",
+                              "line": 5,
+                              "name": "i",
+                            },
+                            "op": "%",
+                            "right": {
+                              "isFloat": false,
+                              "k": "Lit",
+                              "line": 5,
+                              "v": 3,
+                            },
+                          },
+                          "op": "==",
+                          "right": {
+                            "isFloat": false,
+                            "k": "Lit",
+                            "line": 5,
+                            "v": 0,
+                          },
+                        },
+                        "else_": {
+                          "_multiline": false,
+                          "cond": {
+                            "k": "BinOp",
+                            "left": {
+                              "k": "BinOp",
+                              "left": {
+                                "k": "Ident",
+                                "line": 6,
+                                "name": "i",
+                              },
+                              "op": "%",
+                              "right": {
+                                "isFloat": false,
+                                "k": "Lit",
+                                "line": 6,
+                                "v": 5,
+                              },
+                            },
+                            "op": "==",
+                            "right": {
+                              "isFloat": false,
+                              "k": "Lit",
+                              "line": 6,
+                              "v": 0,
+                            },
+                          },
+                          "else_": {
+                            "body": [
+                              {
+                                "expr": {
+                                  "args": [
+                                    {
+                                      "k": "Str",
+                                      "line": 7,
+                                      "raw": "\${i}",
+                                    },
+                                  ],
+                                  "callee": {
+                                    "k": "Member",
+                                    "line": 7,
+                                    "obj": {
+                                      "k": "Ident",
+                                      "line": 7,
+                                      "name": "ruka",
+                                    },
+                                    "prop": "println",
+                                  },
+                                  "k": "Call",
+                                  "line": 7,
+                                },
+                                "k": "ExprStmt",
+                                "line": 7,
+                              },
+                            ],
+                            "k": "Block",
+                          },
+                          "k": "If",
+                          "line": 6,
+                          "then": {
+                            "body": [
+                              {
+                                "expr": {
+                                  "args": [
+                                    {
+                                      "k": "Str",
+                                      "line": 6,
+                                      "raw": "Buzz",
+                                    },
+                                  ],
+                                  "callee": {
+                                    "k": "Member",
+                                    "line": 6,
+                                    "obj": {
+                                      "k": "Ident",
+                                      "line": 6,
+                                      "name": "ruka",
+                                    },
+                                    "prop": "println",
+                                  },
+                                  "k": "Call",
+                                  "line": 6,
+                                },
+                                "k": "ExprStmt",
+                                "line": 6,
+                              },
+                            ],
+                            "k": "Block",
+                          },
+                        },
+                        "k": "If",
+                        "line": 5,
+                        "then": {
+                          "body": [
+                            {
+                              "expr": {
+                                "args": [
+                                  {
+                                    "k": "Str",
+                                    "line": 5,
+                                    "raw": "Fizz",
+                                  },
+                                ],
+                                "callee": {
+                                  "k": "Member",
+                                  "line": 5,
+                                  "obj": {
+                                    "k": "Ident",
+                                    "line": 5,
+                                    "name": "ruka",
+                                  },
+                                  "prop": "println",
+                                },
+                                "k": "Call",
+                                "line": 5,
+                              },
+                              "k": "ExprStmt",
+                              "line": 5,
+                            },
+                          ],
+                          "k": "Block",
+                        },
+                      },
+                      "k": "If",
+                      "line": 4,
+                      "then": {
+                        "body": [
+                          {
+                            "expr": {
+                              "args": [
+                                {
+                                  "k": "Str",
+                                  "line": 4,
+                                  "raw": "FizzBuzz",
+                                },
+                              ],
+                              "callee": {
+                                "k": "Member",
+                                "line": 4,
+                                "obj": {
+                                  "k": "Ident",
+                                  "line": 4,
+                                  "name": "ruka",
+                                },
+                                "prop": "println",
+                              },
+                              "k": "Call",
+                              "line": 4,
+                            },
+                            "k": "ExprStmt",
+                            "line": 4,
+                          },
+                        ],
+                        "k": "Block",
+                      },
+                    },
+                    "k": "ExprStmt",
+                    "line": 4,
+                  },
+                  {
+                    "k": "Assign",
+                    "line": 8,
+                    "name": "i",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Ident",
+                        "line": 8,
+                        "name": "i",
+                      },
+                      "op": "+",
+                      "right": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 8,
+                        "v": 1,
+                      },
+                    },
+                  },
+                ],
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Ident",
+                    "line": 3,
+                    "name": "i",
+                  },
+                  "op": "<=",
+                  "right": {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 3,
+                    "v": 20,
+                  },
+                },
+                "k": "While",
+                "line": 3,
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 2,
+              "local": false,
+              "mode": null,
+              "name": "name",
+              "pat": {
+                "k": "IdentPat",
+                "name": "name",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "k": "Str",
+                "line": 2,
+                "raw": "world",
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 3,
+                    "raw": "Hello, \${name}!",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 3,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 3,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 3,
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "counter",
+      "pat": {
+        "k": "IdentPat",
+        "name": "counter",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "fields": [
+          {
+            "name": "count",
+            "type": {
+              "k": "TyName",
+              "line": 1,
+              "name": "int",
+            },
+          },
+        ],
+        "k": "RecordType",
+        "line": 1,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "new",
+      "pat": {
+        "k": "IdentPat",
+        "name": "new",
+      },
+      "receiver": {
+        "kind": "static",
+        "tyName": "counter",
+      },
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "fields": [
+                  {
+                    "name": "count",
+                    "value": {
+                      "k": "Ident",
+                      "line": 3,
+                      "name": "start",
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 3,
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 3,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "start",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 4,
+      "local": false,
+      "mode": null,
+      "name": "zero",
+      "pat": {
+        "k": "IdentPat",
+        "name": "zero",
+      },
+      "receiver": {
+        "kind": "static",
+        "tyName": "counter",
+      },
+      "type": null,
+      "value": {
+        "fields": [
+          {
+            "name": "count",
+            "value": {
+              "isFloat": false,
+              "k": "Lit",
+              "line": 4,
+              "v": 0,
+            },
+          },
+        ],
+        "k": "RecordLit",
+        "line": 4,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 5,
+      "local": true,
+      "mode": null,
+      "name": "Doubled",
+      "pat": {
+        "k": "IdentPat",
+        "name": "Doubled",
+      },
+      "receiver": {
+        "kind": "static",
+        "tyName": "counter",
+      },
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "k": "Ident",
+                  "line": 5,
+                  "name": "n",
+                },
+                "op": "*",
+                "right": {
+                  "isFloat": false,
+                  "k": "Lit",
+                  "line": 5,
+                  "v": 2,
+                },
+              },
+              "k": "ExprStmt",
+              "line": 5,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 5,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "n",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 7,
+      "local": false,
+      "mode": null,
+      "name": "bump",
+      "pat": {
+        "k": "IdentPat",
+        "name": "bump",
+      },
+      "receiver": {
+        "kind": "self",
+        "tyAnno": null,
+      },
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "fields": [
+                  {
+                    "name": "count",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 7,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 7,
+                          "name": "self",
+                        },
+                        "prop": "count",
+                      },
+                      "op": "+",
+                      "right": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 7,
+                        "v": 1,
+                      },
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 7,
+              },
+              "k": "ExprStmt",
+              "line": 7,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 7,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 8,
+      "local": false,
+      "mode": null,
+      "name": "bumpDouble",
+      "pat": {
+        "k": "IdentPat",
+        "name": "bumpDouble",
+      },
+      "receiver": {
+        "kind": "self",
+        "tyAnno": null,
+      },
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "fields": [
+                  {
+                    "name": "count",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 8,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 8,
+                          "name": "self",
+                        },
+                        "prop": "count",
+                      },
+                      "op": "+",
+                      "right": {
+                        "args": [
+                          {
+                            "isFloat": false,
+                            "k": "Lit",
+                            "line": 8,
+                            "v": 1,
+                          },
+                        ],
+                        "callee": {
+                          "k": "Member",
+                          "line": 8,
+                          "obj": {
+                            "k": "Ident",
+                            "line": 8,
+                            "name": "counter",
+                          },
+                          "prop": "Doubled",
+                        },
+                        "k": "Call",
+                        "line": 8,
+                      },
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 8,
+              },
+              "k": "ExprStmt",
+              "line": 8,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 8,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 10,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 11,
+              "local": false,
+              "mode": null,
+              "name": "a",
+              "pat": {
+                "k": "IdentPat",
+                "name": "a",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "k": "Member",
+                "line": 11,
+                "obj": {
+                  "k": "Ident",
+                  "line": 11,
+                  "name": "counter",
+                },
+                "prop": "zero",
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "name": "b",
+              "pat": {
+                "k": "IdentPat",
+                "name": "b",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 10,
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 12,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 12,
+                    "name": "counter",
+                  },
+                  "prop": "new",
+                },
+                "k": "Call",
+                "line": 12,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 13,
+              "local": false,
+              "mode": null,
+              "name": "c",
+              "pat": {
+                "k": "IdentPat",
+                "name": "c",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [],
+                "callee": {
+                  "k": "Member",
+                  "line": 13,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 13,
+                    "name": "b",
+                  },
+                  "prop": "bump",
+                },
+                "k": "Call",
+                "line": 13,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 14,
+              "local": false,
+              "mode": null,
+              "name": "d",
+              "pat": {
+                "k": "IdentPat",
+                "name": "d",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [],
+                "callee": {
+                  "k": "Member",
+                  "line": 14,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 14,
+                    "name": "c",
+                  },
+                  "prop": "bumpDouble",
+                },
+                "k": "Call",
+                "line": 14,
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 17,
+                    "raw": "a=\${a.count}
+b=\${b.count}
+c=\${c.count}
+d=\${d.count}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 16,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 16,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 16,
+              },
+              "k": "ExprStmt",
+              "line": 16,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 10,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > multiline-strings.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "poem",
+      "pat": {
+        "k": "IdentPat",
+        "name": "poem",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "Str",
+                "line": 2,
+                "raw": "Roses are red,
+Violets are blue.
+\${name} is great,
+And so are you!",
+              },
+              "k": "ExprStmt",
+              "line": 2,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "name",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 10,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "k": "Str",
+                        "line": 10,
+                        "raw": "Ruka",
+                      },
+                    ],
+                    "callee": {
+                      "k": "Ident",
+                      "line": 10,
+                      "name": "poem",
+                    },
+                    "k": "Call",
+                    "line": 10,
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 10,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 10,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 10,
+              },
+              "k": "ExprStmt",
+              "line": 10,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 10,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > projectile.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": true,
+      "mode": null,
+      "name": "Vec2",
+      "pat": {
+        "k": "IdentPat",
+        "name": "Vec2",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "fields": [
+          {
+            "name": "x",
+            "type": {
+              "k": "TyName",
+              "line": 1,
+              "name": "float",
+            },
+          },
+          {
+            "name": "y",
+            "type": {
+              "k": "TyName",
+              "line": 1,
+              "name": "float",
+            },
+          },
+        ],
+        "k": "RecordType",
+        "line": 1,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "add",
+      "pat": {
+        "k": "IdentPat",
+        "name": "add",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 3,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 3,
+                          "name": "a",
+                        },
+                        "prop": "x",
+                      },
+                      "op": "+",
+                      "right": {
+                        "k": "Member",
+                        "line": 3,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 3,
+                          "name": "b",
+                        },
+                        "prop": "x",
+                      },
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 3,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 3,
+                          "name": "a",
+                        },
+                        "prop": "y",
+                      },
+                      "op": "+",
+                      "right": {
+                        "k": "Member",
+                        "line": 3,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 3,
+                          "name": "b",
+                        },
+                        "prop": "y",
+                      },
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 3,
+              },
+              "k": "ExprStmt",
+              "line": 3,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 3,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "a",
+          "b",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 4,
+      "local": false,
+      "mode": null,
+      "name": "scale",
+      "pat": {
+        "k": "IdentPat",
+        "name": "scale",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 4,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 4,
+                          "name": "v",
+                        },
+                        "prop": "x",
+                      },
+                      "op": "*",
+                      "right": {
+                        "k": "Ident",
+                        "line": 4,
+                        "name": "s",
+                      },
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 4,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 4,
+                          "name": "v",
+                        },
+                        "prop": "y",
+                      },
+                      "op": "*",
+                      "right": {
+                        "k": "Ident",
+                        "line": 4,
+                        "name": "s",
+                      },
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 4,
+              },
+              "k": "ExprStmt",
+              "line": 4,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 4,
+        "paramModes": [
+          null,
+          null,
+        ],
+        "paramTypes": [
+          null,
+          null,
+        ],
+        "params": [
+          "v",
+          "s",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 5,
+      "local": false,
+      "mode": null,
+      "name": "magnitude",
+      "pat": {
+        "k": "IdentPat",
+        "name": "magnitude",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "BinOp",
+                    "left": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 5,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 5,
+                          "name": "v",
+                        },
+                        "prop": "x",
+                      },
+                      "op": "*",
+                      "right": {
+                        "k": "Member",
+                        "line": 5,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 5,
+                          "name": "v",
+                        },
+                        "prop": "x",
+                      },
+                    },
+                    "op": "+",
+                    "right": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Member",
+                        "line": 5,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 5,
+                          "name": "v",
+                        },
+                        "prop": "y",
+                      },
+                      "op": "*",
+                      "right": {
+                        "k": "Member",
+                        "line": 5,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 5,
+                          "name": "v",
+                        },
+                        "prop": "y",
+                      },
+                    },
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 5,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 5,
+                    "name": "ruka",
+                  },
+                  "prop": "sqrt",
+                },
+                "k": "Call",
+                "line": 5,
+              },
+              "k": "ExprStmt",
+              "line": 5,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 5,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "v",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 6,
+      "local": false,
+      "mode": null,
+      "name": "round1",
+      "pat": {
+        "k": "IdentPat",
+        "name": "round1",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "k": "BinOp",
+                "left": {
+                  "args": [
+                    {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Ident",
+                        "line": 6,
+                        "name": "n",
+                      },
+                      "op": "*",
+                      "right": {
+                        "isFloat": true,
+                        "k": "Lit",
+                        "line": 6,
+                        "v": 10,
+                      },
+                    },
+                  ],
+                  "callee": {
+                    "k": "Member",
+                    "line": 6,
+                    "obj": {
+                      "k": "Ident",
+                      "line": 6,
+                      "name": "ruka",
+                    },
+                    "prop": "floor",
+                  },
+                  "k": "Call",
+                  "line": 6,
+                },
+                "op": "/",
+                "right": {
+                  "isFloat": true,
+                  "k": "Lit",
+                  "line": 6,
+                  "v": 10,
+                },
+              },
+              "k": "ExprStmt",
+              "line": 6,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 6,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "n",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 8,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 9,
+              "local": false,
+              "mode": null,
+              "name": "gravity",
+              "pat": {
+                "k": "IdentPat",
+                "name": "gravity",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "isFloat": true,
+                      "k": "Lit",
+                      "line": 9,
+                      "v": 0,
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "expr": {
+                        "isFloat": true,
+                        "k": "Lit",
+                        "line": 9,
+                        "v": 9.8,
+                      },
+                      "k": "Unary",
+                      "op": "-",
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 9,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 10,
+              "local": false,
+              "mode": "*",
+              "name": "pos",
+              "pat": {
+                "k": "IdentPat",
+                "name": "pos",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "isFloat": true,
+                      "k": "Lit",
+                      "line": 10,
+                      "v": 0,
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "isFloat": true,
+                      "k": "Lit",
+                      "line": 10,
+                      "v": 20,
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 10,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 11,
+              "local": false,
+              "mode": "*",
+              "name": "vel",
+              "pat": {
+                "k": "IdentPat",
+                "name": "vel",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "isFloat": true,
+                      "k": "Lit",
+                      "line": 11,
+                      "v": 8,
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "isFloat": true,
+                      "k": "Lit",
+                      "line": 11,
+                      "v": 12,
+                    },
+                  },
+                ],
+                "k": "RecordLit",
+                "line": 11,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "name": "dt",
+              "pat": {
+                "k": "IdentPat",
+                "name": "dt",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": true,
+                "k": "Lit",
+                "line": 12,
+                "v": 0.5,
+              },
+            },
+            {
+              "k": "Bind",
+              "line": 13,
+              "local": false,
+              "mode": "*",
+              "name": "t",
+              "pat": {
+                "k": "IdentPat",
+                "name": "t",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "isFloat": true,
+                "k": "Lit",
+                "line": 13,
+                "v": 0,
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 15,
+                    "raw": "Projectile  v0=\${round1(magnitude(vel))} m/s",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 15,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 15,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 15,
+              },
+              "k": "ExprStmt",
+              "line": 15,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 16,
+                    "raw": "-----------------------------",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 16,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 16,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 16,
+              },
+              "k": "ExprStmt",
+              "line": 16,
+            },
+            {
+              "expr": {
+                "body": [
+                  {
+                    "k": "Assign",
+                    "line": 19,
+                    "name": "vel",
+                    "value": {
+                      "args": [
+                        {
+                          "k": "Ident",
+                          "line": 19,
+                          "name": "vel",
+                        },
+                        {
+                          "args": [
+                            {
+                              "k": "Ident",
+                              "line": 19,
+                              "name": "gravity",
+                            },
+                            {
+                              "k": "Ident",
+                              "line": 19,
+                              "name": "dt",
+                            },
+                          ],
+                          "callee": {
+                            "k": "Ident",
+                            "line": 19,
+                            "name": "scale",
+                          },
+                          "k": "Call",
+                          "line": 19,
+                        },
+                      ],
+                      "callee": {
+                        "k": "Ident",
+                        "line": 19,
+                        "name": "add",
+                      },
+                      "k": "Call",
+                      "line": 19,
+                    },
+                  },
+                  {
+                    "k": "Assign",
+                    "line": 20,
+                    "name": "pos",
+                    "value": {
+                      "args": [
+                        {
+                          "k": "Ident",
+                          "line": 20,
+                          "name": "pos",
+                        },
+                        {
+                          "args": [
+                            {
+                              "k": "Ident",
+                              "line": 20,
+                              "name": "vel",
+                            },
+                            {
+                              "k": "Ident",
+                              "line": 20,
+                              "name": "dt",
+                            },
+                          ],
+                          "callee": {
+                            "k": "Ident",
+                            "line": 20,
+                            "name": "scale",
+                          },
+                          "k": "Call",
+                          "line": 20,
+                        },
+                      ],
+                      "callee": {
+                        "k": "Ident",
+                        "line": 20,
+                        "name": "add",
+                      },
+                      "k": "Call",
+                      "line": 20,
+                    },
+                  },
+                  {
+                    "k": "Assign",
+                    "line": 21,
+                    "name": "t",
+                    "value": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Ident",
+                        "line": 21,
+                        "name": "t",
+                      },
+                      "op": "+",
+                      "right": {
+                        "k": "Ident",
+                        "line": 21,
+                        "name": "dt",
+                      },
+                    },
+                  },
+                  {
+                    "expr": {
+                      "_multiline": false,
+                      "cond": {
+                        "k": "BinOp",
+                        "left": {
+                          "k": "Member",
+                          "line": 23,
+                          "obj": {
+                            "k": "Ident",
+                            "line": 23,
+                            "name": "pos",
+                          },
+                          "prop": "y",
+                        },
+                        "op": "<",
+                        "right": {
+                          "isFloat": true,
+                          "k": "Lit",
+                          "line": 23,
+                          "v": 0,
+                        },
+                      },
+                      "else_": null,
+                      "k": "If",
+                      "line": 23,
+                      "then": {
+                        "body": [
+                          {
+                            "k": "Assign",
+                            "line": 23,
+                            "name": "pos",
+                            "value": {
+                              "fields": [
+                                {
+                                  "name": "x",
+                                  "value": {
+                                    "k": "Member",
+                                    "line": 23,
+                                    "obj": {
+                                      "k": "Ident",
+                                      "line": 23,
+                                      "name": "pos",
+                                    },
+                                    "prop": "x",
+                                  },
+                                },
+                                {
+                                  "name": "y",
+                                  "value": {
+                                    "isFloat": true,
+                                    "k": "Lit",
+                                    "line": 23,
+                                    "v": 0,
+                                  },
+                                },
+                              ],
+                              "k": "RecordLit",
+                              "line": 23,
+                            },
+                          },
+                        ],
+                        "k": "Block",
+                      },
+                    },
+                    "k": "ExprStmt",
+                    "line": 23,
+                  },
+                  {
+                    "expr": {
+                      "args": [
+                        {
+                          "k": "Str",
+                          "line": 25,
+                          "raw": "t=\${round1(t)}s  x=\${round1(pos.x)}m  y=\${round1(pos.y)}m",
+                        },
+                      ],
+                      "callee": {
+                        "k": "Member",
+                        "line": 25,
+                        "obj": {
+                          "k": "Ident",
+                          "line": 25,
+                          "name": "ruka",
+                        },
+                        "prop": "println",
+                      },
+                      "k": "Call",
+                      "line": 25,
+                    },
+                    "k": "ExprStmt",
+                    "line": 25,
+                  },
+                ],
+                "cond": {
+                  "k": "BinOp",
+                  "left": {
+                    "k": "Member",
+                    "line": 18,
+                    "obj": {
+                      "k": "Ident",
+                      "line": 18,
+                      "name": "pos",
+                    },
+                    "prop": "y",
+                  },
+                  "op": ">",
+                  "right": {
+                    "isFloat": true,
+                    "k": "Lit",
+                    "line": 18,
+                    "v": 0,
+                  },
+                },
+                "k": "While",
+                "line": 18,
+              },
+              "k": "ExprStmt",
+              "line": 18,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 28,
+                    "raw": "-----------------------------",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 28,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 28,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 28,
+              },
+              "k": "ExprStmt",
+              "line": 28,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 29,
+                    "raw": "Range: \${round1(pos.x)}m   Time: \${round1(t)}s",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 29,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 29,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 29,
+              },
+              "k": "ExprStmt",
+              "line": 29,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 8,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > range-match.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "grade",
+      "pat": {
+        "k": "IdentPat",
+        "name": "grade",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "expr": {
+                "arms": [
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 3,
+                            "raw": "A",
+                          },
+                          "k": "ExprStmt",
+                          "line": 3,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "hi": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 3,
+                        "v": 100,
+                      },
+                      "inclusive": true,
+                      "k": "RangePat",
+                      "lo": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 3,
+                        "v": 90,
+                      },
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 4,
+                            "raw": "B",
+                          },
+                          "k": "ExprStmt",
+                          "line": 4,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "hi": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 4,
+                        "v": 89,
+                      },
+                      "inclusive": true,
+                      "k": "RangePat",
+                      "lo": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 4,
+                        "v": 80,
+                      },
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 5,
+                            "raw": "C",
+                          },
+                          "k": "ExprStmt",
+                          "line": 5,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "hi": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 5,
+                        "v": 79,
+                      },
+                      "inclusive": true,
+                      "k": "RangePat",
+                      "lo": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 5,
+                        "v": 70,
+                      },
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "expr": {
+                            "k": "Str",
+                            "line": 6,
+                            "raw": "D",
+                          },
+                          "k": "ExprStmt",
+                          "line": 6,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                    "pat": {
+                      "hi": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 6,
+                        "v": 69,
+                      },
+                      "inclusive": true,
+                      "k": "RangePat",
+                      "lo": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 6,
+                        "v": 60,
+                      },
+                    },
+                  },
+                ],
+                "elseArm": {
+                  "body": [
+                    {
+                      "expr": {
+                        "k": "Str",
+                        "line": 7,
+                        "raw": "F",
+                      },
+                      "k": "ExprStmt",
+                      "line": 7,
+                    },
+                  ],
+                  "k": "Block",
+                },
+                "k": "Match",
+                "line": 2,
+                "subject": {
+                  "k": "Ident",
+                  "line": 2,
+                  "name": "score",
+                },
+              },
+              "k": "ExprStmt",
+              "line": 2,
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "score",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "k": "Bind",
+      "line": 11,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "k": "Bind",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "name": "scores",
+              "pat": {
+                "k": "IdentPat",
+                "name": "scores",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "elements": [
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 95,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 83,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 71,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 65,
+                  },
+                  {
+                    "isFloat": false,
+                    "k": "Lit",
+                    "line": 12,
+                    "v": 42,
+                  },
+                ],
+                "k": "List",
+                "line": 12,
+                "typePrefix": {
+                  "elem": {
+                    "k": "TyName",
+                    "line": 12,
+                    "name": "int",
+                  },
+                  "k": "TyArray",
+                  "line": 12,
+                },
+              },
+            },
+            {
+              "body": [
+                {
+                  "expr": {
+                    "args": [
+                      {
+                        "k": "Str",
+                        "line": 14,
+                        "raw": "Score \${s}: \${grade(s)}",
+                      },
+                    ],
+                    "callee": {
+                      "k": "Member",
+                      "line": 14,
+                      "obj": {
+                        "k": "Ident",
+                        "line": 14,
+                        "name": "ruka",
+                      },
+                      "prop": "println",
+                    },
+                    "k": "Call",
+                    "line": 14,
+                  },
+                  "k": "ExprStmt",
+                  "line": 14,
+                },
+              ],
+              "iter": {
+                "k": "Ident",
+                "line": 13,
+                "name": "scores",
+              },
+              "k": "For",
+              "line": 13,
+              "name": "s",
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 11,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
+{
+  "body": [
+    {
+      "k": "Bind",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pat": {
+        "k": "IdentPat",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "body": [
+                {
+                  "expr": {
+                    "args": [
+                      {
+                        "k": "Str",
+                        "line": 4,
+                        "raw": "\${i} ** 2 = \${i ** 2}",
+                      },
+                    ],
+                    "callee": {
+                      "k": "Member",
+                      "line": 4,
+                      "obj": {
+                        "k": "Ident",
+                        "line": 4,
+                        "name": "ruka",
+                      },
+                      "prop": "println",
+                    },
+                    "k": "Call",
+                    "line": 4,
+                  },
+                  "k": "ExprStmt",
+                  "line": 4,
+                },
+              ],
+              "iter": {
+                "end": {
+                  "isFloat": false,
+                  "k": "Lit",
+                  "line": 3,
+                  "v": 5,
+                },
+                "inclusive": true,
+                "k": "Range",
+                "line": 3,
+                "start": {
+                  "isFloat": false,
+                  "k": "Lit",
+                  "line": 3,
+                  "v": 1,
+                },
+              },
+              "k": "For",
+              "line": 3,
+              "name": "i",
+            },
+            {
+              "k": "Bind",
+              "line": 8,
+              "local": false,
+              "mode": "*",
+              "name": "word",
+              "pat": {
+                "k": "IdentPat",
+                "name": "word",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "k": "Str",
+                "line": 8,
+                "raw": "",
+              },
+            },
+            {
+              "body": [
+                {
+                  "k": "Assign",
+                  "line": 9,
+                  "name": "word",
+                  "value": {
+                    "args": [
+                      {
+                        "k": "Str",
+                        "line": 9,
+                        "raw": "\${c}",
+                      },
+                    ],
+                    "callee": {
+                      "k": "Member",
+                      "line": 9,
+                      "obj": {
+                        "k": "Ident",
+                        "line": 9,
+                        "name": "word",
+                      },
+                      "prop": "concat",
+                    },
+                    "k": "Call",
+                    "line": 9,
+                  },
+                },
+              ],
+              "iter": {
+                "end": {
+                  "k": "Char",
+                  "line": 9,
+                  "v": 90,
+                },
+                "inclusive": true,
+                "k": "Range",
+                "line": 9,
+                "start": {
+                  "k": "Char",
+                  "line": 9,
+                  "v": 82,
+                },
+              },
+              "k": "For",
+              "line": 9,
+              "name": "c",
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 10,
+                    "raw": "letters: \${word}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 10,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 10,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 10,
+              },
+              "k": "ExprStmt",
+              "line": 10,
+            },
+            {
+              "k": "Bind",
+              "line": 13,
+              "local": false,
+              "mode": null,
+              "name": "name",
+              "pat": {
+                "k": "IdentPat",
+                "name": "name",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "k": "Str",
+                "line": 13,
+                "raw": "Ruka",
+              },
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 14,
+                    "raw": "first:   \${name[0]}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 14,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 14,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 14,
+              },
+              "k": "ExprStmt",
+              "line": 14,
+            },
+            {
+              "expr": {
+                "args": [
+                  {
+                    "k": "Str",
+                    "line": 15,
+                    "raw": "slice:   \${name[1..=3]}",
+                  },
+                ],
+                "callee": {
+                  "k": "Member",
+                  "line": 15,
+                  "obj": {
+                    "k": "Ident",
+                    "line": 15,
+                    "name": "ruka",
+                  },
+                  "prop": "println",
+                },
+                "k": "Call",
+                "line": 15,
+              },
+              "k": "ExprStmt",
+              "line": 15,
+            },
+            {
+              "body": [
+                {
+                  "expr": {
+                    "_multiline": false,
+                    "cond": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "BinOp",
+                        "left": {
+                          "k": "Ident",
+                          "line": 19,
+                          "name": "i",
+                        },
+                        "op": "%",
+                        "right": {
+                          "isFloat": false,
+                          "k": "Lit",
+                          "line": 19,
+                          "v": 2,
+                        },
+                      },
+                      "op": "==",
+                      "right": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 19,
+                        "v": 0,
+                      },
+                    },
+                    "else_": null,
+                    "k": "If",
+                    "line": 19,
+                    "then": {
+                      "body": [
+                        {
+                          "k": "Continue",
+                          "line": 19,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                  },
+                  "k": "ExprStmt",
+                  "line": 19,
+                },
+                {
+                  "expr": {
+                    "_multiline": false,
+                    "cond": {
+                      "k": "BinOp",
+                      "left": {
+                        "k": "Ident",
+                        "line": 20,
+                        "name": "i",
+                      },
+                      "op": ">",
+                      "right": {
+                        "isFloat": false,
+                        "k": "Lit",
+                        "line": 20,
+                        "v": 9,
+                      },
+                    },
+                    "else_": null,
+                    "k": "If",
+                    "line": 20,
+                    "then": {
+                      "body": [
+                        {
+                          "k": "Break",
+                          "line": 20,
+                        },
+                      ],
+                      "k": "Block",
+                    },
+                  },
+                  "k": "ExprStmt",
+                  "line": 20,
+                },
+                {
+                  "expr": {
+                    "args": [
+                      {
+                        "k": "Str",
+                        "line": 21,
+                        "raw": "odd \${i}",
+                      },
+                    ],
+                    "callee": {
+                      "k": "Member",
+                      "line": 21,
+                      "obj": {
+                        "k": "Ident",
+                        "line": 21,
+                        "name": "ruka",
+                      },
+                      "prop": "println",
+                    },
+                    "k": "Call",
+                    "line": 21,
+                  },
+                  "k": "ExprStmt",
+                  "line": 21,
+                },
+              ],
+              "iter": {
+                "end": {
+                  "isFloat": false,
+                  "k": "Lit",
+                  "line": 18,
+                  "v": 20,
+                },
+                "inclusive": false,
+                "k": "Range",
+                "line": 18,
+                "start": {
+                  "isFloat": false,
+                  "k": "Lit",
+                  "line": 18,
+                  "v": 0,
+                },
+              },
+              "k": "For",
+              "line": 18,
+              "name": "i",
+            },
+          ],
+          "k": "Block",
+        },
+        "k": "Fn",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "k": "Program",
+}
+`;

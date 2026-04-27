@@ -1,0 +1,5 @@
+// expect: Cannot assign to immutable binding
+let main = () do
+    let x = 1
+    x = 2
+end

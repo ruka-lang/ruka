@@ -1,0 +1,4 @@
+// expect: Undefined: bar
+let foo = () do
+    bar()
+end

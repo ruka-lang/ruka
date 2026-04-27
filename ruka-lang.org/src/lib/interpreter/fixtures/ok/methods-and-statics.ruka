@@ -1,0 +1,24 @@
+let counter = record { count: int }
+
+let new (counter) = (start) do .{ count = start }
+let zero (counter) = .{ count = 0 }
+let Doubled (counter) = (n) do n * 2
+
+let bump (self) = () do .{ count = self.count + 1 }
+let bumpDouble (self) = () do .{ count = self.count + counter.Doubled(1) }
+
+let main = () do
+    let a = counter.zero
+    let b = counter.new(10)
+    let c = b.bump()
+    let d = c.bumpDouble()
+
+    ruka.println(
+        |"
+        | a=${a.count}
+        | b=${b.count}
+        | c=${c.count}
+        | d=${d.count}
+        |"
+    )
+end
