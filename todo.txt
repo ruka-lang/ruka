@@ -47,6 +47,8 @@ TODO (Features, Docs and playground)
         - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int
         - [ ] Methods are not callable on rhs values
         - [ ] Else matches require do for multiline blocks when the else take the place of the do (like for if expressions)
+        - [ ] Can't use variant or record type literals for variant payloads or record fields
+        - [ ] Record prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
 - [ ] Playground functionality
 	- [ ] Make playground it's own page
 	- [ ] User projects supporting multiple files, saved with indexedDB
