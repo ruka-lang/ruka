@@ -21,6 +21,10 @@ export {
 	FLOAT_KINDS,
 	PRIMITIVE_KINDS
 } from "./check/type";
+export { run } from "./runtime/evaluator";
+export type { Run } from "./runtime/evaluator";
+export type { RuntimeEvent } from "./runtime/events";
+export type { Value } from "./runtime/value";
 export type {
 	CheckedType,
 	PrimitiveKind,

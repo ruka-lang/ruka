@@ -400,18 +400,10 @@ export function checkTypes(ast: Program): RukaError | null {
 	const rukaModule: ModuleType = {
 		kind: "module",
 		members: {
-			println: {
-				kind: "fn",
-				params: [{ kind: "string" }],
-				returnType: { kind: "unit" }
-			},
-			print: {
-				kind: "fn",
-				params: [{ kind: "string" }],
-				returnType: { kind: "unit" }
-			},
-			assertEq: unknownFn2,
-			assert_eq: unknownFn2,
+			println: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
+			print: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
+			read: { kind: "fn", params: [], returnType: { kind: "string" } },
+			readln: { kind: "fn", params: [], returnType: { kind: "string" } },
 			expect_eq: unknownFn2,
 			abs: unknownFn1,
 			sin: numericFn1,
