@@ -645,9 +645,10 @@ export function parse(tokens: Token[]): Program {
 	function parseOr(): Expression {
 		let left = parseAnd();
 		while (check("or")) {
+			const line = peek().line;
 			pos++;
 			skipNewlines();
-			left = { kind: "BinaryOp", op: "or", left, right: parseAnd() };
+			left = { kind: "BinaryOp", op: "or", left, right: parseAnd(), line };
 		}
 		return left;
 	}
@@ -655,9 +656,10 @@ export function parse(tokens: Token[]): Program {
 	function parseAnd(): Expression {
 		let left = parseCmp();
 		while (check("and")) {
+			const line = peek().line;
 			pos++;
 			skipNewlines();
-			left = { kind: "BinaryOp", op: "and", left, right: parseCmp() };
+			left = { kind: "BinaryOp", op: "and", left, right: parseCmp(), line };
 		}
 		return left;
 	}
@@ -671,7 +673,8 @@ export function parse(tokens: Token[]): Program {
 				kind: "BinaryOp",
 				op: op.kind as string,
 				left,
-				right: parseRange()
+				right: parseRange(),
+				line: op.line
 			};
 		}
 		return left;
@@ -700,9 +703,15 @@ export function parse(tokens: Token[]): Program {
 	function parseAdd(): Expression {
 		let left = parseMul();
 		while (check("+") || check("-")) {
-			const op = tokens[pos++]!.kind as string;
+			const opTok = tokens[pos++]!;
 			skipNewlines();
-			left = { kind: "BinaryOp", op, left, right: parseMul() };
+			left = {
+				kind: "BinaryOp",
+				op: opTok.kind as string,
+				left,
+				right: parseMul(),
+				line: opTok.line
+			};
 		}
 		return left;
 	}
@@ -710,9 +719,15 @@ export function parse(tokens: Token[]): Program {
 	function parseMul(): Expression {
 		let left = parsePow();
 		while (check("*") || check("/") || check("%")) {
-			const op = tokens[pos++]!.kind as string;
+			const opTok = tokens[pos++]!;
 			skipNewlines();
-			left = { kind: "BinaryOp", op, left, right: parsePow() };
+			left = {
+				kind: "BinaryOp",
+				op: opTok.kind as string,
+				left,
+				right: parsePow(),
+				line: opTok.line
+			};
 		}
 		return left;
 	}
@@ -720,10 +735,11 @@ export function parse(tokens: Token[]): Program {
 	function parsePow(): Expression {
 		const left = parseUnary();
 		if (check("**")) {
+			const line = peek().line;
 			pos++;
 			skipNewlines();
 			const right = parsePow(); // right-associative
-			return { kind: "BinaryOp", op: "**", left, right };
+			return { kind: "BinaryOp", op: "**", left, right, line };
 		}
 		return left;
 	}

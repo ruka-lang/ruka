@@ -1405,7 +1405,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					const looked = lookupEnv(env, node.typeName.name);
 					if (looked && looked.kind === "recordDef") {
 						definition = looked;
-					} else if (looked && looked.kind !== "recordDef" && looked.kind !== "unknown") {
+					} else if (looked && looked.kind !== "unknown") {
 						throw typeError(
 							node.line,
 							`'${node.typeName.name}' is not a record type`

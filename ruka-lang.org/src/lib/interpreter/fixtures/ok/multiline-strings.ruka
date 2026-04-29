@@ -1,10 +1,10 @@
 let poem = (name) do
-    |"
-    | Roses are red,
-    | Violets are blue.
-    | ${name} is great,
-    | And so are you!
-    |"
+	|"
+	| Roses are red,
+	| Violets are blue.
+	| ${name} is great,
+	| And so are you!
+	|"
 end
 
 let main = () do poem("Ruka") |> ruka.println()

@@ -33,7 +33,7 @@ function syncFn(host: (args: Value[]) => Value): FnValue {
 }
 
 function ioFn(host: (args: Value[]) => BuiltinEnvelope): FnValue {
-	return { kind: "fn", host: host as (args: Value[]) => Value };
+	return { kind: "fn", host };
 }
 
 function expectEqHost(args: Value[]): Value {

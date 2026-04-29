@@ -310,6 +310,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                       "line": 16,
                       "name": "sum",
                     },
+                    "line": 16,
                     "op": "+",
                     "right": {
                       "kind": "Ident",
@@ -427,6 +428,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                   "line": 1,
                   "name": "a",
                 },
+                "line": 1,
                 "op": "+",
                 "right": {
                   "kind": "Ident",
@@ -480,6 +482,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                   "line": 2,
                   "name": "a",
                 },
+                "line": 2,
                 "op": "-",
                 "right": {
                   "kind": "Ident",
@@ -533,6 +536,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                   "line": 3,
                   "name": "a",
                 },
+                "line": 3,
                 "op": "*",
                 "right": {
                   "kind": "Ident",
@@ -586,6 +590,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                   "line": 4,
                   "name": "a",
                 },
+                "line": 4,
                 "op": "/",
                 "right": {
                   "kind": "Ident",
@@ -861,6 +866,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                   "line": 8,
                   "name": "power",
                 },
+                "line": 8,
                 "op": "+",
                 "right": {
                   "kind": "Ident",
@@ -879,6 +885,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "line": 9,
                     "name": "score",
                   },
+                  "line": 9,
                   "op": ">=",
                   "right": {
                     "isFloat": false,
@@ -896,6 +903,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                       "line": 10,
                       "name": "score",
                     },
+                    "line": 10,
                     "op": ">=",
                     "right": {
                       "isFloat": false,
@@ -956,6 +964,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                             "line": 9,
                             "name": "score",
                           },
+                          "line": 9,
                           "op": "*",
                           "right": {
                             "isFloat": false,
@@ -1274,6 +1283,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                     "line": 4,
                     "name": "a",
                   },
+                  "line": 4,
                   "op": "<",
                   "right": {
                     "kind": "Ident",
@@ -1556,6 +1566,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                     "line": 2,
                     "name": "n",
                   },
+                  "line": 2,
                   "op": "<=",
                   "right": {
                     "isFloat": false,
@@ -1575,6 +1586,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                           "line": 2,
                           "name": "n",
                         },
+                        "line": 2,
                         "op": "-",
                         "right": {
                           "isFloat": false,
@@ -1592,6 +1604,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                     "kind": "Call",
                     "line": 2,
                   },
+                  "line": 2,
                   "op": "+",
                   "right": {
                     "args": [
@@ -1602,6 +1615,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                           "line": 2,
                           "name": "n",
                         },
+                        "line": 2,
                         "op": "-",
                         "right": {
                           "isFloat": false,
@@ -1721,6 +1735,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                         "line": 9,
                         "name": "i",
                       },
+                      "line": 9,
                       "op": "+",
                       "right": {
                         "isFloat": false,
@@ -1738,6 +1753,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                     "line": 7,
                     "name": "i",
                   },
+                  "line": 7,
                   "op": "<=",
                   "right": {
                     "isFloat": false,
@@ -1820,6 +1836,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                             "line": 4,
                             "name": "i",
                           },
+                          "line": 4,
                           "op": "%",
                           "right": {
                             "isFloat": false,
@@ -1828,6 +1845,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                             "value": 15,
                           },
                         },
+                        "line": 4,
                         "op": "==",
                         "right": {
                           "isFloat": false,
@@ -1847,6 +1865,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                               "line": 5,
                               "name": "i",
                             },
+                            "line": 5,
                             "op": "%",
                             "right": {
                               "isFloat": false,
@@ -1855,6 +1874,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                               "value": 3,
                             },
                           },
+                          "line": 5,
                           "op": "==",
                           "right": {
                             "isFloat": false,
@@ -1874,6 +1894,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                                 "line": 6,
                                 "name": "i",
                               },
+                              "line": 6,
                               "op": "%",
                               "right": {
                                 "isFloat": false,
@@ -1882,6 +1903,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                                 "value": 5,
                               },
                             },
+                            "line": 6,
                             "op": "==",
                             "right": {
                               "isFloat": false,
@@ -2033,6 +2055,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                         "line": 8,
                         "name": "i",
                       },
+                      "line": 8,
                       "op": "+",
                       "right": {
                         "isFloat": false,
@@ -2050,6 +2073,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                     "line": 3,
                     "name": "i",
                   },
+                  "line": 3,
                   "op": "<=",
                   "right": {
                     "isFloat": false,
@@ -2297,6 +2321,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                   "line": 5,
                   "name": "n",
                 },
+                "line": 5,
                 "op": "*",
                 "right": {
                   "isFloat": false,
@@ -2360,6 +2385,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                         },
                         "property": "count",
                       },
+                      "line": 7,
                       "op": "+",
                       "right": {
                         "isFloat": false,
@@ -2422,6 +2448,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                         },
                         "property": "count",
                       },
+                      "line": 8,
                       "op": "+",
                       "right": {
                         "args": [
@@ -2822,6 +2849,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "x",
                       },
+                      "line": 3,
                       "op": "+",
                       "right": {
                         "kind": "Member",
@@ -2849,6 +2877,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "y",
                       },
+                      "line": 3,
                       "op": "+",
                       "right": {
                         "kind": "Member",
@@ -2921,6 +2950,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "x",
                       },
+                      "line": 4,
                       "op": "*",
                       "right": {
                         "kind": "Ident",
@@ -2943,6 +2973,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "y",
                       },
+                      "line": 4,
                       "op": "*",
                       "right": {
                         "kind": "Ident",
@@ -3010,6 +3041,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "x",
                       },
+                      "line": 5,
                       "op": "*",
                       "right": {
                         "kind": "Member",
@@ -3022,6 +3054,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         "property": "x",
                       },
                     },
+                    "line": 5,
                     "op": "+",
                     "right": {
                       "kind": "BinaryOp",
@@ -3035,6 +3068,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         },
                         "property": "y",
                       },
+                      "line": 5,
                       "op": "*",
                       "right": {
                         "kind": "Member",
@@ -3109,6 +3143,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         "line": 6,
                         "name": "n",
                       },
+                      "line": 6,
                       "op": "*",
                       "right": {
                         "isFloat": true,
@@ -3131,6 +3166,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   "kind": "Call",
                   "line": 6,
                 },
+                "line": 6,
                 "op": "/",
                 "right": {
                   "isFloat": true,
@@ -3475,6 +3511,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         "line": 21,
                         "name": "t",
                       },
+                      "line": 21,
                       "op": "+",
                       "right": {
                         "kind": "Ident",
@@ -3498,6 +3535,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                           },
                           "property": "y",
                         },
+                        "line": 23,
                         "op": "<",
                         "right": {
                           "isFloat": true,
@@ -3589,6 +3627,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     },
                     "property": "y",
                   },
+                  "line": 18,
                   "op": ">",
                   "right": {
                     "isFloat": true,
@@ -4227,6 +4266,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                           "line": 19,
                           "name": "i",
                         },
+                        "line": 19,
                         "op": "%",
                         "right": {
                           "isFloat": false,
@@ -4235,6 +4275,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                           "value": 2,
                         },
                       },
+                      "line": 19,
                       "op": "==",
                       "right": {
                         "isFloat": false,
@@ -4269,6 +4310,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                         "line": 20,
                         "name": "i",
                       },
+                      "line": 20,
                       "op": ">",
                       "right": {
                         "isFloat": false,

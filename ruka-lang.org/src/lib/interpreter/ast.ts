@@ -191,6 +191,7 @@ export type BinaryOp = {
 	op: string;
 	left: Expression;
 	right: Expression;
+	line: number;
 };
 
 export type Range = {

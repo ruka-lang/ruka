@@ -55,7 +55,10 @@ export type FnValue = {
 	host?: HostFn;
 };
 
-export type HostFn = (args: Value[]) => Value | Promise<Value>;
+// The evaluator narrows the result with `isBuiltinEnvelope` before unwrapping,
+// so the static return type stays loose to admit both plain `Value`s (sync
+// math builtins) and io envelopes that carry RuntimeEvents or input prompts.
+export type HostFn = (args: Value[]) => unknown;
 
 export type RecordTypeValue = {
 	kind: "recordType";
