@@ -6,6 +6,10 @@
 		value: string;
 		highlight?: (source: string) => string;
 		theme?: Theme;
+		// Fixed height for the editor box. Content beyond this scrolls inside
+		// the container — the underlying <pre> and <textarea> share the same
+		// scroll position because they sit in a single grid cell.
+		height?: string;
 		errorLine?: number | null;
 		errorMessage?: string | null;
 		readonly?: boolean;
@@ -17,6 +21,7 @@
 		value = $bindable(""),
 		highlight = defaultHighlight,
 		theme = rosePineMoon,
+		height = "24rem",
 		errorLine = null,
 		errorMessage = null,
 		readonly = false,
@@ -24,7 +29,7 @@
 		onChange
 	}: Props = $props();
 
-	const themeStyle = $derived(themeToCssVars(theme));
+	const rootStyle = $derived(`${themeToCssVars(theme)}; height: ${height}`);
 
 	let textarea: HTMLTextAreaElement | undefined = $state();
 
@@ -70,7 +75,7 @@
 	}
 </script>
 
-<div class="editor" style={themeStyle}>
+<div class="editor" style={rootStyle}>
 	<pre aria-hidden="true"><code>{@html highlighted}</code></pre>
 	<textarea
 		bind:this={textarea}
@@ -93,7 +98,8 @@
 	 * and the error compounds as the cursor moves down the document. */
 	.editor {
 		display: grid;
-		min-height: 12rem;
+		grid-template-rows: max-content;
+		overflow: auto;
 		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	}
 	.editor > * {

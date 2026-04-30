@@ -1,8 +1,9 @@
 TODO (Features, Docs and playground)
-- [ ] ! Playground editor rewrite should take into account future support for multiple file projects and user projects
-- [ ] ! Make sure basic components like buttons and selects and cards and stuff are reusable components
+- [x] ! Playground editor rewrite should take into account future support for multiple file projects and user projects
+- [x] ! Make sure basic components like buttons and selects and cards and stuff are reusable components
 - [ ] Rename __snapshots__ to snapshots
-- [ ] Light theme and dark theme support
+- [ ] Light theme and dark theme support (defaulting to dark)
+- [ ] Use lucide-svelte for icons
 - [ ] Design custom site styling and colour scheme
 - [ ] Custom highlighting colour scheme that complements site styling
 - [ ] More playground language support (in order of importance)
@@ -60,7 +61,7 @@ TODO (Features, Docs and playground)
 	- [ ] User projects supporting multiple files, saved with indexedDB
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
-	- [ ] Examples shown on overview with simplified uneditable editor and output generated on example selection, /playground for advanced examples and user projects
+	- [x] Examples shown on overview with simplified uneditable editor and output generated on example selection, /playground for advanced examples and user projects
 	- [x] Intel One Mono for code
 	- [x] 4 space tabs
-	- [ ] Fixed height editor with scrolling on overflow
+	- [x] Fixed height editor with scrolling on overflow

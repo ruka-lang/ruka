@@ -1,11 +1,28 @@
 <script lang="ts">
+	import { untrack } from "svelte";
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
-	import { examples, findExample, entrySource } from "$lib/playground/examples";
+	import FileTabs from "$lib/components/file-tabs/index.svelte";
+	import { Button, Card, Select } from "$lib/components/ui";
+	import { examples, findExample } from "$lib/playground/examples";
+	import {
+		projectFromExample,
+		updateFileSource,
+		getFile,
+		getEntrySource,
+		type Project
+	} from "$lib/playground/project";
 	import { checkSource, runSource } from "$lib/playground/driver";
 
-	let selectedId = $state(examples[0].id);
-	let source = $state(entrySource(examples[0]));
+	const exampleOptions = examples.map((example) => ({
+		value: example.id,
+		label: example.label
+	}));
+
+	let selectedExampleId = $state(examples[0].id);
+	let project = $state<Project>(projectFromExample(examples[0]));
+	let selectedPath = $state(untrack(() => project.entry));
+
 	let errorLine: number | null = $state(null);
 	let errorMessage: string | null = $state(null);
 	let canRun = $state(true);
@@ -13,13 +30,25 @@
 	let status: "idle" | "running" | "error" | "ok" = $state("idle");
 	let terminal: Terminal | undefined = $state();
 
+	// Source of the currently-edited file. The Editor binds to this; on every
+	// keystroke we mirror the change back into the project so the file tabs
+	// preserve edits when the user switches files.
+	const currentSource = $derived(getFile(project, selectedPath)?.source ?? "");
+
 	let checkTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function scheduleCheck(next: string) {
+	function scheduleCheck(path: string, next: string) {
 		if (checkTimer) clearTimeout(checkTimer);
+
 		checkTimer = setTimeout(() => {
 			checkTimer = null;
-			if (next !== source) return;
+
+			// The user may have switched files or kept typing during the debounce
+			// — only honor the result if the file/source we checked is still the
+			// active one. Otherwise we'd flash diagnostics for stale state.
+			if (path !== selectedPath) return;
+			if (next !== getFile(project, path)?.source) return;
+
 			const result = checkSource(next);
 			if (result.ok) {
 				errorLine = null;
@@ -34,34 +63,52 @@
 	}
 
 	function onSourceChange(next: string) {
-		source = next;
-		scheduleCheck(next);
+		project = updateFileSource(project, selectedPath, next);
+		scheduleCheck(selectedPath, next);
 	}
 
-	function onSelectExample(event: Event) {
-		const id = (event.target as HTMLSelectElement).value;
+	function onSelectFile(path: string) {
+		if (path === selectedPath) return;
+
+		selectedPath = path;
+		errorLine = null;
+		errorMessage = null;
+		canRun = true;
+
+		const file = getFile(project, path);
+		if (file) scheduleCheck(path, file.source);
+	}
+
+	function onSelectExample(id: string) {
 		const example = findExample(id);
 		if (!example) return;
-		selectedId = id;
-		const next = entrySource(example);
-		source = next;
+
+		selectedExampleId = id;
+		project = projectFromExample(example);
+		selectedPath = project.entry;
 		errorLine = null;
 		errorMessage = null;
 		canRun = true;
 		terminal?.clear();
-		scheduleCheck(next);
+		scheduleCheck(selectedPath, getEntrySource(project));
 	}
 
 	async function onRun() {
 		if (!terminal || running || !canRun) return;
+
 		running = true;
 		status = "running";
 		terminal.clear();
-		const result = await runSource(source, {
+
+		// Ruka has no `import` builtin yet, so the runtime sees only the entry.
+		// Non-entry files are editable here so the project shape is ready for
+		// when imports land — they're just inert today.
+		const result = await runSource(getEntrySource(project), {
 			onStdout: (text) => terminal?.write(text),
 			onStderr: (text) => terminal?.writeErr(text),
 			requestInput: () => terminal?.requestInput() ?? Promise.resolve("")
 		});
+
 		if (result.ok) {
 			status = "ok";
 		} else {
@@ -77,6 +124,7 @@
 					"\n"
 			);
 		}
+
 		running = false;
 	}
 </script>
@@ -87,30 +135,38 @@
 	<header class="playground-header">
 		<span class="playground-label">PLAYGROUND</span>
 		<div class="playground-controls">
-			<select aria-label="Select example" value={selectedId} onchange={onSelectExample}>
-				{#each examples as example (example.id)}
-					<option value={example.id}>{example.label}</option>
-				{/each}
-			</select>
-			<button type="button" onclick={onRun} disabled={!canRun || running}>
+			<Select
+				ariaLabel="Select example"
+				value={selectedExampleId}
+				options={exampleOptions}
+				onChange={onSelectExample}
+			/>
+			<Button variant="ghost" disabled={!canRun || running} onclick={onRun}>
 				{running ? "RUNNING" : "RUN"}
-			</button>
+			</Button>
 		</div>
 	</header>
 
-	<div class="playground-editor">
+	<FileTabs
+		files={project.files}
+		selected={selectedPath}
+		entry={project.entry}
+		onSelect={onSelectFile}
+	/>
+
+	<Card padded={false}>
 		<Editor
-			bind:value={source}
+			value={currentSource}
 			{errorLine}
 			{errorMessage}
 			onChange={onSourceChange}
 			ariaLabel="Ruka code editor"
 		/>
-	</div>
+	</Card>
 
-	<div class="playground-output">
+	<Card padded={false}>
 		<Terminal bind:this={terminal} {status} />
-	</div>
+	</Card>
 </section>
 
 <style>
@@ -137,26 +193,5 @@
 		display: flex;
 		gap: 8px;
 		align-items: center;
-	}
-	.playground-controls select,
-	.playground-controls button {
-		font: inherit;
-		font-size: 12px;
-		padding: 4px 10px;
-		border: 1px solid currentColor;
-		background: transparent;
-		color: inherit;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-	.playground-controls button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-	.playground-editor,
-	.playground-output {
-		border: 1px solid rgba(127, 127, 127, 0.3);
-		border-radius: 6px;
-		overflow: hidden;
 	}
 </style>
