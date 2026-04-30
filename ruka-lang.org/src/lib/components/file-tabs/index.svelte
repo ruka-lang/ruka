@@ -39,7 +39,7 @@
 		font: inherit;
 		font-size: 12px;
 		padding: 4px 10px;
-		border: 1px solid var(--ui-border, currentColor);
+		border: 1px solid var(--ui-border);
 		background: transparent;
 		color: inherit;
 		border-radius: 4px 4px 0 0;

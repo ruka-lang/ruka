@@ -46,9 +46,9 @@
 		font: inherit;
 		font-size: 12px;
 		padding: 4px 10px;
-		border: 1px solid var(--ui-border, currentColor);
-		background: var(--ui-select-bg, transparent);
-		color: var(--ui-select-fg, inherit);
+		border: 1px solid var(--ui-border);
+		background: var(--ui-select-bg);
+		color: var(--ui-select-fg);
 		border-radius: 4px;
 		cursor: pointer;
 	}
@@ -56,5 +56,13 @@
 	.select:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	/* @tailwindcss/forms applies a default focus ring on form controls; replace
+	 * it with one tinted to the site accent so it matches the rest of the UI. */
+	.select:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--selection);
+		border-color: var(--accent);
 	}
 </style>

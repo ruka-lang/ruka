@@ -24,6 +24,7 @@
 	let selectedPath = $state(untrack(() => project.entry));
 
 	let errorLine: number | null = $state(null);
+	let errorColumn: number | null = $state(null);
 	let errorMessage: string | null = $state(null);
 	let canRun = $state(true);
 	let running = $state(false);
@@ -52,10 +53,12 @@
 			const result = checkSource(next);
 			if (result.ok) {
 				errorLine = null;
+				errorColumn = null;
 				errorMessage = null;
 				canRun = true;
 			} else {
 				errorLine = result.line ?? null;
+				errorColumn = result.col ?? null;
 				errorMessage = result.message;
 				canRun = false;
 			}
@@ -72,6 +75,7 @@
 
 		selectedPath = path;
 		errorLine = null;
+		errorColumn = null;
 		errorMessage = null;
 		canRun = true;
 
@@ -87,6 +91,7 @@
 		project = projectFromExample(example);
 		selectedPath = project.entry;
 		errorLine = null;
+		errorColumn = null;
 		errorMessage = null;
 		canRun = true;
 		terminal?.clear();
@@ -114,6 +119,7 @@
 		} else {
 			status = "error";
 			errorLine = result.line ?? null;
+			errorColumn = result.col ?? null;
 			errorMessage = result.message;
 			canRun = false;
 			terminal?.writeErr(
@@ -158,6 +164,7 @@
 		<Editor
 			value={currentSource}
 			{errorLine}
+			{errorColumn}
 			{errorMessage}
 			onChange={onSourceChange}
 			ariaLabel="Ruka code editor"
@@ -165,7 +172,7 @@
 	</Card>
 
 	<Card padded={false}>
-		<Terminal bind:this={terminal} {status} />
+		<Terminal bind:this={terminal} {status} maxHeight="20rem" />
 	</Card>
 </section>
 

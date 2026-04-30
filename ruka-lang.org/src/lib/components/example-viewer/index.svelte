@@ -79,13 +79,15 @@
 		/>
 	</header>
 
-	<Card padded={false}>
-		<Editor value={source} readonly {height} ariaLabel="Example source" />
-	</Card>
+	<div class="split">
+		<Card padded={false}>
+			<Editor value={source} readonly {height} ariaLabel="Example source" />
+		</Card>
 
-	<Card padded={false}>
-		<Terminal bind:this={terminal} {status} />
-	</Card>
+		<Card padded={false}>
+			<Terminal bind:this={terminal} {status} maxHeight={height} />
+		</Card>
+	</div>
 </div>
 
 <style>
@@ -98,5 +100,20 @@
 	.header {
 		display: flex;
 		justify-content: flex-end;
+	}
+
+	.split {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		align-items: stretch;
+	}
+
+	/* Stack the panes on narrow screens — side-by-side becomes unreadable
+	 * once each column drops below ~360px. */
+	@media (max-width: 800px) {
+		.split {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

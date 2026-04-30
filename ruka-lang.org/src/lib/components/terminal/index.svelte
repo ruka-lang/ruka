@@ -8,9 +8,17 @@
 		status?: Status;
 		emptyMessage?: string;
 		ariaLabel?: string;
+		// Cap on the terminal's height. The body scrolls on overflow so long
+		// program output doesn't push the page layout around.
+		maxHeight?: string;
 	};
 
-	let { status = $bindable("idle"), emptyMessage = "(no output)", ariaLabel = "Program output" }: Props = $props();
+	let {
+		status = $bindable("idle"),
+		emptyMessage = "(no output)",
+		ariaLabel = "Program output",
+		maxHeight = "24rem"
+	}: Props = $props();
 
 	let segments: Segment[] = $state([]);
 	let prompting = $state(false);
@@ -80,7 +88,7 @@
 	const isEmpty = $derived(segments.length === 0 && !prompting);
 </script>
 
-<div class="terminal" data-status={status}>
+<div class="terminal" data-status={status} style="max-height: {maxHeight}">
 	<div class="terminal-header">OUTPUT</div>
 	<div class="terminal-body" bind:this={scroller} aria-label={ariaLabel} role="log">
 		{#if isEmpty}
@@ -115,6 +123,8 @@
 		font-size: 13px;
 		line-height: 1.5;
 		min-height: 8rem;
+		/* max-height is set inline from the prop so the body's overflow:auto
+		 * has something to clip against. */
 	}
 	.terminal-header {
 		padding: 4px 10px;
@@ -134,10 +144,10 @@
 		font-style: italic;
 	}
 	.terminal-seg[data-stream="stderr"] {
-		color: #eb6f92;
+		color: var(--danger);
 	}
 	.terminal[data-status="error"] .terminal-body {
-		color: #eb6f92;
+		color: var(--danger);
 	}
 	.terminal-prompt {
 		display: inline-flex;

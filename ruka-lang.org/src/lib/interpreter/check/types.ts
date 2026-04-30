@@ -58,7 +58,7 @@ function isPrivateName(name: string | undefined | null): boolean {
 
 // ── Type-error helper ────────────────────────────────────────────────────
 function typeError(line: number, message: string, fatal = false): RukaError {
-	return new RukaError(message, line, fatal);
+	return new RukaError(message, line, undefined, fatal);
 }
 
 // ── Member resolution ────────────────────────────────────────────────────

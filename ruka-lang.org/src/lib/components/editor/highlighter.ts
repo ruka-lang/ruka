@@ -61,12 +61,16 @@ const OPERATORS = new Set([
 	"?",
 	"and",
 	"or",
-	"not"
+	"not",
+	"in"
 ]);
 
 const STRUCTURES = new Set(["(", ")", "[", "]", "{", "}"]);
 
-const SURROUNDS = new Set(["do", "end", "with", "in", "else"]);
+// Word-form structural delimiters that pair like brackets — `do … end` opens
+// and closes a block the same way `{` and `}` do. Highlighted as `strc` so
+// they read as scaffolding rather than syntax words.
+const WORD_STRUCTURES = new Set(["do", "end", "with", "else"]);
 
 export function escapeHtml(s: string): string {
 	return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -221,17 +225,16 @@ export function highlight(raw: string): string {
 			continue;
 		}
 
-		// Surround words (do / end / else / in / with). Reject when the next
-		// char would extend the identifier (e.g. `index` starts with `in`).
-		const surr =
-			(SURROUNDS.has(raw.slice(i, i + 4)) && raw.slice(i, i + 4)) ||
-			(SURROUNDS.has(raw.slice(i, i + 3)) && raw.slice(i, i + 3)) ||
-			(SURROUNDS.has(raw.slice(i, i + 2)) && raw.slice(i, i + 2)) ||
-			(SURROUNDS.has(raw[i]!) && raw[i]!) ||
+		// Word-form structural delimiters (do / end). Same word-boundary rule
+		// as SURROUNDS — reject when the next char extends the identifier.
+		const wstr =
+			(WORD_STRUCTURES.has(raw.slice(i, i + 4)) && raw.slice(i, i + 4)) ||
+			(WORD_STRUCTURES.has(raw.slice(i, i + 3)) && raw.slice(i, i + 3)) ||
+			(WORD_STRUCTURES.has(raw.slice(i, i + 2)) && raw.slice(i, i + 2)) ||
 			null;
-		if (surr && (i + surr.length >= raw.length || !/\w/.test(raw[i + surr.length]!))) {
-			out += span("surr", surr);
-			i += surr.length;
+		if (wstr && (i + wstr.length >= raw.length || !/\w/.test(raw[i + wstr.length]!))) {
+			out += span("kw", wstr);
+			i += wstr.length;
 			continue;
 		}
 
