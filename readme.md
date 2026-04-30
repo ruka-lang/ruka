@@ -13,11 +13,10 @@ The `Ruka` programming language
 When `Ruka` reaches a usable state, the instructions for installing and using the tools will live here
 
 # Documentation
-<!--[Read the docs](https://www.ruka-lang.org)-->
-- [Language Overview](https://ruka-lang.github.io/ruka/) — Design philosophy, core features, and a quick introduction to the syntax
-- [Language Reference](https://ruka-lang.github.io/ruka/reference.html) — Full reference covering all language features with examples
-- [Language Grammar](https://ruka-lang.github.io/ruka/grammar.html) — EBNF formal grammar describing Ruka syntax
-- [Examples](https://www.github.com/ruka-lang/ruka/tree/main/docs/examples) - Ruka language example programs
+- [Read the docs](https://www.ruka-lang.org)
+- [Language Overview](https://www.ruka-lang.org) — Design philosophy, core features, and a quick introduction to the syntax
+- [Language Reference](https://www.ruka-lang.org/reference) — Full reference covering all language features with examples
+- [Language Grammar](https://www.ruka-lang.org/grammar) — EBNF formal grammar describing Ruka syntax
 
 # License
 `Ruka` is distributed under the terms of both the MIT license and the Apache License (Version 2.0). See license-apache and license-mit for details
