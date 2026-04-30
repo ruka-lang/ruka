@@ -144,7 +144,6 @@
 	}
 	.editor :global(.ruka-hl-cmt) {
 		color: var(--ruka-hl-cmt);
-		font-style: italic;
 	}
 	.editor :global(.ruka-hl-tp) {
 		color: var(--ruka-hl-tp);
