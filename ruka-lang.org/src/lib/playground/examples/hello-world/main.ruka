@@ -1,0 +1,4 @@
+let main = () do
+	let name = "world"
+	ruka.println("Hello, ${name}!")
+end

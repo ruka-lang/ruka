@@ -1,0 +1,16 @@
+let grade = (score) do
+	match score with
+		90..=100 do "A"
+		80..=89  do "B"
+		70..=79  do "C"
+		60..=69  do "D"
+		else        "F"
+	end
+end
+
+let main = () do
+	let scores = [int].{95, 83, 71, 65, 42}
+	for s in scores do
+		ruka.println("Score ${s}: ${grade(s)}")
+	end
+end

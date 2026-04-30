@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
-	import { examples, findExample } from "$lib/playground/examples";
+	import { examples, findExample, entrySource } from "$lib/playground/examples";
 	import { checkSource, runSource } from "$lib/playground/driver";
 
 	let selectedId = $state(examples[0].id);
-	let source = $state(examples[0].source);
+	let source = $state(entrySource(examples[0]));
 	let errorLine: number | null = $state(null);
 	let errorMessage: string | null = $state(null);
 	let canRun = $state(true);
@@ -43,12 +43,13 @@
 		const example = findExample(id);
 		if (!example) return;
 		selectedId = id;
-		source = example.source;
+		const next = entrySource(example);
+		source = next;
 		errorLine = null;
 		errorMessage = null;
 		canRun = true;
 		terminal?.clear();
-		scheduleCheck(example.source);
+		scheduleCheck(next);
 	}
 
 	async function onRun() {

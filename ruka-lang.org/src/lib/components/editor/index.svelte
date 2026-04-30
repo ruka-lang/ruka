@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { highlight as defaultHighlight } from "./highlighter";
+	import { rosePineMoon, themeToCssVars, type Theme } from "./themes";
 
 	type Props = {
 		value: string;
 		highlight?: (source: string) => string;
+		theme?: Theme;
 		errorLine?: number | null;
 		errorMessage?: string | null;
 		readonly?: boolean;
@@ -14,12 +16,15 @@
 	let {
 		value = $bindable(""),
 		highlight = defaultHighlight,
+		theme = rosePineMoon,
 		errorLine = null,
 		errorMessage = null,
 		readonly = false,
 		ariaLabel = "Code editor",
 		onChange
 	}: Props = $props();
+
+	const themeStyle = $derived(themeToCssVars(theme));
 
 	let textarea: HTMLTextAreaElement | undefined = $state();
 
@@ -51,12 +56,12 @@
 		event.preventDefault();
 		const start = textarea.selectionStart;
 		const end = textarea.selectionEnd;
-		const next = value.slice(0, start) + "  " + value.slice(end);
+		const next = value.slice(0, start) + "\t" + value.slice(end);
 		value = next;
 		onChange?.(next);
 		queueMicrotask(() => {
 			if (!textarea) return;
-			textarea.selectionStart = textarea.selectionEnd = start + 2;
+			textarea.selectionStart = textarea.selectionEnd = start + 1;
 		});
 	}
 
@@ -65,7 +70,7 @@
 	}
 </script>
 
-<div class="editor">
+<div class="editor" style={themeStyle}>
 	<pre aria-hidden="true"><code>{@html highlighted}</code></pre>
 	<textarea
 		bind:this={textarea}
@@ -81,39 +86,87 @@
 </div>
 
 <style>
+	/* Stack the highlight layer (pre > code) and the input layer (textarea)
+	 * in a single CSS grid cell. Grid sizes both children identically, which
+	 * is what keeps the caret aligned line-for-line — absolute positioning
+	 * lets the textarea round its line-box height differently from the pre,
+	 * and the error compounds as the cursor moves down the document. */
 	.editor {
-		position: relative;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		display: grid;
+		min-height: 12rem;
+		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	}
+	.editor > * {
+		grid-area: 1 / 1;
+	}
+	.editor pre {
+		margin: 0;
+		border: 0;
+		background: transparent;
+		pointer-events: none;
+		user-select: none;
+		overflow: visible;
+		min-width: 0;
+	}
+	.editor pre code {
+		display: block;
+		margin: 0;
+		padding: 12px;
+		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 14px;
 		line-height: 1.5;
+		font-weight: 550;
+		white-space: pre;
+		tab-size: 4;
+		-moz-tab-size: 4;
+		color: var(--ruka-hl-text, inherit);
 	}
-	.editor pre,
+	.editor :global(.ruka-hl-kw) {
+		color: var(--ruka-hl-kw);
+	}
+	.editor :global(.ruka-hl-str) {
+		color: var(--ruka-hl-str);
+	}
+	.editor :global(.ruka-hl-num) {
+		color: var(--ruka-hl-num);
+	}
+	.editor :global(.ruka-hl-lbl) {
+		color: var(--ruka-hl-lbl);
+	}
+	.editor :global(.ruka-hl-op) {
+		color: var(--ruka-hl-op);
+	}
+	.editor :global(.ruka-hl-surr) {
+		color: var(--ruka-hl-surr);
+	}
+	.editor :global(.ruka-hl-strc) {
+		color: var(--ruka-hl-strc);
+	}
+	.editor :global(.ruka-hl-cmt) {
+		color: var(--ruka-hl-cmt);
+		font-style: italic;
+	}
+	.editor :global(.ruka-hl-tp) {
+		color: var(--ruka-hl-tp);
+	}
 	.editor textarea {
 		margin: 0;
 		padding: 12px;
 		border: 0;
-		font: inherit;
-		line-height: inherit;
+		box-sizing: border-box;
+		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 14px;
+		line-height: 1.5;
+		font-weight: 550;
 		white-space: pre;
-		tab-size: 2;
-		overflow: auto;
-	}
-	.editor pre {
-		min-height: 12rem;
-		color: inherit;
-		background: transparent;
-		pointer-events: none;
-	}
-	.editor textarea {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
+		tab-size: 4;
+		-moz-tab-size: 4;
 		color: transparent;
-		caret-color: currentColor;
+		caret-color: var(--ruka-hl-text, currentColor);
 		background: transparent;
 		resize: none;
 		outline: none;
+		overflow: hidden;
 	}
 	.editor textarea::selection {
 		background: rgba(127, 127, 127, 0.35);
