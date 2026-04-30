@@ -1,0 +1,124 @@
+/* Site-wide design tokens.
+ *
+ * Two layers:
+ *   1. Semantic tokens (--bg, --fg, --accent, …) defined per theme on
+ *      [data-theme="dark"|"light"]. These are the only values to touch when
+ *      reskinning.
+ *   2. Component vars (--ui-button-bg, --ui-card-bg, …) declared on :root
+ *      and resolving to semantic tokens. Components consume the component
+ *      vars so the indirection stays one level deep at the call site.
+ *
+ * Dark is the default; the body carries data-theme="dark" in app.html. The
+ * light theme inverts neutrals and reuses the same accent — sage reads on
+ * both. Add new component vars here, not in component <style> blocks.
+ */
+
+html[data-theme="dark"] {
+	--bg: #141311;
+	--bg-elevated: #1c1b18;
+	--fg: #ece7db;
+	--fg-muted: #9a958a;
+	--border: #2a2824;
+	--accent: #9cb380;
+	--accent-fg: #141311;
+	--danger: #c87060;
+	--selection: rgba(156, 179, 128, 0.25);
+}
+
+html[data-theme="light"] {
+	--bg: #f5f1e8;
+	--bg-elevated: #ede8db;
+	--fg: #1a1916;
+	--fg-muted: #6b6557;
+	--border: #d8d2c2;
+	--accent: #6f8a55;
+	--accent-fg: #f5f1e8;
+	--danger: #b04a38;
+	--selection: rgba(111, 138, 85, 0.22);
+}
+
+:root {
+	--font-display: "DM Serif Display", ui-serif, Georgia, serif;
+	--font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+	/* Type scale — compact-leaning. Use the named steps; don't sprinkle raw px. */
+	--fs-xs: 12px;
+	--fs-sm: 13px;
+	--fs-base: 16px;
+	--fs-md: 18px;
+	--fs-lg: 22px;
+	--fs-xl: 32px;
+	--fs-2xl: 56px;
+
+	--ui-border: var(--border);
+
+	--ui-button-bg: transparent;
+	--ui-button-fg: var(--fg);
+	--ui-button-primary-bg: var(--accent);
+	--ui-button-primary-fg: var(--accent-fg);
+
+	--ui-card-bg: var(--bg-elevated);
+
+	--ui-select-bg: transparent;
+	--ui-select-fg: var(--fg);
+}
+
+html,
+body {
+	background: var(--bg);
+	color: var(--fg);
+	font-family: var(--font-sans);
+	font-size: var(--fs-base);
+	line-height: 1.55;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2 {
+	font-family: var(--font-display);
+	font-weight: 400;
+	line-height: 1.1;
+	letter-spacing: -0.01em;
+	margin: 0;
+}
+
+h1 {
+	font-size: var(--fs-2xl);
+}
+
+h2 {
+	font-size: var(--fs-xl);
+}
+
+h3,
+h4,
+h5,
+h6 {
+	font-family: var(--font-sans);
+	font-weight: 600;
+	line-height: 1.25;
+	margin: 0;
+}
+
+h3 {
+	font-size: var(--fs-lg);
+}
+
+h4 {
+	font-size: var(--fs-md);
+}
+
+p {
+	margin: 0;
+}
+
+code,
+pre {
+	font-family: var(--font-mono);
+}
+
+::selection {
+	background: var(--selection);
+}

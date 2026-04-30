@@ -1,0 +1,4 @@
+// expect: '+' does not concatenate strings
+let main = () do
+    let s = "a" + "b"
+end

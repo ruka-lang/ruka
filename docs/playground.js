@@ -29,6 +29,45 @@
         continue;
       }
       var tok_line = line;
+      // multiline string: |"  ...  |"
+      // Each content line begins with | (stripped). Supports ${...} interpolation.
+      if (src[i] === '|' && src[i + 1] === '"') {
+        i += 2; // consume |"
+        // skip remainder of opening line (should be empty or whitespace)
+        while (i < len && src[i] !== '\n') i++;
+        var mlraw = '';
+        var firstLine = true;
+        while (i < len) {
+          // advance past newline
+          if (src[i] === '\n') { line++; i++; }
+          // skip leading whitespace on this line
+          while (i < len && src[i] !== '\n' && /[ \t]/.test(src[i])) i++;
+          // closing delimiter |"
+          if (src[i] === '|' && src[i + 1] === '"') { i += 2; break; }
+          // content line: must start with |
+          if (src[i] !== '|') break; // malformed — stop collecting
+          i++; // consume |
+          if (src[i] === ' ') i++; // strip one optional space after |
+          if (!firstLine) mlraw += '\n';
+          firstLine = false;
+          // collect the rest of this line (including ${...} expressions verbatim)
+          while (i < len && src[i] !== '\n') {
+            if (src[i] === '$' && src[i + 1] === '{') {
+              mlraw += '${'; i += 2;
+              var miDepth = 1;
+              while (i < len && miDepth > 0) {
+                if (src[i] === '{') { miDepth++; mlraw += src[i++]; }
+                else if (src[i] === '}') { miDepth--; if (miDepth === 0) { mlraw += '}'; i++; break; } mlraw += src[i++]; }
+                else mlraw += src[i++];
+              }
+            } else {
+              mlraw += src[i++];
+            }
+          }
+        }
+        toks.push({ t: 'STR', v: mlraw, line: tok_line });
+        continue;
+      }
       // string literal — preserve raw content including ${...}
       if (src[i] === '"') {
         i++;
@@ -165,6 +204,13 @@
       return null;
     }
     function skipNL() { while (check('NL')) pos++; }
+    // True when the next non-NL token has type `t`. Used for operators that
+    // should chain across line breaks (e.g. `|>` placed on the next line).
+    function checkPastNL(t) {
+      var i = pos;
+      while (i < toks.length && toks[i].t === 'NL') i++;
+      return i < toks.length && toks[i].t === t;
+    }
 
     // Parse a type expression:
     //   prim   : int | uint | i8..i128 | u8..u128 | float | f32 | f64 | string | bool
@@ -255,9 +301,7 @@
     }
 
     function parseStmt() {
-      // binding: let [mode]name [: type] = expr
-      // Privacy is determined by name case: lowercase first letter = public,
-      // uppercase first letter = private. No separate qualifier.
+      // binding: let [mode](ident | {a, b, ...}) [: type] = expr
       var kw = tryMatch('let');
       if (kw) {
         // optional mode prefix: *, &, $, @
@@ -265,21 +309,48 @@
         if (check('*') || check('&') || check('$') || check('@')) {
           mode = peek().v; pos++;
         }
+        // Tuple/record destructuring: let {a, b, ...} = expr
+        if (check('{')) {
+          eat('{'); skipNL();
+          var dpNames = [];
+          while (!check('}') && !check('EOF')) {
+            dpNames.push(eat('ID').v);
+            skipNL();
+            if (tryMatch(',')) skipNL();
+          }
+          eat('}');
+          eat('='); skipNL();
+          var dpPat = { k: 'TuplePat', names: dpNames };
+          return { k: 'Bind', local: false, mode: mode, pat: dpPat, type: null, value: parseExpr(), line: kw.line };
+        }
         var name = eat('ID').v;
         var isLocal = /^[A-Z]/.test(name);
-        // skip optional (self) / (self: T) / (Type) receiver annotation
+        // Optional receiver clause:
+        //   (self)         — instance method, receiver type inferred
+        //   (self: T)      — instance method, receiver type T
+        //   (TypeName)     — static method/value attached to TypeName
+        var receiver = null;
         if (check('(')) {
-          var depth = 1; pos++;
-          while (depth > 0 && !check('EOF')) {
-            if (check('(')) depth++;
-            else if (check(')')) depth--;
+          eat('('); skipNL();
+          if (check('self')) {
             pos++;
+            var selfTy = tryMatch(':') ? parseType() : null;
+            receiver = { kind: 'self', tyAnno: selfTy };
+          } else if (check('ID')) {
+            var rtn = eat('ID').v;
+            receiver = { kind: 'static', tyName: rtn };
+          } else {
+            var rerr = new Error("Expected 'self' or type name in receiver clause, got '" + peek().t + "'");
+            rerr.line = peek().line;
+            throw rerr;
           }
+          skipNL(); eat(')');
         }
         var bindType = tryMatch(':') ? parseType() : null;
         eat('=');
         skipNL();
-        return { k: 'Bind', local: isLocal, mode: mode, name: name, type: bindType, value: parseExpr(), line: kw.line };
+        var idPat = { k: 'IdentPat', name: name };
+        return { k: 'Bind', local: isLocal, mode: mode, pat: idPat, name: name, type: bindType, receiver: receiver, value: parseExpr(), line: kw.line };
       }
       // plain assignment: ident = expr
       if (check('ID') && toks[pos + 1] && toks[pos + 1].t === '=') {
@@ -324,6 +395,7 @@
     function parseExpr() {
       if (check('(') && isFnLiteral()) return parseFn();
       if (check('while'))              return parseWhile();
+      if (check('match'))              return parseMatch();
       return parseIf();
     }
 
@@ -376,6 +448,90 @@
       return { k: 'While', cond: cond, body: b.node.body, line: l };
     }
 
+    function parsePattern() {
+      // Variant pattern: tagName  or  tagName(binding)  or  tagName({a, b})
+      // Disambiguation: a bare ID before `do`/NL is a variant tag; ID(ID) or
+      // ID({...}) are variant patterns with payload; anything else is a guard.
+      if (check('ID')) {
+        var nxt = toks[pos + 1];
+        var isBareTag = !nxt || nxt.t === 'NL' || nxt.t === 'do' || nxt.t === 'EOF';
+        var isTagCall = nxt && nxt.t === '(';
+        if (isBareTag) {
+          return { k: 'VariantPat', tag: eat('ID').v, binding: null };
+        }
+        if (isTagCall) {
+          // look inside the parens: if content is ID or { ... } → variant
+          var la = pos + 2;
+          while (toks[la] && toks[la].t === 'NL') la++;
+          var laTok = toks[la];
+          if (laTok && laTok.t === 'ID') {
+            var la2 = la + 1;
+            while (toks[la2] && toks[la2].t === 'NL') la2++;
+            if (toks[la2] && toks[la2].t === ')') {
+              // tagName(name) — simple binding
+              var vtag = eat('ID').v; eat('('); skipNL();
+              var vbind = { k: 'BindPat', name: eat('ID').v };
+              skipNL(); eat(')');
+              return { k: 'VariantPat', tag: vtag, binding: vbind };
+            }
+          }
+          if (laTok && laTok.t === '{') {
+            // tagName({a, b, ...}) — tuple destructuring of payload
+            var vtag = eat('ID').v; eat('('); skipNL();
+            eat('{'); skipNL();
+            var vpnames = [];
+            while (!check('}') && !check('EOF')) {
+              vpnames.push(eat('ID').v);
+              skipNL();
+              if (tryMatch(',')) skipNL();
+            }
+            eat('}'); skipNL(); eat(')');
+            return { k: 'VariantPat', tag: vtag, binding: { k: 'TuplePat', names: vpnames } };
+          }
+        }
+      }
+      // Range pattern: NUM..NUM  or  NUM..=NUM  (integers and chars)
+      if ((check('NUM') || check('CHAR')) && (toks[pos + 1] && (toks[pos + 1].t === '..' || toks[pos + 1].t === '..='))) {
+        var lo = parsePrimary();
+        var inclusive = peek().t === '..=';
+        eat(inclusive ? '..=' : '..');
+        var hi = parsePrimary();
+        return { k: 'RangePat', lo: lo, hi: hi, inclusive: inclusive };
+      }
+      // Literal pattern: NUM, STR, CHAR, true, false
+      if (check('NUM') || check('STR') || check('CHAR') || check('true') || check('false')) {
+        return { k: 'LitPat', expr: parsePrimary() };
+      }
+      // Guard pattern: boolean expression stopped before 'do'
+      return { k: 'GuardPat', expr: parseOr() };
+    }
+
+    function parseMatch() {
+      var l = eat('match').line;
+      skipNL();
+      var subject = parseExpr();
+      skipNL(); eat('with'); skipNL();
+      var arms = [];
+      while (!check('else') && !check('end') && !check('EOF')) {
+        var pat = parsePattern();
+        skipNL(); eat('do');
+        var b = parseDoBody();
+        if (b.multiline) eat('end');
+        arms.push({ pat: pat, body: b.node });
+        skipNL();
+      }
+      var elseArm = null;
+      if (tryMatch('else')) {
+        skipNL();
+        var eb = parseDoBody();
+        if (eb.multiline) eat('end');
+        elseArm = eb.node;
+        skipNL();
+      }
+      eat('end');
+      return { k: 'Match', subject: subject, arms: arms, elseArm: elseArm, line: l };
+    }
+
     // `inChain` = this parseIf is the RHS of an enclosing `else if`, so the
     // enclosing call owns the shared trailing `end` (when any branch is multi-line).
     function parseIf(inChain) {
@@ -405,7 +561,8 @@
       if (!inChain) {
         skipNL();
         if (multiline) eat('end');
-        else tryMatch('end');
+        // Single-line if expressions never carry an explicit `end` —
+        // one here would belong to the enclosing block.
       }
       var node = { k: 'If', cond: cond, then: then, else_: else_, line: ifTok.line };
       node._multiline = multiline;
@@ -431,7 +588,8 @@
     // If the RHS is not a Call (e.g. `x |> f`), synthesize `f(x)`.
     function parsePipeline() {
       var l = parseOr();
-      while (check('|>')) {
+      while (checkPastNL('|>')) {
+        skipNL();
         pos++;
         skipNL();
         var r = parseOr();
@@ -572,6 +730,7 @@
       if (tok.t === 'true')  { pos++; return { k: 'Lit',   v: true,     line: tok.line }; }
       if (tok.t === 'false') { pos++; return { k: 'Lit',   v: false,    line: tok.line }; }
       if (tok.t === 'ID')    { pos++; return { k: 'Ident', name: tok.v, line: tok.line }; }
+      if (tok.t === 'self')  { pos++; return { k: 'Ident', name: 'self', line: tok.line }; }
       if (tok.t === '(')     {
         eat('('); skipNL();
         // `()` — unit literal. Distinguished from a parenthesised expression by
@@ -595,6 +754,35 @@
         }
         eat('}');
         return { k: 'RecordType', fields: rfs, line: tok.line };
+      }
+      // variant type: variant { tag, tag: Type, ... }
+      if (tok.t === 'variant') {
+        pos++;
+        skipNL(); eat('{'); skipNL();
+        var vtags = [];
+        while (!check('}') && !check('EOF')) {
+          skipNL();
+          var vtn = eat('ID').v;
+          var vtt = null;
+          if (tryMatch(':')) { skipNL(); vtt = parseType(); }
+          vtags.push({ name: vtn, type: vtt });
+          skipNL();
+          if (tryMatch(',')) skipNL();
+        }
+        eat('}');
+        return { k: 'VariantType', tags: vtags, line: tok.line };
+      }
+      // Unqualified variant constructor: .tagName or .tagName(payload)
+      if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === 'ID') {
+        pos++;
+        var ctorTag = eat('ID').v;
+        var ctorPayload = null;
+        if (check('(')) {
+          eat('(');
+          ctorPayload = parseExpr();
+          eat(')');
+        }
+        return { k: 'VariantCtor', tag: ctorTag, payload: ctorPayload, line: tok.line };
       }
       // Record or array/tuple literal: .{ ... }
       if (tok.t === '.' && toks[pos + 1] && toks[pos + 1].t === '{') {
@@ -716,7 +904,10 @@
     // Hoist all top-level binding names (with mutability) so mutually-recursive
     // functions work and forward references to mutable bindings are tracked.
     ast.body.forEach(function (s) {
-      if (s.k === 'Bind') topNames.set(s.name, s.mode === '*');
+      if (s.k === 'Bind' && !s.receiver) {
+        if (s.pat.k === 'IdentPat') topNames.set(s.pat.name, s.mode === '*');
+        else if (s.pat.k === 'TuplePat') s.pat.names.forEach(function (n) { topNames.set(n, s.mode === '*'); });
+      }
     });
 
     try {
@@ -727,7 +918,11 @@
     function chkStmt(node, scope) {
       if (node.k === 'Bind') {
         chkExpr(node.value, scope);
-        scope.set(node.name, node.mode === '*'); // available after this point in sequential blocks
+        // Methods/statics don't add a top-level binding — access is via the
+        // receiver type (`obj.method` or `Type.static`), not the bare name.
+        if (node.receiver) return;
+        if (node.pat.k === 'IdentPat') scope.set(node.pat.name, node.mode === '*');
+        else if (node.pat.k === 'TuplePat') node.pat.names.forEach(function (n) { scope.set(n, node.mode === '*'); });
       } else if (node.k === 'Assign') {
         if (!scope.has(node.name)) {
           var e = new Error('Undefined: ' + node.name);
@@ -791,7 +986,7 @@
           var fnScope = new Map(scope);
           // The fn's own binding name is already in scope (hoisted at top level,
           // or added by chkStmt before we recurse into value).
-          node.params.forEach(function (p) { fnScope.set(p, false); }); // params are immutable
+          node.params.forEach(function (p, i) { fnScope.set(p, node.paramModes[i] === '*'); });
           chkExpr(node.body, fnScope);
           return;
         }
@@ -838,10 +1033,31 @@
           chkExpr(node.expr, scope);
           return;
         case 'RecordType': return;
+        case 'VariantType': return;
+        case 'VariantCtor':
+          if (node.payload) chkExpr(node.payload, scope);
+          return;
         case 'RecordLit':
           if (node.typeName) chkExpr(node.typeName, scope);
           node.fields.forEach(function (f) { chkExpr(f.value, scope); });
           return;
+        case 'Match': {
+          chkExpr(node.subject, scope);
+          for (var mi = 0; mi < node.arms.length; mi++) {
+            var marm = node.arms[mi];
+            var mScope = new Map(scope);
+            if (marm.pat.k === 'VariantPat' && marm.pat.binding) {
+              if (marm.pat.binding.k === 'BindPat')   mScope.set(marm.pat.binding.name, false);
+              if (marm.pat.binding.k === 'TuplePat')  marm.pat.binding.names.forEach(function (n) { mScope.set(n, false); });
+            }
+            if (marm.pat.k === 'GuardPat') chkExpr(marm.pat.expr, scope);
+            if (marm.pat.k === 'LitPat')   chkExpr(marm.pat.expr, scope);
+            if (marm.pat.k === 'RangePat') { chkExpr(marm.pat.lo, scope); chkExpr(marm.pat.hi, scope); }
+            chkExpr(marm.body, mScope);
+          }
+          if (node.elseArm) chkExpr(node.elseArm, scope);
+          return;
+        }
       }
     }
   }
@@ -872,7 +1088,8 @@
       case 'range':   return 'range(' + tyStr(t.elem) + ')';
       case 'fn':      return '(' + (t.params||[]).map(tyStr).join(', ') + ') -> ' + tyStr(t.ret);
       case 'module':  return '<module>';
-      case 'named':   return t.name;
+      case 'named':      return t.name;
+      case 'variantDef': return t.name ? t.name : '<variant>';
       case 'unknown': return '?';
       default:        return t.k;   // primitive name stored directly in k
     }
@@ -940,6 +1157,17 @@
         if (node.typeName) walkAst(node.typeName, fn);
         node.fields.forEach(function (f) { walkAst(f.value, fn); }); break;
       case 'Fn': walkAst(node.body, fn); break;
+      case 'VariantCtor': if (node.payload) walkAst(node.payload, fn); break;
+      case 'Match':
+        walkAst(node.subject, fn);
+        node.arms.forEach(function (a) {
+          if (a.pat.k === 'GuardPat') walkAst(a.pat.expr, fn);
+          if (a.pat.k === 'LitPat')   walkAst(a.pat.expr, fn);
+          if (a.pat.k === 'RangePat') { walkAst(a.pat.lo, fn); walkAst(a.pat.hi, fn); }
+          walkAst(a.body, fn);
+        });
+        if (node.elseArm) walkAst(node.elseArm, fn);
+        break;
     }
   }
   function walkAstStmt(node, fn) {
@@ -947,6 +1175,25 @@
     if (node.k === 'Bind' || node.k === 'Assign' || node.k === 'Return') { if (node.value) walkAst(node.value, fn); }
     if (node.k === 'ExprStmt') walkAst(node.expr, fn);
     if (node.k === 'For') { walkAst(node.iter, fn); node.body.forEach(function (s) { walkAstStmt(s, fn); }); }
+  }
+
+  // Privacy: an identifier is private when its first character is uppercase.
+  // Has no meaning inside a function body, but applies to record/variant
+  // fields and top-level bindings (see CLAUDE.md).
+  function isPrivateName(n) {
+    if (!n) return false;
+    var c = n.charCodeAt(0);
+    return c >= 65 && c <= 90;
+  }
+  // True when `target` is reachable from `current` via the parent chain —
+  // i.e. the access site is lexically inside (or at) the declaring scope.
+  function envContains(current, target) {
+    if (!target) return true;
+    while (current) {
+      if (current === target) return true;
+      current = current.parent;
+    }
+    return false;
   }
 
   // Static method/field resolution for built-in and user-defined types.
@@ -970,15 +1217,63 @@
       if (name in obj.members) return obj.members[name];
       throw tyErr(line, "no member '" + name + "' on module");
     }
+    if (obj.k === 'variantDef') {
+      // First: variant tags (constructors).
+      var vtag = null;
+      for (var vi = 0; vi < obj.tags.length; vi++) {
+        if (obj.tags[vi].name === name) { vtag = obj.tags[vi]; break; }
+      }
+      if (vtag) {
+        var instTy = { k: 'named', name: obj.name || '?' };
+        if (!vtag.ty) return instTy;
+        return { k: 'fn', params: [vtag.ty], ret: instTy };
+      }
+      // Then: statics attached via (TypeName) receiver.
+      if (obj.statics && name in obj.statics) {
+        var vs = obj.statics[name];
+        if (isPrivateName(name) && !envContains(env, vs.declEnv))
+          throw tyErr(line, "static '" + name + "' on '" + obj.name + "' is private", true);
+        return vs.ty;
+      }
+      throw tyErr(line, "no tag or static '" + name + "' in " + (obj.name || 'variant'), true);
+    }
+    if (obj.k === 'recordDef') {
+      // `Type.static` access on a record type (e.g. Color.RED, Vector.new).
+      if (obj.statics && name in obj.statics) {
+        var rs = obj.statics[name];
+        if (isPrivateName(name) && !envContains(env, rs.declEnv))
+          throw tyErr(line, "static '" + name + "' on record is private", true);
+        return rs.ty;
+      }
+      throw tyErr(line, "no static '" + name + "' on record", true);
+    }
     if (obj.k === 'named' && env) {
       var recDef = (function (e) {
         while (e) { if (obj.name in e.bindings) return e.bindings[obj.name]; e = e.parent; }
       }(env));
       if (recDef && recDef.k === 'recordDef') {
         for (var fi = 0; fi < recDef.fields.length; fi++) {
-          if (recDef.fields[fi].name === name) return recDef.fields[fi].ty;
+          if (recDef.fields[fi].name === name) {
+            if (isPrivateName(name) && !envContains(env, recDef.declEnv))
+              throw tyErr(line, "field '" + name + "' on '" + obj.name + "' is private", true);
+            return recDef.fields[fi].ty;
+          }
         }
-        throw tyErr(line, "no field '" + name + "' on " + obj.name, true);
+        // Fall through to method lookup.
+        if (recDef.methods && name in recDef.methods) {
+          var rm = recDef.methods[name];
+          if (isPrivateName(name) && !envContains(env, rm.declEnv))
+            throw tyErr(line, "method '" + name + "' on '" + obj.name + "' is private", true);
+          return rm.ty;
+        }
+        throw tyErr(line, "no field or method '" + name + "' on " + obj.name, true);
+      }
+      // `obj` typed as a variant instance — look up methods on the variantDef.
+      if (recDef && recDef.k === 'variantDef' && recDef.methods && name in recDef.methods) {
+        var vm = recDef.methods[name];
+        if (isPrivateName(name) && !envContains(env, vm.declEnv))
+          throw tyErr(line, "method '" + name + "' on '" + obj.name + "' is private", true);
+        return vm.ty;
       }
     }
     return { k: 'unknown' };
@@ -1028,10 +1323,13 @@
     topEnv.bindings['self']  = { k: 'unknown' };
 
     // Hoist top-level names — annotated bindings get precise types; others
-    // are unknown until the second pass refines them.
+    // are unknown until the second pass refines them. Receiver bindings are
+    // attached to their target type later, not bound by their bare name.
     ast.body.forEach(function (s) {
-      if (s.k === 'Bind') {
-        topEnv.bindings[s.name] = astToTy(s.type) || { k: 'unknown' };
+      if (s.k === 'Bind' && !s.receiver) {
+        var hty = astToTy(s.type) || { k: 'unknown' };
+        if (s.pat.k === 'IdentPat') topEnv.bindings[s.pat.name] = hty;
+        else if (s.pat.k === 'TuplePat') s.pat.names.forEach(function (n) { topEnv.bindings[n] = { k: 'unknown' }; });
       }
     });
 
@@ -1053,11 +1351,124 @@
       return null;
     }
 
+    // Walk a function body collecting field names used as `self.field`. Used
+    // when `(self)` is written without an explicit receiver type so we can
+    // match it against record types in scope.
+    function collectSelfFields(node, out) {
+      out = out || [];
+      if (!node || typeof node !== 'object') return out;
+      if (node.k === 'Member' && node.obj && node.obj.k === 'Ident' && node.obj.name === 'self') {
+        if (out.indexOf(node.prop) === -1) out.push(node.prop);
+      }
+      Object.keys(node).forEach(function (k) {
+        var v = node[k];
+        if (v && typeof v === 'object') {
+          if (Array.isArray(v)) v.forEach(function (c) { collectSelfFields(c, out); });
+          else if (v.k) collectSelfFields(v, out);
+        }
+      });
+      return out;
+    }
+
+    function resolveReceiverDef(rcv, env, line) {
+      if (rcv.kind === 'static') {
+        var t = lookup(env, rcv.tyName);
+        if (!t || (t.k !== 'recordDef' && t.k !== 'variantDef'))
+          throw tyErr(line, "static receiver '" + rcv.tyName + "' is not a record/variant type");
+        return { name: rcv.tyName, def: t };
+      }
+      // self-method: explicit annotation or inference
+      if (rcv.tyAnno) {
+        var aty = astToTy(rcv.tyAnno);
+        if (!aty || aty.k !== 'named')
+          throw tyErr(line, "method receivers on non-record types are not yet supported in the playground");
+        var d = lookup(env, aty.name);
+        if (!d || (d.k !== 'recordDef' && d.k !== 'variantDef'))
+          throw tyErr(line, "receiver type '" + aty.name + "' is not a record/variant type");
+        return { name: aty.name, def: d };
+      }
+      return null; // caller handles inference
+    }
+
     function checkStmt(node, env) {
+      if (node.k === 'Bind' && node.receiver) {
+        var rcv = node.receiver;
+        if (rcv.kind === 'static') {
+          var sTarget = resolveReceiverDef(rcv, env, node.line);
+          var sty = inferExpr(node.value, astToTy(node.type), env);
+          sTarget.def.statics = sTarget.def.statics || Object.create(null);
+          if (sTarget.def.statics[node.name])
+            throw tyErr(node.line, "duplicate static '" + node.name + "' on " + sTarget.name);
+          sTarget.def.statics[node.name] = { ty: sty, declEnv: env, line: node.line };
+          rcv.resolvedTyName = sTarget.name;
+          return;
+        }
+        // self method
+        var mTarget = resolveReceiverDef(rcv, env, node.line);
+        if (!mTarget) {
+          var fields = collectSelfFields(node.value);
+          var seen = new Set(), candidates = [], w = env;
+          while (w) {
+            Object.keys(w.bindings).forEach(function (n) {
+              if (seen.has(n)) return;
+              seen.add(n);
+              var b = w.bindings[n];
+              if (b && b.k === 'recordDef') {
+                var fmap = Object.create(null);
+                b.fields.forEach(function (f) { fmap[f.name] = true; });
+                if (fields.every(function (f) { return fmap[f]; })) candidates.push({ name: n, def: b });
+              }
+            });
+            w = w.parent;
+          }
+          if (candidates.length === 0)
+            throw tyErr(node.line, "could not infer 'self' type for '" + node.name + "'; add (self: TypeName)");
+          if (candidates.length > 1)
+            throw tyErr(node.line, "ambiguous 'self' type for '" + node.name + "': " + candidates.map(function (c) { return c.name; }).join(', ') + "; add (self: TypeName)");
+          mTarget = candidates[0];
+        }
+        var menv = extend(env);
+        menv.bindings['self'] = { k: 'named', name: mTarget.name };
+        var mty = inferExpr(node.value, astToTy(node.type), menv);
+        mTarget.def.methods = mTarget.def.methods || Object.create(null);
+        if (mTarget.def.methods[node.name])
+          throw tyErr(node.line, "duplicate method '" + node.name + "' on " + mTarget.name);
+        mTarget.def.methods[node.name] = { ty: mty, declEnv: env, line: node.line };
+        rcv.resolvedTyName = mTarget.name;
+        return;
+      }
       if (node.k === 'Bind') {
         var declared = astToTy(node.type);
         var vt = inferExpr(node.value, declared, env);
-        env.bindings[node.name] = declared || vt;
+        if (node.pat.k === 'IdentPat') {
+          if (vt && vt.k === 'variantDef') vt.name = node.pat.name;
+          // Tag record types with their declaring scope so private (uppercase)
+          // field access can be rejected outside that scope's chain.
+          if (vt && vt.k === 'recordDef' && !vt.declEnv) vt.declEnv = env;
+          env.bindings[node.pat.name] = declared || vt;
+        } else if (node.pat.k === 'TuplePat') {
+          // Same `{a, b}` syntax destructures both tuples (positional) and
+          // records (by field name). Distinguish by the value's type.
+          var recDef = null;
+          if (vt && vt.k === 'recordDef') recDef = vt;
+          else if (vt && vt.k === 'named') {
+            var nrt = lookup(env, vt.name);
+            if (nrt && nrt.k === 'recordDef') recDef = nrt;
+          }
+          if (recDef) {
+            var fmap = {};
+            recDef.fields.forEach(function (df) { fmap[df.name] = df; });
+            node.pat.names.forEach(function (n) {
+              if (!fmap[n]) throw tyErr(node.line, "no field '" + n + "' on record");
+              if (isPrivateName(n) && !envContains(env, recDef.declEnv))
+                throw tyErr(node.line, "field '" + n + "' is private and cannot be destructured here");
+              env.bindings[n] = fmap[n].ty;
+            });
+          } else {
+            var elemTys = (vt && vt.k === 'tuple') ? vt.elems : [];
+            node.pat.names.forEach(function (n, i) { env.bindings[n] = elemTys[i] || { k: 'unknown' }; });
+          }
+        }
         return;
       }
       if (node.k === 'Assign') {
@@ -1109,10 +1520,23 @@
       params.forEach(function (p, i) { if (!paramTypes[i]) fieldUsages[p] = []; });
       if (!Object.keys(fieldUsages).length) return {};
 
+      // For each unannotated param, track which fields must be numeric
+      // (i.e. used as an operand of an arithmetic BinOp).
+      var numericFieldConstraints = {};
+      params.forEach(function (p) { if (fieldUsages[p]) numericFieldConstraints[p] = new Set(); });
+      var ARITH_OPS = new Set(['+', '-', '*', '/', '%', '**']);
+
       walkAst(bodyNode, function (node) {
         if (node.k === 'Member' && node.obj.k === 'Ident' && fieldUsages[node.obj.name] !== undefined
             && fieldUsages[node.obj.name].indexOf(node.prop) < 0)
           fieldUsages[node.obj.name].push(node.prop);
+        if (node.k === 'BinOp' && ARITH_OPS.has(node.op)) {
+          [node.left, node.right].forEach(function (operand) {
+            if (operand.k === 'Member' && operand.obj.k === 'Ident'
+                && numericFieldConstraints[operand.obj.name] !== undefined)
+              numericFieldConstraints[operand.obj.name].add(operand.prop);
+          });
+        }
       });
 
       // Build set of all fields declared in any record type currently in scope.
@@ -1153,17 +1577,30 @@
               if (t && t.k === 'recordDef') {
                 var defNames = t.fields.map(function (f) { return f.name; });
                 if (knownAccessed.every(function (f) { return defNames.indexOf(f) >= 0; }))
-                  candidates.push(name);
+                  candidates.push({ name: name, def: t });
               }
             }
           });
           e = e.parent;
         }
+        // Narrow by operator constraints: eliminate candidates where a field
+        // that must be numeric (used in an arithmetic op) has a non-numeric type.
+        var numericConstraints = numericFieldConstraints[pname];
+        if (numericConstraints && numericConstraints.size > 0) {
+          candidates = candidates.filter(function (c) {
+            return Array.from(numericConstraints).every(function (fname) {
+              var fd = c.def.fields.filter(function (f) { return f.name === fname; })[0];
+              if (!fd) return true; // field not in this type — already excluded above
+              return isNumericKind(fd.ty.k);
+            });
+          });
+        }
+        var candidateNames = candidates.map(function (c) { return c.name; });
         if (candidates.length === 1) {
-          inferred[pname] = { k: 'named', name: candidates[0] };
+          inferred[pname] = { k: 'named', name: candidateNames[0] };
         } else if (candidates.length > 1) {
           throw tyErr(fnLine,
-            "parameter '" + pname + "' is ambiguous: could be " + candidates.join(', ') + '; add a type annotation', true);
+            "parameter '" + pname + "' is ambiguous: could be " + candidateNames.join(', ') + '; add a type annotation', true);
         } else {
           // knownAccessed is non-empty but no record type satisfies all of them —
           // the accessed fields collectively belong to no single type in scope.
@@ -1413,6 +1850,76 @@
           }
           return { k: 'unknown' };
         }
+        case 'VariantType': {
+          var vtTags = node.tags.map(function (t) {
+            return { name: t.name, ty: t.type ? astToTy(t.type) : null };
+          });
+          return { k: 'variantDef', tags: vtTags };
+        }
+        case 'VariantCtor': {
+          // Resolve which variant type owns this tag.
+          // Use expected type as a hint; otherwise scan scope for a unique match.
+          var ctorDef = null, ctorDefName = null;
+          if (expected && expected.k === 'named') {
+            var ed = lookup(env, expected.name);
+            if (ed && ed.k === 'variantDef') { ctorDef = ed; ctorDefName = expected.name; }
+          }
+          if (!ctorDef) {
+            var ctorSeen = Object.create(null);
+            var ctorCands = [];
+            var ctorWalk = env;
+            while (ctorWalk) {
+              Object.keys(ctorWalk.bindings).forEach(function (nm) {
+                if (ctorSeen[nm]) return;
+                ctorSeen[nm] = true;
+                var bt = ctorWalk.bindings[nm];
+                if (!bt || bt.k !== 'variantDef') return;
+                for (var ti = 0; ti < bt.tags.length; ti++) {
+                  if (bt.tags[ti].name === node.tag) { ctorCands.push({ name: nm, def: bt }); break; }
+                }
+              });
+              ctorWalk = ctorWalk.parent;
+            }
+            if (ctorCands.length === 0)
+              throw tyErr(node.line, "no variant in scope has tag '." + node.tag + "'");
+            if (ctorCands.length > 1)
+              throw tyErr(node.line, "ambiguous constructor '." + node.tag + "': could be " +
+                ctorCands.map(function (c) { return c.name; }).join(' or '));
+            ctorDef = ctorCands[0].def; ctorDefName = ctorCands[0].name;
+          }
+          var ctorTagDef = null;
+          for (var cti = 0; cti < ctorDef.tags.length; cti++) {
+            if (ctorDef.tags[cti].name === node.tag) { ctorTagDef = ctorDef.tags[cti]; break; }
+          }
+          if (!ctorTagDef) throw tyErr(node.line, "no tag '." + node.tag + "' in " + ctorDefName, true);
+          if (node.payload && !ctorTagDef.ty)
+            throw tyErr(node.line, "tag '." + node.tag + "' takes no payload");
+          if (!node.payload && ctorTagDef.ty)
+            throw tyErr(node.line, "tag '." + node.tag + "' requires a payload");
+          if (node.payload) inferExpr(node.payload, ctorTagDef.ty, env);
+          return conform(expected, { k: 'named', name: ctorDefName }, node.line);
+        }
+        case 'Match': {
+          inferExpr(node.subject, null, env);
+          var matchTy = { k: 'unknown' };
+          for (var mci = 0; mci < node.arms.length; mci++) {
+            var marm = node.arms[mci];
+            var menv = extend(env);
+            if (marm.pat.k === 'VariantPat' && marm.pat.binding) {
+              if (marm.pat.binding.k === 'BindPat')
+                menv.bindings[marm.pat.binding.name] = { k: 'unknown' };
+              if (marm.pat.binding.k === 'TuplePat')
+                marm.pat.binding.names.forEach(function (n) { menv.bindings[n] = { k: 'unknown' }; });
+            }
+            if (marm.pat.k === 'GuardPat') inferExpr(marm.pat.expr, { k: 'bool' }, env);
+            if (marm.pat.k === 'LitPat')   inferExpr(marm.pat.expr, null, env);
+            if (marm.pat.k === 'RangePat') { inferExpr(marm.pat.lo, null, env); inferExpr(marm.pat.hi, null, env); }
+            var mbt = inferExpr(marm.body, expected, menv);
+            if (matchTy.k === 'unknown') matchTy = mbt;
+          }
+          if (node.elseArm) inferExpr(node.elseArm, expected || matchTy, env);
+          return conform(expected, matchTy, node.line);
+        }
         case 'RecordType': {
           // Build a recordDef type from the AST field list so that record literals
           // can verify field presence and types against this definition.
@@ -1454,6 +1961,7 @@
               inferExpr(f.value, defMap[f.name].ty, env);
             });
             var recName = node.typeName ? node.typeName.name : expected.name;
+            node.resolvedTyName = recName;
             return conform(expected, { k: 'named', name: recName }, node.line);
           }
           // No explicit type context — infer by scanning record types in scope.
@@ -1505,6 +2013,7 @@
           inferred.def.fields.forEach(function (df) {
             inferExpr(litFieldMap[df.name].value, df.ty, env);
           });
+          node.resolvedTyName = inferred.name;
           return conform(expected, { k: 'named', name: inferred.name }, node.line);
         }
       }
@@ -1551,6 +2060,10 @@
         return v.start + sep + v.end;
       }
       if (Array.isArray(v)) return '.{' + v.map(display).join(', ') + '}';
+      if (v && typeof v === 'object' && v._variantType) return '<variant>';
+      if (v && typeof v === 'object' && v._variant) {
+        return '.' + v.tag + (v.payload !== null ? '(' + display(v.payload) + ')' : '');
+      }
       if (v && typeof v === 'object' && v._recordType) return '<record>';
       if (v && typeof v === 'object' && v._record) {
         var parts = Object.keys(v).filter(function (k) { return k !== '_record'; })
@@ -1633,10 +2146,47 @@
 
     function evalStmt(node, env) {
       try {
+        if (node.k === 'Bind' && node.receiver) {
+          // Methods and statics attach to the receiver type's runtime object,
+          // they don't bind a name in the surrounding scope.
+          var rcv = node.receiver;
+          var tyName = rcv.resolvedTyName || rcv.tyName;
+          if (!tyName) return null;
+          var typeVal;
+          try { typeVal = envGet(env, tyName); } catch (e) { return null; }
+          if (!typeVal || typeof typeVal !== 'object') return null;
+          var fn = evalExpr(node.value, env);
+          if (rcv.kind === 'self') {
+            typeVal._methods = typeVal._methods || Object.create(null);
+            typeVal._methods[node.name] = fn;
+          } else {
+            typeVal._statics = typeVal._statics || Object.create(null);
+            typeVal._statics[node.name] = fn;
+          }
+          return null;
+        }
         if (node.k === 'Bind') {
           var val = evalExpr(node.value, env);
-          envSet(env, node.name, val);
-          env.mut[node.name] = (node.mode === '*');
+          if (node.pat.k === 'IdentPat') {
+            if (val && val._variantType) val.name = node.pat.name;
+            envSet(env, node.pat.name, val);
+            env.mut[node.pat.name] = (node.mode === '*');
+          } else if (node.pat.k === 'TuplePat') {
+            // Records destructure by field name; tuples (and anything else)
+            // fall back to positional indexing.
+            if (val && typeof val === 'object' && !Array.isArray(val)) {
+              node.pat.names.forEach(function (n) {
+                envSet(env, n, n in val ? val[n] : null);
+                env.mut[n] = (node.mode === '*');
+              });
+            } else {
+              var arr = Array.isArray(val) ? val : [];
+              node.pat.names.forEach(function (n, i) {
+                envSet(env, n, arr[i] !== undefined ? arr[i] : null);
+                env.mut[n] = (node.mode === '*');
+              });
+            }
+          }
           return val;
         }
         if (node.k === 'Assign') {
@@ -1655,6 +2205,41 @@
         }
         throw new Error('Unknown statement kind: ' + node.k);
       } catch(e) { throw annotate(e, node.line); }
+    }
+
+    function evalMatchPat(pat, subject, env) {
+      if (pat.k === 'VariantPat') {
+        if (!subject || !subject._variant || subject.tag !== pat.tag) return null;
+        var bindings = {};
+        if (pat.binding) {
+          if (pat.binding.k === 'BindPat') {
+            bindings[pat.binding.name] = subject.payload;
+          } else if (pat.binding.k === 'TuplePat') {
+            var arr = subject.payload;
+            pat.binding.names.forEach(function (n, i) { bindings[n] = Array.isArray(arr) ? arr[i] : arr; });
+          }
+        }
+        return bindings;
+      }
+      if (pat.k === 'LitPat') {
+        var litVal = evalExpr(pat.expr, env);
+        if (litVal && litVal._char) litVal = litVal.v;
+        var sval = subject && subject._char ? subject.v : subject;
+        return litVal === sval ? {} : null;
+      }
+      if (pat.k === 'RangePat') {
+        var loVal = evalExpr(pat.lo, env);
+        var hiVal = evalExpr(pat.hi, env);
+        if (loVal && loVal._char) loVal = loVal.v;
+        if (hiVal && hiVal._char) hiVal = hiVal.v;
+        var sv = subject && subject._char ? subject.v : subject;
+        if (typeof sv !== 'number') return null;
+        return sv >= loVal && (pat.inclusive ? sv <= hiVal : sv < hiVal) ? {} : null;
+      }
+      if (pat.k === 'GuardPat') {
+        return evalExpr(pat.expr, env) ? {} : null;
+      }
+      return null;
     }
 
     function evalFor(node, env) {
@@ -1688,8 +2273,20 @@
         case 'Char':       return { _char: true, v: node.v };
         case 'Str':        return interpStr(node.raw, env);
         case 'RecordType': return { _recordType: true, fields: node.fields };
+        case 'VariantType': {
+          return { _variantType: true, name: null,
+            tags: node.tags.map(function (t) { return { name: t.name, hasPayload: t.type !== null }; }) };
+        }
+
+        case 'VariantCtor': {
+          var ctorPl = node.payload ? evalExpr(node.payload, env) : null;
+          return { _variant: true, tag: node.tag, payload: ctorPl };
+        }
+
         case 'RecordLit': {
           var rec = { _record: true };
+          if (node.resolvedTyName) rec._typeName = node.resolvedTyName;
+          else if (node.typeName && node.typeName.k === 'Ident') rec._typeName = node.typeName.name;
           node.fields.forEach(function (f) { rec[f.name] = evalExpr(f.value, env); });
           return rec;
         }
@@ -1763,7 +2360,7 @@
 
         case 'Fn': {
           // Capture env by reference — enables recursion (letrec via mutation)
-          return { _fn: true, params: node.params, body: node.body, env: env };
+          return { _fn: true, params: node.params, paramModes: node.paramModes, body: node.body, env: env };
         }
 
         case 'Call': {
@@ -1773,8 +2370,10 @@
             if (!callee || !callee._fn) throw new Error('Not a function: ' + display(callee));
             if (callee.call) return callee.call(args); // built-in
             var fnEnv = mkEnv(callee.env);
-            for (var i = 0; i < callee.params.length; i++)
+            for (var i = 0; i < callee.params.length; i++) {
               envSet(fnEnv, callee.params[i], i < args.length ? args[i] : null);
+              if (callee.paramModes && callee.paramModes[i] === '*') fnEnv.mut[callee.params[i]] = true;
+            }
             try {
               return evalExpr(callee.body, fnEnv);
             } catch (e) {
@@ -1787,6 +2386,25 @@
         case 'Member': {
           try {
             var obj = evalExpr(node.obj, env);
+            if (obj && obj._variantType) {
+              // Tag (constructor) lookup first.
+              var vtDef = null;
+              for (var vti = 0; vti < obj.tags.length; vti++) {
+                if (obj.tags[vti].name === node.prop) { vtDef = obj.tags[vti]; break; }
+              }
+              if (vtDef) {
+                if (!vtDef.hasPayload) return { _variant: true, tag: node.prop, payload: null };
+                var _vtTag = node.prop;
+                return { _fn: true, call: function (a) { return { _variant: true, tag: _vtTag, payload: a[0] }; } };
+              }
+              // Static lookup on the variant type.
+              if (obj._statics && node.prop in obj._statics) return obj._statics[node.prop];
+              throw new Error("No tag or static '" + node.prop + "' on variant");
+            }
+            if (obj && obj._recordType) {
+              if (obj._statics && node.prop in obj._statics) return obj._statics[node.prop];
+              throw new Error("No static '" + node.prop + "' on record type");
+            }
             if (Array.isArray(obj)) {
               if (node.prop === 'length') return { _fn: true, call: function () { return obj.length; } };
               if (node.prop === 'append') return { _fn: true, call: function (a) { obj.push(a[0]); return null; } };
@@ -1810,8 +2428,30 @@
               } };
               throw new Error("No method '" + node.prop + "' on string");
             }
+            if (obj && typeof obj === 'object' && obj._record && node.prop in obj) return obj[node.prop];
+            // Method dispatch on a record instance: find the type's methods
+            // map by the instance's _typeName tag and produce a closure that
+            // binds self when invoked.
+            if (obj && typeof obj === 'object' && obj._typeName) {
+              var typeVal;
+              try { typeVal = envGet(env, obj._typeName); } catch (e) { typeVal = null; }
+              if (typeVal && typeVal._methods && node.prop in typeVal._methods) {
+                var mFn = typeVal._methods[node.prop];
+                var receiver = obj;
+                return { _fn: true, call: function (args) {
+                  var fnEnv = mkEnv(mFn.env);
+                  envSet(fnEnv, 'self', receiver);
+                  for (var i = 0; i < mFn.params.length; i++) {
+                    envSet(fnEnv, mFn.params[i], i < args.length ? args[i] : null);
+                    if (mFn.paramModes && mFn.paramModes[i] === '*') fnEnv.mut[mFn.params[i]] = true;
+                  }
+                  try { return evalExpr(mFn.body, fnEnv); }
+                  catch (e) { if (e._return) return e.value; throw e; }
+                } };
+              }
+            }
             if (obj && typeof obj === 'object' && node.prop in obj) return obj[node.prop];
-            throw new Error("No field '" + node.prop + "' on " + display(obj));
+            throw new Error("No field or method '" + node.prop + "' on " + display(obj));
           } catch(e) { throw annotate(e, node.line); }
         }
 
@@ -1847,6 +2487,23 @@
           break;
         }
 
+        case 'Match': {
+          try {
+            var msubj = evalExpr(node.subject, env);
+            for (var mai = 0; mai < node.arms.length; mai++) {
+              var marm = node.arms[mai];
+              var mbind = evalMatchPat(marm.pat, msubj, env);
+              if (mbind !== null) {
+                var menv = mkEnv(env);
+                Object.keys(mbind).forEach(function (k) { envSet(menv, k, mbind[k]); });
+                return evalExpr(marm.body, menv);
+              }
+            }
+            if (node.elseArm !== null) return evalExpr(node.elseArm, env);
+            throw new Error('match: no arm matched');
+          } catch(e) { throw annotate(e, node.line); }
+        }
+
       }
       throw new Error('Unknown node kind: ' + node.k);
     }
@@ -1861,7 +2518,7 @@
     var mainBind = null;
     for (var i = 0; i < ast.body.length; i++) {
       var s = ast.body[i];
-      if (s.k === 'Bind' && s.name === 'main') { mainBind = s; break; }
+      if (s.k === 'Bind' && s.pat && s.pat.k === 'IdentPat' && s.pat.name === 'main') { mainBind = s; break; }
     }
     if (mainBind && !mainBind.local
         && globalEnv.vars['main'] && globalEnv.vars['main']._fn) {
@@ -1893,6 +2550,23 @@
       hl = lines.join('\n');
     }
     codeEl.innerHTML = hl;
+  }
+
+  // Programmatic API for testing and future use
+  if (typeof window !== 'undefined') {
+    window.RukaPlayground = {
+      run: function (src) {
+        try {
+          var ast = parse(src);
+          var tyErr = checkTypes(ast);
+          if (tyErr) return { output: '', error: tyErr.message };
+          var lines = evaluate(ast);
+          return { output: lines.join('\n'), error: null };
+        } catch (e) {
+          return { output: '', error: e.message };
+        }
+      }
+    };
   }
 
   // ──────────────────────────────────────────────
@@ -1942,6 +2616,12 @@
         }
       }, 400);
     };
+
+    // Trigger an initial check on whatever example highlight.js already loaded.
+    // highlight.js's DOMContentLoaded runs first (earlier <script> tag) and
+    // calls setExample before rukaCheckAndHighlight exists, so checkedAst is
+    // never set — this re-runs the check now that the function is defined.
+    if (textarea.value) window.rukaCheckAndHighlight(textarea.value);
 
     runBtn.addEventListener('click', function () {
       // Cancel any pending check so it doesn't interfere with the output state

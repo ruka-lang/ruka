@@ -1702,39 +1702,13 @@ let main = () do
         ruka.println("${n}")   // 0, 1, 2
     end
 end</code></pre>
-
-      <h3>ruka.allocator</h3>
-      <p>
-        Any type that satisfies <code>ruka.allocator</code> can be passed to functions or
-        data structures that need explicit heap control. This allows callers to supply arena
-        allocators, pool allocators, or any other strategy without coupling the implementation
-        to a specific allocator.
-      </p>
-<pre><code class="ruka">let allocator = behaviour {
-    alloc  (*self): (@size: uint) -> [u8],
-    free   (*self): (&bytes: [u8]) -> ()
-}
-
-// A function that accepts any allocator
-let make_buffer = (alloc: ruka.allocator, cap: uint) do
-    Buffer.{ data = alloc.alloc(cap), len = 0 }
-end</code></pre>
-
-      <div class="note">
-        <strong>ruka.allocator and the GC:</strong> The default allocator used by the runtime
-        is the GC. Passing a custom <code>ruka.allocator</code> opts a specific allocation out
-        of GC management — the returned buffer is an ordinary reference, but the GC does not
-        track it, so the caller is responsible for calling <code>free</code> (typically via
-        <code>deinit</code>).
-      </div>
-      <div class="note">
-        <strong>GC exclusion in manual-memory programs:</strong> If a program never uses
-        GC-allocated values — every heap allocation goes through <code>ruka.heap_alloc</code> or
-        a custom <code>ruka.allocator</code> — the compiler statically proves the GC has no
-        roots to scan and excludes the GC runtime from the final binary entirely. This makes
-        Ruka practical for embedded targets and low-latency code where a GC pause is
-        unacceptable.
-      </div>
+    <h3>Operator behaviours</h3>
+    <p>
+    The compiler recognises certain method names as operator implementations (<code>+ - / * [] etc</code>). These are 
+      provided for primative and builtin types. When a type
+      defines a method with one of these names, the corresponding operator syntax becomes
+      available for values of that type. For example, defining an <code>add</code> method
+      allows using the <code>+</code> operator.
     </section>
 
     <!-- Pipelines -->
