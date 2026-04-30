@@ -19,10 +19,10 @@ html[data-theme="dark"] {
 	--fg: #ece7db;
 	--fg-muted: #9a958a;
 	--border: #2a2824;
-	--accent: #9cb380;
+	--accent: #E89A3C;
 	--accent-fg: #141311;
 	--danger: #c87060;
-	--selection: rgba(156, 179, 128, 0.25);
+	--selection: rgba(232, 154, 60, 0.15);
 }
 
 html[data-theme="light"] {
@@ -31,10 +31,10 @@ html[data-theme="light"] {
 	--fg: #1a1916;
 	--fg-muted: #6b6557;
 	--border: #d8d2c2;
-	--accent: #6f8a55;
+	--accent: #E89A3C;
 	--accent-fg: #f5f1e8;
 	--danger: #b04a38;
-	--selection: rgba(111, 138, 85, 0.22);
+	--selection: rgba(212, 134, 40, 0.12);
 }
 
 :root {
