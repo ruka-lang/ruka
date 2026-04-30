@@ -2,12 +2,12 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { parseSource } from "../parser.js";
-import { checkScope } from "../check/scope.js";
-import { checkTypes } from "../check/types.js";
-import { RukaError } from "../diagnostics.js";
-import { run } from "./evaluator.js";
-import type { RuntimeEvent } from "./events.js";
+import { parseSource } from "../parser";
+import { checkScope } from "../check/scope";
+import { checkTypes } from "../check/types";
+import { RukaError } from "../diagnostics";
+import { run } from "./evaluator";
+import type { RuntimeEvent } from "./events";
 
 const fixturesDir = join(__dirname, "..", "fixtures");
 

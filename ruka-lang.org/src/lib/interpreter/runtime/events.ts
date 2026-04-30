@@ -8,7 +8,7 @@
 // thrown as ControlSignal instances and caught by the relevant evaluator
 // frame. They never leak to the host.
 
-import type { Value } from "./value.js";
+import type { Value } from "./value";
 
 export type RuntimeEvent =
 	| { kind: "stdout"; text: string }

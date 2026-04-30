@@ -15,14 +15,14 @@ import type {
 	MatchPattern,
 	Program,
 	Statement
-} from "../ast.js";
-import { RukaError } from "../diagnostics.js";
-import { splitInterp, unescText } from "../interp.js";
-import { parse } from "../parser.js";
-import { tokenize } from "../tokenizer.js";
-import { isBuiltinEnvelope, makeRukaModule } from "./builtins.js";
-import { envGet, envHas, envSet, envUpdate, makeEnv, type RuntimeEnv } from "./env.js";
-import { ControlSignal, type RuntimeEvent } from "./events.js";
+} from "../ast";
+import { RukaError } from "../diagnostics";
+import { splitInterp, unescText } from "../interpolator";
+import { parse } from "../parser";
+import { tokenize } from "../tokenizer";
+import { isBuiltinEnvelope, makeRukaModule } from "./builtins";
+import { envGet, envHas, envSet, envUpdate, makeEnv, type RuntimeEnv } from "./env";
+import { ControlSignal, type RuntimeEvent } from "./events";
 import {
 	display,
 	isChar,

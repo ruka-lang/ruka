@@ -7,9 +7,9 @@
 // envelope, the events are yielded first and the input request (if any)
 // resolves into the value the builtin returns to the program.
 
-import { RukaError } from "../diagnostics.js";
-import type { RuntimeEvent } from "./events.js";
-import { display, numericOf, type FnValue, type ModuleValue, type Value } from "./value.js";
+import { RukaError } from "../diagnostics";
+import type { RuntimeEvent } from "./events";
+import { display, numericOf, type FnValue, type ModuleValue, type Value } from "./value";
 
 // Emitted by io builtins. The evaluator unwraps these envelopes after the
 // host call returns; programs only ever see the final `value` (for stdout

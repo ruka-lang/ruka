@@ -19,7 +19,7 @@ import type {
 	Statement
 } from "../ast";
 import { RukaError } from "../diagnostics";
-import { splitInterp } from "../interp";
+import { splitInterp } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
 import {

@@ -3,8 +3,8 @@
 // unit value — it appears as the result of side-effecting builtins, empty
 // blocks, and as a placeholder for missing tuple-destructure elements.
 
-import type { Block, RecordTypeField, VariantTag } from "../ast.js";
-import type { RuntimeEnv } from "./env.js";
+import type { Block, RecordTypeField, VariantTag } from "../ast";
+import type { RuntimeEnv } from "./env";
 
 export type Value =
 	| null

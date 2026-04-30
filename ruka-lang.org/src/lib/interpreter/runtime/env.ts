@@ -2,8 +2,8 @@
 // pointer; lookups walk up the chain. Mutability is tracked separately so
 // `=` can reject assignments to immutable bindings (created without `*`).
 
-import { RukaError } from "../diagnostics.js";
-import type { Value } from "./value.js";
+import { RukaError } from "../diagnostics";
+import type { Value } from "./value";
 
 export type RuntimeEnv = {
 	vars: { [name: string]: Value };
