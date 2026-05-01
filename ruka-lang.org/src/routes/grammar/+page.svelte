@@ -43,8 +43,7 @@
 		Extended Backus–Naur Form. It pairs with the
 		<a href="/reference">reference</a>: the reference describes
 		semantics in prose, and this page pins down the surface syntax.
-		Where the two diverge the reference wins — bug reports against this
-		document are welcome.
+		This is the defacto single source of truth for the language syntax.
 	</p>
 
 	<section id="notation">

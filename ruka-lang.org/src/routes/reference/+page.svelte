@@ -32,9 +32,8 @@
 	<h1>Reference</h1>
 	<p>
 		This page is the language specification. It describes the surface syntax,
-		semantics, and the contract every implementation should satisfy. The
-		<a href="/playground">playground</a> runs a TypeScript interpreter that
-		tracks this spec — when the two diverge, the spec wins.
+		semantics, and the contract every implementation should satisfy. This document 
+		serves as the defacto source of truth when it comes to langauge functionality.
 	</p>
 	<p>
 		Ruka is an opinionated, statically typed programming language. Ruka is garbage 
