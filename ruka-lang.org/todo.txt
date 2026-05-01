@@ -69,3 +69,4 @@ TODO (Features, Docs and playground)
 	- [x] Fixed height editor with scrolling on overflow
 	- [ ] Line numbers
 	- [ ] Refined playground styling
+- [ ] Rose-pine attribution footer
