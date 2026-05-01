@@ -35,6 +35,9 @@ html[data-theme="light"] {
 	--fg-muted: #6b6557;
 	--border: #d8d2c2;
 	--accent: #992239;
+	--accent-berry: #992239;
+	--accent-amber: #d98039;
+	--accent-emerald: #2d5544;
 	--accent-fg: #f5f1e8;
 	--danger: #992239;
 	--selection: rgba(53, 94, 137, 0.17);
