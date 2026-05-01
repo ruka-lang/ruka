@@ -37,6 +37,13 @@ export function checkScope(ast: Program): RukaError | null {
 
 	try {
 		for (const statement of ast.body) {
+			if (statement.kind !== "Binding") {
+				return new RukaError(
+					`Only declarations are allowed at the top level`,
+					statement.line,
+					statement.col
+				);
+			}
 			checkStatement(statement, topLevel);
 		}
 		return null;

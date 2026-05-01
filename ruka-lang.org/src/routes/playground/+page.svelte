@@ -3,7 +3,7 @@
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
 	import FileTabs from "$lib/components/file-tabs/index.svelte";
-	import { Button, Card, Select, type SelectGroup } from "$lib/components/ui";
+	import { Button, Card, Popover, Select, type SelectGroup } from "$lib/components/ui";
 	import { examples, findExample } from "$lib/playground/examples";
 	import {
 		projectFromExample,
@@ -36,7 +36,7 @@
 	const EMPTY_TEMPLATE: ProjectFile[] = [
 		{
 			path: "main.ruka",
-			source: 'ruka.println("Hello!")\n',
+			source: 'let main = () do\n\truka.println("Hello!")\nend\n',
 			kind: "ruka"
 		}
 	];
@@ -227,23 +227,49 @@
 		}
 	}
 
+	// Popover state. Only one is open at a time; the trigger button passes
+	// itself as the anchor so the bubble's arrow points back at it.
+	type PopoverKind = "new" | "save-as" | "rename" | "delete";
+	let popoverKind: PopoverKind | null = $state(null);
+	let popoverAnchor: HTMLElement | null = $state(null);
+	let popoverInput = $state("");
+	let popoverInputEl: HTMLInputElement | null = $state(null);
+
+	function openPopover(kind: PopoverKind, event: MouseEvent) {
+		popoverAnchor = event.currentTarget as HTMLElement;
+		popoverKind = kind;
+		popoverInput = kind === "rename" ? activeProject?.name ?? "" : "";
+		// Wait for the bubble to mount, then focus its input (or the
+		// confirm button for the delete prompt).
+		queueMicrotask(() => popoverInputEl?.focus());
+	}
+
+	function closePopover() {
+		popoverKind = null;
+		popoverAnchor = null;
+		popoverInput = "";
+		popoverInputEl = null;
+	}
+
 	async function onNewProject() {
-		const name = prompt("Project name:")?.trim();
+		const name = popoverInput.trim();
 		if (!name) return;
 
 		const stored = newStoredProject(name, emptyProject());
 		await saveProject(stored);
 		userProjects = await listProjects();
+		closePopover();
 		await loadUserProject(stored.id);
 	}
 
 	async function onSaveAsProject() {
-		const name = prompt("Save copy as:")?.trim();
+		const name = popoverInput.trim();
 		if (!name) return;
 
 		const stored = newStoredProject(name, project);
 		await saveProject(stored);
 		userProjects = await listProjects();
+		closePopover();
 		await loadUserProject(stored.id);
 	}
 
@@ -251,22 +277,35 @@
 		if (active.kind !== "project") return;
 
 		const current = activeProject?.name ?? "";
-		const next = prompt("New name:", current)?.trim();
-		if (!next || next === current) return;
+		const next = popoverInput.trim();
+		if (!next || next === current) {
+			closePopover();
+			return;
+		}
 
 		await renameProject(active.id, next);
 		userProjects = await listProjects();
+		closePopover();
 	}
 
 	async function onDeleteProject() {
-		if (active.kind !== "project") return;
+		if (active.kind !== "project") {
+			closePopover();
+			return;
+		}
 
-		const name = activeProject?.name ?? "this project";
-		if (!confirm(`Delete "${name}"? This can't be undone.`)) return;
-
-		await deleteProject(active.id);
+		const id = active.id;
+		closePopover();
+		await deleteProject(id);
 		userProjects = await listProjects();
 		await loadExample(examples[0].id);
+	}
+
+	function onPopoverSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (popoverKind === "new") onNewProject();
+		else if (popoverKind === "save-as") onSaveAsProject();
+		else if (popoverKind === "rename") onRenameProject();
 	}
 
 	async function onRun() {
@@ -315,12 +354,12 @@
 				groups={selectGroups}
 				onChange={onSelectFromDropdown}
 			/>
-			<Button variant="ghost" onclick={onNewProject}>NEW</Button>
+			<Button variant="ghost" onclick={(e) => openPopover("new", e)}>NEW</Button>
 			{#if active.kind === "example"}
-				<Button variant="ghost" onclick={onSaveAsProject}>SAVE AS</Button>
+				<Button variant="ghost" onclick={(e) => openPopover("save-as", e)}>SAVE AS</Button>
 			{:else}
-				<Button variant="ghost" onclick={onRenameProject}>RENAME</Button>
-				<Button variant="ghost" onclick={onDeleteProject}>DELETE</Button>
+				<Button variant="ghost" onclick={(e) => openPopover("rename", e)}>RENAME</Button>
+				<Button variant="ghost" onclick={(e) => openPopover("delete", e)}>DELETE</Button>
 			{/if}
 			<Button variant="ghost" disabled={!canRun || running} onclick={onRun}>
 				{running ? "RUNNING" : "RUN"}
@@ -351,6 +390,46 @@
 	</Card>
 </section>
 
+<Popover
+	anchor={popoverAnchor}
+	open={popoverKind !== null}
+	placement="bottom"
+	onClose={closePopover}
+	ariaLabel={popoverKind === "delete" ? "Confirm delete" : "Project name"}
+>
+	{#if popoverKind === "delete"}
+		<p class="popover-msg">
+			Delete <strong>{activeProject?.name ?? "this project"}</strong>?
+			<br />This can't be undone.
+		</p>
+		<div class="popover-actions">
+			<Button variant="ghost" onclick={closePopover}>Cancel</Button>
+			<Button variant="primary" onclick={onDeleteProject}>Delete</Button>
+		</div>
+	{:else}
+		<form onsubmit={onPopoverSubmit}>
+			<label class="popover-label">
+				{#if popoverKind === "new"}New project name{:else if popoverKind === "save-as"}Save copy as{:else}Rename project{/if}
+				<input
+					bind:this={popoverInputEl}
+					bind:value={popoverInput}
+					class="popover-input"
+					type="text"
+					placeholder="my-project"
+					autocomplete="off"
+					spellcheck="false"
+				/>
+			</label>
+			<div class="popover-actions">
+				<Button variant="ghost" onclick={closePopover}>Cancel</Button>
+				<Button variant="primary" type="submit">
+					{#if popoverKind === "new"}Create{:else if popoverKind === "save-as"}Save{:else}Rename{/if}
+				</Button>
+			</div>
+		</form>
+	{/if}
+</Popover>
+
 <style>
 	.playground {
 		display: flex;
@@ -376,5 +455,44 @@
 		gap: 8px;
 		align-items: center;
 		flex-wrap: wrap;
+	}
+
+	.popover-label {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		font-size: var(--fs-xs);
+		letter-spacing: 0.04em;
+		color: var(--fg-muted);
+		text-transform: uppercase;
+	}
+
+	.popover-input {
+		font: inherit;
+		font-family: var(--font-mono);
+		font-size: var(--fs-sm);
+		padding: 6px 8px;
+		background: var(--bg);
+		color: var(--fg);
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		outline: none;
+	}
+
+	.popover-input:focus {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 2px var(--selection);
+	}
+
+	.popover-msg {
+		font-size: var(--fs-sm);
+		color: var(--fg);
+	}
+
+	.popover-actions {
+		display: flex;
+		gap: 6px;
+		justify-content: flex-end;
+		margin-top: 4px;
 	}
 </style>

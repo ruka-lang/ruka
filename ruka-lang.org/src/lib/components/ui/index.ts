@@ -6,4 +6,6 @@
 export { default as Button } from "./button.svelte";
 export { default as Select } from "./select.svelte";
 export { default as Card } from "./card.svelte";
+export { default as Popover } from "./popover.svelte";
 export type { SelectOption, SelectGroup } from "./select.svelte";
+export type { Placement } from "./popover.svelte";

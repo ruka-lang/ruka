@@ -2,6 +2,8 @@ TODO (Features, Docs and playground)
 - [x] ! Playground editor rewrite should take into account future support for multiple file projects and user projects
 - [x] ! Make sure basic components like buttons and selects and cards and stuff are reusable components
 - [ ] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
+	- [ ] ! Needs to be updated for variant match patterns (why doesn't this just use patterns like bindings instead of a custom impl?)
+- [x] ! Bug: A new project that just has ruka.println(...) in it runs properly even those there is no main function. Top level code is not runtime code.
 - [x] Rename __snapshots__ to snapshots
 - [x] Light theme and dark theme support (defaulting to dark)
 - [x] Use lucide-svelte for icons

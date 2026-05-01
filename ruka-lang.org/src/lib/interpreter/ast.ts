@@ -299,6 +299,10 @@ export type RecordLiteral = {
 
 export type ListLiteral = {
 	kind: "ListLiteral";
+	// `.{a, b, …}` is always an array (element type inferred or annotated);
+	// `.(a, b, …)` is always a tuple. The two forms are syntactically
+	// distinct, so this discriminator is set at parse time.
+	shape: "array" | "tuple";
 	typePrefix: TypeExpr | null;
 	elements: Expression[];
 	line: number;
