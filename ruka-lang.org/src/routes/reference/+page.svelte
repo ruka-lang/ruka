@@ -37,9 +37,12 @@
 		tracks this spec — when the two diverge, the spec wins.
 	</p>
 	<p>
-		Ruka is strongly and statically typed with aggressive bidirectional
-		inference. Examples in this document omit type annotations except where
-		the annotation is the point of the example.
+		Ruka is an opinionated, statically typed programming language. Ruka is garbage 
+		collected by default, with modes allowing control over reference lifetimes 
+		and mutability; even allowing stack allocation. Ruka uses aggressive bi-directional
+		type inferrence, only requiring explicit annotations to clear up ambiguity. 
+		Examples in this document omit type annotations except where the annotation 
+		is the point of the example.
 	</p>
 
 	<section id="comments">
@@ -162,8 +165,7 @@ let q  = '\\''`} />
 			<code>&#36;&#123;…&#125;</code>. Escapes match the character literal set.
 		</p>
 <CodeBlock code={`let name = "Ruka"
-let s = "hello, \${name}!"
-let nested = "a\${ "b" + c }d"   // braces and inner strings are balanced`} />
+let s = "hello, \${name}!"`} />
 
 		<h3>Multiline strings</h3>
 		<p>
