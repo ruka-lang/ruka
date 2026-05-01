@@ -86,3 +86,133 @@ export function updateFileSource(project: Project, path: string, source: string)
 		)
 	};
 }
+
+export function pathExists(project: Project, path: string): boolean {
+	return (
+		project.files.some((file) => file.path === path) ||
+		project.folders.some((folder) => folder.path === path)
+	);
+}
+
+// Folders implicitly required by `path`'s parent chain. Used after file
+// or folder mutations to keep the explicit folder list in sync with the
+// paths that actually contain files.
+function ancestorPaths(path: string): string[] {
+	const parts = path.split("/");
+	const out: string[] = [];
+
+	for (let i = 1; i < parts.length; i++) {
+		out.push(parts.slice(0, i).join("/"));
+	}
+
+	return out;
+}
+
+function addFolderEntries(folders: ProjectFolder[], paths: string[]): ProjectFolder[] {
+	const set = new Set(folders.map((f) => f.path));
+	for (const path of paths) set.add(path);
+
+	return Array.from(set)
+		.sort()
+		.map((path) => ({ path }));
+}
+
+export function addFile(project: Project, path: string, source = ""): Project {
+	if (pathExists(project, path)) return project;
+
+	const file: ProjectFile = { path, source, kind: fileKindFromPath(path) };
+
+	return {
+		...project,
+		files: [...project.files, file],
+		folders: addFolderEntries(project.folders, ancestorPaths(path))
+	};
+}
+
+export function addFolder(project: Project, path: string): Project {
+	if (pathExists(project, path)) return project;
+
+	return {
+		...project,
+		folders: addFolderEntries(project.folders, [...ancestorPaths(path), path])
+	};
+}
+
+export function deleteFile(project: Project, path: string): Project {
+	return {
+		...project,
+		files: project.files.filter((file) => file.path !== path)
+	};
+}
+
+// Recursive: removes the folder itself, all descendant folders, and any
+// file whose path lives under it. Caller is responsible for ensuring the
+// project's `entry` doesn't sit inside the deleted subtree.
+export function deleteFolder(project: Project, path: string): Project {
+	const prefix = path + "/";
+
+	return {
+		...project,
+		files: project.files.filter((file) => !file.path.startsWith(prefix)),
+		folders: project.folders.filter(
+			(folder) => folder.path !== path && !folder.path.startsWith(prefix)
+		)
+	};
+}
+
+export function renameFile(project: Project, from: string, to: string): Project {
+	if (from === to) return project;
+	if (pathExists(project, to)) return project;
+
+	const files = project.files.map((file) =>
+		file.path === from
+			? { ...file, path: to, kind: fileKindFromPath(to) }
+			: file
+	);
+
+	return {
+		...project,
+		files,
+		folders: addFolderEntries(project.folders, ancestorPaths(to)),
+		entry: project.entry === from ? to : project.entry
+	};
+}
+
+// Folder rename moves the folder and rewrites every descendant file /
+// folder path so the tree stays consistent. Updates `entry` too if the
+// entry file lived inside the renamed subtree.
+export function renameFolder(project: Project, from: string, to: string): Project {
+	if (from === to) return project;
+	if (pathExists(project, to)) return project;
+
+	const fromPrefix = from + "/";
+
+	function rewrite(path: string): string {
+		if (path === from) return to;
+		if (path.startsWith(fromPrefix)) return to + path.slice(from.length);
+		return path;
+	}
+
+	const files = project.files.map((file) => ({
+		...file,
+		path: rewrite(file.path)
+	}));
+
+	const folders = project.folders.map((folder) => ({ path: rewrite(folder.path) }));
+
+	return {
+		...project,
+		files,
+		folders: addFolderEntries(folders, ancestorPaths(to)),
+		entry: rewrite(project.entry)
+	};
+}
+
+export function setEntry(project: Project, path: string): Project {
+	if (project.entry === path) return project;
+
+	const file = getFile(project, path);
+	if (!file || file.kind !== "ruka") return project;
+
+	return { ...project, entry: path };
+}

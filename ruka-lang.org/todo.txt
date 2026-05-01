@@ -5,6 +5,7 @@ TODO (Features, Docs and playground)
 	- [ ] `if some(x) = var do ...`
 	- [ ] `for some(x) in iter do ...`
 	- [ ] `while some(x) = var do ...`
+- [ ] Entry file located in src folder
 - [ ] More playground language support (in order of importance)
 	- [x] Modes (Parameter and Binding)
 		- [ ] @ 'Compile-time' mode simulation so we can use functions to generate parameterized types

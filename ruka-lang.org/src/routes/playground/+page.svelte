@@ -2,7 +2,7 @@
 	import { onMount, untrack } from "svelte";
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
-	import FileTabs from "$lib/components/file-tabs/index.svelte";
+	import FileTree, { type TreeAction } from "$lib/components/file-tree/index.svelte";
 	import { Button, Card, Popover, Select, type SelectGroup } from "$lib/components/ui";
 	import { examples, findExample } from "$lib/playground/examples";
 	import {
@@ -11,6 +11,14 @@
 		getFile,
 		getEntrySource,
 		fileKindFromPath,
+		addFile,
+		addFolder,
+		renameFile,
+		renameFolder,
+		deleteFile,
+		deleteFolder,
+		setEntry,
+		pathExists,
 		type Project,
 		type ProjectFile
 	} from "$lib/playground/project";
@@ -227,20 +235,57 @@
 		}
 	}
 
-	// Popover state. Only one is open at a time; the trigger button passes
-	// itself as the anchor so the bubble's arrow points back at it.
-	type PopoverKind = "new" | "save-as" | "rename" | "delete";
+	// Popover state. Only one is open at a time; the trigger element
+	// passes itself as the anchor so the bubble's arrow points back at it.
+	// Per-kind context (target path for rename/delete, parent path for
+	// new file/folder) is captured on open and read by the submit handler.
+	type PopoverKind =
+		| "new"
+		| "save-as"
+		| "rename"
+		| "delete"
+		| "new-file"
+		| "new-folder"
+		| "rename-file"
+		| "rename-folder"
+		| "delete-folder";
 	let popoverKind: PopoverKind | null = $state(null);
 	let popoverAnchor: HTMLElement | null = $state(null);
 	let popoverInput = $state("");
 	let popoverInputEl: HTMLInputElement | null = $state(null);
+	let popoverError: string | null = $state(null);
+	let popoverTargetPath: string | null = $state(null);
+	let popoverParentPath: string | null = $state(null);
 
-	function openPopover(kind: PopoverKind, event: MouseEvent) {
+	function openProjectPopover(kind: "new" | "save-as" | "rename" | "delete", event: MouseEvent) {
 		popoverAnchor = event.currentTarget as HTMLElement;
 		popoverKind = kind;
 		popoverInput = kind === "rename" ? activeProject?.name ?? "" : "";
-		// Wait for the bubble to mount, then focus its input (or the
-		// confirm button for the delete prompt).
+		popoverError = null;
+		popoverTargetPath = null;
+		popoverParentPath = null;
+		queueMicrotask(() => popoverInputEl?.focus());
+	}
+
+	function openTreePopover(
+		kind: "new-file" | "new-folder" | "rename-file" | "rename-folder" | "delete-folder",
+		anchor: HTMLElement,
+		opts: { target?: string; parent?: string } = {}
+	) {
+		popoverAnchor = anchor;
+		popoverKind = kind;
+		popoverError = null;
+		popoverTargetPath = opts.target ?? null;
+		popoverParentPath = opts.parent ?? null;
+
+		if (kind === "rename-file" || kind === "rename-folder") {
+			const path = opts.target ?? "";
+			const slash = path.lastIndexOf("/");
+			popoverInput = slash === -1 ? path : path.slice(slash + 1);
+		} else {
+			popoverInput = "";
+		}
+
 		queueMicrotask(() => popoverInputEl?.focus());
 	}
 
@@ -249,6 +294,181 @@
 		popoverAnchor = null;
 		popoverInput = "";
 		popoverInputEl = null;
+		popoverError = null;
+		popoverTargetPath = null;
+		popoverParentPath = null;
+	}
+
+	function joinPath(parent: string, name: string): string {
+		return parent === "" ? name : `${parent}/${name}`;
+	}
+
+	function isValidName(name: string): boolean {
+		// Disallow path separators in a single segment and reject names
+		// that would round-trip to the empty string after trimming.
+		return name.length > 0 && !name.includes("/");
+	}
+
+	function isValidFileName(name: string): boolean {
+		if (!isValidName(name)) return false;
+		return name.endsWith(".ruka") || name.endsWith(".txt");
+	}
+
+	function commitProjectMutation(next: Project) {
+		project = next;
+		const file = getFile(next, selectedPath);
+		if (!file) {
+			selectedPath = next.entry;
+			resetDiagnostics();
+			const entryFile = getFile(next, next.entry);
+			if (entryFile) scheduleCheck(next.entry, entryFile.source);
+		}
+		scheduleSave();
+	}
+
+	function onTreeAction(action: TreeAction) {
+		if (action.kind === "open") {
+			onSelectFile(action.path);
+			return;
+		}
+
+		if (action.kind === "set-entry") {
+			commitProjectMutation(setEntry(project, action.path));
+			return;
+		}
+
+		if (action.kind === "delete-file") {
+			if (action.path === project.entry) return;
+			commitProjectMutation(deleteFile(project, action.path));
+			return;
+		}
+
+		if (action.kind === "new-file") {
+			openTreePopover("new-file", action.anchor, { parent: action.parent });
+		} else if (action.kind === "new-folder") {
+			openTreePopover("new-folder", action.anchor, { parent: action.parent });
+		} else if (action.kind === "rename-file") {
+			openTreePopover("rename-file", action.anchor, { target: action.path });
+		} else if (action.kind === "rename-folder") {
+			openTreePopover("rename-folder", action.anchor, { target: action.path });
+		} else if (action.kind === "delete-folder") {
+			openTreePopover("delete-folder", action.anchor, { target: action.path });
+		}
+	}
+
+	function submitNewFile() {
+		const name = popoverInput.trim();
+		if (!isValidFileName(name)) {
+			popoverError = "Name must end in .ruka or .txt";
+			return;
+		}
+
+		const path = joinPath(popoverParentPath ?? "", name);
+		if (pathExists(project, path)) {
+			popoverError = "A file or folder with that name already exists";
+			return;
+		}
+
+		commitProjectMutation(addFile(project, path));
+		selectedPath = path;
+		closePopover();
+	}
+
+	function submitNewFolder() {
+		const name = popoverInput.trim();
+		if (!isValidName(name)) {
+			popoverError = "Folder name can't contain '/'";
+			return;
+		}
+
+		const path = joinPath(popoverParentPath ?? "", name);
+		if (pathExists(project, path)) {
+			popoverError = "A file or folder with that name already exists";
+			return;
+		}
+
+		commitProjectMutation(addFolder(project, path));
+		closePopover();
+	}
+
+	function submitRenameFile() {
+		const target = popoverTargetPath;
+		if (!target) return;
+
+		const name = popoverInput.trim();
+		if (!isValidFileName(name)) {
+			popoverError = "Name must end in .ruka or .txt";
+			return;
+		}
+
+		const slash = target.lastIndexOf("/");
+		const parent = slash === -1 ? "" : target.slice(0, slash);
+		const nextPath = joinPath(parent, name);
+		if (nextPath === target) {
+			closePopover();
+			return;
+		}
+
+		if (pathExists(project, nextPath)) {
+			popoverError = "A file or folder with that name already exists";
+			return;
+		}
+
+		commitProjectMutation(renameFile(project, target, nextPath));
+		if (selectedPath === target) selectedPath = nextPath;
+		closePopover();
+	}
+
+	function submitRenameFolder() {
+		const target = popoverTargetPath;
+		if (!target) return;
+
+		const name = popoverInput.trim();
+		if (!isValidName(name)) {
+			popoverError = "Folder name can't contain '/'";
+			return;
+		}
+
+		const slash = target.lastIndexOf("/");
+		const parent = slash === -1 ? "" : target.slice(0, slash);
+		const nextPath = joinPath(parent, name);
+		if (nextPath === target) {
+			closePopover();
+			return;
+		}
+
+		if (pathExists(project, nextPath)) {
+			popoverError = "A file or folder with that name already exists";
+			return;
+		}
+
+		const before = selectedPath;
+		commitProjectMutation(renameFolder(project, target, nextPath));
+		// renameFolder rewrites descendant paths — the selected file may
+		// have moved, so recompute it from the same suffix.
+		if (before === target || before.startsWith(target + "/")) {
+			selectedPath = nextPath + before.slice(target.length);
+		}
+		closePopover();
+	}
+
+	function submitDeleteFolder() {
+		const target = popoverTargetPath;
+		if (!target) {
+			closePopover();
+			return;
+		}
+
+		// Refuse if the entry file lives under the folder — the user has
+		// to either move/rename the entry or pick a new entry first.
+		const entry = project.entry;
+		if (entry === target || entry.startsWith(target + "/")) {
+			popoverError = "Cannot delete a folder that contains the entry file";
+			return;
+		}
+
+		commitProjectMutation(deleteFolder(project, target));
+		closePopover();
 	}
 
 	async function onNewProject() {
@@ -306,6 +526,10 @@
 		if (popoverKind === "new") onNewProject();
 		else if (popoverKind === "save-as") onSaveAsProject();
 		else if (popoverKind === "rename") onRenameProject();
+		else if (popoverKind === "new-file") submitNewFile();
+		else if (popoverKind === "new-folder") submitNewFolder();
+		else if (popoverKind === "rename-file") submitRenameFile();
+		else if (popoverKind === "rename-folder") submitRenameFolder();
 	}
 
 	async function onRun() {
@@ -354,12 +578,12 @@
 				groups={selectGroups}
 				onChange={onSelectFromDropdown}
 			/>
-			<Button variant="ghost" onclick={(e) => openPopover("new", e)}>NEW</Button>
+			<Button variant="ghost" onclick={(e) => openProjectPopover("new", e)}>NEW</Button>
 			{#if active.kind === "example"}
-				<Button variant="ghost" onclick={(e) => openPopover("save-as", e)}>SAVE AS</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("save-as", e)}>SAVE AS</Button>
 			{:else}
-				<Button variant="ghost" onclick={(e) => openPopover("rename", e)}>RENAME</Button>
-				<Button variant="ghost" onclick={(e) => openPopover("delete", e)}>DELETE</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("rename", e)}>RENAME</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("delete", e)}>DELETE</Button>
 			{/if}
 			<Button variant="ghost" disabled={!canRun || running} onclick={onRun}>
 				{running ? "RUNNING" : "RUN"}
@@ -367,27 +591,32 @@
 		</div>
 	</header>
 
-	<FileTabs
-		files={project.files}
-		selected={selectedPath}
-		entry={project.entry}
-		onSelect={onSelectFile}
-	/>
-
-	<Card padded={false}>
-		<Editor
-			value={currentSource}
-			{errorLine}
-			{errorColumn}
-			{errorMessage}
-			onChange={onSourceChange}
-			ariaLabel="Ruka code editor"
+	<div class="workspace">
+		<FileTree
+			files={project.files}
+			folders={project.folders}
+			selected={selectedPath}
+			entry={project.entry}
+			onAction={onTreeAction}
 		/>
-	</Card>
 
-	<Card padded={false}>
-		<Terminal bind:this={terminal} {status} maxHeight="20rem" />
-	</Card>
+		<div class="workspace-main">
+			<Card padded={false}>
+				<Editor
+					value={currentSource}
+					{errorLine}
+					{errorColumn}
+					{errorMessage}
+					onChange={onSourceChange}
+					ariaLabel="Ruka code editor"
+				/>
+			</Card>
+
+			<Card padded={false}>
+				<Terminal bind:this={terminal} {status} maxHeight="20rem" />
+			</Card>
+		</div>
+	</div>
 </section>
 
 <Popover
@@ -395,7 +624,9 @@
 	open={popoverKind !== null}
 	placement="bottom"
 	onClose={closePopover}
-	ariaLabel={popoverKind === "delete" ? "Confirm delete" : "Project name"}
+	ariaLabel={popoverKind === "delete" || popoverKind === "delete-folder"
+		? "Confirm delete"
+		: "Name"}
 >
 	{#if popoverKind === "delete"}
 		<p class="popover-msg">
@@ -406,24 +637,58 @@
 			<Button variant="ghost" onclick={closePopover}>Cancel</Button>
 			<Button variant="primary" onclick={onDeleteProject}>Delete</Button>
 		</div>
+	{:else if popoverKind === "delete-folder"}
+		<p class="popover-msg">
+			Delete folder <strong>{popoverTargetPath}</strong> and everything inside it?
+		</p>
+		{#if popoverError}
+			<p class="popover-error">{popoverError}</p>
+		{/if}
+		<div class="popover-actions">
+			<Button variant="ghost" onclick={closePopover}>Cancel</Button>
+			<Button variant="primary" onclick={submitDeleteFolder}>Delete</Button>
+		</div>
 	{:else}
 		<form onsubmit={onPopoverSubmit}>
 			<label class="popover-label">
-				{#if popoverKind === "new"}New project name{:else if popoverKind === "save-as"}Save copy as{:else}Rename project{/if}
+				{#if popoverKind === "new"}New project name
+				{:else if popoverKind === "save-as"}Save copy as
+				{:else if popoverKind === "rename"}Rename project
+				{:else if popoverKind === "new-file"}New file{popoverParentPath
+					? ` in ${popoverParentPath}`
+					: ""}
+				{:else if popoverKind === "new-folder"}New folder{popoverParentPath
+					? ` in ${popoverParentPath}`
+					: ""}
+				{:else if popoverKind === "rename-file"}Rename file
+				{:else if popoverKind === "rename-folder"}Rename folder
+				{/if}
 				<input
 					bind:this={popoverInputEl}
 					bind:value={popoverInput}
 					class="popover-input"
 					type="text"
-					placeholder="my-project"
+					placeholder={popoverKind === "new-file"
+						? "name.ruka"
+						: popoverKind === "new-folder" || popoverKind === "rename-folder"
+							? "folder-name"
+							: popoverKind === "rename-file"
+								? "name.ruka"
+								: "my-project"}
 					autocomplete="off"
 					spellcheck="false"
 				/>
 			</label>
+			{#if popoverError}
+				<p class="popover-error">{popoverError}</p>
+			{/if}
 			<div class="popover-actions">
 				<Button variant="ghost" onclick={closePopover}>Cancel</Button>
 				<Button variant="primary" type="submit">
-					{#if popoverKind === "new"}Create{:else if popoverKind === "save-as"}Save{:else}Rename{/if}
+					{#if popoverKind === "new" || popoverKind === "new-file" || popoverKind === "new-folder"}
+						Create
+					{:else if popoverKind === "save-as"}Save
+					{:else}Rename{/if}
 				</Button>
 			</div>
 		</form>
@@ -435,9 +700,32 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		max-width: 960px;
+		max-width: 1200px;
 		margin: 24px auto;
 		padding: 0 16px;
+	}
+
+	.workspace {
+		display: grid;
+		grid-template-columns: 220px minmax(0, 1fr);
+		gap: 12px;
+		align-items: start;
+	}
+
+	.workspace-main {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		min-width: 0;
+	}
+
+	/* Below ~720px the sidebar shifts to a stacked panel above the editor.
+	 * Tree nodes still render the same — just the column collapses so the
+	 * editor doesn't get squeezed off-screen. */
+	@media (max-width: 720px) {
+		.workspace {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 	.playground-header {
 		display: flex;
@@ -487,6 +775,12 @@
 	.popover-msg {
 		font-size: var(--fs-sm);
 		color: var(--fg);
+	}
+
+	.popover-error {
+		font-size: var(--fs-xs);
+		color: #ff6b6b;
+		margin: 0;
 	}
 
 	.popover-actions {

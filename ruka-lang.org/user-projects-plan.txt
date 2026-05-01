@@ -37,21 +37,26 @@ Phase 2 — Project lifecycle UI  [DONE]
 Files: src/routes/playground/+page.svelte, src/lib/components/ui/select.svelte
 
 
-Phase 3 — File tree sidebar + file CRUD  [TODO]
+Phase 3 — File tree sidebar + file CRUD  [DONE]
 ------------------------------------------------
-Layout: [sidebar | editor + terminal]; sidebar collapsible on narrow
-screens. Replaces / augments FileTabs.
+- Project mutation helpers (addFile, addFolder, renameFile,
+  renameFolder, deleteFile, deleteFolder, setEntry, pathExists) with
+  unit tests covering entry rewrites, cascade delete, ancestor folder
+  registration, and folder-rename descendant rewriting.
+- FileTree component: hierarchical tree from (files, folders),
+  collapsible folders, hover-revealed action buttons.
+- Per-file actions: open, set-as-entry (.ruka only), rename, delete.
+  Delete disabled for the entry file.
+- Per-folder actions: new file, new folder, rename, delete (cascades;
+  blocked when the entry lives inside the folder).
+- New file picker restricted to `.ruka` / `.txt`; popover shows an
+  inline error when the name fails validation or collides.
+- Workspace layout: 220px sidebar | editor + terminal column. Stacks
+  below 720px. FileTabs deleted.
 
-- Vertical tree: treat `/` in paths as folder separators for display;
-  schema already has explicit `folders` so empty folders survive.
-- Per-file actions: open, rename, delete.
-- Per-folder actions: new file, new folder, rename, delete (cascades).
-- New file picker restricted to `.ruka` and `.txt`.
-- Entry badge on the entry file. "Set as entry" action.
-- Disallow deleting the entry file. Renaming the entry rewrites
-  `project.entry`.
-- Renames should update folder list when a path is moved between
-  directories.
+Files: src/lib/playground/project.ts, project.test.ts,
+src/lib/components/file-tree/index.svelte,
+src/routes/playground/+page.svelte
 
 
 Phase 4 — `import` builtin  [TODO]
