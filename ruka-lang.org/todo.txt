@@ -34,6 +34,7 @@ TODO (Features, Docs and playground)
 	- [x] Methods and statics including privacy
 		- [ ] Methods defined on types from different scopes can only access public members
 		- [ ] Method modes (*, &) and mutability / ownership change checks
+		- [ ] Builtin type methods built the same as user type methods
     - [x] Array/String.concat returns new string, .append mutates the array/string
 	- [x] Patterns / Matching / Destructuring
 		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.

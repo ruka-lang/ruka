@@ -57,8 +57,13 @@ function isPrivateName(name: string | undefined | null): boolean {
 }
 
 // ── Type-error helper ────────────────────────────────────────────────────
-function typeError(line: number, message: string, fatal = false): RukaError {
-	return new RukaError(message, line, undefined, fatal);
+function typeError(
+	line: number,
+	col: number | undefined,
+	message: string,
+	fatal = false
+): RukaError {
+	return new RukaError(message, line, col, fatal);
 }
 
 // ── Member resolution ────────────────────────────────────────────────────
@@ -70,6 +75,7 @@ function methodOf(
 	object: CheckedType,
 	name: string,
 	line: number,
+	col: number | undefined,
 	env: TypeEnv | null
 ): CheckedType {
 	if (!object || object.kind === "unknown") {
@@ -94,7 +100,7 @@ function methodOf(
 				returnType: { kind: "array", element: elementType }
 			};
 		}
-		throw typeError(line, `no method '${name}' on ${typeStr(object)}`);
+		throw typeError(line, col, `no method '${name}' on ${typeStr(object)}`);
 	}
 
 	if (object.kind === "string") {
@@ -115,7 +121,7 @@ function methodOf(
 				returnType: { kind: "unit" }
 			};
 		}
-		throw typeError(line, `no method '${name}' on string`);
+		throw typeError(line, col, `no method '${name}' on string`);
 	}
 
 	if (object.kind === "module") {
@@ -123,7 +129,7 @@ function methodOf(
 		if (member) {
 			return member;
 		}
-		throw typeError(line, `no member '${name}' on module`);
+		throw typeError(line, col, `no member '${name}' on module`);
 	}
 
 	if (object.kind === "variantDef") {
@@ -142,6 +148,7 @@ function methodOf(
 			if (isPrivateName(name) && !envContains(env, staticInfo.declEnv)) {
 				throw typeError(
 					line,
+					col,
 					`static '${name}' on '${object.name}' is private`,
 					true
 				);
@@ -150,6 +157,7 @@ function methodOf(
 		}
 		throw typeError(
 			line,
+			col,
 			`no tag or static '${name}' in ${object.name ?? "variant"}`,
 			true
 		);
@@ -160,11 +168,11 @@ function methodOf(
 		if (object.statics && name in object.statics) {
 			const staticInfo = object.statics[name]!;
 			if (isPrivateName(name) && !envContains(env, staticInfo.declEnv)) {
-				throw typeError(line, `static '${name}' on record is private`, true);
+				throw typeError(line, col, `static '${name}' on record is private`, true);
 			}
 			return staticInfo.type;
 		}
-		throw typeError(line, `no static '${name}' on record`, true);
+		throw typeError(line, col, `no static '${name}' on record`, true);
 	}
 
 	if (object.kind === "named" && env) {
@@ -175,6 +183,7 @@ function methodOf(
 				if (isPrivateName(name) && !envContains(env, definition.declEnv)) {
 					throw typeError(
 						line,
+						col,
 						`field '${name}' on '${object.name}' is private`,
 						true
 					);
@@ -187,6 +196,7 @@ function methodOf(
 				if (isPrivateName(name) && !envContains(env, methodInfo.declEnv)) {
 					throw typeError(
 						line,
+						col,
 						`method '${name}' on '${object.name}' is private`,
 						true
 					);
@@ -195,6 +205,7 @@ function methodOf(
 			}
 			throw typeError(
 				line,
+				col,
 				`no field or method '${name}' on ${object.name}`,
 				true
 			);
@@ -210,6 +221,7 @@ function methodOf(
 			if (isPrivateName(name) && !envContains(env, methodInfo.declEnv)) {
 				throw typeError(
 					line,
+					col,
 					`method '${name}' on '${object.name}' is private`,
 					true
 				);
@@ -230,7 +242,8 @@ function methodOf(
 function conform(
 	expected: CheckedType | null,
 	actual: CheckedType,
-	line: number
+	line: number,
+	col: number | undefined
 ): CheckedType {
 	if (!expected) {
 		return actual;
@@ -244,6 +257,7 @@ function conform(
 	if (!typesEqual(expected, actual)) {
 		throw typeError(
 			line,
+			col,
 			`type mismatch: expected ${typeStr(expected)}, got ${typeStr(actual)}`
 		);
 	}
@@ -491,7 +505,8 @@ export function checkTypes(ast: Program): RukaError | null {
 	function resolveReceiverDef(
 		receiver: Receiver,
 		env: TypeEnv,
-		line: number
+		line: number,
+		col: number | undefined
 	): { name: string; def: RecordDef | VariantDef } | null {
 		if (receiver.kind === "static") {
 			const looked = lookupEnv(env, receiver.typeName);
@@ -501,6 +516,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			) {
 				throw typeError(
 					line,
+					col,
 					`static receiver '${receiver.typeName}' is not a record/variant type`
 				);
 			}
@@ -512,6 +528,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			if (!annotated || annotated.kind !== "named") {
 				throw typeError(
 					line,
+					col,
 					"method receivers on non-record types are not yet supported in the playground"
 				);
 			}
@@ -522,6 +539,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			) {
 				throw typeError(
 					line,
+					col,
 					`receiver type '${annotated.name}' is not a record/variant type`
 				);
 			}
@@ -573,11 +591,12 @@ export function checkTypes(ast: Program): RukaError | null {
 					for (const name of node.pattern.names) {
 						const field = fieldByName[name];
 						if (!field) {
-							throw typeError(node.line, `no field '${name}' on record`);
+							throw typeError(node.line, node.col, `no field '${name}' on record`);
 						}
 						if (isPrivateName(name) && !envContains(env, recordDef.declEnv)) {
 							throw typeError(
 								node.line,
+								node.col,
 								`field '${name}' is private and cannot be destructured here`
 							);
 						}
@@ -604,7 +623,7 @@ export function checkTypes(ast: Program): RukaError | null {
 		}
 		if (node.kind === "Return") {
 			if (returnTypeStack.length === 0) {
-				throw typeError(node.line, "'return' outside function");
+				throw typeError(node.line, node.col, "'return' outside function");
 			}
 			inferExpression(
 				node.value,
@@ -644,12 +663,13 @@ export function checkTypes(ast: Program): RukaError | null {
 		const receiver = node.receiver!;
 
 		if (receiver.kind === "static") {
-			const target = resolveReceiverDef(receiver, env, node.line)!;
+			const target = resolveReceiverDef(receiver, env, node.line, node.col)!;
 			const staticType = inferExpression(node.value, astToType(node.type), env);
 			target.def.statics = target.def.statics ?? Object.create(null);
 			if (target.def.statics![node.name!]) {
 				throw typeError(
 					node.line,
+					node.col,
 					`duplicate static '${node.name}' on ${target.name}`
 				);
 			}
@@ -663,7 +683,7 @@ export function checkTypes(ast: Program): RukaError | null {
 		}
 
 		// self method
-		let target = resolveReceiverDef(receiver, env, node.line);
+		let target = resolveReceiverDef(receiver, env, node.line, node.col);
 		if (!target) {
 			const fields = collectSelfFields(node.value);
 			const seen = new Set<string>();
@@ -687,12 +707,14 @@ export function checkTypes(ast: Program): RukaError | null {
 			if (candidates.length === 0) {
 				throw typeError(
 					node.line,
+					node.col,
 					`could not infer 'self' type for '${node.name}'; add (self: TypeName)`
 				);
 			}
 			if (candidates.length > 1) {
 				throw typeError(
 					node.line,
+					node.col,
 					`ambiguous 'self' type for '${node.name}': ${candidates
 						.map((c) => c.name)
 						.join(", ")}; add (self: TypeName)`
@@ -708,6 +730,7 @@ export function checkTypes(ast: Program): RukaError | null {
 		if (target.def.methods![node.name!]) {
 			throw typeError(
 				node.line,
+				node.col,
 				`duplicate method '${node.name}' on ${target.name}`
 			);
 		}
@@ -720,7 +743,7 @@ export function checkTypes(ast: Program): RukaError | null {
 	}
 
 	// ── Interpolation type-check ─────────────────────────────────────────
-	function checkInterpolation(raw: string, env: TypeEnv, line: number): void {
+	function checkInterpolation(raw: string, env: TypeEnv, line: number, col: number): void {
 		const parts = splitInterp(raw);
 		for (const part of parts) {
 			if ("interp" in part) {
@@ -731,7 +754,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					}
 				} catch (error) {
 					if (error instanceof RukaError) {
-						throw new RukaError(error.message, line);
+						throw new RukaError(error.message, line, col);
 					}
 					throw error;
 				}
@@ -813,6 +836,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			if (knownAccessed.length === 0) {
 				throw typeError(
 					fn.line,
+					fn.col,
 					`parameter '${paramName}': no record type in scope has field(s) {${fields.join(", ")}}; add a type annotation`,
 					true
 				);
@@ -855,6 +879,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			} else if (candidates.length > 1) {
 				throw typeError(
 					fn.line,
+					fn.col,
 					`parameter '${paramName}' is ambiguous: could be ${candidateNames.join(
 						", "
 					)}; add a type annotation`,
@@ -863,6 +888,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			} else {
 				throw typeError(
 					fn.line,
+					fn.col,
 					`parameter '${paramName}': no record type in scope has fields {${knownAccessed.join(
 						", "
 					)}}; add a type annotation`,
@@ -920,11 +946,11 @@ export function checkTypes(ast: Program): RukaError | null {
 	): CheckedType {
 		switch (node.kind) {
 			case "Unit":
-				return conform(expected, { kind: "unit" }, node.line);
+				return conform(expected, { kind: "unit" }, node.line, node.col);
 
 			case "Literal": {
 				if (typeof node.value === "boolean") {
-					return conform(expected, { kind: "bool" }, node.line);
+					return conform(expected, { kind: "bool" }, node.line, node.col);
 				}
 				// node.isFloat is authoritative — JS numbers don't distinguish
 				// integer/float at runtime.
@@ -935,6 +961,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					if (expected && expected.kind !== "unknown") {
 						throw typeError(
 							node.line,
+							node.col,
 							`expected ${typeStr(expected)}, got integer literal`
 						);
 					}
@@ -946,6 +973,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (expected && expected.kind !== "unknown") {
 					throw typeError(
 						node.line,
+						node.col,
 						`expected ${typeStr(expected)}, got float literal`
 					);
 				}
@@ -953,18 +981,18 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 
 			case "CharLiteral":
-				return conform(expected, { kind: "u8" }, node.line);
+				return conform(expected, { kind: "u8" }, node.line, node.col);
 
 			case "StringLiteral":
-				checkInterpolation(node.raw, env, node.line);
-				return conform(expected, { kind: "string" }, node.line);
+				checkInterpolation(node.raw, env, node.line, node.col);
+				return conform(expected, { kind: "string" }, node.line, node.col);
 
 			case "Ident": {
 				const found = lookupEnv(env, node.name);
 				if (!found) {
 					return UNKNOWN; // scope check already reports undefined
 				}
-				return conform(expected, found, node.line);
+				return conform(expected, found, node.line, node.col);
 			}
 
 			case "Block": {
@@ -1014,6 +1042,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					) {
 						throw typeError(
 							node.line,
+							node.col,
 							`if branches differ: ${typeStr(thenType)} vs ${typeStr(elseType)}`
 						);
 					}
@@ -1035,6 +1064,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				) {
 					throw typeError(
 						node.line,
+						node.col,
 						`range bound must be numeric, got ${typeStr(elementType)}`
 					);
 				}
@@ -1053,12 +1083,13 @@ export function checkTypes(ast: Program): RukaError | null {
 						for (const element of node.elements) {
 							inferExpression(element, context.element, env);
 						}
-						return conform(expected, context, node.line);
+						return conform(expected, context, node.line, node.col);
 					}
 					if (context.kind === "tuple") {
 						if (node.elements.length !== context.elements.length) {
 							throw typeError(
 								node.line,
+								node.col,
 								`tuple literal has ${node.elements.length} element(s) but type ${typeStr(
 									context
 								)} expects ${context.elements.length}`
@@ -1067,14 +1098,15 @@ export function checkTypes(ast: Program): RukaError | null {
 						node.elements.forEach((element, index) => {
 							inferExpression(element, context.elements[index]!, env);
 						});
-						return conform(expected, context, node.line);
+						return conform(expected, context, node.line, node.col);
 					}
-					throw typeError(node.line, `invalid collection type ${typeStr(context)}`);
+					throw typeError(node.line, node.col, `invalid collection type ${typeStr(context)}`);
 				}
 				// No context — infer each element, then apply the spec's rule.
 				if (node.elements.length === 0) {
 					throw typeError(
 						node.line,
+						node.col,
 						"empty .{} needs a type context (annotation or [T].{…} prefix)"
 					);
 				}
@@ -1085,6 +1117,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (allSame) {
 					throw typeError(
 						node.line,
+						node.col,
 						`homogeneous .{…} is ambiguous — add an annotation ([${typeStr(
 							elementTypes[0]!
 						)}]) or use the [${typeStr(elementTypes[0]!)}].{…} prefix`
@@ -1098,10 +1131,10 @@ export function checkTypes(ast: Program): RukaError | null {
 				const indexType = inferExpression(node.index, null, env);
 				if (indexType.kind === "range") {
 					if (objectType.kind === "string") {
-						return conform(expected, { kind: "string" }, node.line);
+						return conform(expected, { kind: "string" }, node.line, node.col);
 					}
 					if (objectType.kind === "array") {
-						return conform(expected, objectType, node.line);
+						return conform(expected, objectType, node.line, node.col);
 					}
 					return UNKNOWN;
 				}
@@ -1112,14 +1145,15 @@ export function checkTypes(ast: Program): RukaError | null {
 				) {
 					throw typeError(
 						node.line,
+						node.col,
 						`index must be integer, got ${typeStr(indexType)}`
 					);
 				}
 				if (objectType.kind === "string") {
-					return conform(expected, { kind: "u8" }, node.line);
+					return conform(expected, { kind: "u8" }, node.line, node.col);
 				}
 				if (objectType.kind === "array") {
-					return conform(expected, objectType.element, node.line);
+					return conform(expected, objectType.element, node.line, node.col);
 				}
 				if (objectType.kind === "tuple") {
 					return UNKNOWN; // needs literal-index resolution
@@ -1129,8 +1163,8 @@ export function checkTypes(ast: Program): RukaError | null {
 
 			case "Member": {
 				const objectType = inferExpression(node.object, null, env);
-				const memberType = methodOf(objectType, node.property, node.line, env);
-				return conform(expected, memberType, node.line);
+				const memberType = methodOf(objectType, node.property, node.line, node.col, env);
+				return conform(expected, memberType, node.line, node.col);
 			}
 
 			case "Call": {
@@ -1140,13 +1174,14 @@ export function checkTypes(ast: Program): RukaError | null {
 					if (node.args.length !== params.length) {
 						throw typeError(
 							node.line,
+							node.col,
 							`expected ${params.length} arg(s), got ${node.args.length}`
 						);
 					}
 					for (let index = 0; index < node.args.length; index++) {
 						inferExpression(node.args[index]!, params[index]!, env);
 					}
-					return conform(expected, calleeType.returnType, node.line);
+					return conform(expected, calleeType.returnType, node.line, node.col);
 				}
 				// Unknown callee — still walk args so nested expressions get checked.
 				for (const arg of node.args) {
@@ -1206,7 +1241,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (op === "and" || op === "or") {
 					inferExpression(node.left, { kind: "bool" }, env);
 					inferExpression(node.right, { kind: "bool" }, env);
-					return conform(expected, { kind: "bool" }, node.line);
+					return conform(expected, { kind: "bool" }, node.line, node.col);
 				}
 				if (
 					op === "==" ||
@@ -1218,7 +1253,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				) {
 					const leftType = inferExpression(node.left, null, env);
 					inferExpression(node.right, leftType, env);
-					return conform(expected, { kind: "bool" }, node.line);
+					return conform(expected, { kind: "bool" }, node.line, node.col);
 				}
 				// Arithmetic. Strings no longer concat with `+`; use s.concat(...).
 				const hint =
@@ -1236,6 +1271,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				) {
 					throw typeError(
 						node.line,
+						node.col,
 						"'+' does not concatenate strings — use s.concat(...) instead"
 					);
 				}
@@ -1246,10 +1282,11 @@ export function checkTypes(ast: Program): RukaError | null {
 				) {
 					throw typeError(
 						node.line,
+						node.col,
 						`${op} requires numeric operands, got ${typeStr(result)}`
 					);
 				}
-				return conform(expected, result, node.line);
+				return conform(expected, result, node.line, node.col);
 			}
 
 			case "UnaryOp": {
@@ -1259,6 +1296,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					if (inferredType.kind !== "unknown" && !isNumericKind(inferredType.kind)) {
 						throw typeError(
 							lineOf(node.expression),
+							colOf(node.expression),
 							`unary - requires numeric, got ${typeStr(inferredType)}`
 						);
 					}
@@ -1266,7 +1304,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				}
 				if (node.op === "not") {
 					inferExpression(node.expression, { kind: "bool" }, env);
-					return conform(expected, { kind: "bool" }, lineOf(node.expression));
+					return conform(expected, { kind: "bool" }, lineOf(node.expression), colOf(node.expression));
 				}
 				return UNKNOWN;
 			}
@@ -1314,12 +1352,14 @@ export function checkTypes(ast: Program): RukaError | null {
 					if (candidates.length === 0) {
 						throw typeError(
 							node.line,
+							node.col,
 							`no variant in scope has tag '.${node.tag}'`
 						);
 					}
 					if (candidates.length > 1) {
 						throw typeError(
 							node.line,
+							node.col,
 							`ambiguous constructor '.${node.tag}': could be ${candidates
 								.map((c) => c.name)
 								.join(" or ")}`
@@ -1332,15 +1372,16 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (!tagDefinition) {
 					throw typeError(
 						node.line,
+						node.col,
 						`no tag '.${node.tag}' in ${definitionName}`,
 						true
 					);
 				}
 				if (node.payload && !tagDefinition.type) {
-					throw typeError(node.line, `tag '.${node.tag}' takes no payload`);
+					throw typeError(node.line, node.col, `tag '.${node.tag}' takes no payload`);
 				}
 				if (!node.payload && tagDefinition.type) {
-					throw typeError(node.line, `tag '.${node.tag}' requires a payload`);
+					throw typeError(node.line, node.col, `tag '.${node.tag}' requires a payload`);
 				}
 				if (node.payload) {
 					inferExpression(node.payload, tagDefinition.type, env);
@@ -1348,7 +1389,8 @@ export function checkTypes(ast: Program): RukaError | null {
 				return conform(
 					expected,
 					{ kind: "named", name: definitionName! },
-					node.line
+					node.line,
+					node.col
 				);
 			}
 
@@ -1385,7 +1427,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (node.elseArm) {
 					inferExpression(node.elseArm, expected ?? matchType, env);
 				}
-				return conform(expected, matchType, node.line);
+				return conform(expected, matchType, node.line, node.col);
 			}
 
 			case "RecordType": {
@@ -1408,6 +1450,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					} else if (looked && looked.kind !== "unknown") {
 						throw typeError(
 							node.line,
+							node.col,
 							`'${node.typeName.name}' is not a record type`
 						);
 					}
@@ -1427,6 +1470,7 @@ export function checkTypes(ast: Program): RukaError | null {
 						if (!fieldByName[field.name]) {
 							throw typeError(
 								node.line,
+								node.col,
 								`unknown field '${field.name}' in record literal`
 							);
 						}
@@ -1436,6 +1480,7 @@ export function checkTypes(ast: Program): RukaError | null {
 						if (!provided.has(definedField.name)) {
 							throw typeError(
 								node.line,
+								node.col,
 								`record literal missing field '${definedField.name}'`
 							);
 						}
@@ -1451,7 +1496,8 @@ export function checkTypes(ast: Program): RukaError | null {
 					return conform(
 						expected,
 						{ kind: "named", name: recordName },
-						node.line
+						node.line,
+						node.col
 					);
 				}
 
@@ -1510,11 +1556,12 @@ export function checkTypes(ast: Program): RukaError | null {
 				});
 
 				if (matches.length === 0) {
-					throw typeError(node.line, "no record type in scope matches this literal");
+					throw typeError(node.line, node.col, "no record type in scope matches this literal");
 				}
 				if (matches.length > 1) {
 					throw typeError(
 						node.line,
+						node.col,
 						`ambiguous record literal: matches ${matches
 							.map((m) => m.name)
 							.join(", ")}; use Type.{...} to specify`
@@ -1533,7 +1580,8 @@ export function checkTypes(ast: Program): RukaError | null {
 				return conform(
 					expected,
 					{ kind: "named", name: inferred.name },
-					node.line
+					node.line,
+					node.col
 				);
 			}
 		}
@@ -1554,6 +1602,22 @@ function lineOf(node: Expression | Block): number {
 	}
 	if (node.kind === "Block") {
 		return node.body[0] ? (node.body[0] as { line: number }).line : 0;
+	}
+	return 0;
+}
+
+function colOf(node: Expression | Block): number {
+	if ("col" in node && typeof (node as { col?: number }).col === "number") {
+		return (node as { col: number }).col;
+	}
+	if (node.kind === "BinaryOp") {
+		return colOf(node.left);
+	}
+	if (node.kind === "UnaryOp") {
+		return colOf(node.expression);
+	}
+	if (node.kind === "Block") {
+		return node.body[0] ? (node.body[0] as { col: number }).col : 0;
 	}
 	return 0;
 }

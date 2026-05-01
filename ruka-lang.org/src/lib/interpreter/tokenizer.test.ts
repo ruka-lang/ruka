@@ -45,10 +45,10 @@ describe("tokenize: edge cases", () => {
 	it("distinguishes `..` from a numeric fractional part", () => {
 		const toks = tokenize("1..5");
 		expect(toks.slice(0, 4)).toEqual([
-			{ kind: "NUM", value: "1", line: 1 },
-			{ kind: "..", value: "..", line: 1 },
-			{ kind: "NUM", value: "5", line: 1 },
-			{ kind: "EOF", value: "", line: 1 }
+			{ kind: "NUM", value: "1", line: 1, col: 1 },
+			{ kind: "..", value: "..", line: 1, col: 2 },
+			{ kind: "NUM", value: "5", line: 1, col: 4 },
+			{ kind: "EOF", value: "", line: 1, col: 5 }
 		]);
 	});
 

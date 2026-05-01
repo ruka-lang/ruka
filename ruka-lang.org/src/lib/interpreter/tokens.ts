@@ -65,6 +65,7 @@ export type Token = {
 	kind: TokenKind;
 	value: string | number;
 	line: number;
+	col: number;
 };
 
 export function isKeyword(s: string): s is Keyword {

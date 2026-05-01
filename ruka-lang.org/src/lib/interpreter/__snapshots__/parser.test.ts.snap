@@ -4,6 +4,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -19,6 +20,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 2,
               "local": false,
@@ -31,32 +33,38 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 16,
                 "elements": [
                   {
+                    "col": 23,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
                     "value": 2,
                   },
                   {
+                    "col": 26,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
                     "value": 3,
                   },
                   {
+                    "col": 29,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
                     "value": 5,
                   },
                   {
+                    "col": 32,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
                     "value": 7,
                   },
                   {
+                    "col": 35,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
@@ -66,7 +74,9 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                 "kind": "ListLiteral",
                 "line": 2,
                 "typePrefix": {
+                  "col": 16,
                   "element": {
+                    "col": 17,
                     "kind": "NamedType",
                     "line": 2,
                     "name": "int",
@@ -77,24 +87,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 3,
                     "raw": "primes:  \${primes}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 3,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 3,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 3,
               },
@@ -102,24 +117,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 3,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 4,
                     "raw": "length:  \${primes.length()}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 4,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 4,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 4,
               },
@@ -127,24 +147,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 4,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 5,
                     "raw": "first:   \${primes[0]}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 5,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 5,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 5,
               },
@@ -152,24 +177,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 5,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 6,
                     "raw": "last:    \${primes[primes.length() - 1]}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 6,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 6,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 6,
               },
@@ -177,9 +207,11 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 6,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 16,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 8,
@@ -187,15 +219,18 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 8,
                   "kind": "Member",
                   "line": 8,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 8,
                     "name": "primes",
                   },
                   "property": "append",
                 },
+                "col": 15,
                 "kind": "Call",
                 "line": 8,
               },
@@ -203,24 +238,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 8,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 9,
                     "raw": "after append(13): \${primes}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 9,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 9,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 9,
               },
@@ -228,9 +268,11 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 9,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 16,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 11,
@@ -238,15 +280,18 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 8,
                   "kind": "Member",
                   "line": 11,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 11,
                     "name": "primes",
                   },
                   "property": "remove",
                 },
+                "col": 15,
                 "kind": "Call",
                 "line": 11,
               },
@@ -254,24 +299,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 11,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 12,
                     "raw": "after remove(0):  \${primes}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 12,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 12,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 12,
               },
@@ -279,6 +329,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 12,
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 15,
               "local": false,
@@ -291,6 +342,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 13,
                 "isFloat": false,
                 "kind": "Literal",
                 "line": 15,
@@ -300,12 +352,15 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
             {
               "body": [
                 {
+                  "col": 21,
                   "kind": "Assign",
                   "line": 16,
                   "name": "sum",
                   "value": {
+                    "col": 31,
                     "kind": "BinaryOp",
                     "left": {
+                      "col": 27,
                       "kind": "Ident",
                       "line": 16,
                       "name": "sum",
@@ -313,6 +368,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                     "line": 16,
                     "op": "+",
                     "right": {
+                      "col": 33,
                       "kind": "Ident",
                       "line": 16,
                       "name": "p",
@@ -320,7 +376,9 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                   },
                 },
               ],
+              "col": 2,
               "iterable": {
+                "col": 11,
                 "kind": "Ident",
                 "line": 16,
                 "name": "primes",
@@ -330,24 +388,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "name": "p",
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 17,
                     "raw": "sum:     \${sum}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 17,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 17,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 17,
               },
@@ -355,24 +418,29 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "line": 17,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 20,
                     "raw": "slice:   \${primes[1..4]}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 20,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 20,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 20,
               },
@@ -382,6 +450,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
@@ -406,6 +475,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -421,9 +491,12 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 23,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 21,
                   "kind": "Ident",
                   "line": 1,
                   "name": "a",
@@ -431,6 +504,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                 "line": 1,
                 "op": "+",
                 "right": {
+                  "col": 25,
                   "kind": "Ident",
                   "line": 1,
                   "name": "b",
@@ -442,6 +516,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
@@ -460,6 +535,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 2,
       "local": false,
@@ -475,9 +551,12 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 23,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 21,
                   "kind": "Ident",
                   "line": 2,
                   "name": "a",
@@ -485,6 +564,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                 "line": 2,
                 "op": "-",
                 "right": {
+                  "col": 25,
                   "kind": "Ident",
                   "line": 2,
                   "name": "b",
@@ -496,6 +576,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 2,
         "paramModes": [
@@ -514,6 +595,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 3,
       "local": false,
@@ -529,9 +611,12 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 23,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 21,
                   "kind": "Ident",
                   "line": 3,
                   "name": "a",
@@ -539,6 +624,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                 "line": 3,
                 "op": "*",
                 "right": {
+                  "col": 25,
                   "kind": "Ident",
                   "line": 3,
                   "name": "b",
@@ -550,6 +636,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
@@ -568,6 +655,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 4,
       "local": false,
@@ -583,9 +671,12 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 23,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 21,
                   "kind": "Ident",
                   "line": 4,
                   "name": "a",
@@ -593,6 +684,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
                 "line": 4,
                 "op": "/",
                 "right": {
+                  "col": 25,
                   "kind": "Ident",
                   "line": 4,
                   "name": "b",
@@ -604,6 +696,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 4,
         "paramModes": [
@@ -622,6 +715,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 6,
       "local": false,
@@ -637,6 +731,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 7,
               "local": false,
@@ -649,6 +744,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 10,
                 "isFloat": false,
                 "kind": "Literal",
                 "line": 7,
@@ -656,6 +752,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 8,
               "local": false,
@@ -668,6 +765,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 10,
                 "isFloat": false,
                 "kind": "Literal",
                 "line": 8,
@@ -675,24 +773,29 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 9,
                     "raw": "\${x} + \${y} = \${add(x, y)}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 9,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 9,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 9,
               },
@@ -700,24 +803,29 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               "line": 9,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 10,
                     "raw": "\${x} - \${y} = \${sub(x, y)}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 10,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 10,
               },
@@ -725,24 +833,29 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               "line": 10,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 11,
                     "raw": "\${x} * \${y} = \${mul(x, y)}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 11,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 11,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 11,
               },
@@ -750,24 +863,29 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
               "line": 11,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 12,
                     "raw": "\${x} / \${y} = \${div(x, y)}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 12,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 12,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 12,
               },
@@ -777,6 +895,7 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 6,
         "paramModes": [],
@@ -794,6 +913,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": true,
@@ -806,12 +926,14 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       "receiver": null,
       "type": null,
       "value": {
+        "col": 11,
         "kind": "VariantType",
         "line": 1,
         "tags": [
           {
             "name": "critical",
             "type": {
+              "col": 12,
               "kind": "NamedType",
               "line": 2,
               "name": "int",
@@ -820,6 +942,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
           {
             "name": "normal",
             "type": {
+              "col": 10,
               "kind": "NamedType",
               "line": 3,
               "name": "int",
@@ -833,6 +956,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 7,
       "local": false,
@@ -848,6 +972,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 8,
               "local": false,
@@ -860,8 +985,10 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 20,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 14,
                   "kind": "Ident",
                   "line": 8,
                   "name": "power",
@@ -869,6 +996,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                 "line": 8,
                 "op": "+",
                 "right": {
+                  "col": 22,
                   "kind": "Ident",
                   "line": 8,
                   "name": "accuracy",
@@ -876,11 +1004,15 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "expression": {
                 "_multiline": false,
+                "col": 2,
                 "condition": {
+                  "col": 11,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 9,
                     "name": "score",
@@ -888,6 +1020,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                   "line": 9,
                   "op": ">=",
                   "right": {
+                    "col": 14,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 9,
@@ -896,9 +1029,12 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                 },
                 "elseBranch": {
                   "_multiline": false,
+                  "col": 7,
                   "condition": {
+                    "col": 16,
                     "kind": "BinaryOp",
                     "left": {
+                      "col": 10,
                       "kind": "Ident",
                       "line": 10,
                       "name": "score",
@@ -906,6 +1042,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "line": 10,
                     "op": ">=",
                     "right": {
+                      "col": 19,
                       "isFloat": false,
                       "kind": "Literal",
                       "line": 10,
@@ -915,7 +1052,9 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                   "elseBranch": {
                     "body": [
                       {
+                        "col": 7,
                         "expression": {
+                          "col": 7,
                           "kind": "VariantConstructor",
                           "line": 11,
                           "payload": null,
@@ -932,10 +1071,13 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                   "thenBranch": {
                     "body": [
                       {
+                        "col": 24,
                         "expression": {
+                          "col": 24,
                           "kind": "VariantConstructor",
                           "line": 10,
                           "payload": {
+                            "col": 32,
                             "kind": "Ident",
                             "line": 10,
                             "name": "score",
@@ -954,12 +1096,16 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                 "thenBranch": {
                   "body": [
                     {
+                      "col": 20,
                       "expression": {
+                        "col": 20,
                         "kind": "VariantConstructor",
                         "line": 9,
                         "payload": {
+                          "col": 36,
                           "kind": "BinaryOp",
                           "left": {
+                            "col": 30,
                             "kind": "Ident",
                             "line": 9,
                             "name": "score",
@@ -967,6 +1113,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                           "line": 9,
                           "op": "*",
                           "right": {
+                            "col": 38,
                             "isFloat": false,
                             "kind": "Literal",
                             "line": 9,
@@ -988,6 +1135,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 14,
         "kind": "FunctionExpr",
         "line": 7,
         "paramModes": [
@@ -1006,6 +1154,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 14,
       "local": false,
@@ -1021,13 +1170,16 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
                 "arms": [
                   {
                     "body": {
                       "body": [
                         {
+                          "col": 20,
                           "expression": {
+                            "col": 20,
                             "kind": "StringLiteral",
                             "line": 16,
                             "raw": "*** Critical hit for \${dmg} damage! ***",
@@ -1051,7 +1203,9 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "body": {
                       "body": [
                         {
+                          "col": 20,
                           "expression": {
+                            "col": 20,
                             "kind": "StringLiteral",
                             "line": 17,
                             "raw": "Hit for \${dmg} damage.",
@@ -1075,7 +1229,9 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     "body": {
                       "body": [
                         {
+                          "col": 20,
                           "expression": {
+                            "col": 20,
                             "kind": "StringLiteral",
                             "line": 18,
                             "raw": "Missed!",
@@ -1093,10 +1249,12 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
                     },
                   },
                 ],
+                "col": 2,
                 "elseArm": null,
                 "kind": "Match",
                 "line": 15,
                 "subject": {
+                  "col": 8,
                   "kind": "Ident",
                   "line": 15,
                   "name": "hit",
@@ -1108,6 +1266,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 14,
         "kind": "FunctionExpr",
         "line": 14,
         "paramModes": [
@@ -1123,6 +1282,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 22,
       "local": false,
@@ -1138,9 +1298,11 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 3,
                     "kind": "StringLiteral",
                     "line": 24,
                     "raw": "=== Battle Report ===
@@ -1153,15 +1315,18 @@ Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 23,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 23,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 23,
               },
@@ -1171,6 +1336,7 @@ Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 22,
         "paramModes": [],
@@ -1188,6 +1354,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -1203,14 +1370,18 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 22,
               "expression": {
+                "col": 22,
                 "elements": [
                   {
+                    "col": 34,
                     "kind": "Ident",
                     "line": 1,
                     "name": "b",
                   },
                   {
+                    "col": 37,
                     "kind": "Ident",
                     "line": 1,
                     "name": "a",
@@ -1219,13 +1390,16 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "kind": "ListLiteral",
                 "line": 1,
                 "typePrefix": {
+                  "col": 22,
                   "elements": [
                     {
+                      "col": 23,
                       "kind": "NamedType",
                       "line": 1,
                       "name": "int",
                     },
                     {
+                      "col": 28,
                       "kind": "NamedType",
                       "line": 1,
                       "name": "int",
@@ -1241,6 +1415,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
@@ -1259,6 +1434,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 3,
       "local": false,
@@ -1274,11 +1450,15 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
                 "_multiline": false,
+                "col": 2,
                 "condition": {
+                  "col": 7,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 4,
                     "name": "a",
@@ -1286,6 +1466,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                   "line": 4,
                   "op": "<",
                   "right": {
+                    "col": 9,
                     "kind": "Ident",
                     "line": 4,
                     "name": "b",
@@ -1294,14 +1475,18 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "elseBranch": {
                   "body": [
                     {
+                      "col": 7,
                       "expression": {
+                        "col": 7,
                         "elements": [
                           {
+                            "col": 9,
                             "kind": "Ident",
                             "line": 5,
                             "name": "b",
                           },
                           {
+                            "col": 12,
                             "kind": "Ident",
                             "line": 5,
                             "name": "a",
@@ -1322,14 +1507,18 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "thenBranch": {
                   "body": [
                     {
+                      "col": 14,
                       "expression": {
+                        "col": 14,
                         "elements": [
                           {
+                            "col": 16,
                             "kind": "Ident",
                             "line": 4,
                             "name": "a",
                           },
                           {
+                            "col": 19,
                             "kind": "Ident",
                             "line": 4,
                             "name": "b",
@@ -1352,6 +1541,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 14,
         "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
@@ -1367,13 +1557,16 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           "b",
         ],
         "returnType": {
+          "col": 24,
           "elements": [
             {
+              "col": 25,
               "kind": "NamedType",
               "line": 3,
               "name": "int",
             },
             {
+              "col": 30,
               "kind": "NamedType",
               "line": 3,
               "name": "int",
@@ -1385,6 +1578,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 8,
       "local": false,
@@ -1400,6 +1594,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 9,
               "local": false,
@@ -1415,12 +1610,14 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
               "value": {
                 "args": [
                   {
+                    "col": 20,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 9,
                     "value": 3,
                   },
                   {
+                    "col": 23,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 9,
@@ -1428,33 +1625,40 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 15,
                   "kind": "Ident",
                   "line": 9,
                   "name": "swap",
                 },
+                "col": 19,
                 "kind": "Call",
                 "line": 9,
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 10,
                     "raw": "swap(3, 7) = \${x}, \${y}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 10,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 10,
               },
@@ -1462,6 +1666,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
               "line": 10,
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 12,
               "local": false,
@@ -1477,12 +1682,14 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
               "value": {
                 "args": [
                   {
+                    "col": 24,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
                     "value": 10,
                   },
                   {
+                    "col": 28,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
@@ -1490,33 +1697,40 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 17,
                   "kind": "Ident",
                   "line": 12,
                   "name": "minmax",
                 },
+                "col": 23,
                 "kind": "Call",
                 "line": 12,
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 13,
                     "raw": "minmax(10, 4) = \${lo}, \${hi}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 13,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 13,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 13,
               },
@@ -1526,6 +1740,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
@@ -1543,6 +1758,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -1558,10 +1774,14 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
+                "col": 2,
                 "condition": {
+                  "col": 9,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 7,
                     "kind": "Ident",
                     "line": 2,
                     "name": "n",
@@ -1569,6 +1789,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                   "line": 2,
                   "op": "<=",
                   "right": {
+                    "col": 12,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 2,
@@ -1576,12 +1797,15 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                   },
                 },
                 "elseBranch": {
+                  "col": 30,
                   "kind": "BinaryOp",
                   "left": {
                     "args": [
                       {
+                        "col": 25,
                         "kind": "BinaryOp",
                         "left": {
+                          "col": 23,
                           "kind": "Ident",
                           "line": 2,
                           "name": "n",
@@ -1589,6 +1813,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                         "line": 2,
                         "op": "-",
                         "right": {
+                          "col": 27,
                           "isFloat": false,
                           "kind": "Literal",
                           "line": 2,
@@ -1597,10 +1822,12 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                       },
                     ],
                     "callee": {
+                      "col": 19,
                       "kind": "Ident",
                       "line": 2,
                       "name": "fib",
                     },
+                    "col": 22,
                     "kind": "Call",
                     "line": 2,
                   },
@@ -1609,8 +1836,10 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                   "right": {
                     "args": [
                       {
+                        "col": 38,
                         "kind": "BinaryOp",
                         "left": {
+                          "col": 36,
                           "kind": "Ident",
                           "line": 2,
                           "name": "n",
@@ -1618,6 +1847,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                         "line": 2,
                         "op": "-",
                         "right": {
+                          "col": 40,
                           "isFloat": false,
                           "kind": "Literal",
                           "line": 2,
@@ -1626,10 +1856,12 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                       },
                     ],
                     "callee": {
+                      "col": 32,
                       "kind": "Ident",
                       "line": 2,
                       "name": "fib",
                     },
+                    "col": 35,
                     "kind": "Call",
                     "line": 2,
                   },
@@ -1637,6 +1869,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                 "kind": "If",
                 "line": 2,
                 "thenBranch": {
+                  "col": 2,
                   "kind": "Ident",
                   "line": 2,
                   "name": "n",
@@ -1648,6 +1881,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
@@ -1663,6 +1897,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 5,
       "local": false,
@@ -1678,6 +1913,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 6,
               "local": false,
@@ -1690,6 +1926,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 11,
                 "isFloat": false,
                 "kind": "Literal",
                 "line": 6,
@@ -1697,27 +1934,33 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "expression": {
                 "body": [
                   {
+                    "col": 3,
                     "expression": {
                       "args": [
                         {
+                          "col": 16,
                           "kind": "StringLiteral",
                           "line": 8,
                           "raw": "fib(\${i}) = \${fib(i)}",
                         },
                       ],
                       "callee": {
+                        "col": 7,
                         "kind": "Member",
                         "line": 8,
                         "object": {
+                          "col": 3,
                           "kind": "Ident",
                           "line": 8,
                           "name": "ruka",
                         },
                         "property": "println",
                       },
+                      "col": 15,
                       "kind": "Call",
                       "line": 8,
                     },
@@ -1725,12 +1968,15 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                     "line": 8,
                   },
                   {
+                    "col": 3,
                     "kind": "Assign",
                     "line": 9,
                     "name": "i",
                     "value": {
+                      "col": 9,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 7,
                         "kind": "Ident",
                         "line": 9,
                         "name": "i",
@@ -1738,6 +1984,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                       "line": 9,
                       "op": "+",
                       "right": {
+                        "col": 11,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 9,
@@ -1746,9 +1993,12 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                     },
                   },
                 ],
+                "col": 2,
                 "condition": {
+                  "col": 10,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 8,
                     "kind": "Ident",
                     "line": 7,
                     "name": "i",
@@ -1756,6 +2006,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
                   "line": 7,
                   "op": "<=",
                   "right": {
+                    "col": 13,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 7,
@@ -1771,6 +2022,7 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [],
@@ -1788,6 +2040,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -1803,6 +2056,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 2,
               "local": false,
@@ -1815,6 +2069,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 11,
                 "isFloat": false,
                 "kind": "Literal",
                 "line": 2,
@@ -1822,16 +2077,22 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "expression": {
                 "body": [
                   {
+                    "col": 3,
                     "expression": {
                       "_multiline": false,
+                      "col": 3,
                       "condition": {
+                        "col": 13,
                         "kind": "BinaryOp",
                         "left": {
+                          "col": 8,
                           "kind": "BinaryOp",
                           "left": {
+                            "col": 6,
                             "kind": "Ident",
                             "line": 4,
                             "name": "i",
@@ -1839,6 +2100,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                           "line": 4,
                           "op": "%",
                           "right": {
+                            "col": 10,
                             "isFloat": false,
                             "kind": "Literal",
                             "line": 4,
@@ -1848,6 +2110,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                         "line": 4,
                         "op": "==",
                         "right": {
+                          "col": 16,
                           "isFloat": false,
                           "kind": "Literal",
                           "line": 4,
@@ -1856,11 +2119,15 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                       },
                       "elseBranch": {
                         "_multiline": false,
+                        "col": 8,
                         "condition": {
+                          "col": 17,
                           "kind": "BinaryOp",
                           "left": {
+                            "col": 13,
                             "kind": "BinaryOp",
                             "left": {
+                              "col": 11,
                               "kind": "Ident",
                               "line": 5,
                               "name": "i",
@@ -1868,6 +2135,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                             "line": 5,
                             "op": "%",
                             "right": {
+                              "col": 15,
                               "isFloat": false,
                               "kind": "Literal",
                               "line": 5,
@@ -1877,6 +2145,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                           "line": 5,
                           "op": "==",
                           "right": {
+                            "col": 20,
                             "isFloat": false,
                             "kind": "Literal",
                             "line": 5,
@@ -1885,11 +2154,15 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                         },
                         "elseBranch": {
                           "_multiline": false,
+                          "col": 8,
                           "condition": {
+                            "col": 17,
                             "kind": "BinaryOp",
                             "left": {
+                              "col": 13,
                               "kind": "BinaryOp",
                               "left": {
+                                "col": 11,
                                 "kind": "Ident",
                                 "line": 6,
                                 "name": "i",
@@ -1897,6 +2170,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                               "line": 6,
                               "op": "%",
                               "right": {
+                                "col": 15,
                                 "isFloat": false,
                                 "kind": "Literal",
                                 "line": 6,
@@ -1906,6 +2180,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                             "line": 6,
                             "op": "==",
                             "right": {
+                              "col": 20,
                               "isFloat": false,
                               "kind": "Literal",
                               "line": 6,
@@ -1915,24 +2190,29 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                           "elseBranch": {
                             "body": [
                               {
+                                "col": 8,
                                 "expression": {
                                   "args": [
                                     {
+                                      "col": 21,
                                       "kind": "StringLiteral",
                                       "line": 7,
                                       "raw": "\${i}",
                                     },
                                   ],
                                   "callee": {
+                                    "col": 12,
                                     "kind": "Member",
                                     "line": 7,
                                     "object": {
+                                      "col": 8,
                                       "kind": "Ident",
                                       "line": 7,
                                       "name": "ruka",
                                     },
                                     "property": "println",
                                   },
+                                  "col": 20,
                                   "kind": "Call",
                                   "line": 7,
                                 },
@@ -1947,24 +2227,29 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                           "thenBranch": {
                             "body": [
                               {
+                                "col": 25,
                                 "expression": {
                                   "args": [
                                     {
+                                      "col": 38,
                                       "kind": "StringLiteral",
                                       "line": 6,
                                       "raw": "Buzz",
                                     },
                                   ],
                                   "callee": {
+                                    "col": 29,
                                     "kind": "Member",
                                     "line": 6,
                                     "object": {
+                                      "col": 25,
                                       "kind": "Ident",
                                       "line": 6,
                                       "name": "ruka",
                                     },
                                     "property": "println",
                                   },
+                                  "col": 37,
                                   "kind": "Call",
                                   "line": 6,
                                 },
@@ -1980,24 +2265,29 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                         "thenBranch": {
                           "body": [
                             {
+                              "col": 25,
                               "expression": {
                                 "args": [
                                   {
+                                    "col": 38,
                                     "kind": "StringLiteral",
                                     "line": 5,
                                     "raw": "Fizz",
                                   },
                                 ],
                                 "callee": {
+                                  "col": 29,
                                   "kind": "Member",
                                   "line": 5,
                                   "object": {
+                                    "col": 25,
                                     "kind": "Ident",
                                     "line": 5,
                                     "name": "ruka",
                                   },
                                   "property": "println",
                                 },
+                                "col": 37,
                                 "kind": "Call",
                                 "line": 5,
                               },
@@ -2013,24 +2303,29 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                       "thenBranch": {
                         "body": [
                           {
+                            "col": 21,
                             "expression": {
                               "args": [
                                 {
+                                  "col": 34,
                                   "kind": "StringLiteral",
                                   "line": 4,
                                   "raw": "FizzBuzz",
                                 },
                               ],
                               "callee": {
+                                "col": 25,
                                 "kind": "Member",
                                 "line": 4,
                                 "object": {
+                                  "col": 21,
                                   "kind": "Ident",
                                   "line": 4,
                                   "name": "ruka",
                                 },
                                 "property": "println",
                               },
+                              "col": 33,
                               "kind": "Call",
                               "line": 4,
                             },
@@ -2045,12 +2340,15 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                     "line": 4,
                   },
                   {
+                    "col": 3,
                     "kind": "Assign",
                     "line": 8,
                     "name": "i",
                     "value": {
+                      "col": 9,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 7,
                         "kind": "Ident",
                         "line": 8,
                         "name": "i",
@@ -2058,6 +2356,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                       "line": 8,
                       "op": "+",
                       "right": {
+                        "col": 11,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 8,
@@ -2066,9 +2365,12 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                     },
                   },
                 ],
+                "col": 2,
                 "condition": {
+                  "col": 10,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 8,
                     "kind": "Ident",
                     "line": 3,
                     "name": "i",
@@ -2076,6 +2378,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
                   "line": 3,
                   "op": "<=",
                   "right": {
+                    "col": 13,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 3,
@@ -2091,6 +2394,7 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
@@ -2108,6 +2412,7 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -2123,6 +2428,7 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 2,
               "local": false,
@@ -2135,30 +2441,36 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 13,
                 "kind": "StringLiteral",
                 "line": 2,
                 "raw": "world",
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 3,
                     "raw": "Hello, \${name}!",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 3,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 3,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 3,
               },
@@ -2168,6 +2480,7 @@ exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],
@@ -2185,6 +2498,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -2197,10 +2511,12 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       "receiver": null,
       "type": null,
       "value": {
+        "col": 15,
         "fields": [
           {
             "name": "count",
             "type": {
+              "col": 31,
               "kind": "NamedType",
               "line": 1,
               "name": "int",
@@ -2212,6 +2528,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 3,
       "local": false,
@@ -2230,11 +2547,14 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 32,
               "expression": {
+                "col": 32,
                 "fields": [
                   {
                     "name": "count",
                     "value": {
+                      "col": 43,
                       "kind": "Ident",
                       "line": 3,
                       "name": "start",
@@ -2250,6 +2570,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 21,
         "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
@@ -2265,6 +2586,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 4,
       "local": false,
@@ -2280,10 +2602,12 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
       "type": null,
       "value": {
+        "col": 22,
         "fields": [
           {
             "name": "count",
             "value": {
+              "col": 33,
               "isFloat": false,
               "kind": "Literal",
               "line": 4,
@@ -2296,6 +2620,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 5,
       "local": true,
@@ -2314,9 +2639,12 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 32,
               "expression": {
+                "col": 34,
                 "kind": "BinaryOp",
                 "left": {
+                  "col": 32,
                   "kind": "Ident",
                   "line": 5,
                   "name": "n",
@@ -2324,6 +2652,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                 "line": 5,
                 "op": "*",
                 "right": {
+                  "col": 36,
                   "isFloat": false,
                   "kind": "Literal",
                   "line": 5,
@@ -2336,6 +2665,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 25,
         "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [
@@ -2351,6 +2681,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 7,
       "local": false,
@@ -2369,16 +2700,21 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 25,
               "expression": {
+                "col": 25,
                 "fields": [
                   {
                     "name": "count",
                     "value": {
+                      "col": 47,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 40,
                         "kind": "Member",
                         "line": 7,
                         "object": {
+                          "col": 36,
                           "kind": "Ident",
                           "line": 7,
                           "name": "self",
@@ -2388,6 +2724,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                       "line": 7,
                       "op": "+",
                       "right": {
+                        "col": 49,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 7,
@@ -2405,6 +2742,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 19,
         "kind": "FunctionExpr",
         "line": 7,
         "paramModes": [],
@@ -2414,6 +2752,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 8,
       "local": false,
@@ -2432,16 +2771,21 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 31,
               "expression": {
+                "col": 31,
                 "fields": [
                   {
                     "name": "count",
                     "value": {
+                      "col": 53,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 46,
                         "kind": "Member",
                         "line": 8,
                         "object": {
+                          "col": 42,
                           "kind": "Ident",
                           "line": 8,
                           "name": "self",
@@ -2453,6 +2797,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                       "right": {
                         "args": [
                           {
+                            "col": 71,
                             "isFloat": false,
                             "kind": "Literal",
                             "line": 8,
@@ -2460,15 +2805,18 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                           },
                         ],
                         "callee": {
+                          "col": 62,
                           "kind": "Member",
                           "line": 8,
                           "object": {
+                            "col": 55,
                             "kind": "Ident",
                             "line": 8,
                             "name": "counter",
                           },
                           "property": "Doubled",
                         },
+                        "col": 70,
                         "kind": "Call",
                         "line": 8,
                       },
@@ -2484,6 +2832,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 25,
         "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
@@ -2493,6 +2842,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 10,
       "local": false,
@@ -2508,6 +2858,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 11,
               "local": false,
@@ -2520,9 +2871,11 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 17,
                 "kind": "Member",
                 "line": 11,
                 "object": {
+                  "col": 10,
                   "kind": "Ident",
                   "line": 11,
                   "name": "counter",
@@ -2531,6 +2884,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               },
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 12,
               "local": false,
@@ -2545,6 +2899,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "value": {
                 "args": [
                   {
+                    "col": 22,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
@@ -2552,20 +2907,24 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 17,
                   "kind": "Member",
                   "line": 12,
                   "object": {
+                    "col": 10,
                     "kind": "Ident",
                     "line": 12,
                     "name": "counter",
                   },
                   "property": "new",
                 },
+                "col": 21,
                 "kind": "Call",
                 "line": 12,
               },
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 13,
               "local": false,
@@ -2580,20 +2939,24 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "value": {
                 "args": [],
                 "callee": {
+                  "col": 11,
                   "kind": "Member",
                   "line": 13,
                   "object": {
+                    "col": 10,
                     "kind": "Ident",
                     "line": 13,
                     "name": "b",
                   },
                   "property": "bump",
                 },
+                "col": 16,
                 "kind": "Call",
                 "line": 13,
               },
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 14,
               "local": false,
@@ -2608,23 +2971,28 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
               "value": {
                 "args": [],
                 "callee": {
+                  "col": 11,
                   "kind": "Member",
                   "line": 14,
                   "object": {
+                    "col": 10,
                     "kind": "Ident",
                     "line": 14,
                     "name": "c",
                   },
                   "property": "bumpDouble",
                 },
+                "col": 22,
                 "kind": "Call",
                 "line": 14,
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 3,
                     "kind": "StringLiteral",
                     "line": 17,
                     "raw": "a=\${a.count}
@@ -2634,15 +3002,18 @@ d=\${d.count}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 16,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 16,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 16,
               },
@@ -2652,6 +3023,7 @@ d=\${d.count}",
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 10,
         "paramModes": [],
@@ -2669,6 +3041,7 @@ exports[`parse: fixture snapshots > multiline-strings.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -2684,7 +3057,9 @@ exports[`parse: fixture snapshots > multiline-strings.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
+                "col": 2,
                 "kind": "StringLiteral",
                 "line": 2,
                 "raw": "Roses are red,
@@ -2698,6 +3073,7 @@ And so are you!",
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
@@ -2713,6 +3089,7 @@ And so are you!",
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 10,
       "local": false,
@@ -2728,35 +3105,42 @@ And so are you!",
         "body": {
           "body": [
             {
+              "col": 18,
               "expression": {
                 "args": [
                   {
                     "args": [
                       {
+                        "col": 23,
                         "kind": "StringLiteral",
                         "line": 10,
                         "raw": "Ruka",
                       },
                     ],
                     "callee": {
+                      "col": 18,
                       "kind": "Ident",
                       "line": 10,
                       "name": "poem",
                     },
+                    "col": 22,
                     "kind": "Call",
                     "line": 10,
                   },
                 ],
                 "callee": {
+                  "col": 38,
                   "kind": "Member",
                   "line": 10,
                   "object": {
+                    "col": 34,
                     "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 46,
                 "kind": "Call",
                 "line": 10,
               },
@@ -2766,6 +3150,7 @@ And so are you!",
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 10,
         "paramModes": [],
@@ -2783,6 +3168,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": true,
@@ -2795,10 +3181,12 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       "receiver": null,
       "type": null,
       "value": {
+        "col": 12,
         "fields": [
           {
             "name": "x",
             "type": {
+              "col": 24,
               "kind": "NamedType",
               "line": 1,
               "name": "float",
@@ -2807,6 +3195,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           {
             "name": "y",
             "type": {
+              "col": 34,
               "kind": "NamedType",
               "line": 1,
               "name": "float",
@@ -2818,6 +3207,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 3,
       "local": false,
@@ -2833,16 +3223,21 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 21,
                 "fields": [
                   {
                     "name": "x",
                     "value": {
+                      "col": 32,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 29,
                         "kind": "Member",
                         "line": 3,
                         "object": {
+                          "col": 28,
                           "kind": "Ident",
                           "line": 3,
                           "name": "a",
@@ -2852,9 +3247,11 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 3,
                       "op": "+",
                       "right": {
+                        "col": 35,
                         "kind": "Member",
                         "line": 3,
                         "object": {
+                          "col": 34,
                           "kind": "Ident",
                           "line": 3,
                           "name": "b",
@@ -2866,11 +3263,14 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   {
                     "name": "y",
                     "value": {
+                      "col": 47,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 44,
                         "kind": "Member",
                         "line": 3,
                         "object": {
+                          "col": 43,
                           "kind": "Ident",
                           "line": 3,
                           "name": "a",
@@ -2880,9 +3280,11 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 3,
                       "op": "+",
                       "right": {
+                        "col": 50,
                         "kind": "Member",
                         "line": 3,
                         "object": {
+                          "col": 49,
                           "kind": "Ident",
                           "line": 3,
                           "name": "b",
@@ -2901,6 +3303,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 11,
         "kind": "FunctionExpr",
         "line": 3,
         "paramModes": [
@@ -2919,6 +3322,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 4,
       "local": false,
@@ -2934,16 +3338,21 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 23,
               "expression": {
+                "col": 23,
                 "fields": [
                   {
                     "name": "x",
                     "value": {
+                      "col": 34,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 31,
                         "kind": "Member",
                         "line": 4,
                         "object": {
+                          "col": 30,
                           "kind": "Ident",
                           "line": 4,
                           "name": "v",
@@ -2953,6 +3362,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 4,
                       "op": "*",
                       "right": {
+                        "col": 36,
                         "kind": "Ident",
                         "line": 4,
                         "name": "s",
@@ -2962,11 +3372,14 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   {
                     "name": "y",
                     "value": {
+                      "col": 47,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 44,
                         "kind": "Member",
                         "line": 4,
                         "object": {
+                          "col": 43,
                           "kind": "Ident",
                           "line": 4,
                           "name": "v",
@@ -2976,6 +3389,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 4,
                       "op": "*",
                       "right": {
+                        "col": 49,
                         "kind": "Ident",
                         "line": 4,
                         "name": "s",
@@ -2992,6 +3406,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 13,
         "kind": "FunctionExpr",
         "line": 4,
         "paramModes": [
@@ -3010,6 +3425,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 5,
       "local": false,
@@ -3025,16 +3441,21 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 24,
               "expression": {
                 "args": [
                   {
+                    "col": 44,
                     "kind": "BinaryOp",
                     "left": {
+                      "col": 38,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 35,
                         "kind": "Member",
                         "line": 5,
                         "object": {
+                          "col": 34,
                           "kind": "Ident",
                           "line": 5,
                           "name": "v",
@@ -3044,9 +3465,11 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 5,
                       "op": "*",
                       "right": {
+                        "col": 41,
                         "kind": "Member",
                         "line": 5,
                         "object": {
+                          "col": 40,
                           "kind": "Ident",
                           "line": 5,
                           "name": "v",
@@ -3057,11 +3480,14 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "line": 5,
                     "op": "+",
                     "right": {
+                      "col": 50,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 47,
                         "kind": "Member",
                         "line": 5,
                         "object": {
+                          "col": 46,
                           "kind": "Ident",
                           "line": 5,
                           "name": "v",
@@ -3071,9 +3497,11 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 5,
                       "op": "*",
                       "right": {
+                        "col": 53,
                         "kind": "Member",
                         "line": 5,
                         "object": {
+                          "col": 52,
                           "kind": "Ident",
                           "line": 5,
                           "name": "v",
@@ -3084,15 +3512,18 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   },
                 ],
                 "callee": {
+                  "col": 28,
                   "kind": "Member",
                   "line": 5,
                   "object": {
+                    "col": 24,
                     "kind": "Ident",
                     "line": 5,
                     "name": "ruka",
                   },
                   "property": "sqrt",
                 },
+                "col": 33,
                 "kind": "Call",
                 "line": 5,
               },
@@ -3102,6 +3533,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 17,
         "kind": "FunctionExpr",
         "line": 5,
         "paramModes": [
@@ -3117,6 +3549,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 6,
       "local": false,
@@ -3132,13 +3565,17 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 21,
               "expression": {
+                "col": 42,
                 "kind": "BinaryOp",
                 "left": {
                   "args": [
                     {
+                      "col": 34,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 32,
                         "kind": "Ident",
                         "line": 6,
                         "name": "n",
@@ -3146,6 +3583,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 6,
                       "op": "*",
                       "right": {
+                        "col": 36,
                         "isFloat": true,
                         "kind": "Literal",
                         "line": 6,
@@ -3154,21 +3592,25 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     },
                   ],
                   "callee": {
+                    "col": 25,
                     "kind": "Member",
                     "line": 6,
                     "object": {
+                      "col": 21,
                       "kind": "Ident",
                       "line": 6,
                       "name": "ruka",
                     },
                     "property": "floor",
                   },
+                  "col": 31,
                   "kind": "Call",
                   "line": 6,
                 },
                 "line": 6,
                 "op": "/",
                 "right": {
+                  "col": 44,
                   "isFloat": true,
                   "kind": "Literal",
                   "line": 6,
@@ -3181,6 +3623,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 14,
         "kind": "FunctionExpr",
         "line": 6,
         "paramModes": [
@@ -3196,6 +3639,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 8,
       "local": false,
@@ -3211,6 +3655,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 5,
               "kind": "Binding",
               "line": 9,
               "local": false,
@@ -3223,10 +3668,12 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 19,
                 "fields": [
                   {
                     "name": "x",
                     "value": {
+                      "col": 26,
                       "isFloat": true,
                       "kind": "Literal",
                       "line": 9,
@@ -3237,6 +3684,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "name": "y",
                     "value": {
                       "expression": {
+                        "col": 36,
                         "isFloat": true,
                         "kind": "Literal",
                         "line": 9,
@@ -3252,6 +3700,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               },
             },
             {
+              "col": 5,
               "kind": "Binding",
               "line": 10,
               "local": false,
@@ -3264,10 +3713,12 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 19,
                 "fields": [
                   {
                     "name": "x",
                     "value": {
+                      "col": 26,
                       "isFloat": true,
                       "kind": "Literal",
                       "line": 10,
@@ -3277,6 +3728,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   {
                     "name": "y",
                     "value": {
+                      "col": 35,
                       "isFloat": true,
                       "kind": "Literal",
                       "line": 10,
@@ -3289,6 +3741,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               },
             },
             {
+              "col": 5,
               "kind": "Binding",
               "line": 11,
               "local": false,
@@ -3301,10 +3754,12 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 19,
                 "fields": [
                   {
                     "name": "x",
                     "value": {
+                      "col": 26,
                       "isFloat": true,
                       "kind": "Literal",
                       "line": 11,
@@ -3314,6 +3769,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   {
                     "name": "y",
                     "value": {
+                      "col": 35,
                       "isFloat": true,
                       "kind": "Literal",
                       "line": 11,
@@ -3326,6 +3782,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               },
             },
             {
+              "col": 5,
               "kind": "Binding",
               "line": 12,
               "local": false,
@@ -3338,6 +3795,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 19,
                 "isFloat": true,
                 "kind": "Literal",
                 "line": 12,
@@ -3345,6 +3803,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               },
             },
             {
+              "col": 5,
               "kind": "Binding",
               "line": 13,
               "local": false,
@@ -3357,6 +3816,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 19,
                 "isFloat": true,
                 "kind": "Literal",
                 "line": 13,
@@ -3364,24 +3824,29 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               },
             },
             {
+              "col": 5,
               "expression": {
                 "args": [
                   {
+                    "col": 18,
                     "kind": "StringLiteral",
                     "line": 15,
                     "raw": "Projectile  v0=\${round1(magnitude(vel))} m/s",
                   },
                 ],
                 "callee": {
+                  "col": 9,
                   "kind": "Member",
                   "line": 15,
                   "object": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 15,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 17,
                 "kind": "Call",
                 "line": 15,
               },
@@ -3389,24 +3854,29 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "line": 15,
             },
             {
+              "col": 5,
               "expression": {
                 "args": [
                   {
+                    "col": 18,
                     "kind": "StringLiteral",
                     "line": 16,
                     "raw": "-----------------------------",
                   },
                 ],
                 "callee": {
+                  "col": 9,
                   "kind": "Member",
                   "line": 16,
                   "object": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 16,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 17,
                 "kind": "Call",
                 "line": 16,
               },
@@ -3414,15 +3884,18 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "line": 16,
             },
             {
+              "col": 5,
               "expression": {
                 "body": [
                   {
+                    "col": 9,
                     "kind": "Assign",
                     "line": 19,
                     "name": "vel",
                     "value": {
                       "args": [
                         {
+                          "col": 19,
                           "kind": "Ident",
                           "line": 19,
                           "name": "vel",
@@ -3430,41 +3903,49 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         {
                           "args": [
                             {
+                              "col": 30,
                               "kind": "Ident",
                               "line": 19,
                               "name": "gravity",
                             },
                             {
+                              "col": 39,
                               "kind": "Ident",
                               "line": 19,
                               "name": "dt",
                             },
                           ],
                           "callee": {
+                            "col": 24,
                             "kind": "Ident",
                             "line": 19,
                             "name": "scale",
                           },
+                          "col": 29,
                           "kind": "Call",
                           "line": 19,
                         },
                       ],
                       "callee": {
+                        "col": 15,
                         "kind": "Ident",
                         "line": 19,
                         "name": "add",
                       },
+                      "col": 18,
                       "kind": "Call",
                       "line": 19,
                     },
                   },
                   {
+                    "col": 9,
                     "kind": "Assign",
                     "line": 20,
                     "name": "pos",
                     "value": {
                       "args": [
                         {
+                          "col": 19,
                           "kind": "Ident",
                           "line": 20,
                           "name": "pos",
@@ -3472,41 +3953,50 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         {
                           "args": [
                             {
+                              "col": 30,
                               "kind": "Ident",
                               "line": 20,
                               "name": "vel",
                             },
                             {
+                              "col": 35,
                               "kind": "Ident",
                               "line": 20,
                               "name": "dt",
                             },
                           ],
                           "callee": {
+                            "col": 24,
                             "kind": "Ident",
                             "line": 20,
                             "name": "scale",
                           },
+                          "col": 29,
                           "kind": "Call",
                           "line": 20,
                         },
                       ],
                       "callee": {
+                        "col": 15,
                         "kind": "Ident",
                         "line": 20,
                         "name": "add",
                       },
+                      "col": 18,
                       "kind": "Call",
                       "line": 20,
                     },
                   },
                   {
+                    "col": 9,
                     "kind": "Assign",
                     "line": 21,
                     "name": "t",
                     "value": {
+                      "col": 17,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 15,
                         "kind": "Ident",
                         "line": 21,
                         "name": "t",
@@ -3514,6 +4004,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "line": 21,
                       "op": "+",
                       "right": {
+                        "col": 19,
                         "kind": "Ident",
                         "line": 21,
                         "name": "dt",
@@ -3521,14 +4012,19 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     },
                   },
                   {
+                    "col": 9,
                     "expression": {
                       "_multiline": false,
+                      "col": 9,
                       "condition": {
+                        "col": 18,
                         "kind": "BinaryOp",
                         "left": {
+                          "col": 15,
                           "kind": "Member",
                           "line": 23,
                           "object": {
+                            "col": 12,
                             "kind": "Ident",
                             "line": 23,
                             "name": "pos",
@@ -3538,6 +4034,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                         "line": 23,
                         "op": "<",
                         "right": {
+                          "col": 20,
                           "isFloat": true,
                           "kind": "Literal",
                           "line": 23,
@@ -3550,17 +4047,21 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                       "thenBranch": {
                         "body": [
                           {
+                            "col": 27,
                             "kind": "Assign",
                             "line": 23,
                             "name": "pos",
                             "value": {
+                              "col": 33,
                               "fields": [
                                 {
                                   "name": "x",
                                   "value": {
+                                    "col": 43,
                                     "kind": "Member",
                                     "line": 23,
                                     "object": {
+                                      "col": 40,
                                       "kind": "Ident",
                                       "line": 23,
                                       "name": "pos",
@@ -3571,6 +4072,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                                 {
                                   "name": "y",
                                   "value": {
+                                    "col": 51,
                                     "isFloat": true,
                                     "kind": "Literal",
                                     "line": 23,
@@ -3590,24 +4092,29 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "line": 23,
                   },
                   {
+                    "col": 9,
                     "expression": {
                       "args": [
                         {
+                          "col": 22,
                           "kind": "StringLiteral",
                           "line": 25,
                           "raw": "t=\${round1(t)}s  x=\${round1(pos.x)}m  y=\${round1(pos.y)}m",
                         },
                       ],
                       "callee": {
+                        "col": 13,
                         "kind": "Member",
                         "line": 25,
                         "object": {
+                          "col": 9,
                           "kind": "Ident",
                           "line": 25,
                           "name": "ruka",
                         },
                         "property": "println",
                       },
+                      "col": 21,
                       "kind": "Call",
                       "line": 25,
                     },
@@ -3615,12 +4122,16 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                     "line": 25,
                   },
                 ],
+                "col": 5,
                 "condition": {
+                  "col": 17,
                   "kind": "BinaryOp",
                   "left": {
+                    "col": 14,
                     "kind": "Member",
                     "line": 18,
                     "object": {
+                      "col": 11,
                       "kind": "Ident",
                       "line": 18,
                       "name": "pos",
@@ -3630,6 +4141,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
                   "line": 18,
                   "op": ">",
                   "right": {
+                    "col": 19,
                     "isFloat": true,
                     "kind": "Literal",
                     "line": 18,
@@ -3643,24 +4155,29 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "line": 18,
             },
             {
+              "col": 5,
               "expression": {
                 "args": [
                   {
+                    "col": 18,
                     "kind": "StringLiteral",
                     "line": 28,
                     "raw": "-----------------------------",
                   },
                 ],
                 "callee": {
+                  "col": 9,
                   "kind": "Member",
                   "line": 28,
                   "object": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 28,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 17,
                 "kind": "Call",
                 "line": 28,
               },
@@ -3668,24 +4185,29 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
               "line": 28,
             },
             {
+              "col": 5,
               "expression": {
                 "args": [
                   {
+                    "col": 18,
                     "kind": "StringLiteral",
                     "line": 29,
                     "raw": "Range: \${round1(pos.x)}m   Time: \${round1(t)}s",
                   },
                 ],
                 "callee": {
+                  "col": 9,
                   "kind": "Member",
                   "line": 29,
                   "object": {
+                    "col": 5,
                     "kind": "Ident",
                     "line": 29,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 17,
                 "kind": "Call",
                 "line": 29,
               },
@@ -3695,6 +4217,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 8,
         "paramModes": [],
@@ -3712,6 +4235,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -3727,13 +4251,16 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "expression": {
                 "arms": [
                   {
                     "body": {
                       "body": [
                         {
+                          "col": 15,
                           "expression": {
+                            "col": 15,
                             "kind": "StringLiteral",
                             "line": 3,
                             "raw": "A",
@@ -3746,6 +4273,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     },
                     "pattern": {
                       "high": {
+                        "col": 8,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 3,
@@ -3754,6 +4282,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                       "inclusive": true,
                       "kind": "RangePattern",
                       "low": {
+                        "col": 3,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 3,
@@ -3765,7 +4294,9 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
+                          "col": 15,
                           "expression": {
+                            "col": 15,
                             "kind": "StringLiteral",
                             "line": 4,
                             "raw": "B",
@@ -3778,6 +4309,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     },
                     "pattern": {
                       "high": {
+                        "col": 8,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 4,
@@ -3786,6 +4318,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                       "inclusive": true,
                       "kind": "RangePattern",
                       "low": {
+                        "col": 3,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 4,
@@ -3797,7 +4330,9 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
+                          "col": 15,
                           "expression": {
+                            "col": 15,
                             "kind": "StringLiteral",
                             "line": 5,
                             "raw": "C",
@@ -3810,6 +4345,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     },
                     "pattern": {
                       "high": {
+                        "col": 8,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 5,
@@ -3818,6 +4354,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                       "inclusive": true,
                       "kind": "RangePattern",
                       "low": {
+                        "col": 3,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 5,
@@ -3829,7 +4366,9 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     "body": {
                       "body": [
                         {
+                          "col": 15,
                           "expression": {
+                            "col": 15,
                             "kind": "StringLiteral",
                             "line": 6,
                             "raw": "D",
@@ -3842,6 +4381,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     },
                     "pattern": {
                       "high": {
+                        "col": 8,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 6,
@@ -3850,6 +4390,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                       "inclusive": true,
                       "kind": "RangePattern",
                       "low": {
+                        "col": 3,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 6,
@@ -3858,10 +4399,13 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                     },
                   },
                 ],
+                "col": 2,
                 "elseArm": {
                   "body": [
                     {
+                      "col": 15,
                       "expression": {
+                        "col": 15,
                         "kind": "StringLiteral",
                         "line": 7,
                         "raw": "F",
@@ -3875,6 +4419,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                 "kind": "Match",
                 "line": 2,
                 "subject": {
+                  "col": 8,
                   "kind": "Ident",
                   "line": 2,
                   "name": "score",
@@ -3886,6 +4431,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 13,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [
@@ -3901,6 +4447,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
       },
     },
     {
+      "col": 1,
       "kind": "Binding",
       "line": 11,
       "local": false,
@@ -3916,6 +4463,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
         "body": {
           "body": [
             {
+              "col": 2,
               "kind": "Binding",
               "line": 12,
               "local": false,
@@ -3928,32 +4476,38 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 15,
                 "elements": [
                   {
+                    "col": 22,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
                     "value": 95,
                   },
                   {
+                    "col": 26,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
                     "value": 83,
                   },
                   {
+                    "col": 30,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
                     "value": 71,
                   },
                   {
+                    "col": 34,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
                     "value": 65,
                   },
                   {
+                    "col": 38,
                     "isFloat": false,
                     "kind": "Literal",
                     "line": 12,
@@ -3963,7 +4517,9 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                 "kind": "ListLiteral",
                 "line": 12,
                 "typePrefix": {
+                  "col": 15,
                   "element": {
+                    "col": 16,
                     "kind": "NamedType",
                     "line": 12,
                     "name": "int",
@@ -3976,24 +4532,29 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
             {
               "body": [
                 {
+                  "col": 3,
                   "expression": {
                     "args": [
                       {
+                        "col": 16,
                         "kind": "StringLiteral",
                         "line": 14,
                         "raw": "Score \${s}: \${grade(s)}",
                       },
                     ],
                     "callee": {
+                      "col": 7,
                       "kind": "Member",
                       "line": 14,
                       "object": {
+                        "col": 3,
                         "kind": "Ident",
                         "line": 14,
                         "name": "ruka",
                       },
                       "property": "println",
                     },
+                    "col": 15,
                     "kind": "Call",
                     "line": 14,
                   },
@@ -4001,7 +4562,9 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                   "line": 14,
                 },
               ],
+              "col": 2,
               "iterable": {
+                "col": 11,
                 "kind": "Ident",
                 "line": 13,
                 "name": "scores",
@@ -4013,6 +4576,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 11,
         "paramModes": [],
@@ -4030,6 +4594,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
 {
   "body": [
     {
+      "col": 1,
       "kind": "Binding",
       "line": 1,
       "local": false,
@@ -4047,24 +4612,29 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
             {
               "body": [
                 {
+                  "col": 3,
                   "expression": {
                     "args": [
                       {
+                        "col": 16,
                         "kind": "StringLiteral",
                         "line": 4,
                         "raw": "\${i} ** 2 = \${i ** 2}",
                       },
                     ],
                     "callee": {
+                      "col": 7,
                       "kind": "Member",
                       "line": 4,
                       "object": {
+                        "col": 3,
                         "kind": "Ident",
                         "line": 4,
                         "name": "ruka",
                       },
                       "property": "println",
                     },
+                    "col": 15,
                     "kind": "Call",
                     "line": 4,
                   },
@@ -4072,8 +4642,11 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                   "line": 4,
                 },
               ],
+              "col": 2,
               "iterable": {
+                "col": 12,
                 "end": {
+                  "col": 15,
                   "isFloat": false,
                   "kind": "Literal",
                   "line": 3,
@@ -4083,6 +4656,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                 "kind": "Range",
                 "line": 3,
                 "start": {
+                  "col": 11,
                   "isFloat": false,
                   "kind": "Literal",
                   "line": 3,
@@ -4094,6 +4668,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "name": "i",
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 8,
               "local": false,
@@ -4106,6 +4681,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 14,
                 "kind": "StringLiteral",
                 "line": 8,
                 "raw": "",
@@ -4114,34 +4690,42 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
             {
               "body": [
                 {
+                  "col": 24,
                   "kind": "Assign",
                   "line": 9,
                   "name": "word",
                   "value": {
                     "args": [
                       {
+                        "col": 43,
                         "kind": "StringLiteral",
                         "line": 9,
                         "raw": "\${c}",
                       },
                     ],
                     "callee": {
+                      "col": 35,
                       "kind": "Member",
                       "line": 9,
                       "object": {
+                        "col": 31,
                         "kind": "Ident",
                         "line": 9,
                         "name": "word",
                       },
                       "property": "concat",
                     },
+                    "col": 42,
                     "kind": "Call",
                     "line": 9,
                   },
                 },
               ],
+              "col": 2,
               "iterable": {
+                "col": 14,
                 "end": {
+                  "col": 17,
                   "kind": "CharLiteral",
                   "line": 9,
                   "value": 90,
@@ -4150,6 +4734,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                 "kind": "Range",
                 "line": 9,
                 "start": {
+                  "col": 11,
                   "kind": "CharLiteral",
                   "line": 9,
                   "value": 82,
@@ -4160,24 +4745,29 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "name": "c",
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 10,
                     "raw": "letters: \${word}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 10,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 10,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 10,
               },
@@ -4185,6 +4775,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "line": 10,
             },
             {
+              "col": 2,
               "kind": "Binding",
               "line": 13,
               "local": false,
@@ -4197,30 +4788,36 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "receiver": null,
               "type": null,
               "value": {
+                "col": 13,
                 "kind": "StringLiteral",
                 "line": 13,
                 "raw": "Ruka",
               },
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 14,
                     "raw": "first:   \${name[0]}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 14,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 14,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 14,
               },
@@ -4228,24 +4825,29 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "line": 14,
             },
             {
+              "col": 2,
               "expression": {
                 "args": [
                   {
+                    "col": 15,
                     "kind": "StringLiteral",
                     "line": 15,
                     "raw": "slice:   \${name[1..=3]}",
                   },
                 ],
                 "callee": {
+                  "col": 6,
                   "kind": "Member",
                   "line": 15,
                   "object": {
+                    "col": 2,
                     "kind": "Ident",
                     "line": 15,
                     "name": "ruka",
                   },
                   "property": "println",
                 },
+                "col": 14,
                 "kind": "Call",
                 "line": 15,
               },
@@ -4255,13 +4857,18 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
             {
               "body": [
                 {
+                  "col": 3,
                   "expression": {
                     "_multiline": false,
+                    "col": 3,
                     "condition": {
+                      "col": 12,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 8,
                         "kind": "BinaryOp",
                         "left": {
+                          "col": 6,
                           "kind": "Ident",
                           "line": 19,
                           "name": "i",
@@ -4269,6 +4876,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                         "line": 19,
                         "op": "%",
                         "right": {
+                          "col": 10,
                           "isFloat": false,
                           "kind": "Literal",
                           "line": 19,
@@ -4278,6 +4886,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                       "line": 19,
                       "op": "==",
                       "right": {
+                        "col": 15,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 19,
@@ -4290,6 +4899,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                     "thenBranch": {
                       "body": [
                         {
+                          "col": 20,
                           "kind": "Continue",
                           "line": 19,
                         },
@@ -4301,11 +4911,15 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                   "line": 19,
                 },
                 {
+                  "col": 3,
                   "expression": {
                     "_multiline": false,
+                    "col": 3,
                     "condition": {
+                      "col": 8,
                       "kind": "BinaryOp",
                       "left": {
+                        "col": 6,
                         "kind": "Ident",
                         "line": 20,
                         "name": "i",
@@ -4313,6 +4927,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                       "line": 20,
                       "op": ">",
                       "right": {
+                        "col": 10,
                         "isFloat": false,
                         "kind": "Literal",
                         "line": 20,
@@ -4325,6 +4940,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                     "thenBranch": {
                       "body": [
                         {
+                          "col": 21,
                           "kind": "Break",
                           "line": 20,
                         },
@@ -4336,24 +4952,29 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                   "line": 20,
                 },
                 {
+                  "col": 3,
                   "expression": {
                     "args": [
                       {
+                        "col": 16,
                         "kind": "StringLiteral",
                         "line": 21,
                         "raw": "odd \${i}",
                       },
                     ],
                     "callee": {
+                      "col": 7,
                       "kind": "Member",
                       "line": 21,
                       "object": {
+                        "col": 3,
                         "kind": "Ident",
                         "line": 21,
                         "name": "ruka",
                       },
                       "property": "println",
                     },
+                    "col": 15,
                     "kind": "Call",
                     "line": 21,
                   },
@@ -4361,8 +4982,11 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                   "line": 21,
                 },
               ],
+              "col": 2,
               "iterable": {
+                "col": 12,
                 "end": {
+                  "col": 14,
                   "isFloat": false,
                   "kind": "Literal",
                   "line": 18,
@@ -4372,6 +4996,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
                 "kind": "Range",
                 "line": 18,
                 "start": {
+                  "col": 11,
                   "isFloat": false,
                   "kind": "Literal",
                   "line": 18,
@@ -4385,6 +5010,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
           ],
           "kind": "Block",
         },
+        "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
         "paramModes": [],

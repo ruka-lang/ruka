@@ -56,7 +56,7 @@ function* runImpl(ast: Program): Run {
 	const mainBinding = findMain(ast);
 	const mainValue = envHas(globalEnv, "main") ? envGet(globalEnv, "main") : null;
 	if (mainBinding && !mainBinding.local && isFn(mainValue)) {
-		yield* callFn(mainValue, [], mainBinding.line, globalEnv);
+		yield* callFn(mainValue, [], mainBinding.line, mainBinding.col, globalEnv);
 	}
 }
 
@@ -102,7 +102,7 @@ function* evalStatement(
 			}
 		}
 	} catch (error) {
-		annotate(error, node.line);
+		annotate(error, node.line, node.col);
 		throw error;
 	}
 }
@@ -170,13 +170,13 @@ function* evalBinding(
 
 function* evalFor(node: For, env: RuntimeEnv): Generator<RuntimeEvent, Value, string> {
 	const iterable = yield* evalExpression(node.iterable, env);
-	const values = iterableValues(iterable, node.line);
+	const values = iterableValues(iterable, node.line, node.col);
 	let result: Value = null;
 	let iterations = 0;
 	for (const item of values) {
 		iterations++;
 		if (iterations > 10000) {
-			throw new RukaError("Exceeded 10,000 iterations", node.line);
+			throw new RukaError("Exceeded 10,000 iterations", node.line, node.col);
 		}
 		const iterEnv = makeEnv(env);
 		if (node.name) {
@@ -201,7 +201,7 @@ function* evalFor(node: For, env: RuntimeEnv): Generator<RuntimeEvent, Value, st
 	return result;
 }
 
-function iterableValues(value: Value, line: number): Value[] {
+function iterableValues(value: Value, line: number, col: number | undefined): Value[] {
 	if (Array.isArray(value)) {
 		return value;
 	}
@@ -214,7 +214,7 @@ function iterableValues(value: Value, line: number): Value[] {
 		}
 		return out;
 	}
-	throw new RukaError("Not iterable: " + display(value), line);
+	throw new RukaError("Not iterable: " + display(value), line, col);
 }
 
 // ── Expressions ─────────────────────────────────────────────────────────
@@ -269,7 +269,7 @@ function* evalExpression(
 			try {
 				return envGet(env, node.name);
 			} catch (error) {
-				annotate(error, node.line);
+				annotate(error, node.line, node.col);
 				throw error;
 			}
 		}
@@ -287,7 +287,7 @@ function* evalExpression(
 				}
 				iterations++;
 				if (iterations > 10000) {
-					throw new RukaError("Exceeded 10,000 iterations", node.line);
+					throw new RukaError("Exceeded 10,000 iterations", node.line, node.col);
 				}
 				const iterEnv = makeEnv(env);
 				try {
@@ -424,7 +424,7 @@ function* evalIndex(
 		}
 		throw new RukaError("Cannot index " + display(object));
 	} catch (error) {
-		annotate(error, node.line);
+		annotate(error, node.line, node.col);
 		throw error;
 	}
 }
@@ -442,9 +442,9 @@ function* evalCall(
 		if (!isFn(callee)) {
 			throw new RukaError("Not a function: " + display(callee));
 		}
-		return yield* callFn(callee, args, node.line, env);
+		return yield* callFn(callee, args, node.line, node.col, env);
 	} catch (error) {
-		annotate(error, node.line);
+		annotate(error, node.line, node.col);
 		throw error;
 	}
 }
@@ -453,6 +453,7 @@ function* callFn(
 	fn: FnValue,
 	args: Value[],
 	_line: number,
+	_col: number | undefined,
 	_callerEnv: RuntimeEnv
 ): Generator<RuntimeEvent, Value, string> {
 	if (fn.host) {
@@ -617,7 +618,7 @@ function* evalMember(
 			"No field or method '" + node.property + "' on " + display(object)
 		);
 	} catch (error) {
-		annotate(error, node.line);
+		annotate(error, node.line, node.col);
 		throw error;
 	}
 }
@@ -713,7 +714,7 @@ function* evalMatch(
 		}
 		throw new RukaError("match: no arm matched");
 	} catch (error) {
-		annotate(error, node.line);
+		annotate(error, node.line, node.col);
 		throw error;
 	}
 }
@@ -792,8 +793,17 @@ function* interpolateString(
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function annotate(error: unknown, line: number | undefined): void {
-	if (error instanceof RukaError && error.line === undefined && line !== undefined) {
-		(error as { line?: number }).line = line;
+function annotate(
+	error: unknown,
+	line: number | undefined,
+	col: number | undefined
+): void {
+	if (error instanceof RukaError) {
+		if (error.line === undefined && line !== undefined) {
+			error.line = line;
+		}
+		if (error.col === undefined && col !== undefined) {
+			error.col = col;
+		}
 	}
 }

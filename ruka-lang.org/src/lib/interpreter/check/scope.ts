@@ -68,12 +68,13 @@ function checkStatement(node: Statement, scope: Scope): void {
 		}
 		case "Assign": {
 			if (!scope.has(node.name)) {
-				throw new RukaError(`Undefined: ${node.name}`, node.line);
+				throw new RukaError(`Undefined: ${node.name}`, node.line, node.col);
 			}
 			if (!scope.get(node.name)) {
 				throw new RukaError(
 					`Cannot assign to immutable binding '${node.name}' (use 'let *${node.name}' to make it mutable)`,
-					node.line
+					node.line,
+					node.col
 				);
 			}
 			checkExpression(node.value, scope);
@@ -103,7 +104,7 @@ function checkStatement(node: Statement, scope: Scope): void {
 	}
 }
 
-function checkInterpolation(raw: string, scope: Scope, line: number): void {
+function checkInterpolation(raw: string, scope: Scope, line: number, col: number): void {
 	// Extract each ${...} (balanced braces, nested strings) and statically
 	// check it with the enclosing scope. The inner tokenizer restarts its
 	// line counter at 1, so any line it emits is meaningless in the outer
@@ -118,7 +119,7 @@ function checkInterpolation(raw: string, scope: Scope, line: number): void {
 				}
 			} catch (error) {
 				if (error instanceof RukaError) {
-					throw new RukaError(error.message, line);
+					throw new RukaError(error.message, line, col);
 				}
 				throw error;
 			}
@@ -138,11 +139,11 @@ function checkExpression(node: Expression | Block | null | undefined, scope: Sco
 		case "VariantType":
 			return;
 		case "StringLiteral":
-			checkInterpolation(node.raw, scope, node.line);
+			checkInterpolation(node.raw, scope, node.line, node.col);
 			return;
 		case "Ident":
 			if (!scope.has(node.name)) {
-				throw new RukaError(`Undefined: ${node.name}`, node.line);
+				throw new RukaError(`Undefined: ${node.name}`, node.line, node.col);
 			}
 			return;
 		case "FunctionExpr": {

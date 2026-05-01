@@ -20,16 +20,21 @@ export function tokenize(source: string): Token[] {
 	const length = source.length;
 	let pos = 0;
 	let line = 1;
+	// Index of the first character on the current line. col is derived as
+	// (pos - lineStart + 1) at the moment a token is emitted, so we don't have
+	// to track col through every pos advance.
+	let lineStart = 0;
 	let bracketDepth = 0;
 
 	while (pos < length) {
 		// Newline: emit NL only at bracket-depth 0; inside brackets it's whitespace.
 		if (source[pos] === "\n") {
 			if (bracketDepth === 0) {
-				tokens.push({ kind: "NL", value: "\n", line });
+				tokens.push({ kind: "NL", value: "\n", line, col: pos - lineStart + 1 });
 			}
 			line++;
 			pos++;
+			lineStart = pos;
 			continue;
 		}
 		if (WHITESPACE_RE.test(source[pos])) {
@@ -45,6 +50,7 @@ export function tokenize(source: string): Token[] {
 		}
 
 		const tokenLine = line;
+		const tokenCol = pos - lineStart + 1;
 
 		// Multiline string: |"  ...  |"
 		// Each content line begins with `|` (stripped). ${...} kept verbatim.
@@ -60,6 +66,7 @@ export function tokenize(source: string): Token[] {
 				if (source[pos] === "\n") {
 					line++;
 					pos++;
+					lineStart = pos;
 				}
 				while (
 					pos < length &&
@@ -109,7 +116,7 @@ export function tokenize(source: string): Token[] {
 					}
 				}
 			}
-			tokens.push({ kind: "STR", value: body, line: tokenLine });
+			tokens.push({ kind: "STR", value: body, line: tokenLine, col: tokenCol });
 			continue;
 		}
 
@@ -162,7 +169,7 @@ export function tokenize(source: string): Token[] {
 				}
 			}
 			pos++; // closing "
-			tokens.push({ kind: "STR", value: body, line: tokenLine });
+			tokens.push({ kind: "STR", value: body, line: tokenLine, col: tokenCol });
 			continue;
 		}
 
@@ -207,7 +214,7 @@ export function tokenize(source: string): Token[] {
 			if (source[pos] === "'") {
 				pos++;
 			}
-			tokens.push({ kind: "CHAR", value: charValue, line: tokenLine });
+			tokens.push({ kind: "CHAR", value: charValue, line: tokenLine, col: tokenCol });
 			continue;
 		}
 
@@ -229,7 +236,7 @@ export function tokenize(source: string): Token[] {
 					numberText += source[pos++];
 				}
 			}
-			tokens.push({ kind: "NUM", value: numberText, line: tokenLine });
+			tokens.push({ kind: "NUM", value: numberText, line: tokenLine, col: tokenCol });
 			continue;
 		}
 
@@ -240,21 +247,21 @@ export function tokenize(source: string): Token[] {
 				word += source[pos++];
 			}
 			const kind = (KEYWORDS as Set<string>).has(word) ? word : "ID";
-			tokens.push({ kind: kind, value: word, line: tokenLine });
+			tokens.push({ kind: kind, value: word, line: tokenLine, col: tokenCol });
 			continue;
 		}
 
 		// Three-char punctuators (must precede two-char).
 		const threeChar = source.slice(pos, pos + 3);
 		if (PUNCT3_SET.has(threeChar)) {
-			tokens.push({ kind: threeChar, value: threeChar, line: tokenLine });
+			tokens.push({ kind: threeChar, value: threeChar, line: tokenLine, col: tokenCol });
 			pos += 3;
 			continue;
 		}
 		// Two-char punctuators.
 		const twoChar = source.slice(pos, pos + 2);
 		if (PUNCT2_SET.has(twoChar)) {
-			tokens.push({ kind: twoChar, value: twoChar, line: tokenLine });
+			tokens.push({ kind: twoChar, value: twoChar, line: tokenLine, col: tokenCol });
 			pos += 2;
 			continue;
 		}
@@ -265,10 +272,10 @@ export function tokenize(source: string): Token[] {
 		} else if (currentChar === ")" || currentChar === "]" || currentChar === "}") {
 			bracketDepth--;
 		}
-		tokens.push({ kind: currentChar, value: currentChar, line: tokenLine });
+		tokens.push({ kind: currentChar, value: currentChar, line: tokenLine, col: tokenCol });
 		pos++;
 	}
 
-	tokens.push({ kind: "EOF", value: "", line });
+	tokens.push({ kind: "EOF", value: "", line, col: pos - lineStart + 1 });
 	return tokens;
 }

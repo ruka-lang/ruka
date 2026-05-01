@@ -4,12 +4,12 @@
 
 // ── Type expressions (parser-level) ──────────────────────────────────────
 export type TypeExpr =
-	| { kind: "UnitType"; line: number }
-	| { kind: "ArrayType"; element: TypeExpr; line: number }
-	| { kind: "TupleType"; elements: TypeExpr[]; line: number }
-	| { kind: "OptionType"; inner: TypeExpr; line: number }
-	| { kind: "ResultType"; ok: TypeExpr; err: TypeExpr; line: number }
-	| { kind: "NamedType"; name: string; line: number };
+	| { kind: "UnitType"; line: number; col: number }
+	| { kind: "ArrayType"; element: TypeExpr; line: number; col: number }
+	| { kind: "TupleType"; elements: TypeExpr[]; line: number; col: number }
+	| { kind: "OptionType"; inner: TypeExpr; line: number; col: number }
+	| { kind: "ResultType"; ok: TypeExpr; err: TypeExpr; line: number; col: number }
+	| { kind: "NamedType"; name: string; line: number; col: number };
 
 // ── Patterns ──────────────────────────────────────────────────────────────
 // Used on the left-hand side of `let`:
@@ -48,6 +48,7 @@ export type Binding = {
 	receiver?: Receiver | null;
 	value: Expression;
 	line: number;
+	col: number;
 };
 
 export type Assign = {
@@ -55,22 +56,26 @@ export type Assign = {
 	name: string;
 	value: Expression;
 	line: number;
+	col: number;
 };
 
 export type Break = {
 	kind: "Break";
 	line: number;
+	col: number;
 };
 
 export type Continue = {
 	kind: "Continue";
 	line: number;
+	col: number;
 };
 
 export type Return = {
 	kind: "Return";
 	value: Expression;
 	line: number;
+	col: number;
 };
 
 export type For = {
@@ -79,12 +84,14 @@ export type For = {
 	iterable: Expression;
 	body: Statement[];
 	line: number;
+	col: number;
 };
 
 export type ExpressionStmt = {
 	kind: "ExpressionStmt";
 	expression: Expression;
 	line: number;
+	col: number;
 };
 
 // ── Expressions ───────────────────────────────────────────────────────────
@@ -116,29 +123,34 @@ export type Literal = {
 	value: number | boolean;
 	isFloat?: boolean;
 	line: number;
+	col: number;
 };
 
 export type CharLiteral = {
 	kind: "CharLiteral";
 	value: number;
 	line: number;
+	col: number;
 };
 
 export type StringLiteral = {
 	kind: "StringLiteral";
 	raw: string;
 	line: number;
+	col: number;
 };
 
 export type Ident = {
 	kind: "Ident";
 	name: string;
 	line: number;
+	col: number;
 };
 
 export type Unit = {
 	kind: "Unit";
 	line: number;
+	col: number;
 };
 
 export type FunctionExpr = {
@@ -149,6 +161,7 @@ export type FunctionExpr = {
 	returnType: TypeExpr | null;
 	body: Block;
 	line: number;
+	col: number;
 };
 
 export type Block = {
@@ -162,6 +175,7 @@ export type If = {
 	thenBranch: Block | Expression;
 	elseBranch: Block | Expression | null;
 	line: number;
+	col: number;
 	/** Internal: parser flag indicating this if-chain owns an explicit `end`. */
 	_multiline?: boolean;
 };
@@ -171,6 +185,7 @@ export type While = {
 	condition: Expression;
 	body: Statement[];
 	line: number;
+	col: number;
 };
 
 export type MatchArm = {
@@ -184,6 +199,7 @@ export type Match = {
 	arms: MatchArm[];
 	elseArm: Block | null;
 	line: number;
+	col: number;
 };
 
 export type BinaryOp = {
@@ -192,6 +208,7 @@ export type BinaryOp = {
 	left: Expression;
 	right: Expression;
 	line: number;
+	col: number;
 };
 
 export type Range = {
@@ -200,6 +217,7 @@ export type Range = {
 	end: Expression;
 	inclusive: boolean;
 	line: number;
+	col: number;
 };
 
 export type UnaryOp = {
@@ -213,6 +231,7 @@ export type Call = {
 	callee: Expression;
 	args: Expression[];
 	line: number;
+	col: number;
 };
 
 export type Member = {
@@ -220,6 +239,7 @@ export type Member = {
 	object: Expression;
 	property: string;
 	line: number;
+	col: number;
 };
 
 export type Index = {
@@ -227,6 +247,7 @@ export type Index = {
 	object: Expression;
 	index: Expression;
 	line: number;
+	col: number;
 };
 
 export type RecordTypeField = {
@@ -238,6 +259,7 @@ export type RecordType = {
 	kind: "RecordType";
 	fields: RecordTypeField[];
 	line: number;
+	col: number;
 };
 
 export type VariantTag = {
@@ -249,6 +271,7 @@ export type VariantType = {
 	kind: "VariantType";
 	tags: VariantTag[];
 	line: number;
+	col: number;
 };
 
 export type VariantConstructor = {
@@ -256,6 +279,7 @@ export type VariantConstructor = {
 	tag: string;
 	payload: Expression | null;
 	line: number;
+	col: number;
 };
 
 export type RecordLiteralField = {
@@ -268,6 +292,7 @@ export type RecordLiteral = {
 	typeName?: Expression;
 	fields: RecordLiteralField[];
 	line: number;
+	col: number;
 	/** Set by the type checker when the literal's target record type is resolved. */
 	resolvedTypeName?: string;
 };
@@ -277,6 +302,7 @@ export type ListLiteral = {
 	typePrefix: TypeExpr | null;
 	elements: Expression[];
 	line: number;
+	col: number;
 };
 
 // ── Program ───────────────────────────────────────────────────────────────
