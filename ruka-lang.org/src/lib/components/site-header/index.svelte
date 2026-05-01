@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import logo from "$lib/assets/ruka-logo.svg";
+	import logo from "$lib/assets/ruka-berry.svg";
 	import ThemeToggle from "$lib/components/theme-toggle/index.svelte";
 
 	type NavLink = { href: string; label: string };

@@ -27,7 +27,7 @@ html[data-theme="dark"] {
 
 html[data-theme="light"] {
 	--bg: #f5f1e8;
-	--bg-elevated: #ede8db;
+	--bg-elevated: #f3efe5;
 	--fg: #1a1916;
 	--fg-muted: #6b6557;
 	--border: #d8d2c2;

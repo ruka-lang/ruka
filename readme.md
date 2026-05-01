@@ -4,7 +4,7 @@
 [![License: APACHE](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) |
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-The `Ruka` programming language
+Monorepo for the `Ruka` programming language
 
 # Brief Overview
 `Ruka` is a compiled and interpreted programming language with a focus on simplicity and ease of use

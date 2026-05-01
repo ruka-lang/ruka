@@ -17,12 +17,14 @@ jobs:
         run: sudo apt install -y kcov
 
       - name: Generate Coverage
-        run: zig build coverage --summary all
+        run: 
+          cd ruka 
+          zig build coverage --summary all
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: zig-out/coverage/kcov-merged
+          directory: ruka/zig-out/coverage/kcov-merged
           fail_ci_if_error: true
           verbose: true
