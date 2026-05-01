@@ -6,4 +6,4 @@
 export { default as Button } from "./button.svelte";
 export { default as Select } from "./select.svelte";
 export { default as Card } from "./card.svelte";
-export type { SelectOption } from "./select.svelte";
+export type { SelectOption, SelectGroup } from "./select.svelte";
