@@ -78,12 +78,14 @@ export function getEntrySource(project: Project): string {
 	return getFile(project, project.entry)?.source ?? "";
 }
 
-export function updateFileSource(project: Project, path: string, source: string): Project {
+export function updateFileSource(
+	project: Project,
+	path: string,
+	source: string
+): Project {
 	return {
 		...project,
-		files: project.files.map((file) =>
-			file.path === path ? { ...file, source } : file
-		)
+		files: project.files.map((file) => (file.path === path ? { ...file, source } : file))
 	};
 }
 
@@ -165,9 +167,7 @@ export function renameFile(project: Project, from: string, to: string): Project 
 	if (pathExists(project, to)) return project;
 
 	const files = project.files.map((file) =>
-		file.path === from
-			? { ...file, path: to, kind: fileKindFromPath(to) }
-			: file
+		file.path === from ? { ...file, path: to, kind: fileKindFromPath(to) } : file
 	);
 
 	return {

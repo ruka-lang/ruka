@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { highlight } from "$lib/components/editor/highlighter";
-	import { rosePineMoon, rosePineDawn, themeToCssVars, type Theme } from "$lib/components/editor/themes";
+	import {
+		rosePineMoon,
+		rosePineDawn,
+		themeToCssVars,
+		type Theme
+	} from "$lib/components/editor/themes";
 
 	type Props = {
 		code: string;
@@ -27,7 +32,9 @@
 		return () => observer.disconnect();
 	});
 
-	const activeTheme = $derived(theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon));
+	const activeTheme = $derived(
+		theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon)
+	);
 	const rootStyle = $derived(themeToCssVars(activeTheme));
 </script>
 
@@ -58,13 +65,31 @@
 		border: 0;
 		padding: 0;
 	}
-	.ruka-code :global(.ruka-hl-kw)   { color: var(--ruka-hl-kw); }
-	.ruka-code :global(.ruka-hl-str)  { color: var(--ruka-hl-str); }
-	.ruka-code :global(.ruka-hl-num)  { color: var(--ruka-hl-num); }
-	.ruka-code :global(.ruka-hl-lbl)  { color: var(--ruka-hl-lbl); }
-	.ruka-code :global(.ruka-hl-op)   { color: var(--ruka-hl-op); }
-	.ruka-code :global(.ruka-hl-surr) { color: var(--ruka-hl-surr); }
-	.ruka-code :global(.ruka-hl-strc) { color: var(--ruka-hl-strc); }
-	.ruka-code :global(.ruka-hl-cmt)  { color: var(--ruka-hl-cmt); }
-	.ruka-code :global(.ruka-hl-tp)   { color: var(--ruka-hl-tp); }
+	.ruka-code :global(.ruka-hl-kw) {
+		color: var(--ruka-hl-kw);
+	}
+	.ruka-code :global(.ruka-hl-str) {
+		color: var(--ruka-hl-str);
+	}
+	.ruka-code :global(.ruka-hl-num) {
+		color: var(--ruka-hl-num);
+	}
+	.ruka-code :global(.ruka-hl-lbl) {
+		color: var(--ruka-hl-lbl);
+	}
+	.ruka-code :global(.ruka-hl-op) {
+		color: var(--ruka-hl-op);
+	}
+	.ruka-code :global(.ruka-hl-surr) {
+		color: var(--ruka-hl-surr);
+	}
+	.ruka-code :global(.ruka-hl-strc) {
+		color: var(--ruka-hl-strc);
+	}
+	.ruka-code :global(.ruka-hl-cmt) {
+		color: var(--ruka-hl-cmt);
+	}
+	.ruka-code :global(.ruka-hl-tp) {
+		color: var(--ruka-hl-tp);
+	}
 </style>

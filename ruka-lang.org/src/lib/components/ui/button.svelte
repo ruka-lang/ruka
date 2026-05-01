@@ -29,7 +29,14 @@
 		{@render children()}
 	</a>
 {:else}
-	<button class="btn" data-variant={variant} {type} {disabled} aria-label={ariaLabel} {onclick}>
+	<button
+		class="btn"
+		data-variant={variant}
+		{type}
+		{disabled}
+		aria-label={ariaLabel}
+		{onclick}
+	>
 		{@render children()}
 	</button>
 {/if}

@@ -23,7 +23,9 @@ describe("Terminal component", () => {
 		const promise = instance.requestInput();
 		const input = screen.getByLabelText("Program input");
 		await input.fill("alice");
-		await input.element().dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+		await input
+			.element()
+			.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
 		const line = await promise;
 		expect(line).toBe("alice");
 	});

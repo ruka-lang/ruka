@@ -33,10 +33,18 @@ function expressionOf(src: string) {
 
 describe("parse: literals", () => {
 	it("integer literal carries isFloat=false", () => {
-		expect(expressionOf("42")).toMatchObject({ kind: "Literal", value: 42, isFloat: false });
+		expect(expressionOf("42")).toMatchObject({
+			kind: "Literal",
+			value: 42,
+			isFloat: false
+		});
 	});
 	it("float literal carries isFloat=true", () => {
-		expect(expressionOf("2.5")).toMatchObject({ kind: "Literal", value: 2.5, isFloat: true });
+		expect(expressionOf("2.5")).toMatchObject({
+			kind: "Literal",
+			value: 2.5,
+			isFloat: true
+		});
 	});
 	it("true / false produce boolean Literal", () => {
 		expect(expressionOf("true")).toMatchObject({ kind: "Literal", value: true });
@@ -111,7 +119,15 @@ describe("parse: control flow", () => {
 	});
 
 	it("if/else if/else chain shares one trailing end", () => {
-		const src = ["if a do", "    1", "else if b do", "    2", "else", "    3", "end"].join("\n");
+		const src = [
+			"if a do",
+			"    1",
+			"else if b do",
+			"    2",
+			"else",
+			"    3",
+			"end"
+		].join("\n");
 		const node = expressionOf(src);
 		expect(node.kind).toBe("If");
 		// outer.elseBranch is another If (the chain)
@@ -246,7 +262,10 @@ describe("parse: postfix chains", () => {
 	});
 
 	it("list literal .{1, 2, 3}", () => {
-		const node = expressionOf(".{1, 2, 3}") as { kind: "ListLiteral"; elements: unknown[] };
+		const node = expressionOf(".{1, 2, 3}") as {
+			kind: "ListLiteral";
+			elements: unknown[];
+		};
 		expect(node.kind).toBe("ListLiteral");
 		expect(node.elements.length).toBe(3);
 	});
@@ -290,7 +309,9 @@ describe("parse: types", () => {
 	});
 
 	it("array [a]", () => {
-		expect(firstStatement("let x: [int] = 1")).toMatchObject({ type: { kind: "ArrayType" } });
+		expect(firstStatement("let x: [int] = 1")).toMatchObject({
+			type: { kind: "ArrayType" }
+		});
 	});
 });
 

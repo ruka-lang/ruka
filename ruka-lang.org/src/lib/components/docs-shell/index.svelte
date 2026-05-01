@@ -153,7 +153,9 @@
 		text-decoration: none;
 		border-radius: 4px;
 		border-left: 2px solid transparent;
-		transition: color 120ms ease, border-color 120ms ease;
+		transition:
+			color 120ms ease,
+			border-color 120ms ease;
 	}
 
 	.toc-sub a {

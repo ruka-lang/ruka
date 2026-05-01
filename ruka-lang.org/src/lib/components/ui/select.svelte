@@ -38,13 +38,7 @@
 	}
 </script>
 
-<select
-	class="select"
-	aria-label={ariaLabel}
-	{value}
-	{disabled}
-	onchange={handleChange}
->
+<select class="select" aria-label={ariaLabel} {value} {disabled} onchange={handleChange}>
 	{#if groups}
 		{#each groups as group (group.label)}
 			<optgroup label={group.label}>

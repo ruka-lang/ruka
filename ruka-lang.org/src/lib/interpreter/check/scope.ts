@@ -134,7 +134,10 @@ function checkInterpolation(raw: string, scope: Scope, line: number, col: number
 	}
 }
 
-function checkExpression(node: Expression | Block | null | undefined, scope: Scope): void {
+function checkExpression(
+	node: Expression | Block | null | undefined,
+	scope: Scope
+): void {
 	if (!node) {
 		return;
 	}

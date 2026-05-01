@@ -77,7 +77,9 @@ export async function listProjects(): Promise<StoredProject[]> {
 }
 
 export async function loadProject(id: string): Promise<StoredProject | undefined> {
-	const result = (await runRequest("readonly", (s) => s.get(id))) as StoredProject | undefined;
+	const result = (await runRequest("readonly", (s) => s.get(id))) as
+		| StoredProject
+		| undefined;
 	return result;
 }
 

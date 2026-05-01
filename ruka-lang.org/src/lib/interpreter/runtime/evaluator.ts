@@ -116,7 +116,8 @@ function* evalBinding(
 		// they don't bind a name in the surrounding scope.
 		const receiver = node.receiver;
 		const typeName =
-			receiver.resolvedTypeName ?? (receiver.kind === "static" ? receiver.typeName : undefined);
+			receiver.resolvedTypeName ??
+			(receiver.kind === "static" ? receiver.typeName : undefined);
 		if (!typeName) {
 			return null;
 		}
@@ -368,7 +369,10 @@ function* evalExpression(
 	}
 }
 
-function* evalBlock(node: Block, env: RuntimeEnv): Generator<RuntimeEvent, Value, string> {
+function* evalBlock(
+	node: Block,
+	env: RuntimeEnv
+): Generator<RuntimeEvent, Value, string> {
 	const blockEnv = makeEnv(env);
 	let result: Value = null;
 	for (const stmt of node.body) {

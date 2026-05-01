@@ -53,10 +53,7 @@ describe("foldersFromFiles", () => {
 			{ path: "src/lib/math.ruka", source: "", kind: "ruka" }
 		];
 
-		expect(foldersFromFiles(files)).toEqual([
-			{ path: "src" },
-			{ path: "src/lib" }
-		]);
+		expect(foldersFromFiles(files)).toEqual([{ path: "src" }, { path: "src/lib" }]);
 	});
 
 	test("returns empty list when all files are at the root", () => {

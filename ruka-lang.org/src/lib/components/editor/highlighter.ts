@@ -122,7 +122,10 @@ function highlightStrContent(raw: string): string {
 // Walk back from `i - 1` over whitespace, then return the two characters
 // immediately preceding the first non-space byte. Used to detect when an
 // identifier is a type position (`: Foo`, `-> Foo`).
-function previousNonSpacePair(raw: string, i: number): { first: string; second: string } | null {
+function previousNonSpacePair(
+	raw: string,
+	i: number
+): { first: string; second: string } | null {
 	for (let k = i - 1; k > 0; k--) {
 		if (!/\s/.test(raw[k]!)) {
 			return { first: raw[k - 1] ?? "", second: raw[k]! };

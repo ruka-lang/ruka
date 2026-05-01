@@ -36,7 +36,14 @@ export type Receiver =
 	| { kind: "static"; typeName: string; resolvedTypeName?: string };
 
 // ── Statements ────────────────────────────────────────────────────────────
-export type Statement = Binding | Assign | Break | Continue | Return | For | ExpressionStmt;
+export type Statement =
+	| Binding
+	| Assign
+	| Break
+	| Continue
+	| Return
+	| For
+	| ExpressionStmt;
 
 export type Binding = {
 	kind: "Binding";

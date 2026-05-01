@@ -126,15 +126,20 @@
 				title="New file"
 				onclick={(e) =>
 					fire({ kind: "new-file", parent: "", anchor: e.currentTarget as HTMLElement })}
-			>＋ƒ</button>
+				>＋ƒ</button
+			>
 			<button
 				class="icon-btn"
 				type="button"
 				aria-label="New folder at root"
 				title="New folder"
 				onclick={(e) =>
-					fire({ kind: "new-folder", parent: "", anchor: e.currentTarget as HTMLElement })}
-			>＋▸</button>
+					fire({
+						kind: "new-folder",
+						parent: "",
+						anchor: e.currentTarget as HTMLElement
+					})}>＋▸</button
+			>
 		</div>
 	</div>
 
@@ -170,8 +175,8 @@
 								kind: "new-file",
 								parent: node.path,
 								anchor: e.currentTarget as HTMLElement
-							})}
-					>＋ƒ</button>
+							})}>＋ƒ</button
+					>
 					<button
 						class="icon-btn"
 						type="button"
@@ -182,8 +187,8 @@
 								kind: "new-folder",
 								parent: node.path,
 								anchor: e.currentTarget as HTMLElement
-							})}
-					>＋▸</button>
+							})}>＋▸</button
+					>
 					<button
 						class="icon-btn"
 						type="button"
@@ -194,8 +199,8 @@
 								kind: "rename-folder",
 								path: node.path,
 								anchor: e.currentTarget as HTMLElement
-							})}
-					>✎</button>
+							})}>✎</button
+					>
 					<button
 						class="icon-btn danger"
 						type="button"
@@ -206,8 +211,8 @@
 								kind: "delete-folder",
 								path: node.path,
 								anchor: e.currentTarget as HTMLElement
-							})}
-					>×</button>
+							})}>×</button
+					>
 				</div>
 			</div>
 			{#if !isCollapsed}
@@ -229,7 +234,11 @@
 				data-entry={isEntry}
 				style="padding-left: {depth * 12 + 8}px"
 			>
-				<button class="row-main" type="button" onclick={() => fire({ kind: "open", path: node.path })}>
+				<button
+					class="row-main"
+					type="button"
+					onclick={() => fire({ kind: "open", path: node.path })}
+				>
 					<span class="kind-tag" data-kind={node.fileKind}>{node.fileKind}</span>
 					<span class="name">{node.name}</span>
 					{#if isEntry}
@@ -243,8 +252,8 @@
 							type="button"
 							aria-label="Set {node.path} as entry"
 							title="Set as entry"
-							onclick={() => fire({ kind: "set-entry", path: node.path })}
-						>★</button>
+							onclick={() => fire({ kind: "set-entry", path: node.path })}>★</button
+						>
 					{/if}
 					<button
 						class="icon-btn"
@@ -256,16 +265,16 @@
 								kind: "rename-file",
 								path: node.path,
 								anchor: e.currentTarget as HTMLElement
-							})}
-					>✎</button>
+							})}>✎</button
+					>
 					<button
 						class="icon-btn danger"
 						type="button"
 						disabled={isEntry}
 						aria-label="Delete {node.path}"
 						title={isEntry ? "Cannot delete the entry file" : "Delete file"}
-						onclick={() => fire({ kind: "delete-file", path: node.path })}
-					>×</button>
+						onclick={() => fire({ kind: "delete-file", path: node.path })}>×</button
+					>
 				</div>
 			</div>
 		</li>

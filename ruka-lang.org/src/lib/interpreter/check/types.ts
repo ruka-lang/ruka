@@ -203,12 +203,7 @@ function methodOf(
 				}
 				return methodInfo.type;
 			}
-			throw typeError(
-				line,
-				col,
-				`no field or method '${name}' on ${object.name}`,
-				true
-			);
+			throw typeError(line, col, `no field or method '${name}' on ${object.name}`, true);
 		}
 		// `object` typed as a variant instance — look up methods on the variantDef.
 		if (
@@ -267,7 +262,10 @@ function conform(
 // ── Pure AST walkers (used by parameter inference) ───────────────────────
 type Visitor = (node: Expression | Block) => void;
 
-function walkExpression(node: Expression | Block | null | undefined, visit: Visitor): void {
+function walkExpression(
+	node: Expression | Block | null | undefined,
+	visit: Visitor
+): void {
 	if (!node) {
 		return;
 	}
@@ -510,10 +508,7 @@ export function checkTypes(ast: Program): RukaError | null {
 	): { name: string; def: RecordDef | VariantDef } | null {
 		if (receiver.kind === "static") {
 			const looked = lookupEnv(env, receiver.typeName);
-			if (
-				!looked ||
-				(looked.kind !== "recordDef" && looked.kind !== "variantDef")
-			) {
+			if (!looked || (looked.kind !== "recordDef" && looked.kind !== "variantDef")) {
 				throw typeError(
 					line,
 					col,
@@ -562,11 +557,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				}
 				// Tag record types with their declaring scope so private fields
 				// can be rejected outside that scope's chain.
-				if (
-					valueType &&
-					valueType.kind === "recordDef" &&
-					!valueType.declEnv
-				) {
+				if (valueType && valueType.kind === "recordDef" && !valueType.declEnv) {
 					valueType.declEnv = env;
 				}
 				env.bindings[node.pattern.name] = declared || valueType;
@@ -625,11 +616,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			if (returnTypeStack.length === 0) {
 				throw typeError(node.line, node.col, "'return' outside function");
 			}
-			inferExpression(
-				node.value,
-				returnTypeStack[returnTypeStack.length - 1]!,
-				env
-			);
+			inferExpression(node.value, returnTypeStack[returnTypeStack.length - 1]!, env);
 			return;
 		}
 		if (node.kind === "For") {
@@ -743,7 +730,12 @@ export function checkTypes(ast: Program): RukaError | null {
 	}
 
 	// ── Interpolation type-check ─────────────────────────────────────────
-	function checkInterpolation(raw: string, env: TypeEnv, line: number, col: number): void {
+	function checkInterpolation(
+		raw: string,
+		env: TypeEnv,
+		line: number,
+		col: number
+	): void {
 		const parts = splitInterp(raw);
 		for (const part of parts) {
 			if ("interp" in part) {
@@ -1030,11 +1022,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				inferExpression(node.condition, { kind: "bool" }, env);
 				const thenType = inferExpression(node.thenBranch, expected, env);
 				if (node.elseBranch) {
-					const elseType = inferExpression(
-						node.elseBranch,
-						expected ?? thenType,
-						env
-					);
+					const elseType = inferExpression(node.elseBranch, expected ?? thenType, env);
 					if (
 						thenType.kind !== "unknown" &&
 						elseType.kind !== "unknown" &&
@@ -1100,11 +1088,7 @@ export function checkTypes(ast: Program): RukaError | null {
 						);
 					}
 					if (node.elements.length === 0) {
-						throw typeError(
-							node.line,
-							node.col,
-							"empty .() needs a type context"
-						);
+						throw typeError(node.line, node.col, "empty .() needs a type context");
 					}
 					const inferred = node.elements.map((element) =>
 						inferExpression(element, null, env)
@@ -1153,12 +1137,7 @@ export function checkTypes(ast: Program): RukaError | null {
 						);
 					}
 				}
-				return conform(
-					expected,
-					{ kind: "array", element: first },
-					node.line,
-					node.col
-				);
+				return conform(expected, { kind: "array", element: first }, node.line, node.col);
 			}
 
 			case "Index": {
@@ -1243,11 +1222,7 @@ export function checkTypes(ast: Program): RukaError | null {
 							fnEnv.bindings[paramName] = recordInferred[paramName]!;
 						}
 					});
-					const numericInferred = inferParamNumericTypes(
-						node,
-						paramTypes,
-						fnEnv
-					);
+					const numericInferred = inferParamNumericTypes(node, paramTypes, fnEnv);
 					node.params.forEach((paramName, index) => {
 						if (!paramTypes[index] && numericInferred[paramName]) {
 							paramTypes[index] = numericInferred[paramName]!;
@@ -1291,8 +1266,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					return conform(expected, { kind: "bool" }, node.line, node.col);
 				}
 				// Arithmetic. Strings no longer concat with `+`; use s.concat(...).
-				const hint =
-					expected && isNumericKind(expected.kind) ? expected : null;
+				const hint = expected && isNumericKind(expected.kind) ? expected : null;
 				const leftType = inferExpression(node.left, hint, env);
 				const rightType = inferExpression(
 					node.right,
@@ -1300,10 +1274,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					env
 				);
 				const result = leftType.kind !== "unknown" ? leftType : rightType;
-				if (
-					op === "+" &&
-					(leftType.kind === "string" || rightType.kind === "string")
-				) {
+				if (op === "+" && (leftType.kind === "string" || rightType.kind === "string")) {
 					throw typeError(
 						node.line,
 						node.col,
@@ -1339,7 +1310,12 @@ export function checkTypes(ast: Program): RukaError | null {
 				}
 				if (node.op === "not") {
 					inferExpression(node.expression, { kind: "bool" }, env);
-					return conform(expected, { kind: "bool" }, lineOf(node.expression), colOf(node.expression));
+					return conform(
+						expected,
+						{ kind: "bool" },
+						lineOf(node.expression),
+						colOf(node.expression)
+					);
 				}
 				return UNKNOWN;
 			}
@@ -1591,7 +1567,11 @@ export function checkTypes(ast: Program): RukaError | null {
 				});
 
 				if (matches.length === 0) {
-					throw typeError(node.line, node.col, "no record type in scope matches this literal");
+					throw typeError(
+						node.line,
+						node.col,
+						"no record type in scope matches this literal"
+					);
 				}
 				if (matches.length > 1) {
 					throw typeError(

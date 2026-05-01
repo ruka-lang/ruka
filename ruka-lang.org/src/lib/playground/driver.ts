@@ -15,12 +15,25 @@ export function checkSource(source: string): CheckResult {
 	try {
 		const ast = parseSource(source);
 		const scopeError = checkScope(ast);
-		if (scopeError) return { ok: false, line: scopeError.line, col: scopeError.col, message: scopeError.message };
+		if (scopeError)
+			return {
+				ok: false,
+				line: scopeError.line,
+				col: scopeError.col,
+				message: scopeError.message
+			};
 		const typeError = checkTypes(ast);
-		if (typeError) return { ok: false, line: typeError.line, col: typeError.col, message: typeError.message };
+		if (typeError)
+			return {
+				ok: false,
+				line: typeError.line,
+				col: typeError.col,
+				message: typeError.message
+			};
 		return { ok: true };
 	} catch (error) {
-		if (error instanceof RukaError) return { ok: false, line: error.line, col: error.col, message: error.message };
+		if (error instanceof RukaError)
+			return { ok: false, line: error.line, col: error.col, message: error.message };
 		const message = error instanceof Error ? error.message : String(error);
 		return { ok: false, message };
 	}
@@ -46,11 +59,24 @@ export async function runSource(source: string, hooks: RunHooks): Promise<RunRes
 	try {
 		ast = parseSource(source);
 		const scopeError = checkScope(ast);
-		if (scopeError) return { ok: false, line: scopeError.line, col: scopeError.col, message: scopeError.message };
+		if (scopeError)
+			return {
+				ok: false,
+				line: scopeError.line,
+				col: scopeError.col,
+				message: scopeError.message
+			};
 		const typeError = checkTypes(ast);
-		if (typeError) return { ok: false, line: typeError.line, col: typeError.col, message: typeError.message };
+		if (typeError)
+			return {
+				ok: false,
+				line: typeError.line,
+				col: typeError.col,
+				message: typeError.message
+			};
 	} catch (error) {
-		if (error instanceof RukaError) return { ok: false, line: error.line, col: error.col, message: error.message };
+		if (error instanceof RukaError)
+			return { ok: false, line: error.line, col: error.col, message: error.message };
 		const message = error instanceof Error ? error.message : String(error);
 		return { ok: false, message };
 	}
@@ -73,7 +99,8 @@ export async function runSource(source: string, hooks: RunHooks): Promise<RunRes
 		}
 		return { ok: true };
 	} catch (error) {
-		if (error instanceof RukaError) return { ok: false, line: error.line, col: error.col, message: error.message };
+		if (error instanceof RukaError)
+			return { ok: false, line: error.line, col: error.col, message: error.message };
 		const message = error instanceof Error ? error.message : String(error);
 		return { ok: false, message };
 	}

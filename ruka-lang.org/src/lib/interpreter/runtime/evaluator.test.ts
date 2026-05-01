@@ -15,7 +15,10 @@ const fixturesDir = join(__dirname, "..", "fixtures");
 // stdout/stderr text and answers each input request from the supplied queue
 // in order; if there is no answer queued, the empty string is sent (so a
 // program that reads more lines than were prepared still terminates).
-function drive(source: string, inputs: string[] = []): { stdout: string; stderr: string } {
+function drive(
+	source: string,
+	inputs: string[] = []
+): { stdout: string; stderr: string } {
 	const ast = parseSource(source);
 	const scopeError = checkScope(ast);
 	if (scopeError) throw scopeError;
@@ -108,9 +111,9 @@ describe("evaluator — basics", () => {
 					: generator.next();
 		}
 		expect(events.some((event) => event.kind === "inputRequest")).toBe(true);
-		expect(events.filter((event) => event.kind === "stdout").map((event) => event.text)).toEqual([
-			"typed line\n"
-		]);
+		expect(
+			events.filter((event) => event.kind === "stdout").map((event) => event.text)
+		).toEqual(["typed line\n"]);
 	});
 
 	it("rejects assignment to immutable bindings at runtime", () => {

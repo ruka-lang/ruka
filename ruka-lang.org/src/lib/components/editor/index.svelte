@@ -51,7 +51,9 @@
 		return () => observer.disconnect();
 	});
 
-	const activeTheme = $derived(theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon));
+	const activeTheme = $derived(
+		theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon)
+	);
 	const rootStyle = $derived(`${themeToCssVars(activeTheme)}; height: ${height}`);
 
 	let textarea: HTMLTextAreaElement | undefined = $state();
@@ -201,7 +203,8 @@
 		grid-template-rows: max-content;
 		overflow: auto;
 		position: relative;
-		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family:
+			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	}
 	.editor > pre,
 	.editor > textarea {
@@ -220,7 +223,8 @@
 		display: block;
 		margin: 0;
 		padding: 12px;
-		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family:
+			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 14px;
 		line-height: 1.5;
 		font-weight: 550;
@@ -262,7 +266,8 @@
 		border: 0;
 		box-shadow: none;
 		box-sizing: border-box;
-		font-family: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family:
+			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 14px;
 		line-height: 1.5;
 		font-weight: 550;

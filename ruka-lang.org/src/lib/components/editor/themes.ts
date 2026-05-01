@@ -4,7 +4,16 @@
 // a pure prop change with no DOM rewrites and no recomputation of highlight
 // HTML. Add a new theme by exporting another `Theme` object below.
 
-export type TokenClass = "kw" | "str" | "num" | "lbl" | "op" | "surr" | "strc" | "cmt" | "tp";
+export type TokenClass =
+	| "kw"
+	| "str"
+	| "num"
+	| "lbl"
+	| "op"
+	| "surr"
+	| "strc"
+	| "cmt"
+	| "tp";
 
 export type Theme = {
 	name: string;

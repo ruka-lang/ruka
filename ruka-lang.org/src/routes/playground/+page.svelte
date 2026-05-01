@@ -37,9 +37,7 @@
 	// Active source of the working project. `example` reads from the
 	// bundled examples list and is never persisted; `project` is loaded
 	// from IndexedDB and autosaves on every edit.
-	type Active =
-		| { kind: "example"; id: string }
-		| { kind: "project"; id: string };
+	type Active = { kind: "example"; id: string } | { kind: "project"; id: string };
 
 	const EMPTY_TEMPLATE: ProjectFile[] = [
 		{
@@ -50,7 +48,11 @@
 	];
 
 	function emptyProject(): Project {
-		return { files: EMPTY_TEMPLATE.map((f) => ({ ...f })), folders: [], entry: "main.ruka" };
+		return {
+			files: EMPTY_TEMPLATE.map((f) => ({ ...f })),
+			folders: [],
+			entry: "main.ruka"
+		};
 	}
 
 	let active: Active = $state({ kind: "example", id: examples[0].id });
@@ -257,10 +259,13 @@
 	let popoverTargetPath: string | null = $state(null);
 	let popoverParentPath: string | null = $state(null);
 
-	function openProjectPopover(kind: "new" | "save-as" | "rename" | "delete", event: MouseEvent) {
+	function openProjectPopover(
+		kind: "new" | "save-as" | "rename" | "delete",
+		event: MouseEvent
+	) {
 		popoverAnchor = event.currentTarget as HTMLElement;
 		popoverKind = kind;
-		popoverInput = kind === "rename" ? activeProject?.name ?? "" : "";
+		popoverInput = kind === "rename" ? (activeProject?.name ?? "") : "";
 		popoverError = null;
 		popoverTargetPath = null;
 		popoverParentPath = null;
@@ -580,10 +585,16 @@
 			/>
 			<Button variant="ghost" onclick={(e) => openProjectPopover("new", e)}>NEW</Button>
 			{#if active.kind === "example"}
-				<Button variant="ghost" onclick={(e) => openProjectPopover("save-as", e)}>SAVE AS</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("save-as", e)}
+					>SAVE AS</Button
+				>
 			{:else}
-				<Button variant="ghost" onclick={(e) => openProjectPopover("rename", e)}>RENAME</Button>
-				<Button variant="ghost" onclick={(e) => openProjectPopover("delete", e)}>DELETE</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("rename", e)}
+					>RENAME</Button
+				>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("delete", e)}
+					>DELETE</Button
+				>
 			{/if}
 			<Button variant="ghost" disabled={!canRun || running} onclick={onRun}>
 				{running ? "RUNNING" : "RUN"}
@@ -655,11 +666,11 @@
 				{:else if popoverKind === "save-as"}Save copy as
 				{:else if popoverKind === "rename"}Rename project
 				{:else if popoverKind === "new-file"}New file{popoverParentPath
-					? ` in ${popoverParentPath}`
-					: ""}
+						? ` in ${popoverParentPath}`
+						: ""}
 				{:else if popoverKind === "new-folder"}New folder{popoverParentPath
-					? ` in ${popoverParentPath}`
-					: ""}
+						? ` in ${popoverParentPath}`
+						: ""}
 				{:else if popoverKind === "rename-file"}Rename file
 				{:else if popoverKind === "rename-folder"}Rename folder
 				{/if}

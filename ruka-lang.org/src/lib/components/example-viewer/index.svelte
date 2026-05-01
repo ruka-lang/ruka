@@ -55,7 +55,11 @@
 		} else {
 			status = "error";
 			terminal.writeErr(
-				"Error" + (result.line ? ` (line ${result.line})` : "") + ": " + result.message + "\n"
+				"Error" +
+					(result.line ? ` (line ${result.line})` : "") +
+					": " +
+					result.message +
+					"\n"
 			);
 		}
 	}
