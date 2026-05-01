@@ -1,0 +1,7 @@
+emerald  = #386248
+berry    = #a32c43
+amber    = #e89a3c
+
+serif    = DM Serif Display
+sans     = DM Sans
+mono     = Intel One Mono

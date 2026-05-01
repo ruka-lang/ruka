@@ -20,6 +20,9 @@ html[data-theme="dark"] {
 	--fg-muted: #9a958a;
 	--border: #2a2824;
 	--accent: #a32c43;
+	--accent-berry: #a32c43;
+	--accent-amber: #e38a3c;
+	--accent-emerald: #386248;
 	--accent-fg: #141311;
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);

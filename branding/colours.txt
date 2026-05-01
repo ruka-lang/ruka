@@ -1,4 +1,0 @@
-green  = #386248
-blue   = #374D5F
-red    = #9E4043
-yellow = #E78D41

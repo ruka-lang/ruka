@@ -1,6 +1,6 @@
 <script lang="ts">
 	import "./layout.css";
-	import favicon from "$lib/assets/ruka-berry.ico";
+	import favicon from "$lib/assets/branding/favicon/ruka-berry-a32c43.ico";
 	import SiteHeader from "$lib/components/site-header/index.svelte";
 
 	let { children } = $props();
