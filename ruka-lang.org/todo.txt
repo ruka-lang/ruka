@@ -67,3 +67,5 @@ TODO (Features, Docs and playground)
 	- [x] Intel One Mono for code
 	- [x] 4 space tabs
 	- [x] Fixed height editor with scrolling on overflow
+	- [ ] Line numbers
+	- [ ] Refined playground styling
