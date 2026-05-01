@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DocsShell, { type TocSection } from "$lib/components/docs-shell/index.svelte";
+	import CodeBlock from "$lib/components/code-block/index.svelte";
 
 	const sections: TocSection[] = [
 		{ id: "comments", title: "Comments" },
@@ -44,8 +45,8 @@
 	<section id="comments">
 		<h2>Comments</h2>
 		<p>Line comments begin with <code>//</code> and run to the end of the line. There are no block comments.</p>
-<pre><code>// this is a comment
-let x = 1   // trailing comments are fine</code></pre>
+<CodeBlock code={`// this is a comment
+let x = 1   // trailing comments are fine`} />
 	</section>
 
 	<section id="identifiers">
@@ -62,8 +63,8 @@ let x = 1   // trailing comments are fine</code></pre>
 			There is no separate <code>pub</code> keyword. Renaming a binding to
 			change its case changes its visibility.
 		</p>
-<pre><code>let greet = () do ruka.println("hi")    // exported
-let Helper = () do ruka.println("...")  // private</code></pre>
+<CodeBlock code={`let greet = () do ruka.println("hi")    // exported
+let Helper = () do ruka.println("...")  // private`} />
 	</section>
 
 	<section id="bindings">
@@ -71,19 +72,20 @@ let Helper = () do ruka.println("...")  // private</code></pre>
 		<p>
 			A <code>let</code> binding introduces a name. The type is inferred
 			from the right-hand side; an explicit annotation is only needed
-			when inference cannot reach the type you want.
+			when inference cannot reach the type you want. Binding can be shadowed 
+			by reusing the same name.
 		</p>
-<pre><code>let answer = 42
+<CodeBlock code={`let answer = 42
 let pi     = 3.14159
 let name   = "Ruka"
-let count: u32 = 0   // annotation pins the integer type</code></pre>
+let count: u32 = 0   // annotation pins the integer type`} />
 		<p>
 			Bindings are immutable by default. To make a binding mutable, or to
 			change how it is stored or evaluated, use a <em>mode prefix</em>
 			directly before the name (no space). See <a href="#modes">Modes</a>.
 		</p>
-<pre><code>let *count = 0    // mutable
-count = count + 1</code></pre>
+<CodeBlock code={`let *count = 0    // mutable
+count = count + 1`} />
 		<h3>Destructuring</h3>
 		<p>
 			A <code>let</code> binding may take any irrefutable
@@ -92,8 +94,8 @@ count = count + 1</code></pre>
 			<code>.</code> — those forms belong to <em>literals</em>, not
 			patterns.
 		</p>
-<pre><code>let (x, y) = .(1, 2)        // tuple pattern; .(...) is the tuple literal
-let &#123; x, y &#125; = origin       // record pattern</code></pre>
+<CodeBlock code={`let (x, y) = .(1, 2)     // tuple pattern; .(...) is the tuple literal
+let {x, y} = origin      // record pattern; identifiers must match record members`} />
 		<h3>File scope is declarative</h3>
 		<p>
 			A Ruka file's top level holds declarations only — <code>let</code>
@@ -118,10 +120,10 @@ let &#123; x, y &#125; = origin       // record pattern</code></pre>
 				<tr><td><code>@</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
-<pre><code>let *counter = 0                    // mutable binding
-let consume = (&amp;buf) do ...         // takes ownership of buf
+<CodeBlock code={`let *counter = 0                    // mutable binding
+let consume = (&buf) do ...         // takes ownership of buf
 let hash    = ($data) do ...        // stack copy
-let repeat  = (@n: uint, msg) do .. // n must be comptime</code></pre>
+let repeat  = (@n: uint, msg) do .. // n must be comptime`} />
 		<p>
 			The <code>@</code> prefix is rarely written explicitly. At file
 			scope and on methods/statics, compile-time evaluation is the
@@ -140,27 +142,28 @@ let repeat  = (@n: uint, msg) do .. // n must be comptime</code></pre>
 			preserved — <code>2</code> and <code>2.0</code> are different
 			literals. An explicit annotation pins a more specific type.
 		</p>
-<pre><code>let a = 42
+<CodeBlock code={`let a = 42
 let b = 0.5
-let c: u8 = 255   // annotated when a smaller integer type is needed</code></pre>
+let c: u8 = 255   // annotated when a smaller integer type is needed`} />
 
 		<h3>Characters</h3>
 		<p>
-			A character literal is a single byte (<code>u8</code>) wrapped in
-			single quotes. Escapes: <code>\n</code>, <code>\t</code>, <code>\\</code>,
-			<code>\'</code>, <code>\"</code>, <code>\0</code>.
+			A character literal is a single byte wrapped in single quotes; it
+			has type <code>u8</code>. There is no separate <code>char</code>
+			type. Escapes: <code>\n</code>, <code>\t</code>, <code>\r</code>,
+			<code>\\</code>, <code>\'</code>, <code>\"</code>, <code>\0</code>.
 		</p>
-<pre><code>let nl = '\n'
-let q  = '\''</code></pre>
+<CodeBlock code={`let nl = '\\n'
+let q  = '\\''`} />
 
 		<h3>Strings</h3>
 		<p>
 			Strings are double-quoted and may interpolate any expression with
 			<code>&#36;&#123;…&#125;</code>. Escapes match the character literal set.
 		</p>
-<pre><code>let name = "Ruka"
-let s = "hello, $&#123;name&#125;!"
-let nested = "a$&#123; "b" + c &#125;d"   // braces and inner strings are balanced</code></pre>
+<CodeBlock code={`let name = "Ruka"
+let s = "hello, \${name}!"
+let nested = "a\${ "b" + c }d"   // braces and inner strings are balanced`} />
 
 		<h3>Multiline strings</h3>
 		<p>
@@ -169,16 +172,16 @@ let nested = "a$&#123; "b" + c &#125;d"   // braces and inner strings are balanc
 			with <code>|</code>; one optional space after the bar is stripped.
 			Interpolation works the same as in single-line strings.
 		</p>
-<pre><code>let report =
+<CodeBlock code={`let report =
     |"
-    | hello $&#123;name&#125;!
+    | hello \${name}!
     | line two
-    |"</code></pre>
+    |"`} />
 
 		<h3>Booleans &amp; unit</h3>
-<pre><code>let yes = true
+<CodeBlock code={`let yes = true
 let no  = false
-let nothing = ()    // the unit value, type ()</code></pre>
+let nothing = ()    // the unit value, type ()`} />
 
 		<h3>Tuples and arrays</h3>
 		<p>
@@ -188,10 +191,10 @@ let nothing = ()    // the unit value, type ()</code></pre>
 			dot is what tells the parser this is a value being constructed,
 			not a destructuring pattern.
 		</p>
-<pre><code>let pair = .(1, "one")     // tuple, inferred [int, string]
-let xs   = .&#123;1, 2, 3&#125;     // array,  inferred [int]
-let prefixed = [u8].&#123;0, 1, 2&#125;   // type prefix initializes the enforces element type
-let typed: [u8] = .&#123;0, 1, 2&#125;   // can also use annotation to pin the element type</code></pre>
+<CodeBlock code={`let pair = .(1, "one")     // tuple, inferred [int, string]
+let xs   = .{1, 2, 3}     // array,  inferred [int]
+let prefixed = [u8].{0, 1, 2}   // type prefix initializes the enforces element type
+let typed: [u8] = .{0, 1, 2}   // can also use annotation to pin the element type`} />
 
 		<h3>Records</h3>
 		<p>
@@ -201,14 +204,14 @@ let typed: [u8] = .&#123;0, 1, 2&#125;   // can also use annotation to pin the e
 			See <a href="#records-variants">Records &amp; variants</a> for
 			declaration syntax.
 		</p>
-<pre><code>let Point = record &#123;
+<CodeBlock code={`let Point = record {
     x: f64
     y: f64
-&#125;
+}
 
 let make = (p: Point) do p
-let p = make(.&#123; x = 1.0, y = 2.0 &#125;)   // inferred from parameter type
-let q = Point.&#123; x = 1.0, y = 2.0 &#125;    // explicit when there is no context</code></pre>
+let p = make(.{ x = 1.0, y = 2.0 })   // inferred from parameter type
+let q = Point.{ x = 1.0, y = 2.0 }    // explicit when there is no context`} />
 
 		<h3>Variant constructors</h3>
 		<p>
@@ -216,7 +219,7 @@ let q = Point.&#123; x = 1.0, y = 2.0 &#125;    // explicit when there is no con
 			case or <code>.tag(value)</code> with a payload. The variant type
 			is inferred from context.
 		</p>
-<pre><code>let report = (h: Hit) do
+<CodeBlock code={`let report = (h: Hit) do
     match h with
         critical(d) do ...
         miss        do ...
@@ -224,22 +227,25 @@ let q = Point.&#123; x = 1.0, y = 2.0 &#125;    // explicit when there is no con
 end
 
 report(.critical(20))    // tag is resolved against Hit
-report(.miss)</code></pre>
+report(.miss)`} />
 
 		<h3>Option &amp; result</h3>
 		<p>
-			<code>option(T)</code> and <code>result(T, E)</code> are ordinary
-			variants in the prelude. Constructors are <code>.some(v)</code> /
-			<code>.none</code> and <code>.ok(v)</code> / <code>.err(e)</code>.
+			Option and result are ordinary variants in the prelude with
+			shorthand type syntax: <code>?(T)</code> for option,
+			<code>!(T, E)</code> for result. Constructors are
+			<code>.some(v)</code> / <code>.none</code> and <code>.ok(v)</code> /
+			<code>.err(e)</code>.
 		</p>
 
 		<h3>Ranges</h3>
 		<p>
 			<code>a..b</code> is half-open; <code>a..=b</code> is inclusive.
-			Both are first-class values and double as iterators.
+			Both are first-class values of type <code>[T..]</code> and double as
+			iterators.
 		</p>
-<pre><code>for i in 0..10 do ruka.println("$&#123;i&#125;")
-let r = 1..=5</code></pre>
+<CodeBlock code={`for i in 0..10 do ruka.println("\${i}")
+let r: [int..] = 1..=5`} />
 	</section>
 
 	<section id="builtin-types">
@@ -251,9 +257,9 @@ let r = 1..=5</code></pre>
 				<tr><td>Signed integers</td><td><code>i8 i16 i32 i64</code>, <code>int</code> (target word size)</td></tr>
 				<tr><td>Unsigned integers</td><td><code>u8 u16 u32 u64</code>, <code>uint</code></td></tr>
 				<tr><td>Floats</td><td><code>f32 f64</code>, <code>float</code> (target word size)</td></tr>
-				<tr><td>Other primitives</td><td><code>bool</code>, <code>char</code> (alias for <code>u8</code>), <code>string</code>, <code>()</code> (unit)</td></tr>
-				<tr><td>Collections</td><td><code>[T]</code> (array), <code>[T, U, …]</code> (tuple)</td></tr>
-				<tr><td>Generic prelude</td><td><code>option(T)</code>, <code>result(T, E)</code>, <code>range(T)</code></td></tr>
+				<tr><td>Other primitives</td><td><code>bool</code>, <code>string</code>, <code>()</code> (unit)</td></tr>
+				<tr><td>Collections</td><td><code>[T]</code> (array), <code>[T, U, …]</code> (tuple), <code>[T..]</code> (range)</td></tr>
+				<tr><td>Generic prelude</td><td><code>?(T)</code> (option), <code>!(T, E)</code> (result)</td></tr>
 				<tr><td>Compile-time</td><td><code>type</code> (the type of types)</td></tr>
 			</tbody>
 		</table>
@@ -262,9 +268,9 @@ let r = 1..=5</code></pre>
 			A type appears after <code>:</code> on a binding or parameter, and
 			after <code>-&gt;</code> on a function return.
 		</p>
-<pre><code>let count: u32 = 0
+<CodeBlock code={`let count: u32 = 0
 let pair: [int, string] = .(1, "one")
-let lookup = (key: string) -&gt; ?(int) do ...</code></pre>
+let lookup = (key: string) -> ?(int) do ...`} />
 	</section>
 
 	<section id="operators">
@@ -292,9 +298,9 @@ let lookup = (key: string) -&gt; ?(int) do ...</code></pre>
 			<code>x |&gt; f</code> rewrites to <code>f(x)</code>; chains compose
 			left-to-right.
 		</p>
-<pre><code>let n = nums |&gt; filter(~pred=(x) do x % 2 == 0)
-            |&gt; map(~f=(x) do x * x)
-            |&gt; sum()</code></pre>
+<CodeBlock code={`let n = nums |> filter(~pred=(x) do x % 2 == 0)
+            |> map(~f=(x) do x * x)
+            |> sum()`} />
 		<p>
 			Operators on user-defined types are dispatched via
 			<a href="#behaviours">operator behaviours</a>: defining a method
@@ -337,6 +343,15 @@ let lookup = (key: string) -&gt; ?(int) do ...</code></pre>
 
 	<section id="control-flow">
 		<h2>Control flow</h2>
+		<p>
+			Every block in Ruka follows one rule, regardless of whether it
+			belongs to a function, an <code>if</code>, a loop, or a
+			<code>match</code> arm. <code>do expr</code> on a single line is a
+			single-expression body closed by the newline. <code>do</code>
+			followed by a newline opens a multi-statement block closed by
+			<code>end</code>. The two forms are interchangeable; pick whichever
+			reads better.
+		</p>
 
 		<h3>If / else</h3>
 		<p>
@@ -348,16 +363,16 @@ let lookup = (key: string) -&gt; ?(int) do ...</code></pre>
 			leading <code>do</code> with <code>if</code>:
 			<code>value if condition else other</code>.
 		</p>
-<pre><code>let sign = if n &gt; 0 do 1 else if n &lt; 0 do -1 else 0
-let label = if score &gt;= 60 do "pass" else "fail"
-let bucket = "larger" if x &gt;= 100 else "smaller"</code></pre>
+<CodeBlock code={`let sign = if n > 0 do 1 else if n < 0 do -1 else 0
+let label = if score >= 60 do "pass" else "fail"
+let bucket = "larger" if x >= 100 else "smaller"`} />
 
 		<h3>While</h3>
-<pre><code>let *i = 0
-while i &lt; 10 do
-    ruka.println("$&#123;i&#125;")
+<CodeBlock code={`let *i = 0
+while i < 10 do
+    ruka.println("\${i}")
     i = i + 1
-end</code></pre>
+end`} />
 
 		<h3>For</h3>
 		<p>
@@ -365,8 +380,8 @@ end</code></pre>
 			satisfy <code>ruka.iterable</code>. The loop variable is immutable
 			within the body.
 		</p>
-<pre><code>for n in 0..5 do ruka.println("$&#123;n&#125;")
-for (k, v) in pairs do ruka.println("$&#123;k&#125;=$&#123;v&#125;")</code></pre>
+<CodeBlock code={`for n in 0..5 do ruka.println("\${n}")
+for (k, v) in pairs do ruka.println("\${k}=\${v}")`} />
 
 		<h3>Break, continue, return</h3>
 		<p>
@@ -382,11 +397,11 @@ for (k, v) in pairs do ruka.println("$&#123;k&#125;=$&#123;v&#125;")</code></pre
 			<code>return</code>, or by <code>break</code>. Multiple
 			<code>defer</code>s in the same block run in LIFO order.
 		</p>
-<pre><code>let read_file = (path) do
+<CodeBlock code={`let read_file = (path) do
     let f = open(path)
     defer f.close()
     // ... use f
-end   // f.close() runs here</code></pre>
+end   // f.close() runs here`} />
 		<p>
 			A deferred expression captures variables by reference; it observes
 			their values at the moment the block exits, not at declaration.
@@ -401,13 +416,13 @@ end   // f.close() runs here</code></pre>
 			<code>pattern do expression</code>. Match is an expression — every
 			arm must produce a value of the same type.
 		</p>
-<pre><code>let report = (h) do
+<CodeBlock code={`let report = (h) do
     match h with
-        critical(d) do "critical for $&#123;d&#125;"
-        normal(d)   do "hit for $&#123;d&#125;"
+        critical(d) do "critical for \${d}"
+        normal(d)   do "hit for \${d}"
         miss        do "missed"
     end
-end</code></pre>
+end`} />
 		<p>
 			Match must be <em>exhaustive</em>: the patterns together must cover
 			every possible value of the subject's type. A trailing
@@ -415,11 +430,11 @@ end</code></pre>
 			multi-statement <code>else</code> branch uses <code>do … end</code>
 			like any other branch.
 		</p>
-<pre><code>match n with
+<CodeBlock code={`match n with
     0..=9   do "small"
     10..=99 do "medium"
     else       "large"
-end</code></pre>
+end`} />
 	</section>
 
 	<section id="functions">
@@ -433,10 +448,10 @@ end</code></pre>
 			<li><strong>Block:</strong> <code>(x) do … end</code> — multiple statements; the value of the block is its last expression.</li>
 		</ul>
 		<p>Bind a function with <code>let</code> like any other value:</p>
-<pre><code>let inc = (x) do x + 1
+<CodeBlock code={`let inc = (x) do x + 1
 let main = () do
-    ruka.println("$&#123;inc(41)&#125;")
-end</code></pre>
+    ruka.println("\${inc(41)}")
+end`} />
 		<p>
 			Parameter and return types are inferred from use. Annotate a
 			parameter or return only when inference cannot reach the type you
@@ -460,21 +475,21 @@ end</code></pre>
 			order. Positional and named parameters can be mixed; positional
 			arguments come first.
 		</p>
-<pre><code>let greet = (~name, ~greeting) do
-    "$&#123;greeting&#125;, $&#123;name&#125;!"
+<CodeBlock code={`let greet = (~name, ~greeting) do
+    "\${greeting}, \${name}!"
 end
 
 greet(~name="Ruka", ~greeting="Hello")
-greet(~greeting="Hi", ~name="World")</code></pre>
+greet(~greeting="Hi", ~name="World")`} />
 
 		<h3>Label shorthand</h3>
 		<p>
 			If a local variable shares the label name, the
 			<code>=value</code> may be omitted.
 		</p>
-<pre><code>let name = "Ruka"
+<CodeBlock code={`let name = "Ruka"
 let greeting = "Hello"
-greet(~name, ~greeting)</code></pre>
+greet(~name, ~greeting)`} />
 
 		<h3>Optional named parameters</h3>
 		<p>
@@ -485,15 +500,15 @@ greet(~name, ~greeting)</code></pre>
 			required — the <code>?(T)</code> annotation is what marks it
 			optional.
 		</p>
-<pre><code>let greet = (~name, ~title: ?(string)) do
+<CodeBlock code={`let greet = (~name, ~title: ?(string)) do
     match title with
-        some(t) do "$&#123;t&#125; $&#123;name&#125;"
+        some(t) do "\${t} \${name}"
         none    do name
     end
 end
 
 greet(~name="Ruka")                  // "Ruka"
-greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"</code></pre>
+greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"`} />
 
 		<h3>Trailing block syntax</h3>
 		<p>
@@ -501,13 +516,13 @@ greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"</code></pre>
 			reads naturally for higher-order functions whose closure parameter
 			is named and placed last.
 		</p>
-<pre><code>let map = (t, xs: [t], ~f) do ...
+<CodeBlock code={`let map = (t, xs: [t], ~f) do ...
 
 let doubled = map(nums) ~f=(x) do x * 2
 let squared = map(nums) ~f=(x) do
     let s = x * x
     s
-end</code></pre>
+end`} />
 	</section>
 
 	<section id="records-variants">
@@ -520,21 +535,21 @@ end</code></pre>
 			the fields are separated by newlines; commas are only needed when
 			fields share a single line.
 		</p>
-<pre><code>let Point = record &#123;
+<CodeBlock code={`let Point = record {
     x: f64
     y: f64
-&#125;
+}
 
-let Inline = record &#123; x: f64, y: f64 &#125;   // commas required on one line</code></pre>
+let Inline = record { x: f64, y: f64 }   // commas required on one line`} />
 		<p>
 			Construct a record with <code>.&#123;...&#125;</code>; the type is
 			inferred from context. Records destructure with the same field
 			names — <strong>without</strong> a leading <code>.</code> or type
 			prefix, since destructuring is a pattern, not a literal.
 		</p>
-<pre><code>let move = (p: Point) do .&#123; x = p.x + 1.0, y = p.y &#125;
+<CodeBlock code={`let move = (p: Point) do .{ x = p.x + 1.0, y = p.y }
 
-let &#123; x, y &#125; = move(.&#123; x = 0.0, y = 0.0 &#125;)</code></pre>
+let { x, y } = move(.{ x = 0.0, y = 0.0 })`} />
 
 		<h3>Variants</h3>
 		<p>
@@ -542,11 +557,11 @@ let &#123; x, y &#125; = move(.&#123; x = 0.0, y = 0.0 &#125;)</code></pre>
 			optional payload type. Cases are separated by newlines in a
 			multi-line declaration; commas are only needed on a single line.
 		</p>
-<pre><code>let Hit = variant &#123;
+<CodeBlock code={`let Hit = variant {
     critical: int
     normal:   int
     miss
-&#125;</code></pre>
+}`} />
 		<p>
 			Construct a variant with <code>.tag</code> or <code>.tag(payload)</code>
 			and consume it with <a href="#match"><code>match</code></a>. The
@@ -566,21 +581,21 @@ let &#123; x, y &#125; = move(.&#123; x = 0.0, y = 0.0 &#125;)</code></pre>
 			<li><code>let name (self) = …</code> — <strong>method</strong>, called as <code>value.name(...)</code>.</li>
 			<li><code>let name (*self) = …</code> — <strong>mutating method</strong>; the receiver follows the <code>*</code> mode rules.</li>
 		</ul>
-<pre><code>let counter = record &#123;
+<CodeBlock code={`let counter = record {
     count: int
-&#125;
+}
 
 // statics — accessed as counter.zero, counter.new(...)
-let zero (counter) = .&#123; count = 0 &#125;
-let new  (counter) = (start) do .&#123; count = start &#125;
+let zero (counter) = .{ count = 0 }
+let new  (counter) = (start) do .{ count = start }
 
 // method — accessed as c.bump()
-let bump (self) = () do .&#123; count = self.count + 1 &#125;
+let bump (self) = () do .{ count = self.count + 1 }
 
 // mutating method
 let inc (*self) = () do
     self.count = self.count + 1
-end</code></pre>
+end`} />
 		<p>
 			A <em>constructor</em> is just a static that returns a value of the
 			type. A <em>destructor</em> is a method named <code>drop</code>;
@@ -627,10 +642,10 @@ end</code></pre>
 			more types fit, the literal is ambiguous and an annotation or
 			type prefix is required.
 		</p>
-<pre><code>let Point = record &#123; x: f64, y: f64 &#125;
+<CodeBlock code={`let Point = record { x: f64, y: f64 }
 
-let p = .&#123; x = 1.0, y = 2.0 &#125;   // ok — only Point matches in scope
-let q = Point.&#123; x = 1.0, y = 2.0 &#125;   // explicit prefix when ambiguous</code></pre>
+let p = .{ x = 1.0, y = 2.0 }   // ok — only Point matches in scope
+let q = Point.{ x = 1.0, y = 2.0 }   // explicit prefix when ambiguous`} />
 
 		<h3>Variant constructors</h3>
 		<p>
@@ -651,10 +666,10 @@ let q = Point.&#123; x = 1.0, y = 2.0 &#125;   // explicit prefix when ambiguous
 			type; otherwise the function is ambiguous and the parameter must
 			be annotated.
 		</p>
-<pre><code>let Point = record &#123; x: f64, y: f64 &#125;
+<CodeBlock code={`let Point = record { x: f64, y: f64 }
 
 // uses .x and .y — only Point has both → param inferred as Point
-let length = (p) do ruka.sqrt(p.x * p.x + p.y * p.y)</code></pre>
+let length = (p) do ruka.sqrt(p.x * p.x + p.y * p.y)`} />
 
 		<h3>Variant parameters</h3>
 		<p>
@@ -690,8 +705,8 @@ let length = (p) do ruka.sqrt(p.x * p.x + p.y * p.y)</code></pre>
 			parameter (polymorphic over every type that satisfies the
 			behaviour, monomorphised per call site).
 		</p>
-<pre><code>let area = (s) do s.area()             // inferred to a single concrete type
-let area = (s: Shape) do s.area()      // polymorphic over Shape</code></pre>
+<CodeBlock code={`let area = (s) do s.area()             // inferred to a single concrete type
+let area = (s: Shape) do s.area()      // polymorphic over Shape`} />
 	</section>
 
 	<section id="behaviours">
@@ -703,10 +718,10 @@ let area = (s: Shape) do s.area()      // polymorphic over Shape</code></pre>
 			and variants, signatures are separated by newlines in a multi-line
 			declaration; commas are only needed on a single line.
 		</p>
-<pre><code>let Shape = behaviour &#123;
-    area(self):      () -&gt; f64
-    perimeter(self): () -&gt; f64
-&#125;</code></pre>
+<CodeBlock code={`let Shape = behaviour {
+    area(self):      () -> f64
+    perimeter(self): () -> f64
+}`} />
 
 		<h3>Using a behaviour</h3>
 		<p>
@@ -714,9 +729,9 @@ let area = (s: Shape) do s.area()      // polymorphic over Shape</code></pre>
 			monomorphises against the concrete argument type — this is static
 			dispatch, not virtual.
 		</p>
-<pre><code>let describe = (s: Shape) do
-    ruka.println("area: $&#123;s.area()&#125;")
-end</code></pre>
+<CodeBlock code={`let describe = (s: Shape) do
+    ruka.println("area: \${s.area()}")
+end`} />
 		<p>
 			Behaviour types may only appear in parameter position. Using one
 			as a return type, field type, or binding type is a compile error —
@@ -732,11 +747,11 @@ end</code></pre>
 			<code>&#36;&#123;…&#125;</code> string interpolation and may be
 			passed to <code>ruka.print</code> / <code>ruka.println</code>.
 		</p>
-<pre><code>let printable = behaviour &#123;
-    format(self): () -&gt; string
-&#125;
+<CodeBlock code={`let printable = behaviour {
+    format(self): () -> string
+}
 
-let format (self) = () do "($&#123;self.x&#125;, $&#123;self.y&#125;)"   // makes Point printable</code></pre>
+let format (self) = () do "(\${self.x}, \${self.y})"   // makes Point printable`} />
 
 		<h4><code>ruka.iterable</code></h4>
 		<p>
@@ -744,9 +759,9 @@ let format (self) = () do "($&#123;self.x&#125;, $&#123;self.y&#125;)"   // make
 			<code>for</code> loop. The compiler calls <code>next</code> per
 			iteration; <code>.none</code> ends the loop.
 		</p>
-<pre><code>let iterable = behaviour &#123;
-    next(*self): () -&gt; ?(T)
-&#125;</code></pre>
+<CodeBlock code={`let iterable = behaviour {
+    next(*self): () -> ?(T)
+}`} />
 
 		<h4>Operator behaviours</h4>
 		<p>
@@ -770,18 +785,18 @@ let format (self) = () do "($&#123;self.x&#125;, $&#123;self.y&#125;)"   // make
 			returns the imported file as a record value. Access fields, or
 			destructure to bring names into scope.
 		</p>
-<pre><code>let math = ruka.import("math")
+<CodeBlock code={`let math = ruka.import("math")
 let r = math.sqrt(2.0)
 
 // destructuring import — bare record pattern, no leading dot
-let &#123; sqrt, pow &#125; = ruka.import("math")
-let &#123; Dog, Cat &#125; = ruka.import("animals")</code></pre>
+let { sqrt, pow } = ruka.import("math")
+let { Dog, Cat } = ruka.import("animals")`} />
 		<p>
 			Because the result is compile-time known, an imported type may be
 			passed to a <code>type</code>-typed parameter directly:
 		</p>
-<pre><code>let describe = (t: type) do ruka.println("$&#123;t&#125;")
-describe(animals.Dog)</code></pre>
+<CodeBlock code={`let describe = (t: type) do ruka.println("\${t}")
+describe(animals.Dog)`} />
 	</section>
 
 	<section id="tests">
@@ -793,12 +808,12 @@ describe(animals.Dog)</code></pre>
 			<em>release</em> — assertions inside a <code>test</code> have no
 			runtime cost in production.
 		</p>
-<pre><code>let add = (a, b) do a + b
+<CodeBlock code={`let add = (a, b) do a + b
 
 test addition = () do
     ruka.expect_eq(add(1, 2), 3)
     ruka.expect_eq(add(0, 0), 0)
-end</code></pre>
+end`} />
 		<p>
 			Tests live in their module's scope and can therefore call
 			uppercase-named (private) declarations directly. There is no
@@ -821,10 +836,10 @@ end</code></pre>
 			prefix automatically. A parameter used to annotate another
 			parameter infers both.
 		</p>
-<pre><code>// all three forms are equivalent
-let min = (@t: type, a: t, b: t) do if a &lt; b do a else b
-let min = (t: type,  a: t, b: t) do if a &lt; b do a else b
-let min = (t,        a: t, b: t) do if a &lt; b do a else b</code></pre>
+<CodeBlock code={`// all three forms are equivalent
+let min = (@t: type, a: t, b: t) do if a < b do a else b
+let min = (t: type,  a: t, b: t) do if a < b do a else b
+let min = (t,        a: t, b: t) do if a < b do a else b`} />
 
 		<h3>Generics</h3>
 		<p>
@@ -832,8 +847,8 @@ let min = (t,        a: t, b: t) do if a &lt; b do a else b</code></pre>
 			specialisation, much like monomorphisation in Rust or
 			<code>comptime</code> in Zig.
 		</p>
-<pre><code>let x = min(i32, 3, 7)      // i32 instantiation
-let y = min(f64, 1.5, 2.0)  // f64 instantiation</code></pre>
+<CodeBlock code={`let x = min(i32, 3, 7)      // i32 instantiation
+let y = min(f64, 1.5, 2.0)  // f64 instantiation`} />
 
 		<h3>Generating types</h3>
 		<p>
@@ -841,15 +856,15 @@ let y = min(f64, 1.5, 2.0)  // f64 instantiation</code></pre>
 			parameters that must be compile-time still need an explicit
 			<code>@</code>.
 		</p>
-<pre><code>let FixedArray = (t, @cap: uint) do
-    record &#123;
+<CodeBlock code={`let FixedArray = (t, @cap: uint) do
+    record {
         data: [t]
         len:  uint
-    &#125;
+    }
 end
 
 let IntBuf   = FixedArray(i32, 64)
-let FloatBuf = FixedArray(f64, 16)</code></pre>
+let FloatBuf = FixedArray(f64, 16)`} />
 
 		<h3>Storing compile-time results</h3>
 		<p>
@@ -858,12 +873,12 @@ let FloatBuf = FixedArray(f64, 16)</code></pre>
 			body, prefix the binding with <code>@</code> to force compile-time
 			storage.
 		</p>
-<pre><code>let SQRT_2 = ruka.sqrt(2.0)    // top level — comptime by default
+<CodeBlock code={`let SQRT_2 = ruka.sqrt(2.0)    // top level — comptime by default
 
 let run = () do
     let @table = build_lookup_table(256)   // forced to comptime
     let rows   = fetch_rows()              // runtime
-end</code></pre>
+end`} />
 
 		<h3>Reflection</h3>
 		<p>
@@ -876,19 +891,19 @@ end</code></pre>
 			<code>@</code>-prefixed type arguments and run at compile time —
 			there is no runtime reflection.
 		</p>
-<pre><code>// derive: produce an option-of-every-field version of any record
+<CodeBlock code={`// derive: produce an option-of-every-field version of any record
 let Partial = (t) do
     let fs = ruka.fields_of(t)
-        |&gt; map((f) do .&#123; name = f.name, type = ?(f.type) &#125;)
+        |> map((f) do .{ name = f.name, type = ?(f.type) })
     ruka.record_of(fs)
 end
 
-let User = record &#123;
+let User = record {
     id: i32
     name: string
-&#125;
+}
 let PartialUser = Partial(User)
-// PartialUser ≡ record &#123; id: ?(i32), name: ?(string) &#125;</code></pre>
+// PartialUser ≡ record { id: ?(i32), name: ?(string) }`} />
 	</section>
 
 	<section id="ruka-module">
@@ -919,7 +934,7 @@ let PartialUser = Partial(User)
 
 		<h3>Testing</h3>
 		<p>
-			<code>expect_eq(a, b)</code> returns an result((), string) with .err(msg) if
+			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code> with .err(msg) if
 			<code>a != b</code> otherwise returns .ok(()).
 		</p>
 

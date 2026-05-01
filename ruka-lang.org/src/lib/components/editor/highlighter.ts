@@ -88,7 +88,7 @@ function highlightStrContent(raw: string): string {
 	let i = 0;
 	while (i < raw.length) {
 		if (raw[i] === "$" && raw[i + 1] === "{") {
-			out += span("str", "${");
+			out += span("strc", "${");
 			i += 2;
 			let depth = 1;
 			let inner = "";
@@ -102,7 +102,7 @@ function highlightStrContent(raw: string): string {
 				inner += raw[i++];
 			}
 			out += highlight(inner);
-			out += span("str", "}");
+			out += span("strc", "}");
 			i++;
 		} else {
 			const start = i;

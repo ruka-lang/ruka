@@ -1,8 +1,8 @@
 TODO (Features, Docs and playground)
 - [x] ! Playground editor rewrite should take into account future support for multiple file projects and user projects
 - [x] ! Make sure basic components like buttons and selects and cards and stuff are reusable components
-- [ ] ! `.(...)` for tuple syntax so arrays and tuples don't require explicit annotation or type prefix syntax for inference (see: destructuring example)
-- [ ] Rename __snapshots__ to snapshots
+- [ ] ! `.(...)` for tuple syntax so arrays and tuples don't require explicit annotation or type prefix syntax for inference (see: destructuring example). Updated for docs, interpreter needs change I think
+- [x] Rename __snapshots__ to snapshots
 - [x] Light theme and dark theme support (defaulting to dark)
 - [x] Use lucide-svelte for icons
 - [x] Design custom site styling and colour scheme
