@@ -118,8 +118,8 @@ let {x, y} = origin      // record pattern; identifiers must match record member
 			<thead><tr><th>Prefix</th><th>Meaning</th></tr></thead>
 			<tbody>
 				<tr><td><code>*</code></td><td>Mutable. Bindings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
-				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture, or into the function on call. The original is invalid afterwards.</td></tr>
-				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Movable.</td></tr>
+				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — only into a closure on capture (annotated on bindings), variables pulled into the function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
+				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Movable as a compile error only.</td></tr>
 				<tr><td><code>@</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
