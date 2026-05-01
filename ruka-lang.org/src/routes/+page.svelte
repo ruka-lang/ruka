@@ -11,7 +11,7 @@
 <section class="landing">
 	<header class="hero">
 		<h1 class="hero-title">
-			A small language; fun to write by <em>default</em>.
+			A small language; fun by <em>default</em>.
 		</h1>
 		<p class="hero-lede">
 			Ruka is an opinionated language focused on simplicity and useability, 
