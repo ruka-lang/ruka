@@ -3,12 +3,20 @@
 		value: string;
 		label: string;
 	};
+
+	export type SelectGroup = {
+		label: string;
+		options: SelectOption[];
+	};
 </script>
 
 <script lang="ts">
 	type Props = {
 		value: string;
-		options: SelectOption[];
+		// Either flat options or grouped options (rendered as <optgroup>s).
+		// Pass one or the other; if both are set, `groups` wins.
+		options?: SelectOption[];
+		groups?: SelectGroup[];
 		ariaLabel?: string;
 		disabled?: boolean;
 		onChange?: (value: string) => void;
@@ -17,6 +25,7 @@
 	let {
 		value = $bindable(""),
 		options,
+		groups,
 		ariaLabel,
 		disabled = false,
 		onChange
@@ -36,9 +45,19 @@
 	{disabled}
 	onchange={handleChange}
 >
-	{#each options as option (option.value)}
-		<option value={option.value}>{option.label}</option>
-	{/each}
+	{#if groups}
+		{#each groups as group (group.label)}
+			<optgroup label={group.label}>
+				{#each group.options as option (option.value)}
+					<option value={option.value}>{option.label}</option>
+				{/each}
+			</optgroup>
+		{/each}
+	{:else if options}
+		{#each options as option (option.value)}
+			<option value={option.value}>{option.label}</option>
+		{/each}
+	{/if}
 </select>
 
 <style>

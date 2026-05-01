@@ -14,7 +14,6 @@ When `Ruka` reaches a usable state, the instructions for installing and using th
 
 # Documentation
 - [Read the docs](https://www.ruka-lang.org)
-- [Language Overview](https://www.ruka-lang.org) — Design philosophy, core features, and a quick introduction to the syntax
 - [Language Reference](https://www.ruka-lang.org/reference) — Full reference covering all language features with examples
 - [Language Grammar](https://www.ruka-lang.org/grammar) — EBNF formal grammar describing Ruka syntax
 - [Playground](https://www.ruka-lang.org/playground) — Multi-file editor simulating the planned compiler

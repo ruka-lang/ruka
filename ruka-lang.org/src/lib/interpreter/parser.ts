@@ -245,19 +245,25 @@ export function parse(tokens: Token[]): Program {
 			pos++;
 		}
 
-		// Tuple/record destructuring: let {a, b, ...} = expression
-		if (check("{")) {
-			eat("{");
+		// Destructuring patterns:
+		//   let (a, b, …) = expression  — tuple, positional
+		//   let {x, y, …} = expression  — record, by field name
+		// Both produce a TuplePattern; the runtime and type checker
+		// disambiguate by the value's type.
+		if (check("(") || check("{")) {
+			const open = check("(") ? "(" : "{";
+			const close = open === "(" ? ")" : "}";
+			eat(open);
 			skipNewlines();
 			const destructNames: string[] = [];
-			while (!check("}") && !check("EOF")) {
+			while (!check(close) && !check("EOF")) {
 				destructNames.push(eat("ID").value as string);
 				skipNewlines();
 				if (tryMatch(",")) {
 					skipNewlines();
 				}
 			}
-			eat("}");
+			eat(close);
 			eat("=");
 			skipNewlines();
 			const pattern: TuplePattern = { kind: "TuplePattern", names: destructNames };
@@ -945,7 +951,7 @@ export function parse(tokens: Token[]): Program {
 			return node;
 		}
 
-		// Record or array/tuple literal: .{ ... }
+		// Record or array literal: .{ ... }
 		if (token.kind === "." && tokens[pos + 1] && tokens[pos + 1]!.kind === "{") {
 			const literalLine = token.line; const literalCol = token.col;
 			eat(".");
@@ -973,7 +979,8 @@ export function parse(tokens: Token[]): Program {
 				eat("}");
 				return { kind: "RecordLiteral", fields, line: literalLine, col: literalCol };
 			}
-			// Array/tuple literal: .{a, b, c}
+			// Array literal: .{a, b, c} — element type inferred from elements
+			// or from a type annotation / [T].{} prefix on the surrounding context.
 			const elements: Expression[] = [];
 			while (!check("}") && !check("EOF")) {
 				elements.push(parseExpression());
@@ -985,6 +992,7 @@ export function parse(tokens: Token[]): Program {
 			eat("}");
 			const node: ListLiteral = {
 				kind: "ListLiteral",
+				shape: "array",
 				typePrefix: null,
 				elements,
 				line: literalLine, col: literalCol
@@ -992,7 +1000,32 @@ export function parse(tokens: Token[]): Program {
 			return node;
 		}
 
-		// Type-prefixed collection literal: [int].{2, 3} or [int, string].{1, "hi"}
+		// Tuple literal: .(a, b, c) — each element typed independently.
+		if (token.kind === "." && tokens[pos + 1] && tokens[pos + 1]!.kind === "(") {
+			const literalLine = token.line; const literalCol = token.col;
+			eat(".");
+			eat("(");
+			skipNewlines();
+			const elements: Expression[] = [];
+			while (!check(")") && !check("EOF")) {
+				elements.push(parseExpression());
+				skipNewlines();
+				if (tryMatch(",")) {
+					skipNewlines();
+				}
+			}
+			eat(")");
+			return {
+				kind: "ListLiteral",
+				shape: "tuple",
+				typePrefix: null,
+				elements,
+				line: literalLine, col: literalCol
+			};
+		}
+
+		// Type-prefixed array literal: [int].{2, 3} — always an array since
+		// only `.{}` follows the prefix; tuples are written `.(…)` directly.
 		if (token.kind === "[") {
 			const prefixLine = token.line; const prefixCol = token.col;
 			const prefix = parseType(); // consumes through `]`
@@ -1010,6 +1043,7 @@ export function parse(tokens: Token[]): Program {
 			eat("}");
 			return {
 				kind: "ListLiteral",
+				shape: "array",
 				typePrefix: prefix,
 				elements,
 				line: prefixLine, col: prefixCol

@@ -11,11 +11,12 @@
 <section class="landing">
 	<header class="hero">
 		<h1 class="hero-title">
-			A small language with <em>big</em> inference.
+			A small language; fun to write by <em>default</em>.
 		</h1>
 		<p class="hero-lede">
-			Ruka is strongly and statically typed, with aggressive bidirectional inference.
-			Write what you mean; let the compiler fill in the rest.
+			Ruka is an opinionated language focused on simplicity and useability, 
+			while giving you finer control when desired. Write what you mean; 
+			let the compiler fill in the rest.
 		</p>
 		<div class="hero-actions">
 			<Button variant="primary" href="/playground">Open the playground</Button>

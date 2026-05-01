@@ -32,14 +32,16 @@
 	<h1>Reference</h1>
 	<p>
 		This page is the language specification. It describes the surface syntax,
-		semantics, and the contract every implementation should satisfy. The
-		<a href="/playground">playground</a> runs a TypeScript interpreter that
-		tracks this spec — when the two diverge, the spec wins.
+		semantics, and the contract every implementation should satisfy. This document 
+		serves as the defacto source of truth when it comes to langauge functionality.
 	</p>
 	<p>
-		Ruka is strongly and statically typed with aggressive bidirectional
-		inference. Examples in this document omit type annotations except where
-		the annotation is the point of the example.
+		Ruka is an opinionated, statically typed programming language. Ruka is garbage 
+		collected by default, with modes allowing control over reference lifetimes 
+		and mutability; even allowing stack allocation. Ruka uses aggressive bi-directional
+		type inferrence, only requiring explicit annotations to clear up ambiguity. 
+		Examples in this document omit type annotations except where the annotation 
+		is the point of the example.
 	</p>
 
 	<section id="comments">
@@ -115,8 +117,8 @@ let {x, y} = origin      // record pattern; identifiers must match record member
 			<thead><tr><th>Prefix</th><th>Meaning</th></tr></thead>
 			<tbody>
 				<tr><td><code>*</code></td><td>Mutable. Bindings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
-				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture, or into the function on call. The original is invalid afterwards.</td></tr>
-				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Movable.</td></tr>
+				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — only into a closure on capture (annotated on bindings), variables pulled into the function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
+				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Movable as a compile error only.</td></tr>
 				<tr><td><code>@</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
@@ -162,8 +164,7 @@ let q  = '\\''`} />
 			<code>&#36;&#123;…&#125;</code>. Escapes match the character literal set.
 		</p>
 <CodeBlock code={`let name = "Ruka"
-let s = "hello, \${name}!"
-let nested = "a\${ "b" + c }d"   // braces and inner strings are balanced`} />
+let s = "hello, \${name}!"`} />
 
 		<h3>Multiline strings</h3>
 		<p>

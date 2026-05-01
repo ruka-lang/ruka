@@ -73,6 +73,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                 ],
                 "kind": "ListLiteral",
                 "line": 2,
+                "shape": "array",
                 "typePrefix": {
                   "col": 16,
                   "element": {
@@ -1375,13 +1376,13 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 "col": 22,
                 "elements": [
                   {
-                    "col": 34,
+                    "col": 24,
                     "kind": "Ident",
                     "line": 1,
                     "name": "b",
                   },
                   {
-                    "col": 37,
+                    "col": 27,
                     "kind": "Ident",
                     "line": 1,
                     "name": "a",
@@ -1389,25 +1390,8 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                 ],
                 "kind": "ListLiteral",
                 "line": 1,
-                "typePrefix": {
-                  "col": 22,
-                  "elements": [
-                    {
-                      "col": 23,
-                      "kind": "NamedType",
-                      "line": 1,
-                      "name": "int",
-                    },
-                    {
-                      "col": 28,
-                      "kind": "NamedType",
-                      "line": 1,
-                      "name": "int",
-                    },
-                  ],
-                  "kind": "TupleType",
-                  "line": 1,
-                },
+                "shape": "tuple",
+                "typePrefix": null,
               },
               "kind": "ExpressionStmt",
               "line": 1,
@@ -1494,6 +1478,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                         ],
                         "kind": "ListLiteral",
                         "line": 5,
+                        "shape": "tuple",
                         "typePrefix": null,
                       },
                       "kind": "ExpressionStmt",
@@ -1526,6 +1511,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
                         ],
                         "kind": "ListLiteral",
                         "line": 4,
+                        "shape": "tuple",
                         "typePrefix": null,
                       },
                       "kind": "ExpressionStmt",
@@ -1556,25 +1542,7 @@ exports[`parse: fixture snapshots > destructuring.ruka 1`] = `
           "a",
           "b",
         ],
-        "returnType": {
-          "col": 24,
-          "elements": [
-            {
-              "col": 25,
-              "kind": "NamedType",
-              "line": 3,
-              "name": "int",
-            },
-            {
-              "col": 30,
-              "kind": "NamedType",
-              "line": 3,
-              "name": "int",
-            },
-          ],
-          "kind": "TupleType",
-          "line": 3,
-        },
+        "returnType": null,
       },
     },
     {
@@ -4516,6 +4484,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
                 ],
                 "kind": "ListLiteral",
                 "line": 12,
+                "shape": "array",
                 "typePrefix": {
                   "col": 15,
                   "element": {

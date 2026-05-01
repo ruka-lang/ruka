@@ -1073,36 +1073,64 @@ export function checkTypes(ast: Program): RukaError | null {
 
 			case "ListLiteral": {
 				const prefix = node.typePrefix ? astToType(node.typePrefix) : null;
-				const context: ArrayType | TupleType | null =
-					(prefix as ArrayType | TupleType | null) ??
-					(expected && (expected.kind === "array" || expected.kind === "tuple")
-						? (expected as ArrayType | TupleType)
-						: null);
-				if (context) {
-					if (context.kind === "array") {
-						for (const element of node.elements) {
-							inferExpression(element, context.element, env);
-						}
-						return conform(expected, context, node.line, node.col);
-					}
-					if (context.kind === "tuple") {
-						if (node.elements.length !== context.elements.length) {
+
+				if (node.shape === "tuple") {
+					// Tuple literal `.(a, b, …)`. A type prefix is never produced
+					// by the parser for tuples; context only narrows element types.
+					const tupleContext =
+						expected && expected.kind === "tuple" ? (expected as TupleType) : null;
+					if (tupleContext) {
+						if (node.elements.length !== tupleContext.elements.length) {
 							throw typeError(
 								node.line,
 								node.col,
 								`tuple literal has ${node.elements.length} element(s) but type ${typeStr(
-									context
-								)} expects ${context.elements.length}`
+									tupleContext
+								)} expects ${tupleContext.elements.length}`
 							);
 						}
-						node.elements.forEach((element, index) => {
-							inferExpression(element, context.elements[index]!, env);
-						});
-						return conform(expected, context, node.line, node.col);
+						const inferred = node.elements.map((element, index) =>
+							inferExpression(element, tupleContext.elements[index]!, env)
+						);
+						return conform(
+							expected,
+							{ kind: "tuple", elements: inferred },
+							node.line,
+							node.col
+						);
 					}
-					throw typeError(node.line, node.col, `invalid collection type ${typeStr(context)}`);
+					if (node.elements.length === 0) {
+						throw typeError(
+							node.line,
+							node.col,
+							"empty .() needs a type context"
+						);
+					}
+					const inferred = node.elements.map((element) =>
+						inferExpression(element, null, env)
+					);
+					return { kind: "tuple", elements: inferred };
 				}
-				// No context — infer each element, then apply the spec's rule.
+
+				// Array literal `.{a, b, …}`. Element type comes from the prefix,
+				// the expected context, or — failing those — the elements themselves
+				// (which must be homogeneous).
+				const arrayContext =
+					(prefix && prefix.kind === "array" ? (prefix as ArrayType) : null) ??
+					(expected && expected.kind === "array" ? (expected as ArrayType) : null);
+				if (arrayContext) {
+					for (const element of node.elements) {
+						inferExpression(element, arrayContext.element, env);
+					}
+					return conform(expected, arrayContext, node.line, node.col);
+				}
+				if (prefix && prefix.kind !== "array") {
+					throw typeError(
+						node.line,
+						node.col,
+						`array literal cannot have non-array prefix ${typeStr(prefix)}`
+					);
+				}
 				if (node.elements.length === 0) {
 					throw typeError(
 						node.line,
@@ -1113,17 +1141,24 @@ export function checkTypes(ast: Program): RukaError | null {
 				const elementTypes = node.elements.map((element) =>
 					inferExpression(element, null, env)
 				);
-				const allSame = elementTypes.every((t) => typesEqual(t, elementTypes[0]!));
-				if (allSame) {
-					throw typeError(
-						node.line,
-						node.col,
-						`homogeneous .{…} is ambiguous — add an annotation ([${typeStr(
-							elementTypes[0]!
-						)}]) or use the [${typeStr(elementTypes[0]!)}].{…} prefix`
-					);
+				const first = elementTypes[0]!;
+				for (let i = 1; i < elementTypes.length; i++) {
+					if (!typesEqual(elementTypes[i]!, first)) {
+						throw typeError(
+							node.line,
+							node.col,
+							`array elements must share a type — got ${typeStr(
+								first
+							)} and ${typeStr(elementTypes[i]!)}`
+						);
+					}
 				}
-				return { kind: "tuple", elements: elementTypes };
+				return conform(
+					expected,
+					{ kind: "array", element: first },
+					node.line,
+					node.col
+				);
 			}
 
 			case "Index": {
