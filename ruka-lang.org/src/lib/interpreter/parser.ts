@@ -290,16 +290,17 @@ export function parse(tokens: Token[]): Program {
 
 		// Destructuring patterns:
 		//   let (a, b, …) = expression  — tuple, positional
-		//   let {x, y, …} = expression  — record, by field name
-		// Both produce a TuplePattern; the runtime and type checker
-		// disambiguate by the value's type.
+		//   let {x, y, …} = expression  — record, by field name (nominal)
 		if (check("(") || check("{")) {
-			const close = check("(") ? ")" : "}";
+			const isRecord = check("{");
+			const close = isRecord ? "}" : ")";
 			pos++;
 			const destructNames = parseDestructureNames(close);
 			eat("=");
 			skipNewlines();
-			const pattern: TuplePattern = { kind: "TuplePattern", names: destructNames };
+			const pattern: LetPattern = isRecord
+				? { kind: "RecordPattern", names: destructNames }
+				: { kind: "TuplePattern", names: destructNames };
 			return {
 				kind: "Binding",
 				local: false,
@@ -499,7 +500,7 @@ export function parse(tokens: Token[]): Program {
 					return {
 						kind: "VariantPattern",
 						tag,
-						binding: { kind: "TuplePattern", names }
+						binding: { kind: "RecordPattern", names }
 					};
 				}
 
@@ -593,7 +594,7 @@ export function parse(tokens: Token[]): Program {
 		}
 		let elseArm: Block | null = null;
 		if (tryMatch("else")) {
-			skipNewlines();
+			tryMatch("do"); // `do` after `else` is optional, matching if/else
 			const elseBody = parseDoBody();
 			if (elseBody.multiline) {
 				eat("end");
@@ -621,24 +622,27 @@ export function parse(tokens: Token[]): Program {
 		// Allow `else` on a new line regardless of single/multi-line then.
 		skipNewlines();
 		let elseBranch: Block | Expression | null = null;
-		let elseMultiline = false;
+		// Tracks whether the *terminating* branch of the chain is multi-line —
+		// that's the only thing that decides whether a trailing `end` is required.
+		// Middle branches (else-if then-bodies) terminate at the next `else`,
+		// so their multilineness doesn't impose an `end`.
+		let terminalMultiline = thenMultiline;
 		if (tryMatch("else")) {
 			if (check("if")) {
 				const innerIf = parseIf(true);
 				elseBranch = innerIf;
-				elseMultiline = !!(innerIf as If)._multiline;
+				terminalMultiline = !!(innerIf as If)._multiline;
 			} else {
 				tryMatch("do"); // `do` after `else` is optional
 				const parsedElse = parseDoBody();
 				elseBranch = parsedElse.node;
-				elseMultiline = parsedElse.multiline;
+				terminalMultiline = parsedElse.multiline;
 			}
 		}
 
-		const multiline = thenMultiline || elseMultiline;
 		if (!inChain) {
 			skipNewlines();
-			if (multiline) {
+			if (terminalMultiline) {
 				eat("end");
 			}
 			// Single-line if expressions never carry an explicit `end` —
@@ -651,7 +655,7 @@ export function parse(tokens: Token[]): Program {
 			elseBranch,
 			line: ifToken.line,
 			col: ifToken.col,
-			_multiline: multiline
+			_multiline: terminalMultiline
 		};
 	}
 

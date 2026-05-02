@@ -1,0 +1,11 @@
+// expect: no tag '.purple'
+let Color = variant { red, green, blue }
+
+let main = () do
+	let c: Color = .red
+	match c with
+		red    do "r"
+		purple do "?"
+		else      "x"
+	end
+end

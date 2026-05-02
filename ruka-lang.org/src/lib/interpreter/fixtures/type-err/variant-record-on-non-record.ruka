@@ -1,0 +1,9 @@
+// expect: not a record
+let Box = variant { wrap: int }
+
+let main = () do
+	let b: Box = .wrap(7)
+	match b with
+		wrap({a, b}) do "x"
+	end
+end

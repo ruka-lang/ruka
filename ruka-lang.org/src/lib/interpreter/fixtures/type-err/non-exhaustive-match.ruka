@@ -1,0 +1,10 @@
+// expect: non-exhaustive match
+let Color = variant { red, green, blue }
+
+let main = () do
+	let c: Color = .red
+	match c with
+		red   do "r"
+		green do "g"
+	end
+end

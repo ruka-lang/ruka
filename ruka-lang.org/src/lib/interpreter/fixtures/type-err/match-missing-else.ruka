@@ -1,0 +1,8 @@
+// expect: non-exhaustive match
+let main = () do
+	let n: int = 3
+	match n with
+		1 do "one"
+		2 do "two"
+	end
+end

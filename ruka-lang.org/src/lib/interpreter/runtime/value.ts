@@ -39,6 +39,7 @@ export type RecordValue = {
 
 export type VariantValue = {
 	kind: "variant";
+	typeName: string | null;
 	tag: string;
 	payload: Value;
 };
@@ -196,9 +197,9 @@ export function display(value: Value): string {
 		return "<variant>";
 	}
 	if (isVariant(value)) {
-		return (
-			"." + value.tag + (value.payload !== null ? "(" + display(value.payload) + ")" : "")
-		);
+		const prefix = value.typeName ?? "";
+		const payload = value.payload !== null ? "(" + display(value.payload) + ")" : "";
+		return prefix + "." + value.tag + payload;
 	}
 	if (isRecordType(value)) {
 		return "<record>";
@@ -207,7 +208,8 @@ export function display(value: Value): string {
 		const parts = Object.keys(value.fields).map(
 			(name) => name + " = " + display(value.fields[name])
 		);
-		return ".{ " + parts.join(", ") + " }";
+		const prefix = value.typeName ?? "";
+		return prefix + ".{ " + parts.join(", ") + " }";
 	}
 	if (isModule(value)) {
 		return "<module>";

@@ -45,7 +45,7 @@ export function checkScope(
 		if (statement.kind === "Binding" && !statement.receiver) {
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topLevel.set(statement.pattern.name, statement.mode === "*");
-			} else if (statement.pattern.kind === "TuplePattern") {
+			} else {
 				for (const name of statement.pattern.names) {
 					topLevel.set(name, statement.mode === "*");
 				}
@@ -89,7 +89,7 @@ function checkStatement(node: Statement, scope: Scope, ctx: ModuleCtx): void {
 			}
 			if (node.pattern.kind === "IdentifierPattern") {
 				scope.set(node.pattern.name, node.mode === "*");
-			} else if (node.pattern.kind === "TuplePattern") {
+			} else {
 				for (const name of node.pattern.names) {
 					scope.set(name, node.mode === "*");
 				}
@@ -347,7 +347,7 @@ function checkExpression(
 				if (arm.pattern.kind === "VariantPattern" && arm.pattern.binding) {
 					if (arm.pattern.binding.kind === "BindingPattern") {
 						armScope.set(arm.pattern.binding.name, false);
-					} else if (arm.pattern.binding.kind === "TuplePattern") {
+					} else {
 						for (const name of arm.pattern.binding.names) {
 							armScope.set(name, false);
 						}

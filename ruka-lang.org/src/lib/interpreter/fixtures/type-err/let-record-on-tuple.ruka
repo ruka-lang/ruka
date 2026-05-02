@@ -1,0 +1,6 @@
+// expect: record destructure expects a record value
+let pair = () do .(1, 2)
+
+let main = () do
+	let { a, b } = pair()
+end

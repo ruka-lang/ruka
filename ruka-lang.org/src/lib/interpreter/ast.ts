@@ -15,17 +15,23 @@ export type TypeExpr =
 // Used on the left-hand side of `let`:
 export type LetPattern =
 	| { kind: "IdentifierPattern"; name: string }
-	| { kind: "TuplePattern"; names: string[] };
+	| { kind: "TuplePattern"; names: string[] }
+	| { kind: "RecordPattern"; names: string[] };
 
 // Used in `match` arms:
 export type MatchPattern =
-	| { kind: "VariantPattern"; tag: string; binding: BindingPattern | TuplePattern | null }
+	| {
+			kind: "VariantPattern";
+			tag: string;
+			binding: BindingPattern | TuplePattern | RecordPattern | null;
+	  }
 	| { kind: "RangePattern"; low: Expression; high: Expression; inclusive: boolean }
 	| { kind: "LiteralPattern"; expression: Expression }
 	| { kind: "GuardPattern"; expression: Expression };
 
 export type BindingPattern = { kind: "BindingPattern"; name: string };
 export type TuplePattern = { kind: "TuplePattern"; names: string[] };
+export type RecordPattern = { kind: "RecordPattern"; names: string[] };
 
 // ── Receivers (method/static syntax sugar) ───────────────────────────────
 // `resolvedTypeName` is filled in by the type checker once the receiver's
@@ -287,6 +293,8 @@ export type VariantConstructor = {
 	payload: Expression | null;
 	line: number;
 	col: number;
+	/** Set by the type checker once the owning variant type is resolved. */
+	resolvedTypeName?: string;
 };
 
 export type RecordLiteralField = {

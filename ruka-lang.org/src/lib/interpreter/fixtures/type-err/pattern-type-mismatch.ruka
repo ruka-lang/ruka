@@ -1,0 +1,8 @@
+// expect: type mismatch
+let main = () do
+	let n: int = 3
+	match n with
+		"hi" do "string"
+		else    "other"
+	end
+end

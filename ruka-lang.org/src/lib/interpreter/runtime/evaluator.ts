@@ -215,25 +215,20 @@ function* evalBinding(
 		}
 		envSet(env, node.pattern.name, value);
 		env.mut[node.pattern.name] = node.mode === "*";
-	} else {
-		// Records destructure by field name; tuples and arrays use positional
-		// indexing.
-		if (isRecord(value)) {
-			for (const name of node.pattern.names) {
-				envSet(env, name, name in value.fields ? value.fields[name] : null);
-				env.mut[name] = node.mode === "*";
-			}
-		} else if (Array.isArray(value)) {
-			node.pattern.names.forEach((name, index) => {
-				envSet(env, name, index < value.length ? value[index] : null);
-				env.mut[name] = node.mode === "*";
-			});
-		} else {
-			for (const name of node.pattern.names) {
-				envSet(env, name, null);
-				env.mut[name] = node.mode === "*";
-			}
+	} else if (node.pattern.kind === "RecordPattern") {
+		// Type checker has guaranteed `value` is a record with these fields.
+		const fields = (value as { fields: Record<string, Value> }).fields;
+		for (const name of node.pattern.names) {
+			envSet(env, name, fields[name] ?? null);
+			env.mut[name] = node.mode === "*";
 		}
+	} else {
+		// TuplePattern — type checker has guaranteed array shape and arity.
+		const tuple = value as Value[];
+		node.pattern.names.forEach((name, index) => {
+			envSet(env, name, tuple[index] ?? null);
+			env.mut[name] = node.mode === "*";
+		});
 	}
 	return value;
 }
@@ -318,7 +313,12 @@ function* evalExpression(
 
 		case "VariantConstructor": {
 			const payload = node.payload ? yield* evalExpression(node.payload, env) : null;
-			return { kind: "variant", tag: node.tag, payload };
+			return {
+				kind: "variant",
+				typeName: node.resolvedTypeName ?? null,
+				tag: node.tag,
+				payload
+			};
 		}
 
 		case "RecordLiteral": {
@@ -609,13 +609,19 @@ function* evalMember(
 		if (isVariantType(object)) {
 			const tag = object.tags.find((candidate) => candidate.name === node.property);
 			if (tag) {
+				const typeName = object.name;
 				if (!tag.hasPayload) {
-					return { kind: "variant", tag: node.property, payload: null };
+					return { kind: "variant", typeName, tag: node.property, payload: null };
 				}
 				const tagName = node.property;
 				return {
 					kind: "fn",
-					host: (args) => ({ kind: "variant", tag: tagName, payload: args[0] })
+					host: (args) => ({
+						kind: "variant",
+						typeName,
+						tag: tagName,
+						payload: args[0]
+					})
 				};
 			}
 			if (node.property in object.statics) {
@@ -815,7 +821,9 @@ function* evalMatch(
 		if (node.elseArm !== null) {
 			return yield* evalBlock(node.elseArm, env);
 		}
-		throw new RukaError("match: no arm matched");
+		// Exhaustiveness is enforced by the type checker, so reaching here
+		// would indicate a compiler bug.
+		throw new RukaError("internal: match fell through (compiler bug)");
 	} catch (error) {
 		annotate(error, node.line, node.col);
 		throw error;
@@ -833,26 +841,20 @@ function* matchPattern(
 		}
 		const bindings: { [name: string]: Value } = Object.create(null);
 		if (pattern.binding) {
-			if (pattern.binding.kind === "BindingPattern") {
-				bindings[pattern.binding.name] = subject.payload;
-			} else if (pattern.binding.kind === "TuplePattern") {
-				// Mirror the let-binding destructure: records bind by
-				// field name, tuples / arrays bind positionally. The
-				// parser distinguishes the two source forms (`tag({…})`
-				// vs `tag((…))`) but the runtime trusts the payload's
-				// shape — same dispatch as `let {…} = …` / `let (…) = …`.
-				const payload = subject.payload;
-				if (isRecord(payload)) {
-					for (const name of pattern.binding.names) {
-						bindings[name] = name in payload.fields ? payload.fields[name] : null;
-					}
-				} else if (Array.isArray(payload)) {
-					pattern.binding.names.forEach((name, index) => {
-						bindings[name] = index < payload.length ? payload[index] : null;
-					});
-				} else {
-					for (const name of pattern.binding.names) bindings[name] = null;
+			const binding = pattern.binding;
+			if (binding.kind === "BindingPattern") {
+				bindings[binding.name] = subject.payload;
+			} else if (binding.kind === "RecordPattern") {
+				const payload = subject.payload as { fields: Record<string, Value> };
+				for (const name of binding.names) {
+					bindings[name] = payload.fields[name] ?? null;
 				}
+			} else {
+				// TuplePattern — type checker guarantees tuple/array shape.
+				const payload = subject.payload as Value[];
+				binding.names.forEach((name, index) => {
+					bindings[name] = payload[index] ?? null;
+				});
 			}
 		}
 		return bindings;

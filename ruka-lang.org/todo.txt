@@ -29,12 +29,12 @@ TODO (Features, Docs and playground)
 		- [ ] Method modes (*, &) and mutability / ownership change checks
 		- [ ] Builtin type methods built the same as user type methods (basically builtin and primitive types should be predefined types instead of special cases)
 	- [x] Patterns / Matching / Destructuring
-		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.
+		- [x] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.
 		- [x] Record destructuring only allowing public members (idents must match the member name)
 		- [x] Tuple destructuring
 		- [x] Range matching for integers
-		- [ ] Variant patterns with a payload can currently be implicitly ignored by not providing `(...)`. It should require `(_)` to explicitly ignore payload
-		- [ ] Bug: Patterns not matching expected type should be a compile-error
+		- [x] Variant patterns with a payload can currently be implicitly ignored by not providing `(...)`. It should require `(_)` to explicitly ignore payload
+		- [x] Bug: Patterns not matching expected type should be a compile-error
 	- [ ] Behaviours
 	- [ ] Builtin behaviours
 		- [ ] ruka.iteratable used by for loops (defined by default for relevant builtins and primatives)
@@ -43,17 +43,18 @@ TODO (Features, Docs and playground)
     - [x] Builtin import function for importing other files in the playground
 	- [ ] Builtin function for clearing the terminal
     - [ ] Bugfixes
-        - [ ] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators)
+        - [ ] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators). This is a expression based langauge, expressions should work the same everywhere
         - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int (greedy on first use)
         - [ ] Methods are not callable on rhs values
-        - [ ] Else matches require do for multiline blocks when the else should take the place of the do (like for if expressions)
+        - [x] Else matches require do for multiline blocks when the else should take the place of the do (like for if expressions)
         - [ ] Can't use variant or record type literals for variant payloads or record fields
-        - [ ] Record/Variant prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
-		- [ ] if/else blocks should be mixable between single-line and multi-line within a chain. Currently if one else branch is multi-line the final else can't be `else .none` for example
+        - [x] Record/Variant prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
+		- [x] if/else blocks should be mixable between single-line and multi-line within a chain. Currently if one else branch is multi-line the final else can't be `else .none` for example
 - [ ] Playground functionality
 	- [x] User projects supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
 		- [ ] Terminal resizable
+		- [ ] Bug: Terminal output disappears when uncollapsing the terminal
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
 	- [ ] Line numbers

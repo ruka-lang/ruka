@@ -64,6 +64,50 @@ function isPrivateName(name: string | undefined | null): boolean {
 	return code >= 65 && code <= 90;
 }
 
+// ── Record-pattern helpers ───────────────────────────────────────────────
+/** Resolve a value's CheckedType to a RecordDef (direct or via a NamedType). */
+function resolveRecord(type: CheckedType | null, env: TypeEnv): RecordDef | null {
+	if (!type) return null;
+	if (type.kind === "recordDef") return type;
+	if (type.kind === "named") {
+		const looked = lookupEnv(env, type.name);
+		if (looked && looked.kind === "recordDef") return looked;
+	}
+	return null;
+}
+
+/** Bind each `name` to its field type from `def`, enforcing privacy. */
+function bindRecordFields(
+	names: string[],
+	def: RecordDef,
+	env: TypeEnv,
+	line: number,
+	col: number | undefined
+): void {
+	const fieldByName: Record<string, { name: string; type: CheckedType }> = Object.create(null);
+	for (const field of def.fields) {
+		fieldByName[field.name] = field;
+	}
+	for (const name of names) {
+		const field = fieldByName[name];
+		if (!field) {
+			throw new RukaError(
+				`no field '${name}' on ${def.name ?? "record"}`,
+				line,
+				col
+			);
+		}
+		if (isPrivateName(name) && !envContains(env, def.declEnv)) {
+			throw new RukaError(
+				`field '${name}' is private and cannot be destructured here`,
+				line,
+				col
+			);
+		}
+		env.bindings[name] = field.type;
+	}
+}
+
 // ── Type-error helper ────────────────────────────────────────────────────
 function typeError(
 	line: number,
@@ -466,7 +510,7 @@ export function checkTypes(
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
 				topLevelNames.push(statement.pattern.name);
-			} else if (statement.pattern.kind === "TuplePattern") {
+			} else {
 				for (const name of statement.pattern.names) {
 					topEnv.bindings[name] = UNKNOWN;
 					topLevelNames.push(name);
@@ -668,45 +712,34 @@ export function checkTypes(
 					valueType.declEnv = env;
 				}
 				env.bindings[node.pattern.name] = declared || valueType;
+			} else if (node.pattern.kind === "RecordPattern") {
+				const recordDef = resolveRecord(valueType, env);
+				if (!recordDef) {
+					throw typeError(
+						node.line,
+						node.col,
+						`record destructure expects a record value, got ${typeStr(valueType)}`
+					);
+				}
+				bindRecordFields(node.pattern.names, recordDef, env, node.line, node.col);
 			} else if (node.pattern.kind === "TuplePattern") {
-				// Same `{a, b}` syntax destructures both tuples (positional) and
-				// records (by field name). Distinguish by the value's type.
-				let recordDef: RecordDef | null = null;
-				if (valueType && valueType.kind === "recordDef") {
-					recordDef = valueType;
-				} else if (valueType && valueType.kind === "named") {
-					const looked = lookupEnv(env, valueType.name);
-					if (looked && looked.kind === "recordDef") {
-						recordDef = looked;
-					}
+				if (!valueType || valueType.kind !== "tuple") {
+					throw typeError(
+						node.line,
+						node.col,
+						`tuple destructure expects a tuple value, got ${typeStr(valueType)}`
+					);
 				}
-				if (recordDef) {
-					const fieldByName: Record<string, { name: string; type: CheckedType }> =
-						Object.create(null);
-					for (const field of recordDef.fields) {
-						fieldByName[field.name] = field;
-					}
-					for (const name of node.pattern.names) {
-						const field = fieldByName[name];
-						if (!field) {
-							throw typeError(node.line, node.col, `no field '${name}' on record`);
-						}
-						if (isPrivateName(name) && !envContains(env, recordDef.declEnv)) {
-							throw typeError(
-								node.line,
-								node.col,
-								`field '${name}' is private and cannot be destructured here`
-							);
-						}
-						env.bindings[name] = field.type;
-					}
-				} else {
-					const elementTypes =
-						valueType && valueType.kind === "tuple" ? valueType.elements : [];
-					node.pattern.names.forEach((name, index) => {
-						env.bindings[name] = elementTypes[index] ?? UNKNOWN;
-					});
+				if (valueType.elements.length !== node.pattern.names.length) {
+					throw typeError(
+						node.line,
+						node.col,
+						`tuple destructure arity mismatch: pattern has ${node.pattern.names.length} name(s), value has ${valueType.elements.length}`
+					);
 				}
+				node.pattern.names.forEach((name, index) => {
+					env.bindings[name] = valueType.elements[index]!;
+				});
 			}
 			return;
 		}
@@ -1009,31 +1042,149 @@ export function checkTypes(
 	): Record<string, CheckedType> {
 		const inferred: Record<string, CheckedType> = {};
 		walkExpression(fn.body, (node) => {
-			if (node.kind !== "BinaryOp" || !ARITHMETIC_OPS.has(node.op)) {
-				return;
-			}
-			const pairs: [Expression, Expression][] = [
-				[node.left, node.right],
-				[node.right, node.left]
-			];
-			for (const [lhs, rhs] of pairs) {
-				if (lhs.kind !== "Ident") {
-					continue;
-				}
-				const paramIndex = fn.params.indexOf(lhs.name);
-				if (paramIndex < 0 || paramTypes[paramIndex] || inferred[lhs.name]) {
-					continue;
-				}
-				try {
-					const otherType = inferExpression(rhs, null, fnEnv);
-					if (isNumericKind(otherType.kind)) {
-						inferred[lhs.name] = otherType;
+			if (node.kind === "BinaryOp" && ARITHMETIC_OPS.has(node.op)) {
+				const pairs: [Expression, Expression][] = [
+					[node.left, node.right],
+					[node.right, node.left]
+				];
+				for (const [lhs, rhs] of pairs) {
+					if (lhs.kind !== "Ident") {
+						continue;
 					}
-				} catch {
-					// Inference is best-effort here; ignore failures.
+					const paramIndex = fn.params.indexOf(lhs.name);
+					if (paramIndex < 0 || paramTypes[paramIndex] || inferred[lhs.name]) {
+						continue;
+					}
+					try {
+						const otherType = inferExpression(rhs, null, fnEnv);
+						if (isNumericKind(otherType.kind)) {
+							inferred[lhs.name] = otherType;
+						}
+					} catch {
+						// Inference is best-effort here; ignore failures.
+					}
+				}
+			}
+			// `match <param> with` against numeric range/literal arms tells us
+			// the param is numeric — match arms are the only consumers of
+			// otherwise-untouched numeric-typed parameters in many programs.
+			if (node.kind === "Match" && node.subject.kind === "Ident") {
+				const subjectName = node.subject.name;
+				const paramIndex = fn.params.indexOf(subjectName);
+				if (
+					paramIndex < 0 ||
+					paramTypes[paramIndex] ||
+					inferred[subjectName]
+				) {
+					return;
+				}
+				for (const arm of node.arms) {
+					const probe =
+						arm.pattern.kind === "RangePattern"
+							? arm.pattern.low
+							: arm.pattern.kind === "LiteralPattern"
+								? arm.pattern.expression
+								: null;
+					if (!probe) {
+						continue;
+					}
+					try {
+						const probedType = inferExpression(probe, null, fnEnv);
+						if (isNumericKind(probedType.kind)) {
+							inferred[subjectName] = probedType;
+							break;
+						}
+					} catch {
+						// best-effort
+					}
 				}
 			}
 		});
+		return inferred;
+	}
+
+	/**
+	 * Pass 3: for each still-unknown param used as the subject of a `match`
+	 * with variant patterns, find the unique variant in scope whose tags
+	 * cover every pattern tag used. Mirrors the record-inference shape.
+	 */
+	function inferParamVariantTypes(
+		fn: FunctionExpr,
+		paramTypes: (CheckedType | null)[],
+		fnEnv: TypeEnv
+	): Record<string, CheckedType> {
+		const tagUsages: Record<string, Set<string>> = {};
+		fn.params.forEach((paramName, index) => {
+			if (!paramTypes[index]) {
+				tagUsages[paramName] = new Set();
+			}
+		});
+		if (Object.keys(tagUsages).length === 0) {
+			return {};
+		}
+
+		walkExpression(fn.body, (node) => {
+			if (node.kind !== "Match" || node.subject.kind !== "Ident") {
+				return;
+			}
+			const subjectName = node.subject.name;
+			const usage = tagUsages[subjectName];
+			if (!usage) {
+				return;
+			}
+			for (const arm of node.arms) {
+				if (arm.pattern.kind === "VariantPattern") {
+					usage.add(arm.pattern.tag);
+				}
+			}
+		});
+
+		const inferred: Record<string, CheckedType> = {};
+		for (const paramName of Object.keys(tagUsages)) {
+			const tags = tagUsages[paramName]!;
+			if (tags.size === 0) {
+				continue;
+			}
+			const seen = new Set<string>();
+			const candidates: { name: string; def: VariantDef }[] = [];
+			let scan: TypeEnv | null = fnEnv;
+			while (scan) {
+				for (const [name, binding] of Object.entries(scan.bindings)) {
+					if (seen.has(name)) {
+						continue;
+					}
+					seen.add(name);
+					if (binding && binding.kind === "variantDef") {
+						const definedTags = binding.tags.map((tag) => tag.name);
+						if (Array.from(tags).every((tag) => definedTags.includes(tag))) {
+							candidates.push({ name, def: binding });
+						}
+					}
+				}
+				scan = scan.parent;
+			}
+			if (candidates.length === 1) {
+				inferred[paramName] = { kind: "named", name: candidates[0]!.name };
+			} else if (candidates.length > 1) {
+				throw typeError(
+					fn.line,
+					fn.col,
+					`parameter '${paramName}' is ambiguous: could be ${candidates
+						.map((c) => c.name)
+						.join(", ")}; add a type annotation`,
+					true
+				);
+			} else {
+				throw typeError(
+					fn.line,
+					fn.col,
+					`parameter '${paramName}': no variant in scope has tags {${Array.from(tags)
+						.map((t) => `.${t}`)
+						.join(", ")}}; add a type annotation`,
+					true
+				);
+			}
+		}
 		return inferred;
 	}
 
@@ -1340,6 +1491,13 @@ export function checkTypes(
 							fnEnv.bindings[paramName] = numericInferred[paramName]!;
 						}
 					});
+					const variantInferred = inferParamVariantTypes(node, paramTypes, fnEnv);
+					node.params.forEach((paramName, index) => {
+						if (!paramTypes[index] && variantInferred[paramName]) {
+							paramTypes[index] = variantInferred[paramName]!;
+							fnEnv.bindings[paramName] = variantInferred[paramName]!;
+						}
+					});
 				}
 
 				const declaredReturn = astToType(node.returnType);
@@ -1508,6 +1666,7 @@ export function checkTypes(
 				if (node.payload) {
 					inferExpression(node.payload, tagDefinition.type, env);
 				}
+				node.resolvedTypeName = definitionName!;
 				return conform(
 					expected,
 					{ kind: "named", name: definitionName! },
@@ -1517,29 +1676,148 @@ export function checkTypes(
 			}
 
 			case "Match": {
-				inferExpression(node.subject, null, env);
+				const subjectType = inferExpression(node.subject, null, env);
+
+				// A statically-typed match needs a known subject type to
+				// validate patterns and prove exhaustiveness. If we got here
+				// with `unknown` it means inference (annotations, record/
+				// numeric/variant param passes) failed to pin it down.
+				if (subjectType.kind === "unknown") {
+					throw typeError(
+						node.line,
+						node.col,
+						"cannot match on a value of unknown type; add a type annotation",
+						true
+					);
+				}
+
+				// Resolve a variant subject to its definition so we can
+				// validate tags and check exhaustiveness. Named types are
+				// looked up in the env; primitives/records/etc. yield null.
+				let variantDef: VariantDef | null = null;
+				let variantName: string | null = null;
+				if (subjectType.kind === "variantDef") {
+					variantDef = subjectType;
+					variantName = subjectType.name ?? "<variant>";
+				} else if (subjectType.kind === "named") {
+					const looked = lookupEnv(env, subjectType.name);
+					if (looked && looked.kind === "variantDef") {
+						variantDef = looked;
+						variantName = subjectType.name;
+					}
+				}
+
+				// `expected` for literal/range patterns: use the subject type
+				// when known so a wrong-type literal (e.g. `"a"` matching an
+				// int subject) is rejected by `conform`. Skip for variant
+				// subjects — variant constructors are validated explicitly.
+				const patternExpected: CheckedType | null = variantDef ? null : subjectType;
+
+				const coveredTags = new Set<string>();
 				let matchType: CheckedType = UNKNOWN;
 				for (const arm of node.arms) {
 					const armEnv = extendEnv(env);
-					if (arm.pattern.kind === "VariantPattern" && arm.pattern.binding) {
-						if (arm.pattern.binding.kind === "BindingPattern") {
-							armEnv.bindings[arm.pattern.binding.name] = UNKNOWN;
-						}
-						if (arm.pattern.binding.kind === "TuplePattern") {
-							for (const name of arm.pattern.binding.names) {
-								armEnv.bindings[name] = UNKNOWN;
+					if (arm.pattern.kind === "VariantPattern") {
+						const variantPattern = arm.pattern;
+						if (variantDef) {
+							const tagDef = variantDef.tags.find(
+								(tag) => tag.name === variantPattern.tag
+							);
+							if (!tagDef) {
+								throw typeError(
+									node.line,
+									node.col,
+									`no tag '.${variantPattern.tag}' in ${variantName}`
+								);
 							}
+							if (variantPattern.binding && !tagDef.type) {
+								throw typeError(
+									node.line,
+									node.col,
+									`tag '.${variantPattern.tag}' has no payload to bind`
+								);
+							}
+							if (!variantPattern.binding && tagDef.type) {
+								throw typeError(
+									node.line,
+									node.col,
+									`tag '.${variantPattern.tag}' has a payload; use '${variantPattern.tag}(_)' to ignore it`
+								);
+							}
+							coveredTags.add(variantPattern.tag);
+							if (variantPattern.binding) {
+								const payloadType = tagDef.type ?? UNKNOWN;
+								const binding = variantPattern.binding;
+								if (binding.kind === "BindingPattern") {
+									armEnv.bindings[binding.name] = payloadType;
+								} else if (binding.kind === "RecordPattern") {
+									const recordDef = resolveRecord(payloadType, env);
+									if (!recordDef) {
+										throw typeError(
+											node.line,
+											node.col,
+											`tag '.${variantPattern.tag}' payload is ${typeStr(payloadType)}, not a record`
+										);
+									}
+									bindRecordFields(
+										binding.names,
+										recordDef,
+										armEnv,
+										node.line,
+										node.col
+									);
+								} else {
+									// TuplePattern
+									if (payloadType.kind !== "tuple") {
+										throw typeError(
+											node.line,
+											node.col,
+											`tag '.${variantPattern.tag}' payload is ${typeStr(payloadType)}, not a tuple`
+										);
+									}
+									if (payloadType.elements.length !== binding.names.length) {
+										throw typeError(
+											node.line,
+											node.col,
+											`tuple destructure arity mismatch on '.${variantPattern.tag}': pattern has ${binding.names.length} name(s), payload has ${payloadType.elements.length}`
+										);
+									}
+									binding.names.forEach((name, index) => {
+										armEnv.bindings[name] = payloadType.elements[index]!;
+									});
+								}
+							}
+						} else {
+							throw typeError(
+								node.line,
+								node.col,
+								`pattern '.${variantPattern.tag}' cannot match non-variant ${typeStr(subjectType)}`
+							);
 						}
 					}
 					if (arm.pattern.kind === "GuardPattern") {
 						inferExpression(arm.pattern.expression, { kind: "bool" }, env);
 					}
 					if (arm.pattern.kind === "LiteralPattern") {
-						inferExpression(arm.pattern.expression, null, env);
+						if (variantDef) {
+							throw typeError(
+								node.line,
+								node.col,
+								`literal pattern cannot match variant ${variantName}`
+							);
+						}
+						inferExpression(arm.pattern.expression, patternExpected, env);
 					}
 					if (arm.pattern.kind === "RangePattern") {
-						inferExpression(arm.pattern.low, null, env);
-						inferExpression(arm.pattern.high, null, env);
+						if (variantDef) {
+							throw typeError(
+								node.line,
+								node.col,
+								`range pattern cannot match variant ${variantName}`
+							);
+						}
+						inferExpression(arm.pattern.low, patternExpected, env);
+						inferExpression(arm.pattern.high, patternExpected, env);
 					}
 					const armBodyType = inferExpression(arm.body, expected, armEnv);
 					if (matchType.kind === "unknown") {
@@ -1548,6 +1826,25 @@ export function checkTypes(
 				}
 				if (node.elseArm) {
 					inferExpression(node.elseArm, expected ?? matchType, env);
+				} else if (variantDef) {
+					const missing = variantDef.tags
+						.filter((tag) => !coveredTags.has(tag.name))
+						.map((tag) => `.${tag.name}`);
+					if (missing.length > 0) {
+						throw typeError(
+							node.line,
+							node.col,
+							`non-exhaustive match on ${variantName}: missing ${missing.join(", ")}`
+						);
+					}
+				} else {
+					// Non-variant subjects (ints, strings, …) can't be
+					// enumerated, so an else arm is required.
+					throw typeError(
+						node.line,
+						node.col,
+						`non-exhaustive match on ${typeStr(subjectType)}: add an 'else' arm`
+					);
 				}
 				return conform(expected, matchType, node.line, node.col);
 			}

@@ -87,7 +87,7 @@ describe("parse: bindings", () => {
 	it("destructuring let { a, b } = expression", () => {
 		expect(firstStatement("let {a, b} = pair")).toMatchObject({
 			kind: "Binding",
-			pattern: { kind: "TuplePattern", names: ["a", "b"] }
+			pattern: { kind: "RecordPattern", names: ["a", "b"] }
 		});
 	});
 
@@ -132,6 +132,20 @@ describe("parse: control flow", () => {
 		expect(node.kind).toBe("If");
 		// outer.elseBranch is another If (the chain)
 		expect((node as { elseBranch: { kind: string } }).elseBranch.kind).toBe("If");
+	});
+
+	it("if chain mixes multi-line middle branches with a single-line terminator", () => {
+		// The terminating else is single-line, so no trailing `end` is required
+		// even though an earlier else-if's then-body spans multiple lines.
+		const src = [
+			"if a do 1",
+			"else if b do",
+			"    2",
+			"    3",
+			"else .none"
+		].join("\n");
+		const node = expressionOf(src);
+		expect(node.kind).toBe("If");
 	});
 
 	it("ternary `a if cond else b` desugars to If", () => {
@@ -183,6 +197,25 @@ describe("parse: match", () => {
 			"GuardPattern"
 		]);
 		expect(matchNode.elseArm).not.toBeNull();
+	});
+
+	it("match else accepts a multi-line block without `do`", () => {
+		const src = [
+			"match x with",
+			"    a do 1",
+			"else",
+			"    let y = 2",
+			"    y",
+			"end",
+			"end"
+		].join("\n");
+		const matchNode = expressionOf(src) as {
+			kind: "Match";
+			elseArm: { kind: "Block"; body: unknown[] } | null;
+		};
+		expect(matchNode.kind).toBe("Match");
+		expect(matchNode.elseArm).not.toBeNull();
+		expect(matchNode.elseArm!.body.length).toBe(2);
 	});
 
 	it("range pattern in match", () => {
