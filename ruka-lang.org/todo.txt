@@ -47,6 +47,7 @@ TODO (Features, Docs and playground)
         - [ ] Else matches require do for multiline blocks when the else take the place of the do (like for if expressions)
         - [ ] Can't use variant or record type literals for variant payloads or record fields
         - [ ] Record/Variant prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
+		- [ ] if/else blocks should be mixable between single-line and multi-line within a chain. Currently if one else branch is multi-line the final else can't be `else .none` for example
 - [ ] Playground functionality
 	- [ ] User projects supporting multiple files, saved with indexedDB
 		- [ ] Vertical file tree sidebar
