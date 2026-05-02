@@ -7,12 +7,12 @@
 // stored project so future shape changes can migrate per-record without
 // needing a coordinated DB-version bump.
 
-import type { Project, ProjectFile, ProjectFolder } from "./project";
+import { defaultOrder, type Project, type ProjectFile, type ProjectFolder } from "./project";
 
 const DB_NAME = "ruka-playground";
 const DB_VERSION = 1;
 const STORE = "projects";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 export type StoredProject = {
 	id: string;
@@ -21,6 +21,7 @@ export type StoredProject = {
 	files: ProjectFile[];
 	folders: ProjectFolder[];
 	entry: string;
+	order: string[];
 	createdAt: number;
 	updatedAt: number;
 };
@@ -80,6 +81,15 @@ export async function loadProject(id: string): Promise<StoredProject | undefined
 	const result = (await runRequest("readonly", (s) => s.get(id))) as
 		| StoredProject
 		| undefined;
+	if (!result) return result;
+
+	// Records written before `order` shipped don't carry one. Derive it
+	// from the existing files / folders so the file tree has something
+	// to render. The next save bumps schemaVersion.
+	if (!Array.isArray(result.order)) {
+		result.order = defaultOrder(result.files, result.folders);
+		result.schemaVersion = SCHEMA_VERSION;
+	}
 	return result;
 }
 
@@ -113,6 +123,7 @@ export function newStoredProject(name: string, project: Project): StoredProject 
 		files: project.files,
 		folders: project.folders,
 		entry: project.entry,
+		order: project.order,
 		createdAt: now,
 		updatedAt: now
 	};
@@ -124,6 +135,7 @@ export function toProject(stored: StoredProject): Project {
 	return {
 		files: stored.files,
 		folders: stored.folders,
-		entry: stored.entry
+		entry: stored.entry,
+		order: stored.order
 	};
 }

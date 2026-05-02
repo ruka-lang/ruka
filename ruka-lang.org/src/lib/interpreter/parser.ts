@@ -76,6 +76,23 @@ export function parse(tokens: Token[]): Program {
 		}
 	}
 
+	// Read a comma-separated list of identifiers up to `close`. Used by
+	// both the let-binding destructure (`let (a, b) = …`, `let {a, b}
+	// = …`) and the variant-payload destructure (`tag(a, b)`,
+	// `tag({a, b})`). Caller is responsible for having already eaten
+	// the opening bracket.
+	function parseDestructureNames(close: string): string[] {
+		skipNewlines();
+		const names: string[] = [];
+		while (!check(close) && !check("EOF")) {
+			names.push(eat("ID").value as string);
+			skipNewlines();
+			if (tryMatch(",")) skipNewlines();
+		}
+		eat(close);
+		return names;
+	}
+
 	// True when the next non-NL token has the given kind. Used for operators
 	// that should chain across line breaks (e.g. `|>` placed on the next line).
 	function checkPastNewlines(kind: string): boolean {
@@ -277,19 +294,9 @@ export function parse(tokens: Token[]): Program {
 		// Both produce a TuplePattern; the runtime and type checker
 		// disambiguate by the value's type.
 		if (check("(") || check("{")) {
-			const open = check("(") ? "(" : "{";
-			const close = open === "(" ? ")" : "}";
-			eat(open);
-			skipNewlines();
-			const destructNames: string[] = [];
-			while (!check(close) && !check("EOF")) {
-				destructNames.push(eat("ID").value as string);
-				skipNewlines();
-				if (tryMatch(",")) {
-					skipNewlines();
-				}
-			}
-			eat(close);
+			const close = check("(") ? ")" : "}";
+			pos++;
+			const destructNames = parseDestructureNames(close);
 			eat("=");
 			skipNewlines();
 			const pattern: TuplePattern = { kind: "TuplePattern", names: destructNames };
@@ -457,9 +464,14 @@ export function parse(tokens: Token[]): Program {
 	}
 
 	function parsePattern(): MatchPattern {
-		// Variant pattern: tagName | tagName(binding) | tagName({a, b})
-		// Disambiguation: a bare ID before `do`/NL is a variant tag; ID(ID) or
-		// ID({...}) are variant patterns with payload; anything else is a guard.
+		// Variant pattern. A variant tag carries at most one payload,
+		// so destructuring just describes the shape of that one value:
+		//   tag                — unit variant
+		//   tag(name)          — single binding (whole payload → name)
+		//   tag((a, b, …))     — tuple-payload destructure
+		//   tag({a, b, …})     — record-payload destructure
+		// Disambiguation: a bare ID before `do`/NL is a variant tag;
+		// `ID(...)` is a payload pattern; anything else is a guard.
 		if (check("ID")) {
 			const next = tokens[pos + 1];
 			const isBareTag =
@@ -474,13 +486,47 @@ export function parse(tokens: Token[]): Program {
 					lookahead++;
 				}
 				const insideParen = tokens[lookahead];
+
+				// Record-payload destructure: tag({a, b, ...})
+				if (insideParen && insideParen.kind === "{") {
+					const tag = eat("ID").value as string;
+					eat("(");
+					skipNewlines();
+					eat("{");
+					const names = parseDestructureNames("}");
+					skipNewlines();
+					eat(")");
+					return {
+						kind: "VariantPattern",
+						tag,
+						binding: { kind: "TuplePattern", names }
+					};
+				}
+
+				// Tuple-payload destructure: tag((a, b, ...))
+				if (insideParen && insideParen.kind === "(") {
+					const tag = eat("ID").value as string;
+					eat("(");
+					skipNewlines();
+					eat("(");
+					const names = parseDestructureNames(")");
+					skipNewlines();
+					eat(")");
+					return {
+						kind: "VariantPattern",
+						tag,
+						binding: { kind: "TuplePattern", names }
+					};
+				}
+
+				// Single binding: tag(name)
 				if (insideParen && insideParen.kind === "ID") {
 					let afterIdent = lookahead + 1;
 					while (tokens[afterIdent] && tokens[afterIdent]!.kind === "NL") {
 						afterIdent++;
 					}
-					if (tokens[afterIdent] && tokens[afterIdent]!.kind === ")") {
-						// tagName(name) — simple binding
+					const after = tokens[afterIdent];
+					if (after && after.kind === ")") {
 						const tag = eat("ID").value as string;
 						eat("(");
 						skipNewlines();
@@ -492,30 +538,6 @@ export function parse(tokens: Token[]): Program {
 						eat(")");
 						return { kind: "VariantPattern", tag, binding };
 					}
-				}
-				if (insideParen && insideParen.kind === "{") {
-					// tagName({a, b, ...}) — tuple destructuring of payload
-					const tag = eat("ID").value as string;
-					eat("(");
-					skipNewlines();
-					eat("{");
-					skipNewlines();
-					const payloadNames: string[] = [];
-					while (!check("}") && !check("EOF")) {
-						payloadNames.push(eat("ID").value as string);
-						skipNewlines();
-						if (tryMatch(",")) {
-							skipNewlines();
-						}
-					}
-					eat("}");
-					skipNewlines();
-					eat(")");
-					return {
-						kind: "VariantPattern",
-						tag,
-						binding: { kind: "TuplePattern", names: payloadNames }
-					};
 				}
 			}
 		}

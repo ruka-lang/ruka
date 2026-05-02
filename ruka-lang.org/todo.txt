@@ -1,11 +1,9 @@
 TODO (Features, Docs and playground)
 - [ ] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
-	- [ ] ! Needs to be updated for variant match patterns (why doesn't this just use patterns like bindings instead of a custom impl?)
 - [ ] More destructuring functionality
 	- [ ] `if some(x) = var do ...`
 	- [ ] `for some(x) in iter do ...`
 	- [ ] `while some(x) = var do ...`
-- [ ] Entry file located in src folder
 - [ ] More playground language support (in order of importance)
 	- [ ] Bug: can't use types defined in records ie. `let pos: vector.t = .{...}` `let pos = vector.t.{...}`
 	- [x] Modes (Parameter and Binding)
@@ -16,18 +14,18 @@ TODO (Features, Docs and playground)
             - [ ] Builtin functions for converting int types and float types
 		- [ ] & (mov) mode not allowing binding to be used afterward passing / capture
 		- [ ] $ needs some way to simulate stack mode
-		- Pass parameters by reference if not too complicated otherwise just simulate above functionality
+		- Pass parameters by reference for real if not too complicated otherwise just simulate above functionality
     - [ ] Arbitrary width integers not just multiples of 8
 	- [x] Records
 		- [ ] Assignment to fields
-        - [ ] Assign to record fields only if the reciever is mutable and the field is not private or the field is private but the access is from the same scope as the record definition
+        - [ ] Assign to record fields only if the reciever is mutable and the field is not private or the field is private but the access is from the same scope as the record declaration
 	- [x] Variants
 		- [ ] Variant instanciation and parameter inference
-			- For example matching parameter a with red requires the type of a to be a variant with a red member with no payload
+			- For example matching parameter `a` with `red` implies the type of `a` to be a variant with atleast a red member with no payload
 	- [x] Methods and statics including privacy
 		- [ ] Methods defined on types from different scopes can only access public members
 		- [ ] Method modes (*, &) and mutability / ownership change checks
-		- [ ] Builtin type methods built the same as user type methods
+		- [ ] Builtin type methods built the same as user type methods (basically builtin and primitive types should be predefined types instead of special cases)
 	- [x] Patterns / Matching / Destructuring
 		- [ ] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.
 		- [x] Record destructuring only allowing public members (idents must match the member name)
@@ -38,22 +36,21 @@ TODO (Features, Docs and playground)
 		- [ ] ruka.iteratable used by for loops (defined by default for relevant builtins and primatives)
 		- [ ] ruka.printable used by print functions (only builtin types and primatives have this behaviour defined by default)
 		- [ ] operators (allowing operator functionality like +, /, [] to be supported for custom types, defined by default for relevant builtin and primatives)
-    - [ ] Builtin import function for importing other files in the playground
-        - [ ] Mock standard library with function for io operations like clearing the console, getting user input, etc
+    - [x] Builtin import function for importing other files in the playground
+	- [ ] Builtin function for clearing the terminal
     - [ ] Bugfixes
-        - [ ] Can't use match expression as rhs of `+`
-        - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int
+        - [ ] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators)
+        - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int (greedy on first use)
         - [ ] Methods are not callable on rhs values
-        - [ ] Else matches require do for multiline blocks when the else take the place of the do (like for if expressions)
+        - [ ] Else matches require do for multiline blocks when the else should take the place of the do (like for if expressions)
         - [ ] Can't use variant or record type literals for variant payloads or record fields
         - [ ] Record/Variant prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
 		- [ ] if/else blocks should be mixable between single-line and multi-line within a chain. Currently if one else branch is multi-line the final else can't be `else .none` for example
 - [ ] Playground functionality
-	- [ ] User projects supporting multiple files, saved with indexedDB
-		- [ ] Vertical file tree sidebar
+	- [x] User projects supporting multiple files, saved with indexedDB
+		- [x] Vertical file tree sidebar
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
 	- [ ] Line numbers
-	- [ ] Refined playground styling
-	- [ ] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
+	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
 - [ ] Rose-pine attribution footer

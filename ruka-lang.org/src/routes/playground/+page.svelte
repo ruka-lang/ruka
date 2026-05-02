@@ -1,12 +1,21 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
+	import {
+		FilePlus2,
+		PanelRightOpen,
+		Pencil,
+		Play,
+		Save,
+		Trash2
+	} from "lucide-svelte";
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
 	import FileTree, { type TreeAction } from "$lib/components/file-tree/index.svelte";
-	import { Button, Card, Popover, Select, type SelectGroup } from "$lib/components/ui";
+	import { Button, Popover, Select, type SelectGroup } from "$lib/components/ui";
 	import { examples, findExample } from "$lib/playground/examples";
 	import {
 		projectFromExample,
+		emptyProject,
 		updateFileSource,
 		getFile,
 		getEntrySource,
@@ -17,10 +26,10 @@
 		renameFolder,
 		deleteFile,
 		deleteFolder,
-		setEntry,
+		move,
 		pathExists,
-		type Project,
-		type ProjectFile
+		isProtectedPath,
+		type Project
 	} from "$lib/playground/project";
 	import {
 		listProjects,
@@ -44,22 +53,6 @@
 	// from IndexedDB and autosaves on every edit.
 	type Active = { kind: "example"; id: string } | { kind: "project"; id: string };
 
-	const EMPTY_TEMPLATE: ProjectFile[] = [
-		{
-			path: "main.ruka",
-			source: 'let main = () do\n\truka.println("Hello!")\nend\n',
-			kind: "ruka"
-		}
-	];
-
-	function emptyProject(): Project {
-		return {
-			files: EMPTY_TEMPLATE.map((f) => ({ ...f })),
-			folders: [],
-			entry: "main.ruka"
-		};
-	}
-
 	let active: Active = $state({ kind: "example", id: examples[0].id });
 	let userProjects: StoredProject[] = $state([]);
 	let project: Project = $state(projectFromExample(examples[0]));
@@ -72,6 +65,36 @@
 	let running = $state(false);
 	let status: "idle" | "running" | "error" | "ok" = $state("idle");
 	let terminal: Terminal | undefined = $state();
+
+	// Pane layout state. The tree column is drag-resizable via the
+	// vertical gutter between tree and editor; the output column
+	// collapses to a thin vertical rail with a chevron toggle.
+	let treeWidth = $state(220);
+	let outputCollapsed = $state(false);
+	let resizing = false;
+
+	function onResizeStart(event: PointerEvent) {
+		event.preventDefault();
+		resizing = true;
+		(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+		const startX = event.clientX;
+		const startWidth = treeWidth;
+
+		function onMove(e: PointerEvent) {
+			if (!resizing) return;
+			const delta = e.clientX - startX;
+			treeWidth = Math.max(160, Math.min(480, startWidth + delta));
+		}
+
+		function onEnd() {
+			resizing = false;
+			window.removeEventListener("pointermove", onMove);
+			window.removeEventListener("pointerup", onEnd);
+		}
+
+		window.addEventListener("pointermove", onMove);
+		window.addEventListener("pointerup", onEnd);
+	}
 
 	const currentSource = $derived(getFile(project, selectedPath)?.source ?? "");
 
@@ -186,6 +209,7 @@
 			stored.files = project.files;
 			stored.folders = project.folders;
 			stored.entry = project.entry;
+			stored.order = project.order;
 			await saveProject(stored);
 
 			// Refresh the in-memory list so updatedAt-based ordering
@@ -359,14 +383,29 @@
 			return;
 		}
 
-		if (action.kind === "set-entry") {
-			commitProjectMutation(setEntry(project, action.path));
+		if (action.kind === "delete-file") {
+			if (isProtectedPath(action.path)) return;
+			commitProjectMutation(deleteFile(project, action.path));
 			return;
 		}
 
-		if (action.kind === "delete-file") {
-			if (action.path === project.entry) return;
-			commitProjectMutation(deleteFile(project, action.path));
+		if (action.kind === "move") {
+			const before = project;
+			const next = move(project, action.from, action.toParent, action.before);
+			if (next === before) return;
+			commitProjectMutation(next);
+
+			// `move` rewrites descendant paths when crossing folders;
+			// keep the editor pointed at the same file the user was
+			// editing, even if its path just changed.
+			if (selectedPath === action.from || selectedPath.startsWith(action.from + "/")) {
+				const newName =
+					action.toParent === ""
+						? action.from.split("/").pop()!
+						: `${action.toParent}/${action.from.split("/").pop()!}`;
+				const suffix = selectedPath.slice(action.from.length);
+				selectedPath = newName + suffix;
+			}
 			return;
 		}
 
@@ -486,11 +525,8 @@
 			return;
 		}
 
-		// Refuse if the entry file lives under the folder — the user has
-		// to either move/rename the entry or pick a new entry first.
-		const entry = project.entry;
-		if (entry === target || entry.startsWith(target + "/")) {
-			popoverError = "Cannot delete a folder that contains the entry file";
+		if (isProtectedPath(target)) {
+			popoverError = "The src folder can't be deleted";
 			return;
 		}
 
@@ -611,50 +647,86 @@
 				groups={selectGroups}
 				onChange={onSelectFromDropdown}
 			/>
-			<Button variant="ghost" onclick={(e) => openProjectPopover("new", e)}>NEW</Button>
+			<Button variant="ghost" onclick={(e) => openProjectPopover("new", e)}>
+				<FilePlus2 size={14} strokeWidth={1.75} />
+				NEW
+			</Button>
 			{#if active.kind === "example"}
-				<Button variant="ghost" onclick={(e) => openProjectPopover("save-as", e)}
-					>SAVE AS</Button
-				>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("save-as", e)}>
+					<Save size={14} strokeWidth={1.75} />
+					SAVE AS
+				</Button>
 			{:else}
-				<Button variant="ghost" onclick={(e) => openProjectPopover("rename", e)}
-					>RENAME</Button
-				>
-				<Button variant="ghost" onclick={(e) => openProjectPopover("delete", e)}
-					>DELETE</Button
-				>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("rename", e)}>
+					<Pencil size={14} strokeWidth={1.75} />
+					RENAME
+				</Button>
+				<Button variant="ghost" onclick={(e) => openProjectPopover("delete", e)}>
+					<Trash2 size={14} strokeWidth={1.75} />
+					DELETE
+				</Button>
 			{/if}
-			<Button variant="ghost" disabled={!canRun || running} onclick={onRun}>
+			<Button variant="primary" disabled={!canRun || running} onclick={onRun}>
+				<Play size={14} strokeWidth={2} />
 				{running ? "RUNNING" : "RUN"}
 			</Button>
 		</div>
 	</header>
 
-	<div class="workspace">
-		<FileTree
-			files={project.files}
-			folders={project.folders}
-			selected={selectedPath}
-			entry={project.entry}
-			onAction={onTreeAction}
-		/>
-
-		<div class="workspace-main">
-			<Card padded={false}>
-				<Editor
-					value={currentSource}
-					{errorLine}
-					{errorColumn}
-					{errorMessage}
-					onChange={onSourceChange}
-					ariaLabel="Ruka code editor"
-				/>
-			</Card>
-
-			<Card padded={false}>
-				<Terminal bind:this={terminal} {status} maxHeight="20rem" />
-			</Card>
+	<div class="workspace" class:output-collapsed={outputCollapsed}>
+		<div class="pane tree-pane" style="width: {treeWidth}px">
+			<FileTree
+				files={project.files}
+				folders={project.folders}
+				order={project.order}
+				selected={selectedPath}
+				onAction={onTreeAction}
+			/>
 		</div>
+
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div
+			class="resize-gutter"
+			role="separator"
+			aria-orientation="vertical"
+			aria-label="Resize file tree"
+			onpointerdown={onResizeStart}
+		></div>
+
+		<div class="pane editor-pane">
+			<Editor
+				value={currentSource}
+				height="100%"
+				{errorLine}
+				{errorColumn}
+				{errorMessage}
+				onChange={onSourceChange}
+				ariaLabel="Ruka code editor"
+			/>
+		</div>
+
+		{#if outputCollapsed}
+			<button
+				class="output-rail"
+				type="button"
+				onclick={() => (outputCollapsed = false)}
+				aria-label="Expand output panel"
+				title="Expand output"
+			>
+				<PanelRightOpen size={14} strokeWidth={1.75} />
+				<span class="output-rail-label">OUTPUT</span>
+				<span class="output-rail-status" data-status={status} aria-hidden="true"></span>
+			</button>
+		{:else}
+			<div class="pane output-pane">
+				<Terminal
+					bind:this={terminal}
+					{status}
+					maxHeight="none"
+					onCollapse={() => (outputCollapsed = true)}
+				/>
+			</div>
+		{/if}
 	</div>
 </section>
 
@@ -735,53 +807,193 @@
 </Popover>
 
 <style>
+	/* Single bordered shell that fills most of the viewport. The
+	 * playground reads as one connected surface — header on top, three
+	 * panes below — with 1px dividers between sections instead of
+	 * floating cards. */
 	.playground {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		max-width: 1200px;
-		margin: 24px auto;
-		padding: 0 16px;
+		max-width: min(1600px, calc(100vw - 32px));
+		height: calc(100vh - 88px);
+		margin: 16px auto;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		background: var(--bg);
+		overflow: hidden;
 	}
 
-	.workspace {
-		display: grid;
-		grid-template-columns: 220px minmax(0, 1fr);
-		gap: 12px;
-		align-items: start;
-	}
-
-	.workspace-main {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		min-width: 0;
-	}
-
-	/* Below ~720px the sidebar shifts to a stacked panel above the editor.
-	 * Tree nodes still render the same — just the column collapses so the
-	 * editor doesn't get squeezed off-screen. */
-	@media (max-width: 720px) {
-		.workspace {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
 	.playground-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 6px 10px;
+		gap: 12px;
+		padding: 8px 12px;
+		border-bottom: 1px solid var(--border);
 		font-size: 11px;
 		letter-spacing: 0.08em;
+		flex-wrap: wrap;
 	}
 	.playground-label {
 		opacity: 0.7;
 	}
 	.playground-controls {
 		display: flex;
-		gap: 8px;
+		gap: 6px;
 		align-items: center;
 		flex-wrap: wrap;
+	}
+	/* Header buttons — denser than the default Button variant so the
+	 * full action row fits comfortably with icons + labels. */
+	.playground-controls :global(.btn) {
+		gap: 6px;
+		padding: 6px 10px;
+		font-size: var(--fs-xs);
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.workspace {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.pane {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+	}
+
+	.tree-pane {
+		flex: 0 0 auto;
+		border-right: 1px solid var(--border);
+	}
+
+	.editor-pane {
+		flex: 1 1 auto;
+	}
+
+	/* Editor fills its pane — the height: 100% prop on <Editor> sits in
+	 * the prop chain, this rule forces the wrapper to provide the box
+	 * height the editor measures against. */
+	.editor-pane :global(.editor) {
+		flex: 1;
+		min-height: 0;
+		height: 100% !important;
+	}
+
+	.output-pane {
+		flex: 0 0 320px;
+		border-left: 1px solid var(--border);
+	}
+
+	.workspace.output-collapsed .editor-pane {
+		border-right: 1px solid var(--border);
+	}
+
+	/* The resize gutter is a 4px-wide drag handle between tree and
+	 * editor. The visible 1px divider runs through its center; the
+	 * extra 3px of pointer area gives the user something to grab. */
+	.resize-gutter {
+		flex: 0 0 4px;
+		margin-left: -2px;
+		margin-right: -2px;
+		cursor: col-resize;
+		background: transparent;
+		position: relative;
+		z-index: 1;
+	}
+	.resize-gutter:hover {
+		background: var(--accent);
+		opacity: 0.4;
+	}
+
+	/* Vertical "OUTPUT" rail shown when the output pane is collapsed.
+	 * Click anywhere on the rail to expand the pane back. */
+	.output-rail {
+		display: flex;
+		flex: 0 0 28px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		padding: 10px 0;
+		color: var(--fg-muted);
+		background: transparent;
+		border: none;
+		border-left: 1px solid var(--border);
+		font: inherit;
+		font-size: 10px;
+		letter-spacing: 0.12em;
+		cursor: pointer;
+	}
+	.output-rail:hover {
+		color: var(--fg);
+		background: var(--bg-elevated);
+	}
+	.output-rail-label {
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		text-transform: uppercase;
+	}
+	.output-rail-status {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: transparent;
+	}
+	.output-rail-status[data-status="running"] {
+		background: var(--accent);
+	}
+	.output-rail-status[data-status="ok"] {
+		background: #4ade80;
+	}
+	.output-rail-status[data-status="error"] {
+		background: var(--danger);
+	}
+
+	/* Mobile: stack the panes vertically. The output rail is hidden
+	 * since horizontal collapsing doesn't apply when columns become
+	 * rows; the user can scroll past the editor to see output. */
+	@media (max-width: 720px) {
+		.playground {
+			height: auto;
+			min-height: calc(100vh - 88px);
+		}
+		.workspace {
+			flex-direction: column;
+		}
+		.tree-pane {
+			width: auto !important;
+			max-height: 200px;
+			border-right: none;
+			border-bottom: 1px solid var(--border);
+		}
+		.resize-gutter {
+			display: none;
+		}
+		.editor-pane {
+			min-height: 50vh;
+		}
+		.output-pane {
+			flex: 0 0 auto;
+			max-height: 240px;
+			border-left: none;
+			border-top: 1px solid var(--border);
+		}
+		.output-rail {
+			flex-direction: row;
+			width: 100%;
+			height: 28px;
+			border-left: none;
+			border-top: 1px solid var(--border);
+		}
+		.output-rail-label {
+			writing-mode: horizontal-tb;
+			transform: none;
+		}
 	}
 
 	.popover-label {

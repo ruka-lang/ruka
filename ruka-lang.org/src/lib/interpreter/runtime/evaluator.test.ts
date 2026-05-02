@@ -162,6 +162,60 @@ describe("evaluator — basics", () => {
 	});
 });
 
+describe("evaluator — variant payload destructure", () => {
+	it("binds the whole payload with tag(name)", () => {
+		const source = `let Hit = variant {
+\tcritical: int,
+\tmiss
+}
+let main = () do
+\tlet hit = .critical(42)
+\tmatch hit with
+\t\tcritical(dmg) do ruka.println(dmg)
+\t\tmiss          do ruka.println("miss")
+\tend
+end
+`;
+		const { stdout } = drive(source);
+		expect(stdout).toBe("42\n");
+	});
+
+	it("destructures a tuple payload positionally with tag((a, b))", () => {
+		const source = `let Hit = variant {
+\tspread: [int, int],
+\tmiss
+}
+let main = () do
+\tlet hit = .spread(.(7, 9))
+\tmatch hit with
+\t\tspread((lo, hi)) do ruka.println("\${lo}-\${hi}")
+\t\tmiss             do ruka.println("miss")
+\tend
+end
+`;
+		const { stdout } = drive(source);
+		expect(stdout).toBe("7-9\n");
+	});
+
+	it("destructures a record payload by field name with tag({a, b})", () => {
+		const source = `let Damage = record { dmg: int, kind: int }
+let Hit = variant {
+\tcritical: Damage,
+\tmiss
+}
+let main = () do
+\tlet hit = .critical(Damage.{ dmg = 12, kind = 1 })
+\tmatch hit with
+\t\tcritical({dmg, kind}) do ruka.println("\${dmg}/\${kind}")
+\t\tmiss                  do ruka.println("miss")
+\tend
+end
+`;
+		const { stdout } = drive(source);
+		expect(stdout).toBe("12/1\n");
+	});
+});
+
 function driveProject(
 	files: Record<string, string>,
 	entry: string

@@ -836,10 +836,23 @@ function* matchPattern(
 			if (pattern.binding.kind === "BindingPattern") {
 				bindings[pattern.binding.name] = subject.payload;
 			} else if (pattern.binding.kind === "TuplePattern") {
+				// Mirror the let-binding destructure: records bind by
+				// field name, tuples / arrays bind positionally. The
+				// parser distinguishes the two source forms (`tag({…})`
+				// vs `tag((…))`) but the runtime trusts the payload's
+				// shape — same dispatch as `let {…} = …` / `let (…) = …`.
 				const payload = subject.payload;
-				pattern.binding.names.forEach((name, index) => {
-					bindings[name] = Array.isArray(payload) ? payload[index] : payload;
-				});
+				if (isRecord(payload)) {
+					for (const name of pattern.binding.names) {
+						bindings[name] = name in payload.fields ? payload.fields[name] : null;
+					}
+				} else if (Array.isArray(payload)) {
+					pattern.binding.names.forEach((name, index) => {
+						bindings[name] = index < payload.length ? payload[index] : null;
+					});
+				} else {
+					for (const name of pattern.binding.names) bindings[name] = null;
+				}
 			}
 		}
 		return bindings;

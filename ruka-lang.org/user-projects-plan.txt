@@ -81,13 +81,112 @@ Phase 4 — `ruka.import` builtin  [DONE]
   whenever a project has an entry, so imports are live as you type.
 
 
-Phase 5 — Polish  [TODO]
--------------------------
-- Export / import a project as JSON (and maybe zip) for sharing.
-- "Reset to original" for example-derived projects (diff against the
-  bundled fixture).
-- URL-encoded share links for tiny single-file snippets — separate
-  path from full projects.
+Phase 5 — Fixed entry at src/main.ruka  [DONE]
+-----------------------------------------------
+Drop the user-selectable entry concept entirely. Every project's entry
+is `src/main.ruka`, period. Simplifies the mental model and removes a
+class of footguns (entry inside a deleted folder, renaming the entry
+file, etc.). Not deployed yet — no migration needed; existing local
+IndexedDB records can be wiped.
+
+- Project schema: drop the `entry` field (or keep as a derived
+  constant). New empty template = single file at `src/main.ruka` with
+  the existing scaffold; `src/` is an explicit entry in `folders`,
+  not just an ancestor derived from file paths. All driver/runtime
+  call sites pass `"src/main.ruka"` as the entry.
+- Examples: each bundled example is wrapped as `src/main.ruka` with
+  `folders` containing `"src"`. `projectFromExample` builds this
+  shape directly. Multi-file examples (if any get added later) keep
+  all their `.ruka` files under `src/`.
+- The explicit `src/` mirrors how a real Ruka project will look once
+  the compiler ships: source under `src/`, top-level files like
+  `README.txt` (or other notes) live alongside it at the project
+  root. The playground supports `.txt` files at the root for exactly
+  this — a project README that documents the program without being
+  part of the compilation unit.
+- `ruka.import(...)` paths remain relative to the importing module's
+  directory, so imports inside `src/` work the same as today.
+- Remove `setEntry` from project.ts and the "set as entry" tree
+  action. `deleteFile` / `renameFile` refuse to delete or rename
+  `src/main.ruka`; same for `deleteFolder` / `renameFolder` against
+  `src/`.
+- FileTree: drop the entry badge / set-entry button. Protections come
+  from the mutation refusals above.
+- Tests: update existing fixtures to the new shape.
+
+Files: src/lib/playground/project.ts, project.test.ts, storage.ts,
+src/lib/components/file-tree/index.svelte,
+src/routes/playground/+page.svelte
+
+
+Phase 6 — Drag-and-drop reordering  [DONE]
+-------------------------------------------
+Native HTML5 drag-and-drop on the file tree. Two reorder primitives:
+
+1. Move a file or folder into a different folder (drop onto a folder
+   node). Path rewrites cascade like `renameFolder`.
+2. Reorder siblings within the same parent (drop between two nodes).
+   Order is determined by an explicit per-record sort key — the
+   project shape is keyed by paths, not arrays-of-arrays.
+
+- Project schema: add `order: string[]` — a canonical list of all
+  paths (files and folders) in display order. Mutation helpers
+  maintain it: `addFile`/`addFolder` append within the parent's run;
+  `renameFile`/`renameFolder` rewrite entries in place;
+  `deleteFile`/`deleteFolder` remove. New helpers:
+  `moveFile(project, from, toParent)`, `moveFolder(project, from,
+  toParent)` (rejects cycles where the destination is inside the
+  source), `reorderSiblings(project, parent, orderedChildren)`.
+- FileTree consumes `order` to sort siblings (folders and files
+  intermixed). Renders draggable nodes, shows a drop indicator (line
+  between siblings, ring around a folder for "into") on `dragover`.
+  Refuses drops that:
+    - target the same path,
+    - would move `src/` or `src/main.ruka`,
+    - would create a path collision,
+    - would put a folder inside its own descendant.
+- Persisted: order changes go through `commitProjectMutation`, so
+  autosave handles them.
+- Migration: stored projects without `order` get one derived
+  alphabetically; bump schemaVersion.
+- Tests: move into folder, move out to root, reorder siblings, cycle
+  rejection, `src/` protection, collision rejection.
+
+Files: src/lib/playground/project.ts, project.test.ts, storage.ts,
+src/lib/components/file-tree/index.svelte
+
+
+Phase 7 — Connected three-pane layout  [DONE]
+----------------------------------------------
+Replace the floating-cards-with-gaps look with a single bordered shell
+that fills the viewport. Three columns: file tree (left), editor
+(middle), output (right). Output is collapsible. Layout takes most of
+the page width and height.
+
+- Page chrome: drop the centered `max-width: 1200px` container in
+  favor of a near-full-width frame (`max-width: min(1600px, 100vw -
+  32px)`, `height: calc(100vh - <site-header> - 32px)`). The whole
+  playground lives in one card with internal dividers, no inter-pane
+  gaps.
+- Pane structure:
+    [ header bar (project select + actions) ]
+    [ tree | editor | output ]
+  Tree ~220px (drag-resizable). Editor: flex. Output: ~320px default,
+  collapsible to a vertical "OUTPUT" rail that toggles it back open.
+- Borders: single 1px border around the shell; 1px dividers between
+  panes. Inner panes drop their own card borders so the surface reads
+  as one frame, not three floating boxes.
+- Output pane: terminal stretches to fill the column. Status pill +
+  collapse button live in a small pane header.
+- Mobile (< 720px): stack tree → editor → output, output collapsed by
+  default; column toggles become a top tab strip.
+- Keep all existing interactions intact (popovers, autosave, run).
+- Use lucide-svelte icons in the playground for buttons and things like that
+
+Files: src/routes/playground/+page.svelte,
+src/lib/components/terminal/index.svelte (header + collapse hook),
+src/lib/components/editor/index.svelte (drop redundant border),
+src/lib/components/ui/card.svelte (borderless variant if needed).
 
 
 Open follow-ups
