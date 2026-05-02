@@ -10,6 +10,13 @@ export type { InterpPart } from "./interpolator";
 export { checkScope } from "./check/scope";
 export { checkTypes } from "./check/types";
 export {
+	checkProject,
+	createProjectContext,
+	loadModuleAst,
+	resolveImportPath
+} from "./project";
+export type { ProjectContext, ProjectSources } from "./project";
+export {
 	astToType,
 	typeStr,
 	typesEqual,
@@ -23,6 +30,7 @@ export {
 } from "./check/type";
 export { run } from "./runtime/evaluator";
 export type { Run } from "./runtime/evaluator";
+export type { RuntimeProject } from "./runtime/env";
 export type { RuntimeEvent } from "./runtime/events";
 export type { Value } from "./runtime/value";
 export type {

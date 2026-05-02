@@ -59,16 +59,26 @@ src/lib/components/file-tree/index.svelte,
 src/routes/playground/+page.svelte
 
 
-Phase 4 — `import` builtin  [TODO]
------------------------------------
-- `import("./other.ruka")` resolved relative to the entry file against
-  the project's in-memory file map.
-- Parse + scope-check + type-check the imported module; cache by path.
-- Returns the module's exported (lowercase) bindings as a record-like
-  value.
-- Cycle detection at the project level; cache invalidated when any
-  module's source changes.
-- Mostly interpreter work (parser builtin, evaluator module loader).
+Phase 4 — `ruka.import` builtin  [DONE]
+----------------------------------------
+- `ruka.import("util.ruka")` is a special form recognised in the scope
+  checker, type checker, and evaluator. Path is project-relative against
+  the importing module's directory; bare names work, `./` and `../`
+  segments resolve as expected, absolute paths and root escapes are
+  rejected.
+- Privacy by case: only lowercase top-level bindings end up in the
+  imported module's exported member set (`ModuleType.members` /
+  `ModuleValue.members`).
+- Cycle detection in both type checker and evaluator. Diagnostics carry
+  a `path` field; the playground prefixes cross-module errors with
+  `in {path}: …`.
+- New `src/lib/interpreter/project.ts`: ProjectContext, path resolver,
+  parsed-AST cache, `checkProject(sources, entry)` orchestrator.
+- `checkScope` and `checkTypes` accept optional `(ctx, path)` and behave
+  unchanged in single-file mode. `run` accepts optional
+  `(RuntimeProject, entry)` and caches `ModuleValue` per path.
+- Driver: `checkProjectSource` and `runProject`. Playground calls them
+  whenever a project has an entry, so imports are live as you type.
 
 
 Phase 5 — Polish  [TODO]

@@ -32,7 +32,12 @@
 		toProject,
 		type StoredProject
 	} from "$lib/playground/storage";
-	import { checkSource, runSource } from "$lib/playground/driver";
+	import {
+		checkSource,
+		checkProjectSource,
+		runSource,
+		runProject
+	} from "$lib/playground/driver";
 
 	// Active source of the working project. `example` reads from the
 	// bundled examples list and is never persisted; `project` is loaded
@@ -131,17 +136,34 @@
 				return;
 			}
 
-			const result = checkSource(next);
+			// Check the whole project from the entry so `ruka.import(...)`
+			// resolves across files. `checkSource` is kept as a fallback for
+			// the (rare) case where the project has no entry registered.
+			const result = project.entry
+				? checkProjectSource(project)
+				: checkSource(next);
+
 			if (result.ok) {
 				errorLine = null;
 				errorColumn = null;
 				errorMessage = null;
 				canRun = true;
-			} else {
+				return;
+			}
+
+			canRun = false;
+			const errorPath = "path" in result ? result.path : undefined;
+			// Inline line/col decoration only when the error lives in the
+			// file the user is editing. Cross-module errors get a
+			// path-prefixed message without highlighting a wrong line.
+			if (!errorPath || errorPath === selectedPath) {
 				errorLine = result.line ?? null;
 				errorColumn = result.col ?? null;
 				errorMessage = result.message;
-				canRun = false;
+			} else {
+				errorLine = null;
+				errorColumn = null;
+				errorMessage = `in ${errorPath}: ${result.message}`;
 			}
 		}, 300);
 	}
@@ -544,11 +566,17 @@
 		status = "running";
 		terminal.clear();
 
-		const result = await runSource(getEntrySource(project), {
-			onStdout: (text) => terminal?.write(text),
-			onStderr: (text) => terminal?.writeErr(text),
+		const hooks = {
+			onStdout: (text: string) => terminal?.write(text),
+			onStderr: (text: string) => terminal?.writeErr(text),
 			requestInput: () => terminal?.requestInput() ?? Promise.resolve("")
-		});
+		};
+		// Use the project-aware runner whenever we have a real entry so
+		// `ruka.import(...)` can resolve across files. `runSource` stays as
+		// the fallback for the (unreachable) no-entry case.
+		const result = project.entry
+			? await runProject(project, hooks)
+			: await runSource(getEntrySource(project), hooks);
 
 		if (result.ok) {
 			status = "ok";

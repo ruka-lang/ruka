@@ -10,18 +10,26 @@
 
 import type {
 	Block,
+	Call,
 	Expression,
 	FunctionExpr,
 	Ident,
 	Member,
 	Program,
 	Receiver,
-	Statement
+	Statement,
+	StringLiteral
 } from "../ast";
 import { RukaError } from "../diagnostics";
 import { splitInterp } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
+import {
+	loadModuleAst,
+	resolveImportPath,
+	type ProjectContext
+} from "../project";
+import { isRukaImportCall } from "./scope";
 import {
 	astToType,
 	envContains,
@@ -386,8 +394,20 @@ const ARITHMETIC_OPS = new Set(["+", "-", "*", "/", "%", "**"]);
 /**
  * Walk the AST inferring and checking types.
  * Returns the first violation, or null if the program type-checks.
+ *
+ * When `ctx` is supplied, `ruka.import("./other.ruka")` calls resolve
+ * against the project's source map and contribute a `ModuleType` to
+ * `ctx.moduleTypes` for each successfully checked module.
  */
-export function checkTypes(ast: Program): RukaError | null {
+export function checkTypes(
+	ast: Program,
+	ctx?: ProjectContext,
+	path?: string
+): RukaError | null {
+	const modulePath = path ?? "";
+	if (ctx) {
+		ctx.visitingTypes.add(modulePath);
+	}
 	const numericFn1: FunctionType = {
 		kind: "fn",
 		params: [{ kind: "float" }],
@@ -439,14 +459,17 @@ export function checkTypes(ast: Program): RukaError | null {
 	// Hoist top-level names — annotated bindings get precise types; others are
 	// unknown until the second pass refines them. Receiver bindings are attached
 	// to their target type later, not bound by their bare name.
+	const topLevelNames: string[] = [];
 	for (const statement of ast.body) {
 		if (statement.kind === "Binding" && !statement.receiver) {
 			const hoisted = astToType(statement.type) ?? UNKNOWN;
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
+				topLevelNames.push(statement.pattern.name);
 			} else if (statement.pattern.kind === "TuplePattern") {
 				for (const name of statement.pattern.names) {
 					topEnv.bindings[name] = UNKNOWN;
+					topLevelNames.push(name);
 				}
 			}
 		}
@@ -460,12 +483,26 @@ export function checkTypes(ast: Program): RukaError | null {
 		for (const statement of ast.body) {
 			checkStatement(statement, topEnv);
 		}
+		if (ctx) {
+			// Build the module's public-export type from its top-level
+			// bindings. Privacy is by case: lowercase = public.
+			const members: Record<string, CheckedType> = Object.create(null);
+			for (const name of topLevelNames) {
+				if (isPrivateName(name)) continue;
+				const type = topEnv.bindings[name];
+				if (type) members[name] = type;
+			}
+			ctx.moduleTypes.set(modulePath, { kind: "module", members });
+		}
 		return null;
 	} catch (error) {
 		if (error instanceof RukaError) {
+			if (ctx && !error.path) error.path = modulePath;
 			return error;
 		}
 		throw error;
+	} finally {
+		if (ctx) ctx.visitingTypes.delete(modulePath);
 	}
 
 	// ── Self-field collection (for self-method type inference) ───────────
@@ -541,6 +578,76 @@ export function checkTypes(ast: Program): RukaError | null {
 			return { name: annotated.name, def: definition };
 		}
 		return null; // caller handles inference
+	}
+
+	// ── ruka.import resolution ──────────────────────────────────────────
+	function resolveImport(node: Call): ModuleType {
+		if (!ctx) {
+			throw typeError(
+				node.line,
+				node.col,
+				"ruka.import(...) is only available when checking a project"
+			);
+		}
+
+		if (node.args.length !== 1 || node.args[0]!.kind !== "StringLiteral") {
+			throw typeError(
+				node.line,
+				node.col,
+				"ruka.import(...) takes a single string literal path"
+			);
+		}
+
+		const raw = (node.args[0] as StringLiteral).raw;
+		if (raw.includes("${")) {
+			throw typeError(
+				node.line,
+				node.col,
+				"import path must be a plain string literal (no interpolation)"
+			);
+		}
+
+		const resolved = resolveImportPath(modulePath, raw);
+		if (resolved === null) {
+			throw typeError(node.line, node.col, `invalid import path: ${raw}`);
+		}
+		if (!resolved.endsWith(".ruka")) {
+			throw typeError(
+				node.line,
+				node.col,
+				`only .ruka files can be imported (got ${resolved})`
+			);
+		}
+		if (!ctx.sources.has(resolved)) {
+			throw typeError(node.line, node.col, `module not found: ${resolved}`);
+		}
+
+		const cached = ctx.moduleTypes.get(resolved);
+		if (cached) return cached;
+
+		if (ctx.visitingTypes.has(resolved)) {
+			throw typeError(
+				node.line,
+				node.col,
+				`cyclic import: ${modulePath} → ${resolved}`
+			);
+		}
+
+		const importedAst = loadModuleAst(ctx, resolved);
+		const error = checkTypes(importedAst, ctx, resolved);
+		if (error) throw error;
+
+		const built = ctx.moduleTypes.get(resolved);
+		if (!built) {
+			// Should be unreachable — checkTypes registers the module type
+			// on success, and we propagated the error otherwise.
+			throw typeError(
+				node.line,
+				node.col,
+				`internal: module type missing for ${resolved}`
+			);
+		}
+		return built;
 	}
 
 	// ── Statement checker ───────────────────────────────────────────────
@@ -1182,6 +1289,10 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 
 			case "Call": {
+				if (isRukaImportCall(node)) {
+					const moduleType = resolveImport(node);
+					return conform(expected, moduleType, node.line, node.col);
+				}
 				const calleeType = inferExpression(node.callee, null, env);
 				if (calleeType.kind === "fn") {
 					const params = calleeType.params;

@@ -21,8 +21,21 @@ import { splitInterp, unescText } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
 import { isBuiltinEnvelope, makeRukaModule } from "./builtins";
-import { envGet, envHas, envSet, envUpdate, makeEnv, type RuntimeEnv } from "./env";
+import {
+	envGet,
+	envHas,
+	envModulePath,
+	envProject,
+	envSet,
+	envUpdate,
+	makeEnv,
+	type RuntimeEnv,
+	type RuntimeProject
+} from "./env";
 import { ControlSignal, type RuntimeEvent } from "./events";
+import { isRukaImportCall } from "../check/scope";
+import { resolveImportPath } from "../project";
+import type { ModuleValue } from "./value";
 import {
 	display,
 	isChar,
@@ -41,13 +54,17 @@ import {
 
 export type Run = Generator<RuntimeEvent, void, string>;
 
-export function run(ast: Program): Run {
-	return runImpl(ast);
+export function run(ast: Program, project?: RuntimeProject, entry?: string): Run {
+	return runImpl(ast, project, entry);
 }
 
-function* runImpl(ast: Program): Run {
+function* runImpl(ast: Program, project?: RuntimeProject, entry?: string): Run {
 	const globalEnv = makeEnv(null);
 	envSet(globalEnv, "ruka", makeRukaModule());
+	if (project) {
+		globalEnv.project = project;
+		globalEnv.modulePath = entry ?? "";
+	}
 
 	for (const stmt of ast.body) {
 		yield* evalStatement(stmt, globalEnv);
@@ -57,6 +74,58 @@ function* runImpl(ast: Program): Run {
 	const mainValue = envHas(globalEnv, "main") ? envGet(globalEnv, "main") : null;
 	if (mainBinding && !mainBinding.local && isFn(mainValue)) {
 		yield* callFn(mainValue, [], mainBinding.line, mainBinding.col, globalEnv);
+	}
+}
+
+// Privacy by case: lowercase first character = public. Used to filter the
+// imported module's top-level bindings into its exported member set.
+function isPublicName(name: string): boolean {
+	const code = name.charCodeAt(0);
+	return !(code >= 65 && code <= 90);
+}
+
+function* loadModuleValue(
+	project: RuntimeProject,
+	path: string,
+	line: number,
+	col: number | undefined
+): Generator<RuntimeEvent, ModuleValue, string> {
+	const cached = project.moduleValues.get(path);
+	if (cached) return cached;
+
+	if (project.visiting.has(path)) {
+		throw new RukaError("cyclic import: " + path, line, col);
+	}
+
+	const source = project.sources.get(path);
+	if (source === undefined) {
+		throw new RukaError("module not found: " + path, line, col);
+	}
+
+	project.visiting.add(path);
+	try {
+		const ast = parse(tokenize(source));
+		const moduleEnv = makeEnv(null);
+		envSet(moduleEnv, "ruka", makeRukaModule());
+		moduleEnv.project = project;
+		moduleEnv.modulePath = path;
+
+		for (const stmt of ast.body) {
+			yield* evalStatement(stmt, moduleEnv);
+		}
+
+		const members: { [name: string]: import("./value").Value } = Object.create(null);
+		for (const name of Object.keys(moduleEnv.vars)) {
+			if (name === "ruka") continue;
+			if (!isPublicName(name)) continue;
+			members[name] = moduleEnv.vars[name];
+		}
+
+		const moduleValue: ModuleValue = { kind: "module", members };
+		project.moduleValues.set(path, moduleValue);
+		return moduleValue;
+	} finally {
+		project.visiting.delete(path);
 	}
 }
 
@@ -438,6 +507,36 @@ function* evalCall(
 	env: RuntimeEnv
 ): Generator<RuntimeEvent, Value, string> {
 	try {
+		if (isRukaImportCall(node)) {
+			const project = envProject(env);
+			if (!project) {
+				throw new RukaError(
+					"ruka.import(...) requires a project context",
+					node.line,
+					node.col
+				);
+			}
+			// Type-check has already validated that the argument is a string
+			// literal; assert here for runtime safety.
+			const arg = node.args[0];
+			if (!arg || arg.kind !== "StringLiteral") {
+				throw new RukaError(
+					"ruka.import(...) takes a single string literal path",
+					node.line,
+					node.col
+				);
+			}
+			const resolved = resolveImportPath(envModulePath(env), arg.raw);
+			if (resolved === null) {
+				throw new RukaError(
+					"invalid import path: " + arg.raw,
+					node.line,
+					node.col
+				);
+			}
+			return yield* loadModuleValue(project, resolved, node.line, node.col);
+		}
+
 		const callee = yield* evalExpression(node.callee, env);
 		const args: Value[] = [];
 		for (const arg of node.args) {

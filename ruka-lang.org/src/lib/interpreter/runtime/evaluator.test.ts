@@ -6,8 +6,10 @@ import { parseSource } from "../parser";
 import { checkScope } from "../check/scope";
 import { checkTypes } from "../check/types";
 import { RukaError } from "../diagnostics";
+import { checkProject } from "../project";
 import { run } from "./evaluator";
 import type { RuntimeEvent } from "./events";
+import type { RuntimeProject } from "./env";
 
 const fixturesDir = join(__dirname, "..", "fixtures");
 
@@ -157,5 +159,96 @@ describe("evaluator — basics", () => {
 			return;
 		}
 		throw new Error("expected RukaError");
+	});
+});
+
+function driveProject(
+	files: Record<string, string>,
+	entry: string
+): { stdout: string; stderr: string } {
+	const sources = new Map(Object.entries(files));
+	const checkError = checkProject(sources, entry);
+	if (checkError) throw checkError;
+
+	const ast = parseSource(files[entry]!);
+	const project: RuntimeProject = {
+		sources,
+		moduleValues: new Map(),
+		visiting: new Set()
+	};
+
+	let stdout = "";
+	let stderr = "";
+	const generator = run(ast, project, entry);
+	let next = generator.next();
+	while (!next.done) {
+		const event: RuntimeEvent = next.value;
+		if (event.kind === "stdout") {
+			stdout += event.text;
+			next = generator.next();
+		} else if (event.kind === "stderr") {
+			stderr += event.text;
+			next = generator.next();
+		} else {
+			next = generator.next("");
+		}
+	}
+	return { stdout, stderr };
+}
+
+describe("evaluator — ruka.import", () => {
+	it("calls a function exported from another module", () => {
+		const { stdout } = driveProject(
+			{
+				"main.ruka": [
+					'let util = ruka.import("util.ruka")',
+					"let main = () do",
+					"\truka.println(util.greet())",
+					"end"
+				].join("\n"),
+				"util.ruka": ['let greet = () do "hello" end'].join("\n")
+			},
+			"main.ruka"
+		);
+		expect(stdout).toBe("hello\n");
+	});
+
+	it("caches imported modules across repeated imports", () => {
+		const { stdout } = driveProject(
+			{
+				"main.ruka": [
+					'let a = ruka.import("util.ruka")',
+					'let b = ruka.import("util.ruka")',
+					"let main = () do",
+					"\truka.println(a.value)",
+					"\truka.println(b.value)",
+					"end"
+				].join("\n"),
+				// Top-level side effect runs exactly once if the module is
+				// cached on first import.
+				"util.ruka": [
+					'let _greet = ruka.println("loaded")',
+					"let value = 42"
+				].join("\n")
+			},
+			"main.ruka"
+		);
+		expect(stdout).toBe("loaded\n42\n42\n");
+	});
+
+	it("resolves nested directory imports", () => {
+		const { stdout } = driveProject(
+			{
+				"main.ruka": [
+					'let m = ruka.import("lib/math.ruka")',
+					"let main = () do",
+					"\truka.println(m.answer)",
+					"end"
+				].join("\n"),
+				"lib/math.ruka": ["let answer = 7"].join("\n")
+			},
+			"main.ruka"
+		);
+		expect(stdout).toBe("7\n");
 	});
 });
