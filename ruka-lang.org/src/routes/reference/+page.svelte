@@ -1076,13 +1076,14 @@ let PartialUser = Partial(User)
 			<thead><tr><th>Member</th><th>Purpose</th></tr></thead>
 			<tbody>
 				<tr
-					><td><code>print(...)</code></td><td
-						>Write each argument's <code>format</code> to stdout, no separator, no newline.</td
+					><td><code>print(printable)</code></td><td
+						>Write an argument implementing <code>ruka.printable</code> to stdout, 
+                        no newline.</td
 					></tr
 				>
 				<tr
-					><td><code>println(...)</code></td><td
-						>Like <code>print</code>, joins with spaces, appends a newline.</td
+					><td><code>println(printable)</code></td><td
+						>Like <code>print</code>, appends a newline.</td
 					></tr
 				>
 				<tr
@@ -1103,8 +1104,7 @@ let PartialUser = Partial(User)
 
 		<h3>Testing</h3>
 		<p>
-			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code> with .err(msg) if
-			<code>a != b</code> otherwise returns .ok(()).
+			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code>.
 		</p>
 
 		<h3>Modules</h3>
