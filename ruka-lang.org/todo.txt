@@ -54,4 +54,5 @@ TODO (Features, Docs and playground)
         - [ ] do is only autoclosed with end if pressing enter right after it
 	- [ ] Line numbers
 	- [ ] Refined playground styling
+	- [ ] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
 - [ ] Rose-pine attribution footer
