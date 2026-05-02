@@ -1087,8 +1087,13 @@ let PartialUser = Partial(User)
 					></tr
 				>
 				<tr
-					><td><code>read()</code> / <code>readln()</code></td><td
-						>Read a line of input from stdin and return it as a <code>string</code>.</td
+					><td><code>readln()</code> / <code>readln()</code></td><td
+						>Read a single line of input from stdin and return it as a <code>string</code>.</td
+					></tr
+				>
+				<tr
+					><td><code>read()</code></td><td
+						>Like <code>readln()</code> but continues until user terminates with a ctrl-d.</td
 					></tr
 				>
 			</tbody>
