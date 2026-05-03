@@ -1,0 +1,6 @@
+// expect: arity mismatch
+let triple = () do .(1, 2, 3)
+
+let main = () do
+	let (a, b) = triple()
+end

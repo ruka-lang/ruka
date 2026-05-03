@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { PanelRightClose } from "lucide-svelte";
+
 	type Stream = "stdout" | "stderr";
 	type Segment = { stream: Stream; text: string };
 
@@ -9,15 +11,21 @@
 		emptyMessage?: string;
 		ariaLabel?: string;
 		// Cap on the terminal's height. The body scrolls on overflow so long
-		// program output doesn't push the page layout around.
+		// program output doesn't push the page layout around. Pass `none` to
+		// let the terminal fill its container instead.
 		maxHeight?: string;
+		// When set, a collapse chevron is rendered in the header — clicking
+		// it calls this callback. Used by the playground to toggle the
+		// output pane closed.
+		onCollapse?: () => void;
 	};
 
 	let {
 		status = $bindable("idle"),
 		emptyMessage = "(no output)",
 		ariaLabel = "Program output",
-		maxHeight = "24rem"
+		maxHeight = "24rem",
+		onCollapse
 	}: Props = $props();
 
 	let segments: Segment[] = $state([]);
@@ -88,8 +96,26 @@
 	const isEmpty = $derived(segments.length === 0 && !prompting);
 </script>
 
-<div class="terminal" data-status={status} style="max-height: {maxHeight}">
-	<div class="terminal-header">OUTPUT</div>
+<div
+	class="terminal"
+	data-status={status}
+	style={maxHeight === "none" ? "" : `max-height: ${maxHeight}`}
+>
+	<div class="terminal-header">
+		<span class="terminal-header-label">OUTPUT</span>
+		<span class="terminal-status" data-status={status} aria-hidden="true"></span>
+		{#if onCollapse}
+			<button
+				class="terminal-collapse"
+				type="button"
+				onclick={onCollapse}
+				aria-label="Collapse output panel"
+				title="Collapse output"
+			>
+				<PanelRightClose size={14} strokeWidth={1.75} />
+			</button>
+		{/if}
+	</div>
 	<div class="terminal-body" bind:this={scroller} aria-label={ariaLabel} role="log">
 		{#if isEmpty}
 			<span class="terminal-empty">{emptyMessage}</span>
@@ -119,18 +145,64 @@
 	.terminal {
 		display: flex;
 		flex-direction: column;
+		min-height: 0;
+		height: 100%;
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 13px;
 		line-height: 1.5;
-		min-height: 8rem;
 		/* max-height is set inline from the prop so the body's overflow:auto
 		 * has something to clip against. */
 	}
 	.terminal-header {
-		padding: 4px 10px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 10px;
 		font-size: 11px;
 		letter-spacing: 0.08em;
+		border-bottom: 1px solid var(--border);
+	}
+	.terminal-header-label {
 		opacity: 0.7;
+	}
+	.terminal-status {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: transparent;
+	}
+	.terminal-status[data-status="running"] {
+		background: var(--accent);
+		animation: terminal-pulse 1s ease-in-out infinite;
+	}
+	.terminal-status[data-status="ok"] {
+		background: #4ade80;
+	}
+	.terminal-status[data-status="error"] {
+		background: var(--danger);
+	}
+	@keyframes terminal-pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.3; }
+	}
+	.terminal-collapse {
+		margin-left: auto;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 22px;
+		height: 22px;
+		padding: 0 4px;
+		font: inherit;
+		color: var(--fg-muted);
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	.terminal-collapse:hover {
+		color: var(--fg);
+		border-color: var(--border);
 	}
 	.terminal-body {
 		flex: 1;

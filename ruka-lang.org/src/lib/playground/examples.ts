@@ -53,9 +53,9 @@ function buildExamples(): Example[] {
 	const result: Example[] = [];
 	for (const [id, files] of grouped) {
 		files.sort((a, b) => a.path.localeCompare(b.path));
-		// Prefer `main.ruka` as the entry, fall back to the first file so a
-		// project that uses a different convention still resolves.
-		const entry = files.find((f) => f.path === "main.ruka")?.path ?? files[0]!.path;
+		// Every example has its source under `src/`, with `src/main.ruka`
+		// as the entry point. This mirrors the layout of a real Ruka project.
+		const entry = "src/main.ruka";
 		result.push({ id, label: toLabel(id), entry, files });
 	}
 

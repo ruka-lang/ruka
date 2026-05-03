@@ -8,7 +8,11 @@ import { sveltekit } from "@sveltejs/kit/vite";
 // `snapshots/` instead — the no-underscore form reads better in directory
 // listings and matches the convention picked when the folder was renamed.
 function resolveSnapshotPath(testPath: string, snapExtension: string): string {
-	return path.join(path.dirname(testPath), "snapshots", path.basename(testPath) + snapExtension);
+	return path.join(
+		path.dirname(testPath),
+		"snapshots",
+		path.basename(testPath) + snapExtension
+	);
 }
 
 export default defineConfig({

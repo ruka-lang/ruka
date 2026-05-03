@@ -15,28 +15,42 @@ export type TypeExpr =
 // Used on the left-hand side of `let`:
 export type LetPattern =
 	| { kind: "IdentifierPattern"; name: string }
-	| { kind: "TuplePattern"; names: string[] };
+	| { kind: "TuplePattern"; names: string[] }
+	| { kind: "RecordPattern"; names: string[] };
 
 // Used in `match` arms:
 export type MatchPattern =
-	| { kind: "VariantPattern"; tag: string; binding: BindingPattern | TuplePattern | null }
+	| {
+			kind: "VariantPattern";
+			tag: string;
+			binding: BindingPattern | TuplePattern | RecordPattern | null;
+	  }
 	| { kind: "RangePattern"; low: Expression; high: Expression; inclusive: boolean }
 	| { kind: "LiteralPattern"; expression: Expression }
 	| { kind: "GuardPattern"; expression: Expression };
 
 export type BindingPattern = { kind: "BindingPattern"; name: string };
 export type TuplePattern = { kind: "TuplePattern"; names: string[] };
+export type RecordPattern = { kind: "RecordPattern"; names: string[] };
 
 // ── Receivers (method/static syntax sugar) ───────────────────────────────
 // `resolvedTypeName` is filled in by the type checker once the receiver's
 // target type is known; the evaluator reads it to attach the method/static
 // to the right value at runtime.
 export type Receiver =
-	| { kind: "self"; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
+	| { kind: "self"; mode: "*" | "&" | "$" | "@" | null; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
 	| { kind: "static"; typeName: string; resolvedTypeName?: string };
 
 // ── Statements ────────────────────────────────────────────────────────────
-export type Statement = Binding | Assign | Break | Continue | Return | For | ExpressionStmt;
+export type Statement =
+	| Binding
+	| Assign
+	| ComplexAssign
+	| Break
+	| Continue
+	| Return
+	| For
+	| ExpressionStmt;
 
 export type Binding = {
 	kind: "Binding";
@@ -54,6 +68,15 @@ export type Binding = {
 export type Assign = {
 	kind: "Assign";
 	name: string;
+	value: Expression;
+	line: number;
+	col: number;
+};
+
+// Assignment to a member or index lvalue: `target.field = val`, `target[i] = val`.
+export type ComplexAssign = {
+	kind: "ComplexAssign";
+	target: Member | Index;
 	value: Expression;
 	line: number;
 	col: number;
@@ -81,6 +104,8 @@ export type Return = {
 export type For = {
 	kind: "For";
 	name: string | null;
+	// Tuple destructuring pattern: `for (a, b) in iter`. Mutually exclusive with name.
+	tuplePattern: string[] | null;
 	iterable: Expression;
 	body: Statement[];
 	line: number;
@@ -116,7 +141,8 @@ export type Expression =
 	| VariantType
 	| VariantConstructor
 	| RecordLiteral
-	| ListLiteral;
+	| ListLiteral
+	| ArrayComp;
 
 export type Literal = {
 	kind: "Literal";
@@ -280,6 +306,8 @@ export type VariantConstructor = {
 	payload: Expression | null;
 	line: number;
 	col: number;
+	/** Set by the type checker once the owning variant type is resolved. */
+	resolvedTypeName?: string;
 };
 
 export type RecordLiteralField = {
@@ -305,6 +333,19 @@ export type ListLiteral = {
 	shape: "array" | "tuple";
 	typePrefix: TypeExpr | null;
 	elements: Expression[];
+	line: number;
+	col: number;
+};
+
+// Array comprehension: `.{ for x in iter do expr }` or `[T].{ for x in iter do expr }`.
+// Collects the body expression result for each iteration into a new array.
+export type ArrayComp = {
+	kind: "ArrayComp";
+	typePrefix: TypeExpr | null;
+	name: string | null;
+	tuplePattern: string[] | null;
+	iterable: Expression;
+	body: Expression;
 	line: number;
 	col: number;
 };

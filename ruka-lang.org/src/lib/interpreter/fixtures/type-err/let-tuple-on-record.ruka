@@ -1,0 +1,7 @@
+// expect: tuple destructure expects a tuple value
+let Point = record { x: int, y: int }
+
+let main = () do
+	let p: Point = .{ x = 1, y = 2 }
+	let (a, b) = p
+end

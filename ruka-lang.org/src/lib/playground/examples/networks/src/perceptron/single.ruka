@@ -1,0 +1,41 @@
+let t = record {
+	weights: [float],
+	inputs: int,
+	learning: float
+}
+
+let new (t) = (inputs, learning) do .{
+	weights = .{ for 0..inputs do 0.0 },
+	inputs,
+	learning
+}
+
+let train (*self) = (training) do
+	for (input, target) in training do
+		self.Fit(input, target)
+	end
+end
+
+let Fit (*self) = (input, target) do
+	let guess = self.predict(input)	
+	let error = target - guess
+
+	for i in 0..self.inputs do
+		self.weights[i] = 
+			self.weights[i] + 
+			error * 
+			input[i] *
+			self.learning
+	end
+end
+
+let predict (self) = (inputs) do
+	let *sum = 0.0
+	for i in 0..self.weights.len() do
+		sum = sum + inputs[i] * self.weights[i]
+	end
+
+	Sigmoid(sum)
+end
+
+let Sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))

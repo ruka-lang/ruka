@@ -39,7 +39,19 @@ describe("tokenize: edge cases", () => {
 		const toks = tokenize("a\nb\n(c\nd)\ne");
 		const kinds = toks.map((t) => t.kind);
 		// NL between a/b, b/(, ) and e — but not between c and d (inside parens)
-		expect(kinds).toEqual(["ID", "NL", "ID", "NL", "(", "ID", "ID", ")", "NL", "ID", "EOF"]);
+		expect(kinds).toEqual([
+			"ID",
+			"NL",
+			"ID",
+			"NL",
+			"(",
+			"ID",
+			"ID",
+			")",
+			"NL",
+			"ID",
+			"EOF"
+		]);
 	});
 
 	it("distinguishes `..` from a numeric fractional part", () => {
@@ -59,7 +71,12 @@ describe("tokenize: edge cases", () => {
 
 	it("preserves numeric literal text verbatim", () => {
 		const toks = tokenize("2.0 2 0.5 100");
-		expect(toks.filter((t) => t.kind === "NUM").map((t) => t.value)).toEqual(["2.0", "2", "0.5", "100"]);
+		expect(toks.filter((t) => t.kind === "NUM").map((t) => t.value)).toEqual([
+			"2.0",
+			"2",
+			"0.5",
+			"100"
+		]);
 	});
 
 	it("keeps ${...} verbatim inside strings, including nested strings", () => {

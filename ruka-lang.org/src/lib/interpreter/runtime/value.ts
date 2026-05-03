@@ -39,6 +39,7 @@ export type RecordValue = {
 
 export type VariantValue = {
 	kind: "variant";
+	typeName: string | null;
 	tag: string;
 	payload: Value;
 };
@@ -82,30 +83,42 @@ export type ModuleValue = {
 };
 
 export function isFn(value: Value): value is FnValue {
-	return typeof value === "object" && value !== null && (value as { kind?: string }).kind === "fn";
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "fn"
+	);
 }
 
 export function isChar(value: Value): value is CharValue {
 	return (
-		typeof value === "object" && value !== null && (value as { kind?: string }).kind === "char"
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "char"
 	);
 }
 
 export function isRange(value: Value): value is RangeValue {
 	return (
-		typeof value === "object" && value !== null && (value as { kind?: string }).kind === "range"
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "range"
 	);
 }
 
 export function isRecord(value: Value): value is RecordValue {
 	return (
-		typeof value === "object" && value !== null && (value as { kind?: string }).kind === "record"
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "record"
 	);
 }
 
 export function isVariant(value: Value): value is VariantValue {
 	return (
-		typeof value === "object" && value !== null && (value as { kind?: string }).kind === "variant"
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "variant"
 	);
 }
 
@@ -127,7 +140,9 @@ export function isVariantType(value: Value): value is VariantTypeValue {
 
 export function isModule(value: Value): value is ModuleValue {
 	return (
-		typeof value === "object" && value !== null && (value as { kind?: string }).kind === "module"
+		typeof value === "object" &&
+		value !== null &&
+		(value as { kind?: string }).kind === "module"
 	);
 }
 
@@ -182,9 +197,9 @@ export function display(value: Value): string {
 		return "<variant>";
 	}
 	if (isVariant(value)) {
-		return (
-			"." + value.tag + (value.payload !== null ? "(" + display(value.payload) + ")" : "")
-		);
+		const prefix = value.typeName ?? "";
+		const payload = value.payload !== null ? "(" + display(value.payload) + ")" : "";
+		return prefix + "." + value.tag + payload;
 	}
 	if (isRecordType(value)) {
 		return "<record>";
@@ -193,7 +208,8 @@ export function display(value: Value): string {
 		const parts = Object.keys(value.fields).map(
 			(name) => name + " = " + display(value.fields[name])
 		);
-		return ".{ " + parts.join(", ") + " }";
+		const prefix = value.typeName ?? "";
+		return prefix + ".{ " + parts.join(", ") + " }";
 	}
 	if (isModule(value)) {
 		return "<module>";

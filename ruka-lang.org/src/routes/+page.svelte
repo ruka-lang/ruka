@@ -11,12 +11,11 @@
 <section class="landing">
 	<header class="hero">
 		<h1 class="hero-title">
-			A small language; fun to write by <em>default</em>.
+			A small language; fun by <em>default</em>.
 		</h1>
 		<p class="hero-lede">
-			Ruka is an opinionated language focused on simplicity and useability, 
-			while giving you finer control when desired. Write what you mean; 
-			let the compiler fill in the rest.
+			Ruka is an opinionated language focused on simplicity and useability, opt in to fine
+			control when desired. Write what you mean; let the compiler fill in the rest.
 		</p>
 		<div class="hero-actions">
 			<Button variant="primary" href="/playground">Open the playground</Button>
@@ -27,8 +26,8 @@
 	<section class="examples" aria-labelledby="examples-heading">
 		<h2 id="examples-heading" class="section-title">Try it</h2>
 		<p class="section-lede">
-			Pick an example to run it in-browser. The interpreter is a TypeScript
-			port of the upcoming compiler — same syntax, same semantics.
+			Pick an example to run it in-browser. The interpreter is a TypeScript port of the
+			upcoming compiler — same syntax, same semantics.
 		</p>
 		<ExampleViewer {examples} />
 	</section>

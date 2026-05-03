@@ -1,5 +1,415 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`parse: fixture snapshots > array-comp.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 3,
+              "local": false,
+              "mode": null,
+              "name": "zeros",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "zeros",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "body": {
+                  "col": 36,
+                  "isFloat": true,
+                  "kind": "Literal",
+                  "line": 3,
+                  "value": 0,
+                },
+                "col": 14,
+                "iterable": {
+                  "col": 29,
+                  "end": {
+                    "col": 31,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 3,
+                    "value": 5,
+                  },
+                  "inclusive": false,
+                  "kind": "Range",
+                  "line": 3,
+                  "start": {
+                    "col": 28,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 3,
+                    "value": 0,
+                  },
+                },
+                "kind": "ArrayComp",
+                "line": 3,
+                "name": null,
+                "tuplePattern": null,
+                "typePrefix": {
+                  "col": 14,
+                  "element": {
+                    "col": 15,
+                    "kind": "NamedType",
+                    "line": 3,
+                    "name": "float",
+                  },
+                  "kind": "ArrayType",
+                  "line": 3,
+                },
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 4,
+                    "raw": "zeros: \${zeros}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 4,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 4,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 4,
+              },
+              "kind": "ExpressionStmt",
+              "line": 4,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 7,
+              "local": false,
+              "mode": null,
+              "name": "doubled",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "doubled",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "body": {
+                  "col": 38,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 36,
+                    "kind": "Ident",
+                    "line": 7,
+                    "name": "i",
+                  },
+                  "line": 7,
+                  "op": "*",
+                  "right": {
+                    "col": 40,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 7,
+                    "value": 2,
+                  },
+                },
+                "col": 16,
+                "iterable": {
+                  "col": 29,
+                  "end": {
+                    "col": 31,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 7,
+                    "value": 4,
+                  },
+                  "inclusive": false,
+                  "kind": "Range",
+                  "line": 7,
+                  "start": {
+                    "col": 28,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 7,
+                    "value": 0,
+                  },
+                },
+                "kind": "ArrayComp",
+                "line": 7,
+                "name": "i",
+                "tuplePattern": null,
+                "typePrefix": null,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 8,
+                    "raw": "doubled: \${doubled}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 8,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 8,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 8,
+              },
+              "kind": "ExpressionStmt",
+              "line": 8,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 11,
+              "local": false,
+              "mode": null,
+              "name": "pairs",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "pairs",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 14,
+                "elements": [
+                  {
+                    "col": 29,
+                    "elements": [
+                      {
+                        "col": 31,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 1,
+                      },
+                      {
+                        "col": 34,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 10,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 11,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                  {
+                    "col": 39,
+                    "elements": [
+                      {
+                        "col": 41,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 2,
+                      },
+                      {
+                        "col": 44,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 20,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 11,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                  {
+                    "col": 49,
+                    "elements": [
+                      {
+                        "col": 51,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 3,
+                      },
+                      {
+                        "col": 54,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 11,
+                        "value": 30,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 11,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                ],
+                "kind": "ListLiteral",
+                "line": 11,
+                "shape": "array",
+                "typePrefix": {
+                  "col": 14,
+                  "element": {
+                    "col": 15,
+                    "elements": [
+                      {
+                        "col": 16,
+                        "kind": "NamedType",
+                        "line": 11,
+                        "name": "int",
+                      },
+                      {
+                        "col": 21,
+                        "kind": "NamedType",
+                        "line": 11,
+                        "name": "int",
+                      },
+                    ],
+                    "kind": "TupleType",
+                    "line": 11,
+                  },
+                  "kind": "ArrayType",
+                  "line": 11,
+                },
+              },
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "name": "sums",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "sums",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "body": {
+                  "col": 41,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 39,
+                    "kind": "Ident",
+                    "line": 12,
+                    "name": "a",
+                  },
+                  "line": 12,
+                  "op": "+",
+                  "right": {
+                    "col": 43,
+                    "kind": "Ident",
+                    "line": 12,
+                    "name": "b",
+                  },
+                },
+                "col": 13,
+                "iterable": {
+                  "col": 30,
+                  "kind": "Ident",
+                  "line": 12,
+                  "name": "pairs",
+                },
+                "kind": "ArrayComp",
+                "line": 12,
+                "name": null,
+                "tuplePattern": [
+                  "a",
+                  "b",
+                ],
+                "typePrefix": null,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 13,
+                    "raw": "sums: \${sums}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 13,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 13,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 13,
+              },
+              "kind": "ExpressionStmt",
+              "line": 13,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > arrays.ruka 1`] = `
 {
   "body": [
@@ -125,7 +535,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                     "col": 15,
                     "kind": "StringLiteral",
                     "line": 4,
-                    "raw": "length:  \${primes.length()}",
+                    "raw": "length:  \${primes.len()}",
                   },
                 ],
                 "callee": {
@@ -185,7 +595,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
                     "col": 15,
                     "kind": "StringLiteral",
                     "line": 6,
-                    "raw": "last:    \${primes[primes.length() - 1]}",
+                    "raw": "last:    \${primes[primes.len() - 1]}",
                   },
                 ],
                 "callee": {
@@ -387,6 +797,7 @@ exports[`parse: fixture snapshots > arrays.ruka 1`] = `
               "kind": "For",
               "line": 16,
               "name": "p",
+              "tuplePattern": null,
             },
             {
               "col": 2,
@@ -2004,6 +2415,521 @@ exports[`parse: fixture snapshots > fibonacci.ruka 1`] = `
 }
 `;
 
+exports[`parse: fixture snapshots > field-assign.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "point",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "point",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "col": 13,
+        "fields": [
+          {
+            "name": "x",
+            "type": {
+              "col": 25,
+              "kind": "NamedType",
+              "line": 1,
+              "name": "float",
+            },
+          },
+          {
+            "name": "y",
+            "type": {
+              "col": 35,
+              "kind": "NamedType",
+              "line": 1,
+              "name": "float",
+            },
+          },
+        ],
+        "kind": "RecordType",
+        "line": 1,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 4,
+              "local": false,
+              "mode": "*",
+              "name": "p",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "p",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 16,
+                "fields": [
+                  {
+                    "name": "x",
+                    "value": {
+                      "col": 23,
+                      "isFloat": true,
+                      "kind": "Literal",
+                      "line": 4,
+                      "value": 1,
+                    },
+                  },
+                  {
+                    "name": "y",
+                    "value": {
+                      "col": 32,
+                      "isFloat": true,
+                      "kind": "Literal",
+                      "line": 4,
+                      "value": 2,
+                    },
+                  },
+                ],
+                "kind": "RecordLiteral",
+                "line": 4,
+                "typeName": {
+                  "col": 11,
+                  "kind": "Ident",
+                  "line": 4,
+                  "name": "point",
+                },
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 5,
+                    "raw": "before: \${p.x}, \${p.y}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 5,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 5,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 5,
+              },
+              "kind": "ExpressionStmt",
+              "line": 5,
+            },
+            {
+              "col": 2,
+              "kind": "ComplexAssign",
+              "line": 7,
+              "target": {
+                "col": 3,
+                "kind": "Member",
+                "line": 7,
+                "object": {
+                  "col": 2,
+                  "kind": "Ident",
+                  "line": 7,
+                  "name": "p",
+                },
+                "property": "x",
+              },
+              "value": {
+                "col": 8,
+                "isFloat": true,
+                "kind": "Literal",
+                "line": 7,
+                "value": 10,
+              },
+            },
+            {
+              "col": 2,
+              "kind": "ComplexAssign",
+              "line": 8,
+              "target": {
+                "col": 3,
+                "kind": "Member",
+                "line": 8,
+                "object": {
+                  "col": 2,
+                  "kind": "Ident",
+                  "line": 8,
+                  "name": "p",
+                },
+                "property": "y",
+              },
+              "value": {
+                "col": 8,
+                "isFloat": true,
+                "kind": "Literal",
+                "line": 8,
+                "value": 20,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 9,
+                    "raw": "after:  \${p.x}, \${p.y}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 9,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 9,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 9,
+              },
+              "kind": "ExpressionStmt",
+              "line": 9,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 12,
+              "local": false,
+              "mode": "*",
+              "name": "counts",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "counts",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 16,
+                "elements": [
+                  {
+                    "col": 23,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 12,
+                    "value": 0,
+                  },
+                  {
+                    "col": 26,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 12,
+                    "value": 0,
+                  },
+                  {
+                    "col": 29,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 12,
+                    "value": 0,
+                  },
+                ],
+                "kind": "ListLiteral",
+                "line": 12,
+                "shape": "array",
+                "typePrefix": {
+                  "col": 16,
+                  "element": {
+                    "col": 17,
+                    "kind": "NamedType",
+                    "line": 12,
+                    "name": "int",
+                  },
+                  "kind": "ArrayType",
+                  "line": 12,
+                },
+              },
+            },
+            {
+              "col": 2,
+              "kind": "ComplexAssign",
+              "line": 13,
+              "target": {
+                "col": 8,
+                "index": {
+                  "col": 9,
+                  "isFloat": false,
+                  "kind": "Literal",
+                  "line": 13,
+                  "value": 1,
+                },
+                "kind": "Index",
+                "line": 13,
+                "object": {
+                  "col": 2,
+                  "kind": "Ident",
+                  "line": 13,
+                  "name": "counts",
+                },
+              },
+              "value": {
+                "col": 14,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 13,
+                "value": 42,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 14,
+                    "raw": "counts[1]: \${counts[1]}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 14,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 14,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 14,
+              },
+              "kind": "ExpressionStmt",
+              "line": 14,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 17,
+              "local": false,
+              "mode": null,
+              "name": "bucket",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "bucket",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 15,
+                "fields": [
+                  {
+                    "name": "items",
+                    "type": {
+                      "col": 31,
+                      "element": {
+                        "col": 32,
+                        "kind": "NamedType",
+                        "line": 17,
+                        "name": "int",
+                      },
+                      "kind": "ArrayType",
+                      "line": 17,
+                    },
+                  },
+                ],
+                "kind": "RecordType",
+                "line": 17,
+              },
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 18,
+              "local": false,
+              "mode": "*",
+              "name": "b",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "b",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 17,
+                "fields": [
+                  {
+                    "name": "items",
+                    "value": {
+                      "col": 28,
+                      "elements": [
+                        {
+                          "col": 35,
+                          "isFloat": false,
+                          "kind": "Literal",
+                          "line": 18,
+                          "value": 10,
+                        },
+                        {
+                          "col": 39,
+                          "isFloat": false,
+                          "kind": "Literal",
+                          "line": 18,
+                          "value": 20,
+                        },
+                        {
+                          "col": 43,
+                          "isFloat": false,
+                          "kind": "Literal",
+                          "line": 18,
+                          "value": 30,
+                        },
+                      ],
+                      "kind": "ListLiteral",
+                      "line": 18,
+                      "shape": "array",
+                      "typePrefix": {
+                        "col": 28,
+                        "element": {
+                          "col": 29,
+                          "kind": "NamedType",
+                          "line": 18,
+                          "name": "int",
+                        },
+                        "kind": "ArrayType",
+                        "line": 18,
+                      },
+                    },
+                  },
+                ],
+                "kind": "RecordLiteral",
+                "line": 18,
+                "typeName": {
+                  "col": 11,
+                  "kind": "Ident",
+                  "line": 18,
+                  "name": "bucket",
+                },
+              },
+            },
+            {
+              "col": 2,
+              "kind": "ComplexAssign",
+              "line": 19,
+              "target": {
+                "col": 9,
+                "index": {
+                  "col": 10,
+                  "isFloat": false,
+                  "kind": "Literal",
+                  "line": 19,
+                  "value": 0,
+                },
+                "kind": "Index",
+                "line": 19,
+                "object": {
+                  "col": 3,
+                  "kind": "Member",
+                  "line": 19,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 19,
+                    "name": "b",
+                  },
+                  "property": "items",
+                },
+              },
+              "value": {
+                "col": 15,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 19,
+                "value": 99,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 20,
+                    "raw": "items[0]: \${b.items[0]}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 20,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 20,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 20,
+              },
+              "kind": "ExpressionStmt",
+              "line": 20,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 3,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
 {
   "body": [
@@ -2376,6 +3302,372 @@ exports[`parse: fixture snapshots > fizzbuzz.ruka 1`] = `
 }
 `;
 
+exports[`parse: fixture snapshots > for-destructure.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 2,
+              "local": false,
+              "mode": null,
+              "name": "pairs",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "pairs",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 14,
+                "elements": [
+                  {
+                    "col": 3,
+                    "elements": [
+                      {
+                        "col": 5,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 3,
+                        "value": 1,
+                      },
+                      {
+                        "col": 8,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 3,
+                        "value": 10,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 3,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                  {
+                    "col": 3,
+                    "elements": [
+                      {
+                        "col": 5,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 4,
+                        "value": 2,
+                      },
+                      {
+                        "col": 8,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 4,
+                        "value": 20,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 4,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                  {
+                    "col": 3,
+                    "elements": [
+                      {
+                        "col": 5,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 5,
+                        "value": 3,
+                      },
+                      {
+                        "col": 8,
+                        "isFloat": false,
+                        "kind": "Literal",
+                        "line": 5,
+                        "value": 30,
+                      },
+                    ],
+                    "kind": "ListLiteral",
+                    "line": 5,
+                    "shape": "tuple",
+                    "typePrefix": null,
+                  },
+                ],
+                "kind": "ListLiteral",
+                "line": 2,
+                "shape": "array",
+                "typePrefix": {
+                  "col": 14,
+                  "element": {
+                    "col": 15,
+                    "elements": [
+                      {
+                        "col": 16,
+                        "kind": "NamedType",
+                        "line": 2,
+                        "name": "int",
+                      },
+                      {
+                        "col": 21,
+                        "kind": "NamedType",
+                        "line": 2,
+                        "name": "int",
+                      },
+                    ],
+                    "kind": "TupleType",
+                    "line": 2,
+                  },
+                  "kind": "ArrayType",
+                  "line": 2,
+                },
+              },
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 8,
+              "local": false,
+              "mode": "*",
+              "name": "total",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "total",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 15,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 8,
+                "value": 0,
+              },
+            },
+            {
+              "body": [
+                {
+                  "col": 3,
+                  "kind": "Assign",
+                  "line": 10,
+                  "name": "total",
+                  "value": {
+                    "col": 21,
+                    "kind": "BinaryOp",
+                    "left": {
+                      "col": 17,
+                      "kind": "BinaryOp",
+                      "left": {
+                        "col": 11,
+                        "kind": "Ident",
+                        "line": 10,
+                        "name": "total",
+                      },
+                      "line": 10,
+                      "op": "+",
+                      "right": {
+                        "col": 19,
+                        "kind": "Ident",
+                        "line": 10,
+                        "name": "a",
+                      },
+                    },
+                    "line": 10,
+                    "op": "+",
+                    "right": {
+                      "col": 23,
+                      "kind": "Ident",
+                      "line": 10,
+                      "name": "b",
+                    },
+                  },
+                },
+              ],
+              "col": 2,
+              "iterable": {
+                "col": 16,
+                "kind": "Ident",
+                "line": 9,
+                "name": "pairs",
+              },
+              "kind": "For",
+              "line": 9,
+              "name": null,
+              "tuplePattern": [
+                "a",
+                "b",
+              ],
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 12,
+                    "raw": "total: \${total}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 12,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 12,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 12,
+              },
+              "kind": "ExpressionStmt",
+              "line": 12,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 15,
+              "local": false,
+              "mode": "*",
+              "name": "keys",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "keys",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 14,
+                "elements": [],
+                "kind": "ListLiteral",
+                "line": 15,
+                "shape": "array",
+                "typePrefix": {
+                  "col": 14,
+                  "element": {
+                    "col": 15,
+                    "kind": "NamedType",
+                    "line": 15,
+                    "name": "int",
+                  },
+                  "kind": "ArrayType",
+                  "line": 15,
+                },
+              },
+            },
+            {
+              "body": [
+                {
+                  "col": 3,
+                  "expression": {
+                    "args": [
+                      {
+                        "col": 15,
+                        "kind": "Ident",
+                        "line": 17,
+                        "name": "k",
+                      },
+                    ],
+                    "callee": {
+                      "col": 7,
+                      "kind": "Member",
+                      "line": 17,
+                      "object": {
+                        "col": 3,
+                        "kind": "Ident",
+                        "line": 17,
+                        "name": "keys",
+                      },
+                      "property": "append",
+                    },
+                    "col": 14,
+                    "kind": "Call",
+                    "line": 17,
+                  },
+                  "kind": "ExpressionStmt",
+                  "line": 17,
+                },
+              ],
+              "col": 2,
+              "iterable": {
+                "col": 16,
+                "kind": "Ident",
+                "line": 16,
+                "name": "pairs",
+              },
+              "kind": "For",
+              "line": 16,
+              "name": null,
+              "tuplePattern": [
+                "k",
+                "v",
+              ],
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 19,
+                    "raw": "keys: \${keys}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 19,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 19,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 19,
+              },
+              "kind": "ExpressionStmt",
+              "line": 19,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > hello-world.ruka 1`] = `
 {
   "body": [
@@ -2661,6 +3953,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
       "receiver": {
         "kind": "self",
+        "mode": null,
         "typeAnnotation": null,
       },
       "type": null,
@@ -2732,6 +4025,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
       },
       "receiver": {
         "kind": "self",
+        "mode": null,
         "typeAnnotation": null,
       },
       "type": null,
@@ -4541,6 +5835,7 @@ exports[`parse: fixture snapshots > range-match.ruka 1`] = `
               "kind": "For",
               "line": 13,
               "name": "s",
+              "tuplePattern": null,
             },
           ],
           "kind": "Block",
@@ -4635,6 +5930,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "kind": "For",
               "line": 3,
               "name": "i",
+              "tuplePattern": null,
             },
             {
               "col": 2,
@@ -4712,6 +6008,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "kind": "For",
               "line": 9,
               "name": "c",
+              "tuplePattern": null,
             },
             {
               "col": 2,
@@ -4975,6 +6272,7 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
               "kind": "For",
               "line": 18,
               "name": "i",
+              "tuplePattern": null,
             },
           ],
           "kind": "Block",

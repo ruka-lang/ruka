@@ -3,16 +3,54 @@
 // `=` can reject assignments to immutable bindings (created without `*`).
 
 import { RukaError } from "../diagnostics";
-import type { Value } from "./value";
+import type { Program } from "../ast";
+import type { ModuleValue, Value } from "./value";
+
+/**
+ * Runtime project context. Set on the root env of each module so that
+ * `ruka.import(...)` calls can resolve paths and reach the cached
+ * module-value table. `modulePath` identifies which module the env
+ * belongs to so relative imports resolve from the right directory.
+ *
+ * `asts` is optional: when provided, `loadModuleValue` uses these
+ * pre-parsed, type-checker-annotated ASTs instead of re-parsing source
+ * files, so receiver.resolvedTypeName and other annotations are intact.
+ */
+export type RuntimeProject = {
+	sources: ReadonlyMap<string, string>;
+	moduleValues: Map<string, ModuleValue>;
+	visiting: Set<string>;
+	asts?: Map<string, Program>;
+};
 
 export type RuntimeEnv = {
 	vars: { [name: string]: Value };
 	mut: { [name: string]: boolean };
 	parent: RuntimeEnv | null;
+	project?: RuntimeProject;
+	modulePath?: string;
 };
 
 export function makeEnv(parent: RuntimeEnv | null): RuntimeEnv {
 	return { vars: Object.create(null), mut: Object.create(null), parent };
+}
+
+export function envProject(env: RuntimeEnv): RuntimeProject | undefined {
+	let current: RuntimeEnv | null = env;
+	while (current !== null) {
+		if (current.project) return current.project;
+		current = current.parent;
+	}
+	return undefined;
+}
+
+export function envModulePath(env: RuntimeEnv): string {
+	let current: RuntimeEnv | null = env;
+	while (current !== null) {
+		if (current.modulePath !== undefined) return current.modulePath;
+		current = current.parent;
+	}
+	return "";
 }
 
 export function envGet(env: RuntimeEnv, name: string): Value {

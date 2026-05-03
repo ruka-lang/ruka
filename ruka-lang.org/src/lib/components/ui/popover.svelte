@@ -20,8 +20,15 @@
 		children: Snippet;
 	};
 
-	let { anchor, open, placement = "bottom", role = "dialog", ariaLabel, onClose, children }: Props =
-		$props();
+	let {
+		anchor,
+		open,
+		placement = "bottom",
+		role = "dialog",
+		ariaLabel,
+		onClose,
+		children
+	}: Props = $props();
 
 	let bubble: HTMLDivElement | null = $state(null);
 	// `top`/`left` apply to the bubble; arrow{Top,Left} are the offset of the
@@ -62,8 +69,14 @@
 		// Clamp inside the viewport but remember where the anchor's center
 		// actually is — that's where the arrow needs to point even when the
 		// bubble itself shifts to stay on screen.
-		const clampedLeft = Math.max(EDGE, Math.min(nextLeft, viewportW - bubbleRect.width - EDGE));
-		const clampedTop = Math.max(EDGE, Math.min(nextTop, viewportH - bubbleRect.height - EDGE));
+		const clampedLeft = Math.max(
+			EDGE,
+			Math.min(nextLeft, viewportW - bubbleRect.width - EDGE)
+		);
+		const clampedTop = Math.max(
+			EDGE,
+			Math.min(nextTop, viewportH - bubbleRect.height - EDGE)
+		);
 
 		top = clampedTop;
 		left = clampedLeft;
@@ -123,11 +136,7 @@
 	{#if role === "dialog"}
 		<!-- A transparent backdrop catches outside clicks; pointer-events
 		     stay enabled only for it, not the bubble's surroundings. -->
-		<div
-			class="popover-backdrop"
-			role="presentation"
-			onmousedown={onBackdropClick}
-		></div>
+		<div class="popover-backdrop" role="presentation" onmousedown={onBackdropClick}></div>
 	{/if}
 	<div
 		bind:this={bubble}

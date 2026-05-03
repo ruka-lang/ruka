@@ -94,7 +94,9 @@
 		color: var(--fg-muted);
 		text-decoration: none;
 		border-radius: 6px;
-		transition: color 120ms ease, background 120ms ease;
+		transition:
+			color 120ms ease,
+			background 120ms ease;
 	}
 
 	.nav-link:hover {
@@ -119,7 +121,9 @@
 		height: 28px;
 		color: var(--fg-muted);
 		border-radius: 6px;
-		transition: color 120ms ease, background 120ms ease;
+		transition:
+			color 120ms ease,
+			background 120ms ease;
 	}
 
 	.icon-link:hover {

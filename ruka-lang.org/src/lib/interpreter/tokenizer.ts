@@ -272,7 +272,12 @@ export function tokenize(source: string): Token[] {
 		} else if (currentChar === ")" || currentChar === "]" || currentChar === "}") {
 			bracketDepth--;
 		}
-		tokens.push({ kind: currentChar, value: currentChar, line: tokenLine, col: tokenCol });
+		tokens.push({
+			kind: currentChar,
+			value: currentChar,
+			line: tokenLine,
+			col: tokenCol
+		});
 		pos++;
 	}
 

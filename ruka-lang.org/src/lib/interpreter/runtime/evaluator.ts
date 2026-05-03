@@ -9,6 +9,7 @@
 import type {
 	Binding,
 	Block,
+	ComplexAssign,
 	Expression,
 	For,
 	If,
@@ -21,8 +22,21 @@ import { splitInterp, unescText } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
 import { isBuiltinEnvelope, makeRukaModule } from "./builtins";
-import { envGet, envHas, envSet, envUpdate, makeEnv, type RuntimeEnv } from "./env";
+import {
+	envGet,
+	envHas,
+	envModulePath,
+	envProject,
+	envSet,
+	envUpdate,
+	makeEnv,
+	type RuntimeEnv,
+	type RuntimeProject
+} from "./env";
 import { ControlSignal, type RuntimeEvent } from "./events";
+import { isRukaImportCall } from "../check/scope";
+import { resolveImportPath } from "../project";
+import type { ModuleValue } from "./value";
 import {
 	display,
 	isChar,
@@ -36,18 +50,23 @@ import {
 	numericOf,
 	type FnValue,
 	type RangeValue,
+	type RecordValue,
 	type Value
 } from "./value.js";
 
 export type Run = Generator<RuntimeEvent, void, string>;
 
-export function run(ast: Program): Run {
-	return runImpl(ast);
+export function run(ast: Program, project?: RuntimeProject, entry?: string): Run {
+	return runImpl(ast, project, entry);
 }
 
-function* runImpl(ast: Program): Run {
+function* runImpl(ast: Program, project?: RuntimeProject, entry?: string): Run {
 	const globalEnv = makeEnv(null);
 	envSet(globalEnv, "ruka", makeRukaModule());
+	if (project) {
+		globalEnv.project = project;
+		globalEnv.modulePath = entry ?? "";
+	}
 
 	for (const stmt of ast.body) {
 		yield* evalStatement(stmt, globalEnv);
@@ -57,6 +76,60 @@ function* runImpl(ast: Program): Run {
 	const mainValue = envHas(globalEnv, "main") ? envGet(globalEnv, "main") : null;
 	if (mainBinding && !mainBinding.local && isFn(mainValue)) {
 		yield* callFn(mainValue, [], mainBinding.line, mainBinding.col, globalEnv);
+	}
+}
+
+// Privacy by case: lowercase first character = public. Used to filter the
+// imported module's top-level bindings into its exported member set.
+function isPublicName(name: string): boolean {
+	const code = name.charCodeAt(0);
+	return !(code >= 65 && code <= 90);
+}
+
+function* loadModuleValue(
+	project: RuntimeProject,
+	path: string,
+	line: number,
+	col: number | undefined
+): Generator<RuntimeEvent, ModuleValue, string> {
+	const cached = project.moduleValues.get(path);
+	if (cached) return cached;
+
+	if (project.visiting.has(path)) {
+		throw new RukaError("cyclic import: " + path, line, col);
+	}
+
+	const source = project.sources.get(path);
+	if (source === undefined) {
+		throw new RukaError("module not found: " + path, line, col);
+	}
+
+	project.visiting.add(path);
+	try {
+		// Prefer the pre-parsed, type-checker-annotated AST so that receiver
+		// annotations (resolvedTypeName etc.) survive into the evaluator.
+		const ast = project.asts?.get(path) ?? parse(tokenize(source));
+		const moduleEnv = makeEnv(null);
+		envSet(moduleEnv, "ruka", makeRukaModule());
+		moduleEnv.project = project;
+		moduleEnv.modulePath = path;
+
+		for (const stmt of ast.body) {
+			yield* evalStatement(stmt, moduleEnv);
+		}
+
+		const members: { [name: string]: import("./value").Value } = Object.create(null);
+		for (const name of Object.keys(moduleEnv.vars)) {
+			if (name === "ruka") continue;
+			if (!isPublicName(name)) continue;
+			members[name] = moduleEnv.vars[name];
+		}
+
+		const moduleValue: ModuleValue = { kind: "module", members };
+		project.moduleValues.set(path, moduleValue);
+		return moduleValue;
+	} finally {
+		project.visiting.delete(path);
 	}
 }
 
@@ -88,6 +161,8 @@ function* evalStatement(
 				envUpdate(env, node.name, value);
 				return value;
 			}
+			case "ComplexAssign":
+				return yield* evalComplexAssign(node, env);
 			case "ExpressionStmt":
 				return yield* evalExpression(node.expression, env);
 			case "For":
@@ -116,7 +191,8 @@ function* evalBinding(
 		// they don't bind a name in the surrounding scope.
 		const receiver = node.receiver;
 		const typeName =
-			receiver.resolvedTypeName ?? (receiver.kind === "static" ? receiver.typeName : undefined);
+			receiver.resolvedTypeName ??
+			(receiver.kind === "static" ? receiver.typeName : undefined);
 		if (!typeName) {
 			return null;
 		}
@@ -143,27 +219,33 @@ function* evalBinding(
 		if (isVariantType(value)) {
 			value.name = node.pattern.name;
 		}
+		// Eagerly fix up the typeName when the record came from a different
+		// module scope (typeName absent or not in scope here). The type checker
+		// already verified correctness, so field-name matching is safe.
+		if (isRecord(value) && (!value.typeName || !envHas(env, value.typeName))) {
+			const resolvedName = resolveTypeName(env, value);
+			if (resolvedName) value.typeName = resolvedName;
+		}
 		envSet(env, node.pattern.name, value);
 		env.mut[node.pattern.name] = node.mode === "*";
-	} else {
-		// Records destructure by field name; tuples and arrays use positional
-		// indexing.
-		if (isRecord(value)) {
-			for (const name of node.pattern.names) {
-				envSet(env, name, name in value.fields ? value.fields[name] : null);
-				env.mut[name] = node.mode === "*";
-			}
-		} else if (Array.isArray(value)) {
-			node.pattern.names.forEach((name, index) => {
-				envSet(env, name, index < value.length ? value[index] : null);
-				env.mut[name] = node.mode === "*";
-			});
-		} else {
-			for (const name of node.pattern.names) {
-				envSet(env, name, null);
-				env.mut[name] = node.mode === "*";
-			}
+	} else if (node.pattern.kind === "RecordPattern") {
+		// Type checker has guaranteed the value has all the named members.
+		// Module values (ruka.import) store exports in `.members`; record
+		// instances store fields in `.fields`.
+		const source: Record<string, Value> = isModule(value)
+			? (value as ModuleValue).members
+			: (value as { fields: Record<string, Value> }).fields;
+		for (const name of node.pattern.names) {
+			envSet(env, name, source[name] ?? null);
+			env.mut[name] = node.mode === "*";
 		}
+	} else {
+		// TuplePattern — type checker has guaranteed array shape and arity.
+		const tuple = value as Value[];
+		node.pattern.names.forEach((name, index) => {
+			envSet(env, name, tuple[index] ?? null);
+			env.mut[name] = node.mode === "*";
+		});
 	}
 	return value;
 }
@@ -181,6 +263,11 @@ function* evalFor(node: For, env: RuntimeEnv): Generator<RuntimeEvent, Value, st
 		const iterEnv = makeEnv(env);
 		if (node.name) {
 			envSet(iterEnv, node.name, item);
+		} else if (node.tuplePattern) {
+			const elements = Array.isArray(item) ? item : [];
+			node.tuplePattern.forEach((patternName, index) => {
+				envSet(iterEnv, patternName, elements[index] ?? null);
+			});
 		}
 		try {
 			for (const stmt of node.body) {
@@ -217,6 +304,43 @@ function iterableValues(value: Value, line: number, col: number | undefined): Va
 	throw new RukaError("Not iterable: " + display(value), line, col);
 }
 
+function* evalComplexAssign(
+	node: ComplexAssign,
+	env: RuntimeEnv
+): Generator<RuntimeEvent, Value, string> {
+	const value = yield* evalExpression(node.value, env);
+
+	if (node.target.kind === "Index") {
+		const object = yield* evalExpression(node.target.object, env);
+		const index = yield* evalExpression(node.target.index, env);
+		if (!Array.isArray(object)) {
+			throw new RukaError("Index assignment requires an array", node.line, node.col);
+		}
+		const i = numericOf(index);
+		if (i < 0 || i >= object.length) {
+			throw new RukaError(
+				`Index ${i} out of bounds (length ${object.length})`,
+				node.line,
+				node.col
+			);
+		}
+		object[i] = value;
+		return value;
+	}
+
+	// Member assignment: `object.field = value`
+	const object = yield* evalExpression(node.target.object, env);
+	if (!isRecord(object)) {
+		throw new RukaError(
+			"Member assignment requires a record value",
+			node.line,
+			node.col
+		);
+	}
+	object.fields[node.target.property] = value;
+	return value;
+}
+
 // ── Expressions ─────────────────────────────────────────────────────────
 
 function* evalExpression(
@@ -248,7 +372,12 @@ function* evalExpression(
 
 		case "VariantConstructor": {
 			const payload = node.payload ? yield* evalExpression(node.payload, env) : null;
-			return { kind: "variant", tag: node.tag, payload };
+			return {
+				kind: "variant",
+				typeName: node.resolvedTypeName ?? null,
+				tag: node.tag,
+				payload
+			};
 		}
 
 		case "RecordLiteral": {
@@ -331,6 +460,30 @@ function* evalExpression(
 			return elements;
 		}
 
+		case "ArrayComp": {
+			const iterable = yield* evalExpression(node.iterable, env);
+			const values = iterableValues(iterable, node.line, node.col);
+			const result: Value[] = [];
+			let iterations = 0;
+			for (const item of values) {
+				iterations++;
+				if (iterations > 10000) {
+					throw new RukaError("Exceeded 10,000 iterations", node.line, node.col);
+				}
+				const compEnv = makeEnv(env);
+				if (node.name) {
+					envSet(compEnv, node.name, item);
+				} else if (node.tuplePattern) {
+					const elements = Array.isArray(item) ? item : [];
+					node.tuplePattern.forEach((patternName, index) => {
+						envSet(compEnv, patternName, elements[index] ?? null);
+					});
+				}
+				result.push(yield* evalExpression(node.body, compEnv));
+			}
+			return result;
+		}
+
 		case "Index":
 			return yield* evalIndex(node, env);
 
@@ -368,7 +521,10 @@ function* evalExpression(
 	}
 }
 
-function* evalBlock(node: Block, env: RuntimeEnv): Generator<RuntimeEvent, Value, string> {
+function* evalBlock(
+	node: Block,
+	env: RuntimeEnv
+): Generator<RuntimeEvent, Value, string> {
 	const blockEnv = makeEnv(env);
 	let result: Value = null;
 	for (const stmt of node.body) {
@@ -434,6 +590,36 @@ function* evalCall(
 	env: RuntimeEnv
 ): Generator<RuntimeEvent, Value, string> {
 	try {
+		if (isRukaImportCall(node)) {
+			const project = envProject(env);
+			if (!project) {
+				throw new RukaError(
+					"ruka.import(...) requires a project context",
+					node.line,
+					node.col
+				);
+			}
+			// Type-check has already validated that the argument is a string
+			// literal; assert here for runtime safety.
+			const arg = node.args[0];
+			if (!arg || arg.kind !== "StringLiteral") {
+				throw new RukaError(
+					"ruka.import(...) takes a single string literal path",
+					node.line,
+					node.col
+				);
+			}
+			const resolved = resolveImportPath(envModulePath(env), arg.raw);
+			if (resolved === null) {
+				throw new RukaError(
+					"invalid import path: " + arg.raw,
+					node.line,
+					node.col
+				);
+			}
+			return yield* loadModuleValue(project, resolved, node.line, node.col);
+		}
+
 		const callee = yield* evalExpression(node.callee, env);
 		const args: Value[] = [];
 		for (const arg of node.args) {
@@ -506,13 +692,19 @@ function* evalMember(
 		if (isVariantType(object)) {
 			const tag = object.tags.find((candidate) => candidate.name === node.property);
 			if (tag) {
+				const typeName = object.name;
 				if (!tag.hasPayload) {
-					return { kind: "variant", tag: node.property, payload: null };
+					return { kind: "variant", typeName, tag: node.property, payload: null };
 				}
 				const tagName = node.property;
 				return {
 					kind: "fn",
-					host: (args) => ({ kind: "variant", tag: tagName, payload: args[0] })
+					host: (args) => ({
+						kind: "variant",
+						typeName,
+						tag: tagName,
+						payload: args[0]
+					})
 				};
 			}
 			if (node.property in object.statics) {
@@ -530,7 +722,7 @@ function* evalMember(
 
 		if (Array.isArray(object)) {
 			const list = object;
-			if (node.property === "length") {
+			if (node.property === "len") {
 				return { kind: "fn", host: () => list.length };
 			}
 			if (node.property === "append") {
@@ -567,7 +759,7 @@ function* evalMember(
 
 		if (typeof object === "string") {
 			const text = object;
-			if (node.property === "length") {
+			if (node.property === "len") {
 				return { kind: "fn", host: () => text.length };
 			}
 			if (node.property === "concat") {
@@ -593,6 +785,8 @@ function* evalMember(
 			if (node.property in object.fields) {
 				return object.fields[node.property];
 			}
+
+			// Primary lookup: use typeName if it's in scope.
 			if (object.typeName && envHas(env, object.typeName)) {
 				const typeValue = envGet(env, object.typeName);
 				if (
@@ -602,6 +796,22 @@ function* evalMember(
 					return bindMethod(typeValue.methods[node.property], object);
 				}
 			}
+
+			// Fallback: typeName is absent or belongs to a different module scope.
+			// Resolve by matching field names — safe because the type checker has
+			// already verified the types align.
+			const resolvedName = resolveTypeName(env, object);
+			if (resolvedName) {
+				object.typeName = resolvedName;
+				const typeValue = envGet(env, resolvedName);
+				if (
+					(isRecordType(typeValue) || isVariantType(typeValue)) &&
+					node.property in typeValue.methods
+				) {
+					return bindMethod(typeValue.methods[node.property], object);
+				}
+			}
+
 			throw new RukaError(
 				"No field or method '" + node.property + "' on " + display(object)
 			);
@@ -621,6 +831,28 @@ function* evalMember(
 		annotate(error, node.line, node.col);
 		throw error;
 	}
+}
+
+// When a RecordValue has a typeName from a different module scope, find the
+// binding name of the matching RecordTypeValue in the current env by comparing
+// field names. Returns the binding name, or null if not found.
+function resolveTypeName(env: RuntimeEnv, record: RecordValue): string | null {
+	const instanceFields = Object.keys(record.fields);
+	let walk: RuntimeEnv | null = env;
+	while (walk) {
+		for (const [name, value] of Object.entries(walk.vars)) {
+			if (!isRecordType(value)) continue;
+			const typeFields = value.fields.map((f) => f.name);
+			if (
+				typeFields.length === instanceFields.length &&
+				typeFields.every((f) => instanceFields.includes(f))
+			) {
+				return name;
+			}
+		}
+		walk = walk.parent;
+	}
+	return null;
 }
 
 function bindMethod(method: FnValue, receiver: Value): FnValue {
@@ -712,7 +944,9 @@ function* evalMatch(
 		if (node.elseArm !== null) {
 			return yield* evalBlock(node.elseArm, env);
 		}
-		throw new RukaError("match: no arm matched");
+		// Exhaustiveness is enforced by the type checker, so reaching here
+		// would indicate a compiler bug.
+		throw new RukaError("internal: match fell through (compiler bug)");
 	} catch (error) {
 		annotate(error, node.line, node.col);
 		throw error;
@@ -730,12 +964,19 @@ function* matchPattern(
 		}
 		const bindings: { [name: string]: Value } = Object.create(null);
 		if (pattern.binding) {
-			if (pattern.binding.kind === "BindingPattern") {
-				bindings[pattern.binding.name] = subject.payload;
-			} else if (pattern.binding.kind === "TuplePattern") {
-				const payload = subject.payload;
-				pattern.binding.names.forEach((name, index) => {
-					bindings[name] = Array.isArray(payload) ? payload[index] : payload;
+			const binding = pattern.binding;
+			if (binding.kind === "BindingPattern") {
+				bindings[binding.name] = subject.payload;
+			} else if (binding.kind === "RecordPattern") {
+				const payload = subject.payload as { fields: Record<string, Value> };
+				for (const name of binding.names) {
+					bindings[name] = payload.fields[name] ?? null;
+				}
+			} else {
+				// TuplePattern — type checker guarantees tuple/array shape.
+				const payload = subject.payload as Value[];
+				binding.names.forEach((name, index) => {
+					bindings[name] = payload[index] ?? null;
 				});
 			}
 		}

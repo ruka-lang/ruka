@@ -90,7 +90,7 @@ describe("checkTypes: targeted cases", () => {
 			"let main = () do",
 			"    let p: Point = .{ x = 1, y = 2 }",
 			"    let { x, y } = p",
-			"    ruka.println(\"${x} ${y}\")",
+			'    ruka.println("${x} ${y}")',
 			"end"
 		].join("\n");
 		expect(check(src)).toBeNull();
@@ -134,7 +134,7 @@ describe("checkTypes: targeted cases", () => {
 		const src = [
 			"let main = () do",
 			"    let *xs = [int].{ 1, 2, 3 }",
-			"    for x in xs do ruka.println(\"${x}\")",
+			'    for x in xs do ruka.println("${x}")',
 			"end"
 		].join("\n");
 		expect(check(src)).toBeNull();
@@ -143,7 +143,7 @@ describe("checkTypes: targeted cases", () => {
 	it("string indexing yields u8", () => {
 		const src = [
 			"let main = () do",
-			"    let s = \"hi\"",
+			'    let s = "hi"',
 			"    let c: u8 = s[0]",
 			"end"
 		].join("\n");
@@ -156,18 +156,16 @@ describe("checkTypes: targeted cases", () => {
 			"let counter = record { count: int }",
 			"let main = () do",
 			"    let c: counter = .{ count = 0 }",
-			"    ruka.println(\"${c.count}\")",
+			'    ruka.println("${c.count}")',
 			"end"
 		].join("\n");
 		expect(check(src)).toBeNull();
 	});
 
 	it("reports line numbers on type errors", () => {
-		const src = [
-			"let main = () do",
-			"    let x = if true do 1 else \"two\"",
-			"end"
-		].join("\n");
+		const src = ["let main = () do", '    let x = if true do 1 else "two"', "end"].join(
+			"\n"
+		);
 		const error = check(src);
 		expect(error!.line).toBe(2);
 	});

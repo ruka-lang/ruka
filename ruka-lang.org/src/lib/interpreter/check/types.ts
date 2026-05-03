@@ -10,18 +10,27 @@
 
 import type {
 	Block,
+	Call,
+	ComplexAssign,
 	Expression,
 	FunctionExpr,
 	Ident,
 	Member,
 	Program,
 	Receiver,
-	Statement
+	Statement,
+	StringLiteral
 } from "../ast";
 import { RukaError } from "../diagnostics";
 import { splitInterp } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
+import {
+	loadModuleAst,
+	resolveImportPath,
+	type ProjectContext
+} from "../project";
+import { isRukaImportCall } from "./scope";
 import {
 	astToType,
 	envContains,
@@ -33,7 +42,7 @@ import {
 	type ArrayType,
 	type CheckedType,
 	type FunctionType,
-	type ModuleType,
+	type MemberInfo,
 	type NamedType,
 	type RangeType,
 	type RecordDef,
@@ -54,6 +63,57 @@ function isPrivateName(name: string | undefined | null): boolean {
 	}
 	const code = name.charCodeAt(0);
 	return code >= 65 && code <= 90;
+}
+
+// ── Record-pattern helpers ───────────────────────────────────────────────
+/** Resolve a value's CheckedType to a RecordDef (direct or via a NamedType). */
+function resolveRecord(type: CheckedType | null, env: TypeEnv): RecordDef | null {
+	if (!type) return null;
+	if (type.kind === "recordDef") return type;
+	if (type.kind === "named") {
+		const looked = lookupEnv(env, type.name);
+		if (looked && looked.kind === "recordDef") return looked;
+	}
+	return null;
+}
+
+/** Bind each `name` to its field type from `def`, enforcing privacy. */
+function bindRecordFields(
+	names: string[],
+	def: RecordDef,
+	env: TypeEnv,
+	line: number,
+	col: number | undefined
+): void {
+	const fieldByName: Record<string, { name: string; type: CheckedType }> = Object.create(null);
+	for (const field of def.fields) {
+		fieldByName[field.name] = field;
+	}
+	for (const name of names) {
+		const field = fieldByName[name];
+		if (!field) {
+			// Also check statics — this covers module destructuring:
+			// `let { a, b } = ruka.import(...)` where the module's exports
+			// are stored as statics on a no-field RecordDef.
+			if (def.statics && name in def.statics) {
+				env.bindings[name] = def.statics[name]!.type;
+				continue;
+			}
+			throw new RukaError(
+				`no field '${name}' on ${def.name ?? "record"}`,
+				line,
+				col
+			);
+		}
+		if (isPrivateName(name) && !envContains(env, def.declEnv)) {
+			throw new RukaError(
+				`field '${name}' is private and cannot be destructured here`,
+				line,
+				col
+			);
+		}
+		env.bindings[name] = field.type;
+	}
 }
 
 // ── Type-error helper ────────────────────────────────────────────────────
@@ -84,7 +144,7 @@ function methodOf(
 
 	if (object.kind === "array") {
 		const elementType = object.element;
-		if (name === "length") {
+		if (name === "len") {
 			return { kind: "fn", params: [], returnType: { kind: "int" } };
 		}
 		if (name === "append") {
@@ -104,7 +164,7 @@ function methodOf(
 	}
 
 	if (object.kind === "string") {
-		if (name === "length") {
+		if (name === "len") {
 			return { kind: "fn", params: [], returnType: { kind: "int" } };
 		}
 		if (name === "concat") {
@@ -122,14 +182,6 @@ function methodOf(
 			};
 		}
 		throw typeError(line, col, `no method '${name}' on string`);
-	}
-
-	if (object.kind === "module") {
-		const member = object.members[name];
-		if (member) {
-			return member;
-		}
-		throw typeError(line, col, `no member '${name}' on module`);
 	}
 
 	if (object.kind === "variantDef") {
@@ -203,12 +255,7 @@ function methodOf(
 				}
 				return methodInfo.type;
 			}
-			throw typeError(
-				line,
-				col,
-				`no field or method '${name}' on ${object.name}`,
-				true
-			);
+			throw typeError(line, col, `no field or method '${name}' on ${object.name}`, true);
 		}
 		// `object` typed as a variant instance — look up methods on the variantDef.
 		if (
@@ -267,7 +314,10 @@ function conform(
 // ── Pure AST walkers (used by parameter inference) ───────────────────────
 type Visitor = (node: Expression | Block) => void;
 
-function walkExpression(node: Expression | Block | null | undefined, visit: Visitor): void {
+function walkExpression(
+	node: Expression | Block | null | undefined,
+	visit: Visitor
+): void {
 	if (!node) {
 		return;
 	}
@@ -322,6 +372,10 @@ function walkExpression(node: Expression | Block | null | undefined, visit: Visi
 				walkExpression(element, visit);
 			}
 			return;
+		case "ArrayComp":
+			walkExpression(node.iterable, visit);
+			walkExpression(node.body, visit);
+			return;
 		case "RecordLiteral":
 			if (node.typeName) {
 				walkExpression(node.typeName, visit);
@@ -367,6 +421,7 @@ function walkStatement(node: Statement | null | undefined, visit: Visitor): void
 	switch (node.kind) {
 		case "Binding":
 		case "Assign":
+		case "ComplexAssign":
 		case "Return":
 			walkExpression(node.value, visit);
 			return;
@@ -388,8 +443,20 @@ const ARITHMETIC_OPS = new Set(["+", "-", "*", "/", "%", "**"]);
 /**
  * Walk the AST inferring and checking types.
  * Returns the first violation, or null if the program type-checks.
+ *
+ * When `ctx` is supplied, `ruka.import("./other.ruka")` calls resolve
+ * against the project's source map and contribute a `RecordDef` to
+ * `ctx.moduleTypes` for each successfully checked module.
  */
-export function checkTypes(ast: Program): RukaError | null {
+export function checkTypes(
+	ast: Program,
+	ctx?: ProjectContext,
+	path?: string
+): RukaError | null {
+	const modulePath = path ?? "";
+	if (ctx) {
+		ctx.visitingTypes.add(modulePath);
+	}
 	const numericFn1: FunctionType = {
 		kind: "fn",
 		params: [{ kind: "float" }],
@@ -411,44 +478,80 @@ export function checkTypes(ast: Program): RukaError | null {
 		returnType: UNKNOWN
 	};
 
-	const rukaModule: ModuleType = {
-		kind: "module",
-		members: {
-			println: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
-			print: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
-			read: { kind: "fn", params: [], returnType: { kind: "string" } },
-			readln: { kind: "fn", params: [], returnType: { kind: "string" } },
-			expect_eq: unknownFn2,
-			abs: unknownFn1,
-			sin: numericFn1,
-			cos: numericFn1,
-			tan: numericFn1,
-			sqrt: numericFn1,
-			floor: numericFn1,
-			ceil: numericFn1,
-			min: unknownFn2,
-			max: unknownFn2,
-			pow: numericFn2
+	const topEnv: TypeEnv = { bindings: Object.create(null), parent: null };
+
+	// `ruka` is the prelude — a predefined record always in scope with no
+	// instance fields, only statics (the built-in functions). It is treated
+	// exactly like any other imported module at the type level.
+	function rukaStatic(type: CheckedType): MemberInfo {
+		return { type, declEnv: topEnv, line: 0 };
+	}
+	const rukaModule: RecordDef = {
+		kind: "recordDef",
+		fields: [],
+		statics: {
+			println: rukaStatic({ kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } }),
+			print: rukaStatic({ kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } }),
+			read: rukaStatic({ kind: "fn", params: [], returnType: { kind: "string" } }),
+			readln: rukaStatic({ kind: "fn", params: [], returnType: { kind: "string" } }),
+			expect_eq: rukaStatic(unknownFn2),
+			abs: rukaStatic(unknownFn1),
+			sin: rukaStatic(numericFn1),
+			cos: rukaStatic(numericFn1),
+			tan: rukaStatic(numericFn1),
+			sqrt: rukaStatic(numericFn1),
+			floor: rukaStatic(numericFn1),
+			ceil: rukaStatic(numericFn1),
+			exp: rukaStatic(numericFn1),
+			log: rukaStatic(numericFn1),
+			log2: rukaStatic(numericFn1),
+			log10: rukaStatic(numericFn1),
+			min: rukaStatic(unknownFn2),
+			max: rukaStatic(unknownFn2),
+			pow: rukaStatic(numericFn2),
+			import: rukaStatic(UNKNOWN)
 		}
 	};
-
-	const topEnv: TypeEnv = { bindings: Object.create(null), parent: null };
 	topEnv.bindings["ruka"] = rukaModule;
 	topEnv.bindings["true"] = { kind: "bool" };
 	topEnv.bindings["false"] = { kind: "bool" };
 	topEnv.bindings["self"] = UNKNOWN;
 
-	// Hoist top-level names — annotated bindings get precise types; others are
-	// unknown until the second pass refines them. Receiver bindings are attached
-	// to their target type later, not bound by their bare name.
+	// Hoist top-level names — annotated bindings get precise types; record/variant
+	// type definitions get their def eagerly so the method pre-pass can find them;
+	// everything else is UNKNOWN until the main pass refines it.
+	const topLevelNames: string[] = [];
 	for (const statement of ast.body) {
 		if (statement.kind === "Binding" && !statement.receiver) {
-			const hoisted = astToType(statement.type) ?? UNKNOWN;
+			let hoisted: CheckedType = astToType(statement.type) ?? UNKNOWN;
+			// Eagerly resolve bare `record { ... }` and `variant { ... }` literals so
+			// their defs are available when the method pre-registration pass runs.
+			if (hoisted.kind === "unknown" && statement.pattern.kind === "IdentifierPattern") {
+				if (statement.value.kind === "RecordType") {
+					hoisted = {
+						kind: "recordDef",
+						fields: statement.value.fields.map((f) => ({
+							name: f.name,
+							type: astToType(f.type) ?? UNKNOWN
+						}))
+					};
+				} else if (statement.value.kind === "VariantType") {
+					hoisted = {
+						kind: "variantDef",
+						tags: statement.value.tags.map((tag) => ({
+							name: tag.name,
+							type: tag.type ? (astToType(tag.type) ?? UNKNOWN) : null
+						}))
+					};
+				}
+			}
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
-			} else if (statement.pattern.kind === "TuplePattern") {
+				topLevelNames.push(statement.pattern.name);
+			} else {
 				for (const name of statement.pattern.names) {
 					topEnv.bindings[name] = UNKNOWN;
+					topLevelNames.push(name);
 				}
 			}
 		}
@@ -458,22 +561,101 @@ export function checkTypes(ast: Program): RukaError | null {
 	// innermost fn. Empty = `return` at file scope, which is a hard error.
 	const returnTypeStack: CheckedType[] = [];
 
+	// Pre-pass: register all receiver bindings with UNKNOWN type so that
+	// forward references to methods (e.g. calling a method before it's defined
+	// in source order) succeed during the main pass. For annotated receivers
+	// the target is read from the annotation; for unannotated self receivers
+	// we run the same field-collection heuristic used by the main pass.
+	for (const statement of ast.body) {
+		if (statement.kind !== "Binding" || !statement.receiver || !statement.name) continue;
+		try {
+			let target = resolveReceiverDef(statement.receiver, topEnv, statement.line, statement.col);
+			if (!target && statement.receiver.kind === "self") {
+				// Unannotated self: collect field accesses and find a unique candidate.
+				const fields = collectSelfFields(statement.value);
+				const seen = new Set<string>();
+				const candidates: { name: string; def: RecordDef }[] = [];
+				let walk: TypeEnv | null = topEnv;
+				while (walk) {
+					for (const [name, binding] of Object.entries(walk.bindings)) {
+						if (seen.has(name)) continue;
+						seen.add(name);
+						if (binding && binding.kind === "recordDef") {
+							const fieldNames = new Set(binding.fields.map((f) => f.name));
+							if (fields.length > 0 && fields.every((f) => fieldNames.has(f))) {
+								candidates.push({ name, def: binding });
+							}
+						}
+					}
+					walk = walk.parent;
+				}
+				if (candidates.length === 1) target = candidates[0]!;
+			}
+			if (!target) continue;
+			if (statement.receiver.kind === "self") {
+				target.def.methods = target.def.methods ?? Object.create(null);
+				if (!target.def.methods![statement.name]) {
+					target.def.methods![statement.name] = { type: UNKNOWN, declEnv: topEnv, line: statement.line };
+				}
+			} else {
+				target.def.statics = target.def.statics ?? Object.create(null);
+				if (!target.def.statics![statement.name]) {
+					target.def.statics![statement.name] = { type: UNKNOWN, declEnv: topEnv, line: statement.line };
+				}
+			}
+			statement.receiver.resolvedTypeName = target.name;
+		} catch {
+			// Ignore errors here; the main pass will catches and reports them.
+		}
+	}
+
 	try {
 		for (const statement of ast.body) {
 			checkStatement(statement, topEnv);
 		}
+		if (ctx) {
+			// Build the module's public-export type as a no-field RecordDef
+			// whose statics hold the exported bindings. This allows both
+			// `module.foo` (static access) and `let { foo } = module` (record
+			// pattern destructuring that falls through to statics). Privacy is
+			// by case: lowercase = public.
+			const statics: Record<string, MemberInfo> = Object.create(null);
+			for (const name of topLevelNames) {
+				if (isPrivateName(name)) continue;
+				const type = topEnv.bindings[name];
+				if (type) statics[name] = { type, declEnv: topEnv, line: 0 };
+			}
+			ctx.moduleTypes.set(modulePath, { kind: "recordDef", fields: [], statics });
+		}
 		return null;
 	} catch (error) {
 		if (error instanceof RukaError) {
+			if (ctx && !error.path) error.path = modulePath;
 			return error;
 		}
 		throw error;
+	} finally {
+		if (ctx) ctx.visitingTypes.delete(modulePath);
 	}
 
 	// ── Self-field collection (for self-method type inference) ───────────
 	function collectSelfFields(node: unknown, accumulator: string[] = []): string[] {
 		if (!node || typeof node !== "object") {
 			return accumulator;
+		}
+		// If this is a Call node whose callee is `self.method(...)`, skip
+		// collecting the method name — it's not a field. Recurse into args only.
+		const asCall = node as Call;
+		if (asCall.kind === "Call") {
+			const callee = asCall.callee;
+			if (
+				callee.kind === "Member" &&
+				(callee.object as Ident).kind === "Ident" &&
+				(callee.object as Ident).name === "self"
+			) {
+				for (const arg of asCall.args) collectSelfFields(arg, accumulator);
+				return accumulator;
+			}
 		}
 		const candidate = node as Member;
 		if (
@@ -510,10 +692,7 @@ export function checkTypes(ast: Program): RukaError | null {
 	): { name: string; def: RecordDef | VariantDef } | null {
 		if (receiver.kind === "static") {
 			const looked = lookupEnv(env, receiver.typeName);
-			if (
-				!looked ||
-				(looked.kind !== "recordDef" && looked.kind !== "variantDef")
-			) {
+			if (!looked || (looked.kind !== "recordDef" && looked.kind !== "variantDef")) {
 				throw typeError(
 					line,
 					col,
@@ -522,7 +701,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 			return { name: receiver.typeName, def: looked };
 		}
-		// self-method: explicit annotation or inference.
+		// self-method: explicit annotation, pre-pass pin, or inference.
 		if (receiver.typeAnnotation) {
 			const annotated = astToType(receiver.typeAnnotation);
 			if (!annotated || annotated.kind !== "named") {
@@ -545,7 +724,94 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 			return { name: annotated.name, def: definition };
 		}
+		// Use the target resolved by the pre-registration pass, if available.
+		// This handles methods that only call other methods (no direct field
+		// access) where field-collection inference would be under-constrained.
+		if (receiver.resolvedTypeName) {
+			const definition = lookupEnv(env, receiver.resolvedTypeName);
+			if (definition && (definition.kind === "recordDef" || definition.kind === "variantDef")) {
+				return { name: receiver.resolvedTypeName, def: definition };
+			}
+		}
 		return null; // caller handles inference
+	}
+
+	// ── ruka.import resolution ──────────────────────────────────────────
+	function resolveImport(node: Call): RecordDef {
+		if (!ctx) {
+			throw typeError(
+				node.line,
+				node.col,
+				"ruka.import(...) is only available when checking a project"
+			);
+		}
+
+		if (node.args.length !== 1 || node.args[0]!.kind !== "StringLiteral") {
+			throw typeError(
+				node.line,
+				node.col,
+				"ruka.import(...) takes a single string literal path"
+			);
+		}
+
+		const raw = (node.args[0] as StringLiteral).raw;
+		if (raw.includes("${")) {
+			throw typeError(
+				node.line,
+				node.col,
+				"import path must be a plain string literal (no interpolation)"
+			);
+		}
+
+		const resolved = resolveImportPath(modulePath, raw);
+		if (resolved === null) {
+			throw typeError(node.line, node.col, `invalid import path: ${raw}`);
+		}
+		if (!resolved.endsWith(".ruka")) {
+			throw typeError(
+				node.line,
+				node.col,
+				`only .ruka files can be imported (got ${resolved})`
+			);
+		}
+		if (!ctx.sources.has(resolved)) {
+			throw typeError(node.line, node.col, `module not found: ${resolved}`);
+		}
+
+		const cached = ctx.moduleTypes.get(resolved);
+		if (cached) return cached;
+
+		if (ctx.visitingTypes.has(resolved)) {
+			throw typeError(
+				node.line,
+				node.col,
+				`cyclic import: ${modulePath} → ${resolved}`
+			);
+		}
+
+		const importedAst = loadModuleAst(ctx, resolved);
+		const error = checkTypes(importedAst, ctx, resolved);
+		if (error) {
+			// Attach the import call site so the UI can highlight it in the
+			// importing file, not just display the error's origin path.
+			if (error.importLine === undefined) {
+				error.importLine = node.line;
+				error.importCol = node.col;
+			}
+			throw error;
+		}
+
+		const built = ctx.moduleTypes.get(resolved);
+		if (!built) {
+			// Should be unreachable — checkTypes registers the module type
+			// on success, and we propagated the error otherwise.
+			throw typeError(
+				node.line,
+				node.col,
+				`internal: module type missing for ${resolved}`
+			);
+		}
+		return built;
 	}
 
 	// ── Statement checker ───────────────────────────────────────────────
@@ -560,61 +826,66 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (valueType && valueType.kind === "variantDef") {
 					valueType.name = node.pattern.name;
 				}
-				// Tag record types with their declaring scope so private fields
-				// can be rejected outside that scope's chain.
-				if (
-					valueType &&
-					valueType.kind === "recordDef" &&
-					!valueType.declEnv
-				) {
-					valueType.declEnv = env;
+				if (valueType && valueType.kind === "recordDef") {
+					// Tag record types with their declaring scope so private fields
+					// can be rejected outside that scope's chain.
+					if (!valueType.declEnv) valueType.declEnv = env;
+					// If the hoisting pre-pass already created a RecordDef for this
+					// name (so methods/statics could be pre-registered on it), update
+					// that same object in-place rather than replacing it — otherwise
+					// the pre-registered methods would be lost.
+					const hoisted = env.bindings[node.pattern.name];
+					if (hoisted && hoisted.kind === "recordDef" && hoisted !== valueType) {
+						hoisted.fields = valueType.fields;
+						if (!hoisted.declEnv) hoisted.declEnv = valueType.declEnv;
+						hoisted.name = valueType.name;
+						env.bindings[node.pattern.name] = declared || hoisted;
+						return;
+					}
 				}
 				env.bindings[node.pattern.name] = declared || valueType;
+			} else if (node.pattern.kind === "RecordPattern") {
+				const recordDef = resolveRecord(valueType, env);
+				if (!recordDef) {
+					throw typeError(
+						node.line,
+						node.col,
+						`record destructure expects a record value, got ${typeStr(valueType)}`
+					);
+				}
+				bindRecordFields(node.pattern.names, recordDef, env, node.line, node.col);
 			} else if (node.pattern.kind === "TuplePattern") {
-				// Same `{a, b}` syntax destructures both tuples (positional) and
-				// records (by field name). Distinguish by the value's type.
-				let recordDef: RecordDef | null = null;
-				if (valueType && valueType.kind === "recordDef") {
-					recordDef = valueType;
-				} else if (valueType && valueType.kind === "named") {
-					const looked = lookupEnv(env, valueType.name);
-					if (looked && looked.kind === "recordDef") {
-						recordDef = looked;
-					}
+				if (!valueType || valueType.kind !== "tuple") {
+					throw typeError(
+						node.line,
+						node.col,
+						`tuple destructure expects a tuple value, got ${typeStr(valueType)}`
+					);
 				}
-				if (recordDef) {
-					const fieldByName: Record<string, { name: string; type: CheckedType }> =
-						Object.create(null);
-					for (const field of recordDef.fields) {
-						fieldByName[field.name] = field;
-					}
-					for (const name of node.pattern.names) {
-						const field = fieldByName[name];
-						if (!field) {
-							throw typeError(node.line, node.col, `no field '${name}' on record`);
-						}
-						if (isPrivateName(name) && !envContains(env, recordDef.declEnv)) {
-							throw typeError(
-								node.line,
-								node.col,
-								`field '${name}' is private and cannot be destructured here`
-							);
-						}
-						env.bindings[name] = field.type;
-					}
-				} else {
-					const elementTypes =
-						valueType && valueType.kind === "tuple" ? valueType.elements : [];
-					node.pattern.names.forEach((name, index) => {
-						env.bindings[name] = elementTypes[index] ?? UNKNOWN;
-					});
+				if (valueType.elements.length !== node.pattern.names.length) {
+					throw typeError(
+						node.line,
+						node.col,
+						`tuple destructure arity mismatch: pattern has ${node.pattern.names.length} name(s), value has ${valueType.elements.length}`
+					);
 				}
+				node.pattern.names.forEach((name, index) => {
+					env.bindings[name] = valueType.elements[index]!;
+				});
 			}
 			return;
 		}
 		if (node.kind === "Assign") {
 			const target = lookupEnv(env, node.name);
 			inferExpression(node.value, target, env);
+			return;
+		}
+		if (node.kind === "ComplexAssign") {
+			// Check the rhs; we can't statically validate the lvalue chain in all cases
+			// yet (field assignment checks are tracked in todo.txt), so just infer the
+			// target type and use it as the expected type for the value.
+			const targetType = inferExpression(node.target, null, env);
+			inferExpression(node.value, targetType.kind === "unknown" ? null : targetType, env);
 			return;
 		}
 		if (node.kind === "ExpressionStmt") {
@@ -625,11 +896,7 @@ export function checkTypes(ast: Program): RukaError | null {
 			if (returnTypeStack.length === 0) {
 				throw typeError(node.line, node.col, "'return' outside function");
 			}
-			inferExpression(
-				node.value,
-				returnTypeStack[returnTypeStack.length - 1]!,
-				env
-			);
+			inferExpression(node.value, returnTypeStack[returnTypeStack.length - 1]!, env);
 			return;
 		}
 		if (node.kind === "For") {
@@ -647,6 +914,13 @@ export function checkTypes(ast: Program): RukaError | null {
 			const forEnv = extendEnv(env);
 			if (node.name) {
 				forEnv.bindings[node.name] = elementType;
+			} else if (node.tuplePattern) {
+				// Destructure tuple elements: each name gets the corresponding element type.
+				const elements =
+					elementType.kind === "tuple" ? elementType.elements : null;
+				node.tuplePattern.forEach((patternName, index) => {
+					forEnv.bindings[patternName] = elements?.[index] ?? UNKNOWN;
+				});
 			}
 			for (const inner of node.body) {
 				checkStatement(inner, forEnv);
@@ -666,7 +940,8 @@ export function checkTypes(ast: Program): RukaError | null {
 			const target = resolveReceiverDef(receiver, env, node.line, node.col)!;
 			const staticType = inferExpression(node.value, astToType(node.type), env);
 			target.def.statics = target.def.statics ?? Object.create(null);
-			if (target.def.statics![node.name!]) {
+			const existingStatic = target.def.statics![node.name!];
+			if (existingStatic && existingStatic.type.kind !== "unknown") {
 				throw typeError(
 					node.line,
 					node.col,
@@ -696,6 +971,11 @@ export function checkTypes(ast: Program): RukaError | null {
 					}
 					seen.add(name);
 					if (binding && binding.kind === "recordDef") {
+						// Skip module-like RecordDefs (no fields, only statics)
+						// — they are imported namespaces, not receiver types.
+						if (binding.fields.length === 0 && binding.statics && !binding.methods) {
+							continue;
+						}
 						const fieldNames = new Set(binding.fields.map((f) => f.name));
 						if (fields.every((f) => fieldNames.has(f))) {
 							candidates.push({ name, def: binding });
@@ -727,7 +1007,10 @@ export function checkTypes(ast: Program): RukaError | null {
 		methodEnv.bindings["self"] = { kind: "named", name: target.name };
 		const methodType = inferExpression(node.value, astToType(node.type), methodEnv);
 		target.def.methods = target.def.methods ?? Object.create(null);
-		if (target.def.methods![node.name!]) {
+		const existingMethod = target.def.methods![node.name!];
+		// Allow overwriting a pre-pass placeholder (kind: "unknown"), but reject
+		// true duplicates (where the existing entry has a resolved type).
+		if (existingMethod && existingMethod.type.kind !== "unknown") {
 			throw typeError(
 				node.line,
 				node.col,
@@ -743,7 +1026,12 @@ export function checkTypes(ast: Program): RukaError | null {
 	}
 
 	// ── Interpolation type-check ─────────────────────────────────────────
-	function checkInterpolation(raw: string, env: TypeEnv, line: number, col: number): void {
+	function checkInterpolation(
+		raw: string,
+		env: TypeEnv,
+		line: number,
+		col: number
+	): void {
 		const parts = splitInterp(raw);
 		for (const part of parts) {
 			if ("interp" in part) {
@@ -910,31 +1198,149 @@ export function checkTypes(ast: Program): RukaError | null {
 	): Record<string, CheckedType> {
 		const inferred: Record<string, CheckedType> = {};
 		walkExpression(fn.body, (node) => {
-			if (node.kind !== "BinaryOp" || !ARITHMETIC_OPS.has(node.op)) {
-				return;
-			}
-			const pairs: [Expression, Expression][] = [
-				[node.left, node.right],
-				[node.right, node.left]
-			];
-			for (const [lhs, rhs] of pairs) {
-				if (lhs.kind !== "Ident") {
-					continue;
-				}
-				const paramIndex = fn.params.indexOf(lhs.name);
-				if (paramIndex < 0 || paramTypes[paramIndex] || inferred[lhs.name]) {
-					continue;
-				}
-				try {
-					const otherType = inferExpression(rhs, null, fnEnv);
-					if (isNumericKind(otherType.kind)) {
-						inferred[lhs.name] = otherType;
+			if (node.kind === "BinaryOp" && ARITHMETIC_OPS.has(node.op)) {
+				const pairs: [Expression, Expression][] = [
+					[node.left, node.right],
+					[node.right, node.left]
+				];
+				for (const [lhs, rhs] of pairs) {
+					if (lhs.kind !== "Ident") {
+						continue;
 					}
-				} catch {
-					// Inference is best-effort here; ignore failures.
+					const paramIndex = fn.params.indexOf(lhs.name);
+					if (paramIndex < 0 || paramTypes[paramIndex] || inferred[lhs.name]) {
+						continue;
+					}
+					try {
+						const otherType = inferExpression(rhs, null, fnEnv);
+						if (isNumericKind(otherType.kind)) {
+							inferred[lhs.name] = otherType;
+						}
+					} catch {
+						// Inference is best-effort here; ignore failures.
+					}
+				}
+			}
+			// `match <param> with` against numeric range/literal arms tells us
+			// the param is numeric — match arms are the only consumers of
+			// otherwise-untouched numeric-typed parameters in many programs.
+			if (node.kind === "Match" && node.subject.kind === "Ident") {
+				const subjectName = node.subject.name;
+				const paramIndex = fn.params.indexOf(subjectName);
+				if (
+					paramIndex < 0 ||
+					paramTypes[paramIndex] ||
+					inferred[subjectName]
+				) {
+					return;
+				}
+				for (const arm of node.arms) {
+					const probe =
+						arm.pattern.kind === "RangePattern"
+							? arm.pattern.low
+							: arm.pattern.kind === "LiteralPattern"
+								? arm.pattern.expression
+								: null;
+					if (!probe) {
+						continue;
+					}
+					try {
+						const probedType = inferExpression(probe, null, fnEnv);
+						if (isNumericKind(probedType.kind)) {
+							inferred[subjectName] = probedType;
+							break;
+						}
+					} catch {
+						// best-effort
+					}
 				}
 			}
 		});
+		return inferred;
+	}
+
+	/**
+	 * Pass 3: for each still-unknown param used as the subject of a `match`
+	 * with variant patterns, find the unique variant in scope whose tags
+	 * cover every pattern tag used. Mirrors the record-inference shape.
+	 */
+	function inferParamVariantTypes(
+		fn: FunctionExpr,
+		paramTypes: (CheckedType | null)[],
+		fnEnv: TypeEnv
+	): Record<string, CheckedType> {
+		const tagUsages: Record<string, Set<string>> = {};
+		fn.params.forEach((paramName, index) => {
+			if (!paramTypes[index]) {
+				tagUsages[paramName] = new Set();
+			}
+		});
+		if (Object.keys(tagUsages).length === 0) {
+			return {};
+		}
+
+		walkExpression(fn.body, (node) => {
+			if (node.kind !== "Match" || node.subject.kind !== "Ident") {
+				return;
+			}
+			const subjectName = node.subject.name;
+			const usage = tagUsages[subjectName];
+			if (!usage) {
+				return;
+			}
+			for (const arm of node.arms) {
+				if (arm.pattern.kind === "VariantPattern") {
+					usage.add(arm.pattern.tag);
+				}
+			}
+		});
+
+		const inferred: Record<string, CheckedType> = {};
+		for (const paramName of Object.keys(tagUsages)) {
+			const tags = tagUsages[paramName]!;
+			if (tags.size === 0) {
+				continue;
+			}
+			const seen = new Set<string>();
+			const candidates: { name: string; def: VariantDef }[] = [];
+			let scan: TypeEnv | null = fnEnv;
+			while (scan) {
+				for (const [name, binding] of Object.entries(scan.bindings)) {
+					if (seen.has(name)) {
+						continue;
+					}
+					seen.add(name);
+					if (binding && binding.kind === "variantDef") {
+						const definedTags = binding.tags.map((tag) => tag.name);
+						if (Array.from(tags).every((tag) => definedTags.includes(tag))) {
+							candidates.push({ name, def: binding });
+						}
+					}
+				}
+				scan = scan.parent;
+			}
+			if (candidates.length === 1) {
+				inferred[paramName] = { kind: "named", name: candidates[0]!.name };
+			} else if (candidates.length > 1) {
+				throw typeError(
+					fn.line,
+					fn.col,
+					`parameter '${paramName}' is ambiguous: could be ${candidates
+						.map((c) => c.name)
+						.join(", ")}; add a type annotation`,
+					true
+				);
+			} else {
+				throw typeError(
+					fn.line,
+					fn.col,
+					`parameter '${paramName}': no variant in scope has tags {${Array.from(tags)
+						.map((t) => `.${t}`)
+						.join(", ")}}; add a type annotation`,
+					true
+				);
+			}
+		}
 		return inferred;
 	}
 
@@ -1030,11 +1436,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				inferExpression(node.condition, { kind: "bool" }, env);
 				const thenType = inferExpression(node.thenBranch, expected, env);
 				if (node.elseBranch) {
-					const elseType = inferExpression(
-						node.elseBranch,
-						expected ?? thenType,
-						env
-					);
+					const elseType = inferExpression(node.elseBranch, expected ?? thenType, env);
 					if (
 						thenType.kind !== "unknown" &&
 						elseType.kind !== "unknown" &&
@@ -1100,11 +1502,7 @@ export function checkTypes(ast: Program): RukaError | null {
 						);
 					}
 					if (node.elements.length === 0) {
-						throw typeError(
-							node.line,
-							node.col,
-							"empty .() needs a type context"
-						);
+						throw typeError(node.line, node.col, "empty .() needs a type context");
 					}
 					const inferred = node.elements.map((element) =>
 						inferExpression(element, null, env)
@@ -1153,12 +1551,41 @@ export function checkTypes(ast: Program): RukaError | null {
 						);
 					}
 				}
-				return conform(
-					expected,
-					{ kind: "array", element: first },
-					node.line,
-					node.col
-				);
+				return conform(expected, { kind: "array", element: first }, node.line, node.col);
+			}
+
+			case "ArrayComp": {
+				const iterableType = inferExpression(node.iterable, null, env);
+				let elementType: CheckedType;
+				if (iterableType.kind === "range") {
+					elementType = iterableType.element;
+				} else if (iterableType.kind === "array") {
+					elementType = iterableType.element;
+				} else {
+					elementType = UNKNOWN;
+				}
+
+				const compEnv = extendEnv(env);
+				if (node.name) {
+					compEnv.bindings[node.name] = elementType;
+				} else if (node.tuplePattern) {
+					const elements = elementType.kind === "tuple" ? elementType.elements : null;
+					node.tuplePattern.forEach((patternName, index) => {
+						compEnv.bindings[patternName] = elements?.[index] ?? UNKNOWN;
+					});
+				}
+
+				const prefix = node.typePrefix ? astToType(node.typePrefix) : null;
+				const bodyExpected =
+					prefix && prefix.kind === "array"
+						? (prefix as ArrayType).element
+						: expected && expected.kind === "array"
+							? (expected as ArrayType).element
+							: null;
+
+				const bodyType = inferExpression(node.body, bodyExpected, compEnv);
+				const resultType: CheckedType = { kind: "array", element: bodyType };
+				return conform(expected, resultType, node.line, node.col);
 			}
 
 			case "Index": {
@@ -1203,6 +1630,10 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 
 			case "Call": {
+				if (isRukaImportCall(node)) {
+					const moduleType = resolveImport(node);
+					return conform(expected, moduleType, node.line, node.col);
+				}
 				const calleeType = inferExpression(node.callee, null, env);
 				if (calleeType.kind === "fn") {
 					const params = calleeType.params;
@@ -1243,15 +1674,18 @@ export function checkTypes(ast: Program): RukaError | null {
 							fnEnv.bindings[paramName] = recordInferred[paramName]!;
 						}
 					});
-					const numericInferred = inferParamNumericTypes(
-						node,
-						paramTypes,
-						fnEnv
-					);
+					const numericInferred = inferParamNumericTypes(node, paramTypes, fnEnv);
 					node.params.forEach((paramName, index) => {
 						if (!paramTypes[index] && numericInferred[paramName]) {
 							paramTypes[index] = numericInferred[paramName]!;
 							fnEnv.bindings[paramName] = numericInferred[paramName]!;
+						}
+					});
+					const variantInferred = inferParamVariantTypes(node, paramTypes, fnEnv);
+					node.params.forEach((paramName, index) => {
+						if (!paramTypes[index] && variantInferred[paramName]) {
+							paramTypes[index] = variantInferred[paramName]!;
+							fnEnv.bindings[paramName] = variantInferred[paramName]!;
 						}
 					});
 				}
@@ -1291,8 +1725,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					return conform(expected, { kind: "bool" }, node.line, node.col);
 				}
 				// Arithmetic. Strings no longer concat with `+`; use s.concat(...).
-				const hint =
-					expected && isNumericKind(expected.kind) ? expected : null;
+				const hint = expected && isNumericKind(expected.kind) ? expected : null;
 				const leftType = inferExpression(node.left, hint, env);
 				const rightType = inferExpression(
 					node.right,
@@ -1300,10 +1733,7 @@ export function checkTypes(ast: Program): RukaError | null {
 					env
 				);
 				const result = leftType.kind !== "unknown" ? leftType : rightType;
-				if (
-					op === "+" &&
-					(leftType.kind === "string" || rightType.kind === "string")
-				) {
+				if (op === "+" && (leftType.kind === "string" || rightType.kind === "string")) {
 					throw typeError(
 						node.line,
 						node.col,
@@ -1339,7 +1769,12 @@ export function checkTypes(ast: Program): RukaError | null {
 				}
 				if (node.op === "not") {
 					inferExpression(node.expression, { kind: "bool" }, env);
-					return conform(expected, { kind: "bool" }, lineOf(node.expression), colOf(node.expression));
+					return conform(
+						expected,
+						{ kind: "bool" },
+						lineOf(node.expression),
+						colOf(node.expression)
+					);
 				}
 				return UNKNOWN;
 			}
@@ -1421,6 +1856,7 @@ export function checkTypes(ast: Program): RukaError | null {
 				if (node.payload) {
 					inferExpression(node.payload, tagDefinition.type, env);
 				}
+				node.resolvedTypeName = definitionName!;
 				return conform(
 					expected,
 					{ kind: "named", name: definitionName! },
@@ -1430,29 +1866,148 @@ export function checkTypes(ast: Program): RukaError | null {
 			}
 
 			case "Match": {
-				inferExpression(node.subject, null, env);
+				const subjectType = inferExpression(node.subject, null, env);
+
+				// A statically-typed match needs a known subject type to
+				// validate patterns and prove exhaustiveness. If we got here
+				// with `unknown` it means inference (annotations, record/
+				// numeric/variant param passes) failed to pin it down.
+				if (subjectType.kind === "unknown") {
+					throw typeError(
+						node.line,
+						node.col,
+						"cannot match on a value of unknown type; add a type annotation",
+						true
+					);
+				}
+
+				// Resolve a variant subject to its definition so we can
+				// validate tags and check exhaustiveness. Named types are
+				// looked up in the env; primitives/records/etc. yield null.
+				let variantDef: VariantDef | null = null;
+				let variantName: string | null = null;
+				if (subjectType.kind === "variantDef") {
+					variantDef = subjectType;
+					variantName = subjectType.name ?? "<variant>";
+				} else if (subjectType.kind === "named") {
+					const looked = lookupEnv(env, subjectType.name);
+					if (looked && looked.kind === "variantDef") {
+						variantDef = looked;
+						variantName = subjectType.name;
+					}
+				}
+
+				// `expected` for literal/range patterns: use the subject type
+				// when known so a wrong-type literal (e.g. `"a"` matching an
+				// int subject) is rejected by `conform`. Skip for variant
+				// subjects — variant constructors are validated explicitly.
+				const patternExpected: CheckedType | null = variantDef ? null : subjectType;
+
+				const coveredTags = new Set<string>();
 				let matchType: CheckedType = UNKNOWN;
 				for (const arm of node.arms) {
 					const armEnv = extendEnv(env);
-					if (arm.pattern.kind === "VariantPattern" && arm.pattern.binding) {
-						if (arm.pattern.binding.kind === "BindingPattern") {
-							armEnv.bindings[arm.pattern.binding.name] = UNKNOWN;
-						}
-						if (arm.pattern.binding.kind === "TuplePattern") {
-							for (const name of arm.pattern.binding.names) {
-								armEnv.bindings[name] = UNKNOWN;
+					if (arm.pattern.kind === "VariantPattern") {
+						const variantPattern = arm.pattern;
+						if (variantDef) {
+							const tagDef = variantDef.tags.find(
+								(tag) => tag.name === variantPattern.tag
+							);
+							if (!tagDef) {
+								throw typeError(
+									node.line,
+									node.col,
+									`no tag '.${variantPattern.tag}' in ${variantName}`
+								);
 							}
+							if (variantPattern.binding && !tagDef.type) {
+								throw typeError(
+									node.line,
+									node.col,
+									`tag '.${variantPattern.tag}' has no payload to bind`
+								);
+							}
+							if (!variantPattern.binding && tagDef.type) {
+								throw typeError(
+									node.line,
+									node.col,
+									`tag '.${variantPattern.tag}' has a payload; use '${variantPattern.tag}(_)' to ignore it`
+								);
+							}
+							coveredTags.add(variantPattern.tag);
+							if (variantPattern.binding) {
+								const payloadType = tagDef.type ?? UNKNOWN;
+								const binding = variantPattern.binding;
+								if (binding.kind === "BindingPattern") {
+									armEnv.bindings[binding.name] = payloadType;
+								} else if (binding.kind === "RecordPattern") {
+									const recordDef = resolveRecord(payloadType, env);
+									if (!recordDef) {
+										throw typeError(
+											node.line,
+											node.col,
+											`tag '.${variantPattern.tag}' payload is ${typeStr(payloadType)}, not a record`
+										);
+									}
+									bindRecordFields(
+										binding.names,
+										recordDef,
+										armEnv,
+										node.line,
+										node.col
+									);
+								} else {
+									// TuplePattern
+									if (payloadType.kind !== "tuple") {
+										throw typeError(
+											node.line,
+											node.col,
+											`tag '.${variantPattern.tag}' payload is ${typeStr(payloadType)}, not a tuple`
+										);
+									}
+									if (payloadType.elements.length !== binding.names.length) {
+										throw typeError(
+											node.line,
+											node.col,
+											`tuple destructure arity mismatch on '.${variantPattern.tag}': pattern has ${binding.names.length} name(s), payload has ${payloadType.elements.length}`
+										);
+									}
+									binding.names.forEach((name, index) => {
+										armEnv.bindings[name] = payloadType.elements[index]!;
+									});
+								}
+							}
+						} else {
+							throw typeError(
+								node.line,
+								node.col,
+								`pattern '.${variantPattern.tag}' cannot match non-variant ${typeStr(subjectType)}`
+							);
 						}
 					}
 					if (arm.pattern.kind === "GuardPattern") {
 						inferExpression(arm.pattern.expression, { kind: "bool" }, env);
 					}
 					if (arm.pattern.kind === "LiteralPattern") {
-						inferExpression(arm.pattern.expression, null, env);
+						if (variantDef) {
+							throw typeError(
+								node.line,
+								node.col,
+								`literal pattern cannot match variant ${variantName}`
+							);
+						}
+						inferExpression(arm.pattern.expression, patternExpected, env);
 					}
 					if (arm.pattern.kind === "RangePattern") {
-						inferExpression(arm.pattern.low, null, env);
-						inferExpression(arm.pattern.high, null, env);
+						if (variantDef) {
+							throw typeError(
+								node.line,
+								node.col,
+								`range pattern cannot match variant ${variantName}`
+							);
+						}
+						inferExpression(arm.pattern.low, patternExpected, env);
+						inferExpression(arm.pattern.high, patternExpected, env);
 					}
 					const armBodyType = inferExpression(arm.body, expected, armEnv);
 					if (matchType.kind === "unknown") {
@@ -1461,6 +2016,25 @@ export function checkTypes(ast: Program): RukaError | null {
 				}
 				if (node.elseArm) {
 					inferExpression(node.elseArm, expected ?? matchType, env);
+				} else if (variantDef) {
+					const missing = variantDef.tags
+						.filter((tag) => !coveredTags.has(tag.name))
+						.map((tag) => `.${tag.name}`);
+					if (missing.length > 0) {
+						throw typeError(
+							node.line,
+							node.col,
+							`non-exhaustive match on ${variantName}: missing ${missing.join(", ")}`
+						);
+					}
+				} else {
+					// Non-variant subjects (ints, strings, …) can't be
+					// enumerated, so an else arm is required.
+					throw typeError(
+						node.line,
+						node.col,
+						`non-exhaustive match on ${typeStr(subjectType)}: add an 'else' arm`
+					);
 				}
 				return conform(expected, matchType, node.line, node.col);
 			}
@@ -1591,7 +2165,11 @@ export function checkTypes(ast: Program): RukaError | null {
 				});
 
 				if (matches.length === 0) {
-					throw typeError(node.line, node.col, "no record type in scope matches this literal");
+					throw typeError(
+						node.line,
+						node.col,
+						"no record type in scope matches this literal"
+					);
 				}
 				if (matches.length > 1) {
 					throw typeError(

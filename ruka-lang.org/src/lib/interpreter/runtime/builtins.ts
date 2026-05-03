@@ -38,7 +38,9 @@ function ioFn(host: (args: Value[]) => BuiltinEnvelope): FnValue {
 
 function expectEqHost(args: Value[]): Value {
 	if (args[0] !== args[1]) {
-		throw new RukaError("expect_eq failed: " + display(args[0]) + " != " + display(args[1]));
+		throw new RukaError(
+			"expect_eq failed: " + display(args[0]) + " != " + display(args[1])
+		);
 	}
 	return null;
 }
@@ -50,12 +52,12 @@ export function makeRukaModule(): ModuleValue {
 			println: ioFn((args) => ({
 				kind: "events",
 				events: [{ kind: "stdout", text: args.map(display).join(" ") + "\n" }],
-				value: null,
+				value: null
 			})),
 			print: ioFn((args) => ({
 				kind: "events",
 				events: [{ kind: "stdout", text: args.map(display).join("") }],
-				value: null,
+				value: null
 			})),
 			read: ioFn(() => ({ kind: "input", prompt: null })),
 			readln: ioFn(() => ({ kind: "input", prompt: null })),
@@ -70,6 +72,10 @@ export function makeRukaModule(): ModuleValue {
 			min: syncFn((args) => Math.min(numericOf(args[0]), numericOf(args[1]))),
 			max: syncFn((args) => Math.max(numericOf(args[0]), numericOf(args[1]))),
 			pow: syncFn((args) => Math.pow(numericOf(args[0]), numericOf(args[1]))),
-		},
+			exp: syncFn((args) => Math.exp(numericOf(args[0]))),
+			log: syncFn((args) => Math.log(numericOf(args[0]))),
+			log2: syncFn((args) => Math.log2(numericOf(args[0]))),
+			log10: syncFn((args) => Math.log10(numericOf(args[0])))
+		}
 	};
 }
