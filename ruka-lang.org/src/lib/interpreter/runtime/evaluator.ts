@@ -50,6 +50,7 @@ import {
 	numericOf,
 	type FnValue,
 	type RangeValue,
+	type RecordValue,
 	type Value
 } from "./value.js";
 
@@ -105,7 +106,9 @@ function* loadModuleValue(
 
 	project.visiting.add(path);
 	try {
-		const ast = parse(tokenize(source));
+		// Prefer the pre-parsed, type-checker-annotated AST so that receiver
+		// annotations (resolvedTypeName etc.) survive into the evaluator.
+		const ast = project.asts?.get(path) ?? parse(tokenize(source));
 		const moduleEnv = makeEnv(null);
 		envSet(moduleEnv, "ruka", makeRukaModule());
 		moduleEnv.project = project;
@@ -216,13 +219,24 @@ function* evalBinding(
 		if (isVariantType(value)) {
 			value.name = node.pattern.name;
 		}
+		// Eagerly fix up the typeName when the record came from a different
+		// module scope (typeName absent or not in scope here). The type checker
+		// already verified correctness, so field-name matching is safe.
+		if (isRecord(value) && (!value.typeName || !envHas(env, value.typeName))) {
+			const resolvedName = resolveTypeName(env, value);
+			if (resolvedName) value.typeName = resolvedName;
+		}
 		envSet(env, node.pattern.name, value);
 		env.mut[node.pattern.name] = node.mode === "*";
 	} else if (node.pattern.kind === "RecordPattern") {
-		// Type checker has guaranteed `value` is a record with these fields.
-		const fields = (value as { fields: Record<string, Value> }).fields;
+		// Type checker has guaranteed the value has all the named members.
+		// Module values (ruka.import) store exports in `.members`; record
+		// instances store fields in `.fields`.
+		const source: Record<string, Value> = isModule(value)
+			? (value as ModuleValue).members
+			: (value as { fields: Record<string, Value> }).fields;
 		for (const name of node.pattern.names) {
-			envSet(env, name, fields[name] ?? null);
+			envSet(env, name, source[name] ?? null);
 			env.mut[name] = node.mode === "*";
 		}
 	} else {
@@ -771,6 +785,8 @@ function* evalMember(
 			if (node.property in object.fields) {
 				return object.fields[node.property];
 			}
+
+			// Primary lookup: use typeName if it's in scope.
 			if (object.typeName && envHas(env, object.typeName)) {
 				const typeValue = envGet(env, object.typeName);
 				if (
@@ -780,6 +796,22 @@ function* evalMember(
 					return bindMethod(typeValue.methods[node.property], object);
 				}
 			}
+
+			// Fallback: typeName is absent or belongs to a different module scope.
+			// Resolve by matching field names — safe because the type checker has
+			// already verified the types align.
+			const resolvedName = resolveTypeName(env, object);
+			if (resolvedName) {
+				object.typeName = resolvedName;
+				const typeValue = envGet(env, resolvedName);
+				if (
+					(isRecordType(typeValue) || isVariantType(typeValue)) &&
+					node.property in typeValue.methods
+				) {
+					return bindMethod(typeValue.methods[node.property], object);
+				}
+			}
+
 			throw new RukaError(
 				"No field or method '" + node.property + "' on " + display(object)
 			);
@@ -799,6 +831,28 @@ function* evalMember(
 		annotate(error, node.line, node.col);
 		throw error;
 	}
+}
+
+// When a RecordValue has a typeName from a different module scope, find the
+// binding name of the matching RecordTypeValue in the current env by comparing
+// field names. Returns the binding name, or null if not found.
+function resolveTypeName(env: RuntimeEnv, record: RecordValue): string | null {
+	const instanceFields = Object.keys(record.fields);
+	let walk: RuntimeEnv | null = env;
+	while (walk) {
+		for (const [name, value] of Object.entries(walk.vars)) {
+			if (!isRecordType(value)) continue;
+			const typeFields = value.fields.map((f) => f.name);
+			if (
+				typeFields.length === instanceFields.length &&
+				typeFields.every((f) => instanceFields.includes(f))
+			) {
+				return name;
+			}
+		}
+		walk = walk.parent;
+	}
+	return null;
 }
 
 function bindMethod(method: FnValue, receiver: Value): FnValue {

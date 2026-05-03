@@ -6,7 +6,7 @@ import { parseSource } from "../parser";
 import { checkScope } from "../check/scope";
 import { checkTypes } from "../check/types";
 import { RukaError } from "../diagnostics";
-import { checkProject } from "../project";
+import { checkProjectFull } from "../project";
 import { run } from "./evaluator";
 import type { RuntimeEvent } from "./events";
 import type { RuntimeProject } from "./env";
@@ -221,14 +221,15 @@ function driveProject(
 	entry: string
 ): { stdout: string; stderr: string } {
 	const sources = new Map(Object.entries(files));
-	const checkError = checkProject(sources, entry);
+	const { error: checkError, asts } = checkProjectFull(sources, entry);
 	if (checkError) throw checkError;
 
 	const ast = parseSource(files[entry]!);
 	const project: RuntimeProject = {
 		sources,
 		moduleValues: new Map(),
-		visiting: new Set()
+		visiting: new Set(),
+		asts
 	};
 
 	let stdout = "";
@@ -304,6 +305,37 @@ describe("evaluator — ruka.import", () => {
 			"main.ruka"
 		);
 		expect(stdout).toBe("7\n");
+	});
+
+	it("dispatches methods on a record type re-exported through an intermediate module", () => {
+		// Mirrors the networks example: type `t` defined in single.ruka, re-exported
+		// via root.ruka as `single`, then used in main.ruka where the binding name
+		// doesn't match the original typeName "t".
+		const { stdout } = driveProject(
+			{
+				"main.ruka": [
+					'let { single } = ruka.import("root.ruka")',
+					"let main = () do",
+					"\tlet *obj = single.new()",
+					"\tobj.inc()",
+					"\truka.println(obj.n)",
+					"end"
+				].join("\n"),
+				"root.ruka": [
+					'let Single = ruka.import("single.ruka")',
+					"let single = Single.t"
+				].join("\n"),
+				"single.ruka": [
+					"let t = record { n: int }",
+					"let new (t) = () do .{ n = 0 } end",
+					"let inc (*self) = () do",
+					"\tself.n = self.n + 1",
+					"end"
+				].join("\n")
+			},
+			"main.ruka"
+		);
+		expect(stdout).toBe("1\n");
 	});
 });
 

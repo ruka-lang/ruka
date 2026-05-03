@@ -621,14 +621,15 @@
 			status = "ok";
 		} else {
 			status = "error";
-			errorLine = result.line ?? null;
-			errorColumn = result.col ?? null;
-			errorMessage = result.message;
 			canRun = false;
+			// Runtime errors go to the terminal only — no inline editor annotation.
+			const runtimePath = "path" in result ? result.path : undefined;
+			const locationPrefix = runtimePath ? `in ${runtimePath}: ` : "";
 			terminal?.writeErr(
 				"Runtime error" +
 					(result.line ? ` (line ${result.line})` : "") +
 					": " +
+					locationPrefix +
 					result.message +
 					"\n"
 			);

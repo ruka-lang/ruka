@@ -43,7 +43,6 @@ import {
 	type CheckedType,
 	type FunctionType,
 	type MemberInfo,
-	type ModuleType,
 	type NamedType,
 	type RangeType,
 	type RecordDef,
@@ -183,14 +182,6 @@ function methodOf(
 			};
 		}
 		throw typeError(line, col, `no method '${name}' on string`);
-	}
-
-	if (object.kind === "module") {
-		const member = object.members[name];
-		if (member) {
-			return member;
-		}
-		throw typeError(line, col, `no member '${name}' on module`);
 	}
 
 	if (object.kind === "variantDef") {
@@ -454,7 +445,7 @@ const ARITHMETIC_OPS = new Set(["+", "-", "*", "/", "%", "**"]);
  * Returns the first violation, or null if the program type-checks.
  *
  * When `ctx` is supplied, `ruka.import("./other.ruka")` calls resolve
- * against the project's source map and contribute a `ModuleType` to
+ * against the project's source map and contribute a `RecordDef` to
  * `ctx.moduleTypes` for each successfully checked module.
  */
 export function checkTypes(
@@ -487,32 +478,40 @@ export function checkTypes(
 		returnType: UNKNOWN
 	};
 
-	const rukaModule: ModuleType = {
-		kind: "module",
-		members: {
-			println: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
-			print: { kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } },
-			read: { kind: "fn", params: [], returnType: { kind: "string" } },
-			readln: { kind: "fn", params: [], returnType: { kind: "string" } },
-			expect_eq: unknownFn2,
-			abs: unknownFn1,
-			sin: numericFn1,
-			cos: numericFn1,
-			tan: numericFn1,
-			sqrt: numericFn1,
-			floor: numericFn1,
-			ceil: numericFn1,
-			exp: numericFn1,
-			log: numericFn1,
-			log2: numericFn1,
-			log10: numericFn1,
-			min: unknownFn2,
-			max: unknownFn2,
-			pow: numericFn2
+	const topEnv: TypeEnv = { bindings: Object.create(null), parent: null };
+
+	// `ruka` is the prelude — a predefined record always in scope with no
+	// instance fields, only statics (the built-in functions). It is treated
+	// exactly like any other imported module at the type level.
+	function rukaStatic(type: CheckedType): MemberInfo {
+		return { type, declEnv: topEnv, line: 0 };
+	}
+	const rukaModule: RecordDef = {
+		kind: "recordDef",
+		fields: [],
+		statics: {
+			println: rukaStatic({ kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } }),
+			print: rukaStatic({ kind: "fn", params: [UNKNOWN], returnType: { kind: "unit" } }),
+			read: rukaStatic({ kind: "fn", params: [], returnType: { kind: "string" } }),
+			readln: rukaStatic({ kind: "fn", params: [], returnType: { kind: "string" } }),
+			expect_eq: rukaStatic(unknownFn2),
+			abs: rukaStatic(unknownFn1),
+			sin: rukaStatic(numericFn1),
+			cos: rukaStatic(numericFn1),
+			tan: rukaStatic(numericFn1),
+			sqrt: rukaStatic(numericFn1),
+			floor: rukaStatic(numericFn1),
+			ceil: rukaStatic(numericFn1),
+			exp: rukaStatic(numericFn1),
+			log: rukaStatic(numericFn1),
+			log2: rukaStatic(numericFn1),
+			log10: rukaStatic(numericFn1),
+			min: rukaStatic(unknownFn2),
+			max: rukaStatic(unknownFn2),
+			pow: rukaStatic(numericFn2),
+			import: rukaStatic(UNKNOWN)
 		}
 	};
-
-	const topEnv: TypeEnv = { bindings: Object.create(null), parent: null };
 	topEnv.bindings["ruka"] = rukaModule;
 	topEnv.bindings["true"] = { kind: "bool" };
 	topEnv.bindings["false"] = { kind: "bool" };
@@ -702,7 +701,7 @@ export function checkTypes(
 			}
 			return { name: receiver.typeName, def: looked };
 		}
-		// self-method: explicit annotation or inference.
+		// self-method: explicit annotation, pre-pass pin, or inference.
 		if (receiver.typeAnnotation) {
 			const annotated = astToType(receiver.typeAnnotation);
 			if (!annotated || annotated.kind !== "named") {
@@ -724,6 +723,15 @@ export function checkTypes(
 				);
 			}
 			return { name: annotated.name, def: definition };
+		}
+		// Use the target resolved by the pre-registration pass, if available.
+		// This handles methods that only call other methods (no direct field
+		// access) where field-collection inference would be under-constrained.
+		if (receiver.resolvedTypeName) {
+			const definition = lookupEnv(env, receiver.resolvedTypeName);
+			if (definition && (definition.kind === "recordDef" || definition.kind === "variantDef")) {
+				return { name: receiver.resolvedTypeName, def: definition };
+			}
 		}
 		return null; // caller handles inference
 	}
@@ -963,6 +971,11 @@ export function checkTypes(
 					}
 					seen.add(name);
 					if (binding && binding.kind === "recordDef") {
+						// Skip module-like RecordDefs (no fields, only statics)
+						// — they are imported namespaces, not receiver types.
+						if (binding.fields.length === 0 && binding.statics && !binding.methods) {
+							continue;
+						}
 						const fieldNames = new Set(binding.fields.map((f) => f.name));
 						if (fields.every((f) => fieldNames.has(f))) {
 							candidates.push({ name, def: binding });

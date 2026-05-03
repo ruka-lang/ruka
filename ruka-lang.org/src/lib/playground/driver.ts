@@ -3,6 +3,7 @@ import {
 	checkScope,
 	checkTypes,
 	checkProject,
+	checkProjectFull,
 	run,
 	RukaError,
 	type RuntimeEvent,
@@ -51,6 +52,7 @@ export function checkProjectSource(project: Project): CheckResult {
 	};
 }
 
+
 export function checkSource(source: string): CheckResult {
 	try {
 		const ast = parseSource(source);
@@ -89,21 +91,22 @@ export type RunResult =
 	| { ok: true }
 	| { ok: false; line?: number; col?: number; path?: string; message: string };
 
-function makeRuntimeProject(project: Project): RuntimeProject {
-	return {
-		sources: projectSources(project),
-		moduleValues: new Map(),
-		visiting: new Set()
-	};
-}
-
 /**
  * Drive the project's entry source through the evaluator with a runtime
  * project context, so `ruka.import(...)` resolves across files.
  */
 export async function runProject(project: Project, hooks: RunHooks): Promise<RunResult> {
-	const checkResult = checkProjectSource(project);
-	if (!checkResult.ok) return checkResult;
+	const sources = projectSources(project);
+	const { error: checkError, asts } = checkProjectFull(sources, project.entry);
+	if (checkError) {
+		return {
+			ok: false,
+			line: checkError.line,
+			col: checkError.col,
+			path: checkError.path,
+			message: checkError.message
+		};
+	}
 
 	let ast;
 	try {
@@ -115,7 +118,12 @@ export async function runProject(project: Project, hooks: RunHooks): Promise<Run
 		return { ok: false, message };
 	}
 
-	const runtimeProject = makeRuntimeProject(project);
+	const runtimeProject: RuntimeProject = {
+		sources,
+		moduleValues: new Map(),
+		visiting: new Set(),
+		asts
+	};
 
 	try {
 		const generator = run(ast, runtimeProject, project.entry);

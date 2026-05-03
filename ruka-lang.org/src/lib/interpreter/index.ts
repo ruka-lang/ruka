@@ -11,6 +11,7 @@ export { checkScope } from "./check/scope";
 export { checkTypes } from "./check/types";
 export {
 	checkProject,
+	checkProjectFull,
 	createProjectContext,
 	loadModuleAst,
 	resolveImportPath

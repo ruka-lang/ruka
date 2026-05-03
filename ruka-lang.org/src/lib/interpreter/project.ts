@@ -92,23 +92,35 @@ export function checkProject(
 	sources: ProjectSources,
 	entry: string
 ): RukaError | null {
+	return checkProjectFull(sources, entry).error;
+}
+
+/**
+ * Like `checkProject` but also returns the annotated AST map so the
+ * evaluator can reuse the type-checker's parsed+annotated Program objects
+ * (preserving receiver.resolvedTypeName and other compile-time annotations).
+ */
+export function checkProjectFull(
+	sources: ProjectSources,
+	entry: string
+): { error: RukaError | null; asts: Map<string, Program> } {
 	const ctx = createProjectContext(sources);
 
 	let entryAst: Program;
 	try {
 		entryAst = loadModuleAst(ctx, entry);
 	} catch (error) {
-		if (error instanceof RukaError) return error;
+		if (error instanceof RukaError) return { error, asts: ctx.asts };
 		throw error;
 	}
 
 	const scopeError = checkScope(entryAst, ctx, entry);
-	if (scopeError) return scopeError;
+	if (scopeError) return { error: scopeError, asts: ctx.asts };
 
 	const typeError = checkTypes(entryAst, ctx, entry);
-	if (typeError) return typeError;
+	if (typeError) return { error: typeError, asts: ctx.asts };
 
-	return null;
+	return { error: null, asts: ctx.asts };
 }
 
 /**

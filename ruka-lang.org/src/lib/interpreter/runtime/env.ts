@@ -3,6 +3,7 @@
 // `=` can reject assignments to immutable bindings (created without `*`).
 
 import { RukaError } from "../diagnostics";
+import type { Program } from "../ast";
 import type { ModuleValue, Value } from "./value";
 
 /**
@@ -10,11 +11,16 @@ import type { ModuleValue, Value } from "./value";
  * `ruka.import(...)` calls can resolve paths and reach the cached
  * module-value table. `modulePath` identifies which module the env
  * belongs to so relative imports resolve from the right directory.
+ *
+ * `asts` is optional: when provided, `loadModuleValue` uses these
+ * pre-parsed, type-checker-annotated ASTs instead of re-parsing source
+ * files, so receiver.resolvedTypeName and other annotations are intact.
  */
 export type RuntimeProject = {
 	sources: ReadonlyMap<string, string>;
 	moduleValues: Map<string, ModuleValue>;
 	visiting: Set<string>;
+	asts?: Map<string, Program>;
 };
 
 export type RuntimeEnv = {
