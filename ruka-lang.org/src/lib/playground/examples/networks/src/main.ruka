@@ -16,7 +16,7 @@ let targets = .{
 
 let main = () do
 	let *network = single.new(2, 0.01)
-	network.train(.{
+	for 0..100 do network.train(.{
 		.(.{ 0.0, 0.0 }, 0.0),
 		.(.{ 0.0, 1.0 }, 1.0),
 		.(.{ 1.0, 0.0 }, 1.0),
