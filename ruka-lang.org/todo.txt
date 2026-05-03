@@ -2,6 +2,7 @@ TODO (Features, Docs and playground)
 - [x] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
 	- [ ] Consider `.[...]` and `[...]` for tuple literals and patterns to differentiate from argument/parameter/reciever lists
 	- or [ ] Get rid of tuple types entirely and just use records. Record functionality would be handled by returning a record `.{var1, var2, ...}` using shorthand, if no matching types in scope a record will be generated as `record { var1: var1_type, ... }` then the caller can destructure as `let {var1, var2, ...} = ...`. I think this may be the best alternative since current fuctionality makes the syntax from a reader less intuitive becuase tuple patterns look just like argument lists but tuple types resemble arrays but don't follow array literals (doing so introduces ambiguity so we don't want that). This option would keep the language smaller as well
+- [ ] Consider getting rid of privacy, or swapping to golangs Ident = public
 - [ ] More destructuring functionality
 	- [ ] `if some(x) = var do ...`
 	- [ ] `for some(x) in iter do ...`
@@ -58,6 +59,7 @@ TODO (Features, Docs and playground)
 		- [ ] Bug: Terminal output disappears when uncollapsing the terminal
 		- [ ] Bug: User project state isn't being saved automatically
 		- [ ] Bug: Text files are not loaded from examples projects
+		- [ ] File icon for ruka files should use ruka svg
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
 	- [ ] Line numbers

@@ -1,2 +1,0 @@
-let perceptron = ruka.import("perceptron.ruka")
-let layered = ruka.import("layered.ruka")

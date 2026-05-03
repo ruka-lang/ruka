@@ -1,24 +1,30 @@
 let t = record {
-	weights: [float]
-	inputs: int
+	weights: [float],
+	inputs: int,
 	learning: float
 }
 
 let new (t) = (inputs, learning) do .{
-	weights = .{ for 0..inputs do 0.0 }
-	inputs
+	weights = .{ for 0..inputs do 0.0 },
+	inputs,
 	learning
 }
 
-let fit (*self) = (inputs, target) do
-	let guess = self.predict(inputs)	
+let train (*self) = (training) do
+	for (input, target) in training do
+		self.fit(input, target)
+	end
+end
+
+let Fit (*self) = (input, target) do
+	let guess = self.predict(input)	
 	let error = target - guess
 
 	for i in 0..self.inputs do
 		self.weights[i] = 
 			self.weights[i] + 
 			error * 
-			inputs[i] *
+			input[i] *
 			self.learning
 	end
 end

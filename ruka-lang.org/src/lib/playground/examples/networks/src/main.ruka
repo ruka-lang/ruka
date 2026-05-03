@@ -1,6 +1,6 @@
-let { perceptron, layered } = ruka.import("networks/root.ruka")
+let { single, multi } = ruka.import("perceptron/root.ruka")
 
-let inputs = .{
+let training = .{
 	.{ 0.0, 0.0 },
 	.{ 0.0, 1.0 },
 	.{ 1.0, 0.0 },
@@ -15,5 +15,21 @@ let targets = .{
 }
 
 let main = () do
+	let *network = single.new(2, 0.01)
+	network.train(.{
+		.(.{ 0.0, 0.0 }, 0.0),
+		.(.{ 0.0, 1.0 }, 1.0),
+		.(.{ 1.0, 0.0 }, 1.0),
+		.(.{ 1.0, 1.0 }, 0.0)
+	})
 
+	ruka.println(
+		|"
+		| Single layer perceptron predicting XOR:
+		| 0, 0: ${network.predict(.{ 0.0, 0.0 })}
+		| 0, 1: ${network.predict(.{ 0.0, 1.0 })}
+		| 1, 0: ${network.predict(.{ 1.0, 0.0 })}
+		| 1, 1: ${network.predict(.{ 1.0, 1.0 })}
+		|"
+	)
 end
