@@ -1,22 +1,22 @@
 let t = record {
-	weights: [float],
-	inputs: int,
-	learning: float
+	local weights: [float]
+	local inputs: int
+	local learning: float
 }
 
-let new (t) = (inputs, learning) do .{
-	weights = .{ for 0..inputs do 0.0 },
-	inputs,
+let new = (inputs, learning) do {
+	weights = { for 0..inputs do 0.0 }
+	inputs
 	learning
 }
 
 let train (*self) = (training) do
 	for (input, target) in training do
-		self.Fit(input, target)
+		self.fit(input, target)
 	end
 end
 
-let Fit (*self) = (input, target) do
+let local fit (*self) = (input, target) do
 	let guess = self.predict(input)	
 	let error = target - guess
 
@@ -35,7 +35,7 @@ let predict (self) = (inputs) do
 		sum = sum + inputs[i] * self.weights[i]
 	end
 
-	Sigmoid(sum)
+	sigmoid(sum)
 end
 
-let Sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
+let local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
