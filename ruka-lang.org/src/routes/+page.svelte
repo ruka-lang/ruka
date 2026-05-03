@@ -15,7 +15,7 @@
 		</h1>
 		<p class="hero-lede">
 			Ruka is an opinionated language focused on simplicity and useability, opt in to fine
-			control when desired. Write what you mean; let the compiler fill in the rest.
+			control when needed. Write what you mean; let the compiler fill in the rest.
 		</p>
 		<div class="hero-actions">
 			<Button variant="primary" href="/playground">Open the playground</Button>
