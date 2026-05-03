@@ -110,6 +110,10 @@ function checkStatement(node: Statement, scope: Scope, ctx: ModuleCtx): void {
 			checkExpression(node.value, scope, ctx);
 			return;
 		}
+		case "ComplexAssign":
+			checkExpression(node.target, scope, ctx);
+			checkExpression(node.value, scope, ctx);
+			return;
 		case "ExpressionStmt":
 			checkExpression(node.expression, scope, ctx);
 			return;
@@ -118,6 +122,10 @@ function checkStatement(node: Statement, scope: Scope, ctx: ModuleCtx): void {
 			const forScope: Scope = new Map(scope);
 			if (node.name) {
 				forScope.set(node.name, false); // loop variable is immutable
+			} else if (node.tuplePattern) {
+				for (const patternName of node.tuplePattern) {
+					forScope.set(patternName, false); // tuple vars are immutable
+				}
 			}
 			for (const inner of node.body) {
 				checkStatement(inner, forScope, ctx);
@@ -237,7 +245,13 @@ function checkImportCall(node: Call, ctx: ModuleCtx): void {
 
 	const importedAst = loadModuleAst(ctx.project, resolved);
 	const error = checkScope(importedAst, ctx.project, resolved);
-	if (error) throw error;
+	if (error) {
+		if (error.importLine === undefined) {
+			error.importLine = node.line;
+			error.importCol = node.col;
+		}
+		throw error;
+	}
 }
 
 function checkExpression(
@@ -320,6 +334,19 @@ function checkExpression(
 				checkExpression(element, scope, ctx);
 			}
 			return;
+		case "ArrayComp": {
+			checkExpression(node.iterable, scope, ctx);
+			const compScope: Scope = new Map(scope);
+			if (node.name) {
+				compScope.set(node.name, false);
+			} else if (node.tuplePattern) {
+				for (const patternName of node.tuplePattern) {
+					compScope.set(patternName, false);
+				}
+			}
+			checkExpression(node.body, compScope, ctx);
+			return;
+		}
 		case "BinaryOp":
 			checkExpression(node.left, scope, ctx);
 			checkExpression(node.right, scope, ctx);

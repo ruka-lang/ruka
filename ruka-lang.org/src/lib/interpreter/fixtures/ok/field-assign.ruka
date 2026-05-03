@@ -1,0 +1,21 @@
+let point = record { x: float, y: float }
+
+let main = () do
+	let *p = point.{ x = 1.0, y = 2.0 }
+	ruka.println("before: ${p.x}, ${p.y}")
+
+	p.x = 10.0
+	p.y = 20.0
+	ruka.println("after:  ${p.x}, ${p.y}")
+
+	// Index assignment on a mutable array field
+	let *counts = [int].{0, 0, 0}
+	counts[1] = 42
+	ruka.println("counts[1]: ${counts[1]}")
+
+	// Member field containing an array, index into it
+	let bucket = record { items: [int] }
+	let *b = bucket.{ items = [int].{10, 20, 30} }
+	b.items[0] = 99
+	ruka.println("items[0]: ${b.items[0]}")
+end

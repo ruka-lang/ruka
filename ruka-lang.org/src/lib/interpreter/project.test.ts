@@ -58,7 +58,7 @@ describe("checkProject", () => {
 		});
 
 		const error = checkProject(project, "main.ruka");
-		expect(error?.message).toMatch(/no member 'Hidden' on module/);
+		expect(error?.message).toMatch(/no static 'Hidden' on record/);
 	});
 
 	test("reports a missing module error", () => {
@@ -111,5 +111,41 @@ describe("checkProject", () => {
 		const error = checkProject(project, "main.ruka");
 		expect(error?.path).toBe("util.ruka");
 		expect(error?.message).toMatch(/Undefined: unknown_thing/);
+	});
+
+	test("type-checks methods that forward-reference other methods on the same type", () => {
+		// train calls self.Fit before Fit is defined in source order
+		const project = sources({
+			"main.ruka": [
+				'let m = ruka.import("model.ruka")',
+				"let main = () do () end"
+			].join("\n"),
+			"model.ruka": [
+				"let t = record { value: float }",
+				"let train (*self) = () do",
+				"\tself.fit()",
+				"end",
+				"let fit (*self) = () do",
+				"\tself.value = self.value + 1.0",
+				"end"
+			].join("\n")
+		});
+		expect(checkProject(project, "main.ruka")).toBeNull();
+	});
+
+	test("attaches the import call site to cross-module errors", () => {
+		const project = sources({
+			"main.ruka": [
+				"let main = () do () end",
+				'let util = ruka.import("util.ruka")'
+			].join("\n"),
+			"util.ruka": ["let bad = unknown_thing"].join("\n")
+		});
+
+		const error = checkProject(project, "main.ruka");
+		// The import is on line 2 of main.ruka — the error's importLine should
+		// point back there so the UI can highlight the call site.
+		expect(error?.importLine).toBe(2);
+		expect(error?.path).toBe("util.ruka");
 	});
 });

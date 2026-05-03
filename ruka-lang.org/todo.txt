@@ -2,7 +2,7 @@ TODO (Features, Docs and playground)
 - [x] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
 	- [ ] Consider `.[...]` and `[...]` for tuple literals and patterns to differentiate from argument/parameter/reciever lists
 	- or [ ] Get rid of tuple types entirely and just use records. Record functionality would be handled by returning a record `.{var1, var2, ...}` using shorthand, if no matching types in scope a record will be generated as `record { var1: var1_type, ... }` then the caller can destructure as `let {var1, var2, ...} = ...`. I think this may be the best alternative since current fuctionality makes the syntax from a reader less intuitive becuase tuple patterns look just like argument lists but tuple types resemble arrays but don't follow array literals (doing so introduces ambiguity so we don't want that). This option would keep the language smaller as well
-- [ ] Consider getting rid of privacy, or swapping to golangs Ident = public
+- [ ] Consider getting rid of privacy, or swapping to golangs Ident = public, or adding local keyword back
 - [ ] More destructuring functionality
 	- [ ] `if some(x) = var do ...`
 	- [ ] `for some(x) in iter do ...`
@@ -20,10 +20,10 @@ TODO (Features, Docs and playground)
 		- Pass parameters by reference for real if not too complicated otherwise just simulate above functionality
     - [ ] Arbitrary width integers not just multiples of 8
 	- [x] Records
-		- [ ] Assignment to fields
+		- [x] Assignment to fields
         - [ ] Assign to record fields only if the reciever is mutable and the field is not private or the field is private but the access is from the same scope as the record declaration
 	- [x] Variants
-		- [ ] Variant instanciation and parameter inference
+		- [x] Variant instanciation and parameter inference
 			- For example matching parameter `a` with `red` implies the type of `a` to be a variant with atleast a red member with no payload
 	- [x] Methods and statics including privacy
 		- [ ] Methods defined on types from different scopes can only access public members
@@ -43,8 +43,9 @@ TODO (Features, Docs and playground)
 		- [ ] operators (allowing operator functionality like +, /, [] to be supported for custom types, defined by default for relevant builtin and primatives)
     - [x] Builtin import function for importing other files in the playground
 	- [ ] Builtin function for clearing the terminal
+	- [ ] Mock std lib with std.random module
     - [ ] Bugfixes
-        - [ ] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators). This is a expression based langauge, expressions should work the same everywhere
+        - [x] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators). This is a expression based langauge, expressions should work the same everywhere
         - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int (greedy on first use)
         - [ ] Methods are not callable on rhs values
         - [x] Else matches require do for multiline blocks when the else should take the place of the do (like for if expressions)

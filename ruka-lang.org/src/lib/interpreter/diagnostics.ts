@@ -31,6 +31,13 @@ export class RukaError extends Error {
 	 * runs. The playground prepends it to the message when reporting.
 	 */
 	path?: string;
+	/**
+	 * Location of the `ruka.import(...)` call in the importing file that
+	 * triggered this cross-module error. The playground uses this to highlight
+	 * the import site in the currently-visible file.
+	 */
+	importLine?: number;
+	importCol?: number;
 	constructor(message: string, line?: number, col?: number, fatal = false) {
 		super(message);
 		this.name = "RukaError";

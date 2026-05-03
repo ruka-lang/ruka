@@ -1,0 +1,14 @@
+let main = () do
+	// Pattern-less: repeat a value n times
+	let zeros = [float].{ for 0..5 do 0.0 }
+	ruka.println("zeros: ${zeros}")
+
+	// Named binding: transform each element
+	let doubled = .{ for i in 0..4 do i * 2 }
+	ruka.println("doubled: ${doubled}")
+
+	// Tuple destructuring in comprehension
+	let pairs = [[int, int]].{ .(1, 10), .(2, 20), .(3, 30) }
+	let sums = .{ for (a, b) in pairs do a + b }
+	ruka.println("sums: ${sums}")
+end

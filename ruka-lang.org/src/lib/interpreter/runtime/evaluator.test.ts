@@ -306,3 +306,181 @@ describe("evaluator — ruka.import", () => {
 		expect(stdout).toBe("7\n");
 	});
 });
+
+describe("evaluator — receiver modes", () => {
+	it("parses and calls a method with a (*self) mutable receiver", () => {
+		const source = [
+			"let counter = record { n: int }",
+			"let inc (*self) = () do",
+			"\tself.n = self.n + 1",
+			"end",
+			"let main = () do",
+			"\tlet *c = counter.{ n = 0 }",
+			"\tc.inc()",
+			"\tc.inc()",
+			"\truka.println(c.n)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe("2\n");
+	});
+});
+
+describe("evaluator — record literal shorthand", () => {
+	it("expands a pure-shorthand record literal", () => {
+		const source = [
+			"let point = record { x: int, y: int }",
+			"let main = () do",
+			"\tlet x = 3",
+			"\tlet y = 7",
+			"\tlet p = point.{ x, y }",
+			"\truka.println(p.x)",
+			"\truka.println(p.y)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe("3\n7\n");
+	});
+
+	it("expands shorthand fields mixed with explicit fields", () => {
+		const source = [
+			"let vec = record { x: float, y: float, label: int }",
+			"let main = () do",
+			"\tlet x = 1.0",
+			"\tlet y = 2.0",
+			"\tlet v = vec.{ x, y, label = 42 }",
+			"\truka.println(v.label)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe("42\n");
+	});
+});
+
+describe("evaluator — complex assignment", () => {
+	it("assigns to a record field", () => {
+		const source = [
+			"let point = record { x: int, y: int }",
+			"let main = () do",
+			"\tlet *p = point.{ x = 1, y = 2 }",
+			"\tp.x = 99",
+			"\truka.println(p.x)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe("99\n");
+	});
+
+	it("assigns to an array index", () => {
+		const source = inMain(
+			["let *arr = [int].{10, 20, 30}", "arr[1] = 99", "ruka.println(arr)"].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{10, 99, 30}\n");
+	});
+
+	it("assigns to a record field that holds an array", () => {
+		const source = [
+			"let bag = record { items: [int] }",
+			"let main = () do",
+			"\tlet *b = bag.{ items = [int].{1, 2, 3} }",
+			"\tb.items[0] = 42",
+			"\truka.println(b.items)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{42, 2, 3}\n");
+	});
+
+	it("reflects field mutation through the same binding", () => {
+		const source = [
+			"let counter = record { n: int }",
+			"let main = () do",
+			"\tlet *c = counter.{ n = 0 }",
+			"\tc.n = c.n + 1",
+			"\tc.n = c.n + 1",
+			"\truka.println(c.n)",
+			"end"
+		].join("\n");
+		const { stdout } = drive(source);
+		expect(stdout).toBe("2\n");
+	});
+});
+
+describe("evaluator — for loop tuple destructuring", () => {
+	it("destructures tuple elements in a for loop", () => {
+		const source = inMain(
+			[
+				"let pairs = [[int, int]].{ .(1, 10), .(2, 20), .(3, 30) }",
+				"let *sum = 0",
+				"for (a, b) in pairs do",
+				"\tsum = sum + a + b",
+				"end",
+				"ruka.println(sum)"
+			].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe("66\n");
+	});
+
+	it("makes only the first element available when pattern is shorter than tuple", () => {
+		const source = inMain(
+			[
+				"let triples = [[int, int, int]].{ .(1, 2, 3), .(4, 5, 6) }",
+				"let *total = 0",
+				"for (x, y) in triples do",
+				"\ttotal = total + x + y",
+				"end",
+				"ruka.println(total)"
+			].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe("12\n");
+	});
+});
+
+describe("evaluator — array comprehensions", () => {
+	it("repeats a value across a range (pattern-less)", () => {
+		const source = inMain(
+			["let zeros = [float].{ for 0..4 do 0.0 }", "ruka.println(zeros)"].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{0, 0, 0, 0}\n");
+	});
+
+	it("maps a named binding over a range", () => {
+		const source = inMain(
+			["let doubled = .{ for i in 0..4 do i * 2 }", "ruka.println(doubled)"].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{0, 2, 4, 6}\n");
+	});
+
+	it("works with a type prefix", () => {
+		const source = inMain(
+			["let ones = [int].{ for 0..3 do 1 }", "ruka.println(ones)"].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{1, 1, 1}\n");
+	});
+
+	it("destructures tuples from the iterable", () => {
+		const source = inMain(
+			[
+				"let pairs = [[int, int]].{ .(1, 10), .(2, 20) }",
+				"let sums = .{ for (a, b) in pairs do a + b }",
+				"ruka.println(sums)"
+			].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe(".{11, 22}\n");
+	});
+
+	it("produces an empty array for an empty range", () => {
+		const source = inMain(
+			["let empty = [int].{ for 0..0 do 1 }", "ruka.println(empty.len())"].join("\n")
+		);
+		const { stdout } = drive(source);
+		expect(stdout).toBe("0\n");
+	});
+});

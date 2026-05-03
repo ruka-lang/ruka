@@ -13,7 +13,16 @@ import { getEntrySource, type Project } from "./project";
 
 export type CheckResult =
 	| { ok: true }
-	| { ok: false; line?: number; col?: number; path?: string; message: string };
+	| {
+			ok: false;
+			line?: number;
+			col?: number;
+			path?: string;
+			message: string;
+			/** Location of the ruka.import() call in the importing file. */
+			importLine?: number;
+			importCol?: number;
+	  };
 
 function projectSources(project: Project): Map<string, string> {
 	const map = new Map<string, string>();
@@ -36,7 +45,9 @@ export function checkProjectSource(project: Project): CheckResult {
 		line: error.line,
 		col: error.col,
 		path: error.path,
-		message: error.message
+		message: error.message,
+		importLine: error.importLine,
+		importCol: error.importCol
 	};
 }
 

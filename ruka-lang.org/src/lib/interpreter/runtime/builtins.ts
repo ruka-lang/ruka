@@ -71,7 +71,11 @@ export function makeRukaModule(): ModuleValue {
 			ceil: syncFn((args) => Math.ceil(numericOf(args[0]))),
 			min: syncFn((args) => Math.min(numericOf(args[0]), numericOf(args[1]))),
 			max: syncFn((args) => Math.max(numericOf(args[0]), numericOf(args[1]))),
-			pow: syncFn((args) => Math.pow(numericOf(args[0]), numericOf(args[1])))
+			pow: syncFn((args) => Math.pow(numericOf(args[0]), numericOf(args[1]))),
+			exp: syncFn((args) => Math.exp(numericOf(args[0]))),
+			log: syncFn((args) => Math.log(numericOf(args[0]))),
+			log2: syncFn((args) => Math.log2(numericOf(args[0]))),
+			log10: syncFn((args) => Math.log10(numericOf(args[0])))
 		}
 	};
 }

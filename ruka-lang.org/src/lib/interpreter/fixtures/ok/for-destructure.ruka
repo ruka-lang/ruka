@@ -1,0 +1,20 @@
+let main = () do
+	let pairs = [[int, int]].{
+		.(1, 10),
+		.(2, 20),
+		.(3, 30)
+	}
+
+	let *total = 0
+	for (a, b) in pairs do
+		total = total + a + b
+	end
+	ruka.println("total: ${total}")
+
+	// Collect first elements
+	let *keys = [int].{}
+	for (k, v) in pairs do
+		keys.append(k)
+	end
+	ruka.println("keys: ${keys}")
+end

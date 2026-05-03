@@ -13,7 +13,7 @@ import type { Program } from "./ast";
 import { parse } from "./parser";
 import { tokenize } from "./tokenizer";
 import { RukaError } from "./diagnostics";
-import type { ModuleType } from "./check/type";
+import type { RecordDef } from "./check/type";
 import { checkScope } from "./check/scope";
 import { checkTypes } from "./check/types";
 
@@ -28,8 +28,8 @@ export type ProjectContext = {
 	sources: ProjectSources;
 	/** Parsed AST per module path. Populated on demand by `loadModuleAst`. */
 	asts: Map<string, Program>;
-	/** ModuleType per module path. Populated by the type checker. */
-	moduleTypes: Map<string, ModuleType>;
+	/** RecordDef (no fields, statics = public exports) per module path. Populated by the type checker. */
+	moduleTypes: Map<string, RecordDef>;
 	/** Modules whose top-level scope check has finished. */
 	scopeChecked: Set<string>;
 	/** Stack of modules currently being type-checked (cycle detection). */

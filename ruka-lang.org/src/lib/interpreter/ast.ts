@@ -38,13 +38,14 @@ export type RecordPattern = { kind: "RecordPattern"; names: string[] };
 // target type is known; the evaluator reads it to attach the method/static
 // to the right value at runtime.
 export type Receiver =
-	| { kind: "self"; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
+	| { kind: "self"; mode: "*" | "&" | "$" | "@" | null; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
 	| { kind: "static"; typeName: string; resolvedTypeName?: string };
 
 // ── Statements ────────────────────────────────────────────────────────────
 export type Statement =
 	| Binding
 	| Assign
+	| ComplexAssign
 	| Break
 	| Continue
 	| Return
@@ -72,6 +73,15 @@ export type Assign = {
 	col: number;
 };
 
+// Assignment to a member or index lvalue: `target.field = val`, `target[i] = val`.
+export type ComplexAssign = {
+	kind: "ComplexAssign";
+	target: Member | Index;
+	value: Expression;
+	line: number;
+	col: number;
+};
+
 export type Break = {
 	kind: "Break";
 	line: number;
@@ -94,6 +104,8 @@ export type Return = {
 export type For = {
 	kind: "For";
 	name: string | null;
+	// Tuple destructuring pattern: `for (a, b) in iter`. Mutually exclusive with name.
+	tuplePattern: string[] | null;
 	iterable: Expression;
 	body: Statement[];
 	line: number;
@@ -129,7 +141,8 @@ export type Expression =
 	| VariantType
 	| VariantConstructor
 	| RecordLiteral
-	| ListLiteral;
+	| ListLiteral
+	| ArrayComp;
 
 export type Literal = {
 	kind: "Literal";
@@ -320,6 +333,19 @@ export type ListLiteral = {
 	shape: "array" | "tuple";
 	typePrefix: TypeExpr | null;
 	elements: Expression[];
+	line: number;
+	col: number;
+};
+
+// Array comprehension: `.{ for x in iter do expr }` or `[T].{ for x in iter do expr }`.
+// Collects the body expression result for each iteration into a new array.
+export type ArrayComp = {
+	kind: "ArrayComp";
+	typePrefix: TypeExpr | null;
+	name: string | null;
+	tuplePattern: string[] | null;
+	iterable: Expression;
+	body: Expression;
 	line: number;
 	col: number;
 };

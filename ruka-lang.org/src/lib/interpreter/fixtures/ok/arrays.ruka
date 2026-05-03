@@ -1,9 +1,9 @@
 let main = () do
 	let *primes = [int].{2, 3, 5, 7, 11}
 	ruka.println("primes:  ${primes}")
-	ruka.println("length:  ${primes.length()}")
+	ruka.println("length:  ${primes.len()}")
 	ruka.println("first:   ${primes[0]}")
-	ruka.println("last:    ${primes[primes.length() - 1]}")
+	ruka.println("last:    ${primes[primes.len() - 1]}")
 
 	primes.append(13)
 	ruka.println("after append(13): ${primes}")

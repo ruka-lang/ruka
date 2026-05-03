@@ -137,6 +137,7 @@
 
 	onMount(async () => {
 		userProjects = await listProjects();
+		scheduleCheck(selectedPath, getEntrySource(project));
 	});
 
 	let checkTimer: ReturnType<typeof setTimeout> | null = null;
@@ -176,16 +177,18 @@
 
 			canRun = false;
 			const errorPath = "path" in result ? result.path : undefined;
-			// Inline line/col decoration only when the error lives in the
-			// file the user is editing. Cross-module errors get a
-			// path-prefixed message without highlighting a wrong line.
 			if (!errorPath || errorPath === selectedPath) {
+				// Error is in the currently-visible file — highlight it directly.
 				errorLine = result.line ?? null;
 				errorColumn = result.col ?? null;
 				errorMessage = result.message;
 			} else {
-				errorLine = null;
-				errorColumn = null;
+				// Error originated in a different file. If the import call that
+				// triggered it is visible here, highlight that line.
+				const importLine = "importLine" in result ? result.importLine : undefined;
+				const importCol = "importCol" in result ? result.importCol : undefined;
+				errorLine = importLine ?? null;
+				errorColumn = importCol ?? null;
 				errorMessage = `in ${errorPath}: ${result.message}`;
 			}
 		}, 300);

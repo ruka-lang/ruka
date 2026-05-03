@@ -9,6 +9,7 @@
 import type {
 	Binding,
 	Block,
+	ComplexAssign,
 	Expression,
 	For,
 	If,
@@ -157,6 +158,8 @@ function* evalStatement(
 				envUpdate(env, node.name, value);
 				return value;
 			}
+			case "ComplexAssign":
+				return yield* evalComplexAssign(node, env);
 			case "ExpressionStmt":
 				return yield* evalExpression(node.expression, env);
 			case "For":
@@ -246,6 +249,11 @@ function* evalFor(node: For, env: RuntimeEnv): Generator<RuntimeEvent, Value, st
 		const iterEnv = makeEnv(env);
 		if (node.name) {
 			envSet(iterEnv, node.name, item);
+		} else if (node.tuplePattern) {
+			const elements = Array.isArray(item) ? item : [];
+			node.tuplePattern.forEach((patternName, index) => {
+				envSet(iterEnv, patternName, elements[index] ?? null);
+			});
 		}
 		try {
 			for (const stmt of node.body) {
@@ -280,6 +288,43 @@ function iterableValues(value: Value, line: number, col: number | undefined): Va
 		return out;
 	}
 	throw new RukaError("Not iterable: " + display(value), line, col);
+}
+
+function* evalComplexAssign(
+	node: ComplexAssign,
+	env: RuntimeEnv
+): Generator<RuntimeEvent, Value, string> {
+	const value = yield* evalExpression(node.value, env);
+
+	if (node.target.kind === "Index") {
+		const object = yield* evalExpression(node.target.object, env);
+		const index = yield* evalExpression(node.target.index, env);
+		if (!Array.isArray(object)) {
+			throw new RukaError("Index assignment requires an array", node.line, node.col);
+		}
+		const i = numericOf(index);
+		if (i < 0 || i >= object.length) {
+			throw new RukaError(
+				`Index ${i} out of bounds (length ${object.length})`,
+				node.line,
+				node.col
+			);
+		}
+		object[i] = value;
+		return value;
+	}
+
+	// Member assignment: `object.field = value`
+	const object = yield* evalExpression(node.target.object, env);
+	if (!isRecord(object)) {
+		throw new RukaError(
+			"Member assignment requires a record value",
+			node.line,
+			node.col
+		);
+	}
+	object.fields[node.target.property] = value;
+	return value;
 }
 
 // ── Expressions ─────────────────────────────────────────────────────────
@@ -399,6 +444,30 @@ function* evalExpression(
 				elements.push(yield* evalExpression(element, env));
 			}
 			return elements;
+		}
+
+		case "ArrayComp": {
+			const iterable = yield* evalExpression(node.iterable, env);
+			const values = iterableValues(iterable, node.line, node.col);
+			const result: Value[] = [];
+			let iterations = 0;
+			for (const item of values) {
+				iterations++;
+				if (iterations > 10000) {
+					throw new RukaError("Exceeded 10,000 iterations", node.line, node.col);
+				}
+				const compEnv = makeEnv(env);
+				if (node.name) {
+					envSet(compEnv, node.name, item);
+				} else if (node.tuplePattern) {
+					const elements = Array.isArray(item) ? item : [];
+					node.tuplePattern.forEach((patternName, index) => {
+						envSet(compEnv, patternName, elements[index] ?? null);
+					});
+				}
+				result.push(yield* evalExpression(node.body, compEnv));
+			}
+			return result;
 		}
 
 		case "Index":
@@ -639,7 +708,7 @@ function* evalMember(
 
 		if (Array.isArray(object)) {
 			const list = object;
-			if (node.property === "length") {
+			if (node.property === "len") {
 				return { kind: "fn", host: () => list.length };
 			}
 			if (node.property === "append") {
@@ -676,7 +745,7 @@ function* evalMember(
 
 		if (typeof object === "string") {
 			const text = object;
-			if (node.property === "length") {
+			if (node.property === "len") {
 				return { kind: "fn", host: () => text.length };
 			}
 			if (node.property === "concat") {

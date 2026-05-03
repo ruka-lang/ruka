@@ -11,6 +11,7 @@
 import type {
 	Block,
 	Call,
+	ComplexAssign,
 	Expression,
 	FunctionExpr,
 	Ident,
@@ -41,6 +42,7 @@ import {
 	type ArrayType,
 	type CheckedType,
 	type FunctionType,
+	type MemberInfo,
 	type ModuleType,
 	type NamedType,
 	type RangeType,
@@ -91,6 +93,13 @@ function bindRecordFields(
 	for (const name of names) {
 		const field = fieldByName[name];
 		if (!field) {
+			// Also check statics — this covers module destructuring:
+			// `let { a, b } = ruka.import(...)` where the module's exports
+			// are stored as statics on a no-field RecordDef.
+			if (def.statics && name in def.statics) {
+				env.bindings[name] = def.statics[name]!.type;
+				continue;
+			}
 			throw new RukaError(
 				`no field '${name}' on ${def.name ?? "record"}`,
 				line,
@@ -136,7 +145,7 @@ function methodOf(
 
 	if (object.kind === "array") {
 		const elementType = object.element;
-		if (name === "length") {
+		if (name === "len") {
 			return { kind: "fn", params: [], returnType: { kind: "int" } };
 		}
 		if (name === "append") {
@@ -156,7 +165,7 @@ function methodOf(
 	}
 
 	if (object.kind === "string") {
-		if (name === "length") {
+		if (name === "len") {
 			return { kind: "fn", params: [], returnType: { kind: "int" } };
 		}
 		if (name === "concat") {
@@ -372,6 +381,10 @@ function walkExpression(
 				walkExpression(element, visit);
 			}
 			return;
+		case "ArrayComp":
+			walkExpression(node.iterable, visit);
+			walkExpression(node.body, visit);
+			return;
 		case "RecordLiteral":
 			if (node.typeName) {
 				walkExpression(node.typeName, visit);
@@ -417,6 +430,7 @@ function walkStatement(node: Statement | null | undefined, visit: Visitor): void
 	switch (node.kind) {
 		case "Binding":
 		case "Assign":
+		case "ComplexAssign":
 		case "Return":
 			walkExpression(node.value, visit);
 			return;
@@ -488,6 +502,10 @@ export function checkTypes(
 			sqrt: numericFn1,
 			floor: numericFn1,
 			ceil: numericFn1,
+			exp: numericFn1,
+			log: numericFn1,
+			log2: numericFn1,
+			log10: numericFn1,
 			min: unknownFn2,
 			max: unknownFn2,
 			pow: numericFn2
@@ -500,13 +518,34 @@ export function checkTypes(
 	topEnv.bindings["false"] = { kind: "bool" };
 	topEnv.bindings["self"] = UNKNOWN;
 
-	// Hoist top-level names — annotated bindings get precise types; others are
-	// unknown until the second pass refines them. Receiver bindings are attached
-	// to their target type later, not bound by their bare name.
+	// Hoist top-level names — annotated bindings get precise types; record/variant
+	// type definitions get their def eagerly so the method pre-pass can find them;
+	// everything else is UNKNOWN until the main pass refines it.
 	const topLevelNames: string[] = [];
 	for (const statement of ast.body) {
 		if (statement.kind === "Binding" && !statement.receiver) {
-			const hoisted = astToType(statement.type) ?? UNKNOWN;
+			let hoisted: CheckedType = astToType(statement.type) ?? UNKNOWN;
+			// Eagerly resolve bare `record { ... }` and `variant { ... }` literals so
+			// their defs are available when the method pre-registration pass runs.
+			if (hoisted.kind === "unknown" && statement.pattern.kind === "IdentifierPattern") {
+				if (statement.value.kind === "RecordType") {
+					hoisted = {
+						kind: "recordDef",
+						fields: statement.value.fields.map((f) => ({
+							name: f.name,
+							type: astToType(f.type) ?? UNKNOWN
+						}))
+					};
+				} else if (statement.value.kind === "VariantType") {
+					hoisted = {
+						kind: "variantDef",
+						tags: statement.value.tags.map((tag) => ({
+							name: tag.name,
+							type: tag.type ? (astToType(tag.type) ?? UNKNOWN) : null
+						}))
+					};
+				}
+			}
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
 				topLevelNames.push(statement.pattern.name);
@@ -523,20 +562,71 @@ export function checkTypes(
 	// innermost fn. Empty = `return` at file scope, which is a hard error.
 	const returnTypeStack: CheckedType[] = [];
 
+	// Pre-pass: register all receiver bindings with UNKNOWN type so that
+	// forward references to methods (e.g. calling a method before it's defined
+	// in source order) succeed during the main pass. For annotated receivers
+	// the target is read from the annotation; for unannotated self receivers
+	// we run the same field-collection heuristic used by the main pass.
+	for (const statement of ast.body) {
+		if (statement.kind !== "Binding" || !statement.receiver || !statement.name) continue;
+		try {
+			let target = resolveReceiverDef(statement.receiver, topEnv, statement.line, statement.col);
+			if (!target && statement.receiver.kind === "self") {
+				// Unannotated self: collect field accesses and find a unique candidate.
+				const fields = collectSelfFields(statement.value);
+				const seen = new Set<string>();
+				const candidates: { name: string; def: RecordDef }[] = [];
+				let walk: TypeEnv | null = topEnv;
+				while (walk) {
+					for (const [name, binding] of Object.entries(walk.bindings)) {
+						if (seen.has(name)) continue;
+						seen.add(name);
+						if (binding && binding.kind === "recordDef") {
+							const fieldNames = new Set(binding.fields.map((f) => f.name));
+							if (fields.length > 0 && fields.every((f) => fieldNames.has(f))) {
+								candidates.push({ name, def: binding });
+							}
+						}
+					}
+					walk = walk.parent;
+				}
+				if (candidates.length === 1) target = candidates[0]!;
+			}
+			if (!target) continue;
+			if (statement.receiver.kind === "self") {
+				target.def.methods = target.def.methods ?? Object.create(null);
+				if (!target.def.methods![statement.name]) {
+					target.def.methods![statement.name] = { type: UNKNOWN, declEnv: topEnv, line: statement.line };
+				}
+			} else {
+				target.def.statics = target.def.statics ?? Object.create(null);
+				if (!target.def.statics![statement.name]) {
+					target.def.statics![statement.name] = { type: UNKNOWN, declEnv: topEnv, line: statement.line };
+				}
+			}
+			statement.receiver.resolvedTypeName = target.name;
+		} catch {
+			// Ignore errors here; the main pass will catches and reports them.
+		}
+	}
+
 	try {
 		for (const statement of ast.body) {
 			checkStatement(statement, topEnv);
 		}
 		if (ctx) {
-			// Build the module's public-export type from its top-level
-			// bindings. Privacy is by case: lowercase = public.
-			const members: Record<string, CheckedType> = Object.create(null);
+			// Build the module's public-export type as a no-field RecordDef
+			// whose statics hold the exported bindings. This allows both
+			// `module.foo` (static access) and `let { foo } = module` (record
+			// pattern destructuring that falls through to statics). Privacy is
+			// by case: lowercase = public.
+			const statics: Record<string, MemberInfo> = Object.create(null);
 			for (const name of topLevelNames) {
 				if (isPrivateName(name)) continue;
 				const type = topEnv.bindings[name];
-				if (type) members[name] = type;
+				if (type) statics[name] = { type, declEnv: topEnv, line: 0 };
 			}
-			ctx.moduleTypes.set(modulePath, { kind: "module", members });
+			ctx.moduleTypes.set(modulePath, { kind: "recordDef", fields: [], statics });
 		}
 		return null;
 	} catch (error) {
@@ -553,6 +643,20 @@ export function checkTypes(
 	function collectSelfFields(node: unknown, accumulator: string[] = []): string[] {
 		if (!node || typeof node !== "object") {
 			return accumulator;
+		}
+		// If this is a Call node whose callee is `self.method(...)`, skip
+		// collecting the method name — it's not a field. Recurse into args only.
+		const asCall = node as Call;
+		if (asCall.kind === "Call") {
+			const callee = asCall.callee;
+			if (
+				callee.kind === "Member" &&
+				(callee.object as Ident).kind === "Ident" &&
+				(callee.object as Ident).name === "self"
+			) {
+				for (const arg of asCall.args) collectSelfFields(arg, accumulator);
+				return accumulator;
+			}
 		}
 		const candidate = node as Member;
 		if (
@@ -625,7 +729,7 @@ export function checkTypes(
 	}
 
 	// ── ruka.import resolution ──────────────────────────────────────────
-	function resolveImport(node: Call): ModuleType {
+	function resolveImport(node: Call): RecordDef {
 		if (!ctx) {
 			throw typeError(
 				node.line,
@@ -679,7 +783,15 @@ export function checkTypes(
 
 		const importedAst = loadModuleAst(ctx, resolved);
 		const error = checkTypes(importedAst, ctx, resolved);
-		if (error) throw error;
+		if (error) {
+			// Attach the import call site so the UI can highlight it in the
+			// importing file, not just display the error's origin path.
+			if (error.importLine === undefined) {
+				error.importLine = node.line;
+				error.importCol = node.col;
+			}
+			throw error;
+		}
 
 		const built = ctx.moduleTypes.get(resolved);
 		if (!built) {
@@ -706,10 +818,22 @@ export function checkTypes(
 				if (valueType && valueType.kind === "variantDef") {
 					valueType.name = node.pattern.name;
 				}
-				// Tag record types with their declaring scope so private fields
-				// can be rejected outside that scope's chain.
-				if (valueType && valueType.kind === "recordDef" && !valueType.declEnv) {
-					valueType.declEnv = env;
+				if (valueType && valueType.kind === "recordDef") {
+					// Tag record types with their declaring scope so private fields
+					// can be rejected outside that scope's chain.
+					if (!valueType.declEnv) valueType.declEnv = env;
+					// If the hoisting pre-pass already created a RecordDef for this
+					// name (so methods/statics could be pre-registered on it), update
+					// that same object in-place rather than replacing it — otherwise
+					// the pre-registered methods would be lost.
+					const hoisted = env.bindings[node.pattern.name];
+					if (hoisted && hoisted.kind === "recordDef" && hoisted !== valueType) {
+						hoisted.fields = valueType.fields;
+						if (!hoisted.declEnv) hoisted.declEnv = valueType.declEnv;
+						hoisted.name = valueType.name;
+						env.bindings[node.pattern.name] = declared || hoisted;
+						return;
+					}
 				}
 				env.bindings[node.pattern.name] = declared || valueType;
 			} else if (node.pattern.kind === "RecordPattern") {
@@ -748,6 +872,14 @@ export function checkTypes(
 			inferExpression(node.value, target, env);
 			return;
 		}
+		if (node.kind === "ComplexAssign") {
+			// Check the rhs; we can't statically validate the lvalue chain in all cases
+			// yet (field assignment checks are tracked in todo.txt), so just infer the
+			// target type and use it as the expected type for the value.
+			const targetType = inferExpression(node.target, null, env);
+			inferExpression(node.value, targetType.kind === "unknown" ? null : targetType, env);
+			return;
+		}
 		if (node.kind === "ExpressionStmt") {
 			inferExpression(node.expression, null, env);
 			return;
@@ -774,6 +906,13 @@ export function checkTypes(
 			const forEnv = extendEnv(env);
 			if (node.name) {
 				forEnv.bindings[node.name] = elementType;
+			} else if (node.tuplePattern) {
+				// Destructure tuple elements: each name gets the corresponding element type.
+				const elements =
+					elementType.kind === "tuple" ? elementType.elements : null;
+				node.tuplePattern.forEach((patternName, index) => {
+					forEnv.bindings[patternName] = elements?.[index] ?? UNKNOWN;
+				});
 			}
 			for (const inner of node.body) {
 				checkStatement(inner, forEnv);
@@ -793,7 +932,8 @@ export function checkTypes(
 			const target = resolveReceiverDef(receiver, env, node.line, node.col)!;
 			const staticType = inferExpression(node.value, astToType(node.type), env);
 			target.def.statics = target.def.statics ?? Object.create(null);
-			if (target.def.statics![node.name!]) {
+			const existingStatic = target.def.statics![node.name!];
+			if (existingStatic && existingStatic.type.kind !== "unknown") {
 				throw typeError(
 					node.line,
 					node.col,
@@ -854,7 +994,10 @@ export function checkTypes(
 		methodEnv.bindings["self"] = { kind: "named", name: target.name };
 		const methodType = inferExpression(node.value, astToType(node.type), methodEnv);
 		target.def.methods = target.def.methods ?? Object.create(null);
-		if (target.def.methods![node.name!]) {
+		const existingMethod = target.def.methods![node.name!];
+		// Allow overwriting a pre-pass placeholder (kind: "unknown"), but reject
+		// true duplicates (where the existing entry has a resolved type).
+		if (existingMethod && existingMethod.type.kind !== "unknown") {
 			throw typeError(
 				node.line,
 				node.col,
@@ -1396,6 +1539,40 @@ export function checkTypes(
 					}
 				}
 				return conform(expected, { kind: "array", element: first }, node.line, node.col);
+			}
+
+			case "ArrayComp": {
+				const iterableType = inferExpression(node.iterable, null, env);
+				let elementType: CheckedType;
+				if (iterableType.kind === "range") {
+					elementType = iterableType.element;
+				} else if (iterableType.kind === "array") {
+					elementType = iterableType.element;
+				} else {
+					elementType = UNKNOWN;
+				}
+
+				const compEnv = extendEnv(env);
+				if (node.name) {
+					compEnv.bindings[node.name] = elementType;
+				} else if (node.tuplePattern) {
+					const elements = elementType.kind === "tuple" ? elementType.elements : null;
+					node.tuplePattern.forEach((patternName, index) => {
+						compEnv.bindings[patternName] = elements?.[index] ?? UNKNOWN;
+					});
+				}
+
+				const prefix = node.typePrefix ? astToType(node.typePrefix) : null;
+				const bodyExpected =
+					prefix && prefix.kind === "array"
+						? (prefix as ArrayType).element
+						: expected && expected.kind === "array"
+							? (expected as ArrayType).element
+							: null;
+
+				const bodyType = inferExpression(node.body, bodyExpected, compEnv);
+				const resultType: CheckedType = { kind: "array", element: bodyType };
+				return conform(expected, resultType, node.line, node.col);
 			}
 
 			case "Index": {

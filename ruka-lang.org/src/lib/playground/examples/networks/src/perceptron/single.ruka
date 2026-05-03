@@ -12,7 +12,7 @@ let new (t) = (inputs, learning) do .{
 
 let train (*self) = (training) do
 	for (input, target) in training do
-		self.fit(input, target)
+		self.Fit(input, target)
 	end
 end
 
@@ -31,11 +31,11 @@ end
 
 let predict (self) = (inputs) do
 	let *sum = 0.0
-	for i in 0..self.weights.len do
+	for i in 0..self.weights.len() do
 		sum = sum + inputs[i] * self.weights[i]
 	end
 
 	Sigmoid(sum)
 end
 
-let Sigmoid = (z) do 1 / (1 - ruka.exp(-z))
+let Sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
