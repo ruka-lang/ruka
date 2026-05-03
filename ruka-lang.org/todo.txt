@@ -1,8 +1,8 @@
 TODO (Features, Docs and playground)
 - [x] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
 	- [ ] Consider getting rid of tuple types entirely and just use records. Tuple functionality would be handled by returning a record `.{var1, var2, ...}` using shorthand, if no matching types in scope a record will be generated as `record { var1: var1_type, ... }` then the caller can destructure as `let {var1, var2, ...} = ...`. This might not be great though without positional record destructuring. So `.{1, "string", 1.2}` has it's type generated as `record { first: int, second: string, ...}` and can be destructured as `let {num, str, flt}` following the order they are declared in the type. I think this may be the best alternative since current fuctionality makes the syntax from a reader less intuitive becuase tuple patterns look just like argument lists but tuple types resemble arrays but don't follow array literals (doing so introduces ambiguity so we don't want that). This option would keep the language smaller as well
-- [ ] Go back to let local for private bindings and local field: type for private record fields
-- [ ] Consider removing . from beginning of arrays, tuples, and records and variants
+- [ ] Go back to `let local` for private top-level bindings and `local field: type` for private record fields
+- [ ] Remove . from beginning of arrays, tuples, and records and variants
 	- [ ] Make commas optional for multi line literals like records and arrays
 - [ ] More destructuring functionality
 	- [ ] `if some(x) = var do ...`
