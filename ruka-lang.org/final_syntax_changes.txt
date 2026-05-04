@@ -1,0 +1,36 @@
+Final syntax/semantics/docs changes before beginning compiler implementation
+- [ ] Tuple type annotations written as `(type, type, ...)`
+	The only difference between this and a function annotations is the missing `->` which makes sense to me as a argument list is essentially a tuple and a parameter list is essentially a tuple destructure semantically
+- [ ] Privacy handled with `local` keyword for bindings as `local name = ...` or fields `record { local x: type, ... }`
+	- [ ] local runtime bindings can't be captured by closures
+- [ ] Multi line literals ie. records, arrays, tuples don't require commas (the following change makes this non-ambiguous)
+- [ ] `.` removed from literals:
+	Arrays become `[int] { e, e, ... }` or `{ e, e, ... }` for type inference
+	Records become `Type { f = v, f = v, ... }` or `{ f = v, f = v, ... }` for type inference
+	Variants become `some(...)` and `none`
+		- For inference, the compiler would check if these match identifiers first, if not then check members of in scope variants
+	Tuples become `(e, e, ...)` (no option for type prefixing which is not neccessary)
+- [ ] Static receivers are typically used attaching statics to foreign types. A file can represent a single type following the pattern
+	```
+		// Vector.ruka
+		let t = ...
+		let new = (...) -> t do ...
+
+		// main.ruka	
+		local Vector = ruka.import("Vector.ruka")
+
+		let main = () do
+			let v: Vector.t = Vector.new(...)
+		end
+	```
+	Applying the statics directly to t is unneccessary and would make the code more cumbersome. But still allowing static receivers may be useful for extending types particularly from the stdlib or third-party libraries
+- [ ] More destructuring functionality
+	- [ ] `if pattern = var do ...` executes block if pattern matches
+	- [ ] `for pattern in iter do ...` skips elements that don't match
+	- [ ] `while pattern = var do ...` terminates on first element that doesn't match
+- [ ] Remove any reference of modules from docs. Refer to them as files or records as appropriate
+- [ ] Array comprehensions are missing from the reference
+- [ ] Packages called Bouquets `ruka bouquet new` and index files are traditionally called stems `stem.ruka`
+- [ ] Library only packages use `src/stem.ruka` as their entry
+- [ ] /docs should contain the grammar and reference information as well so it's in a simple form readable without all the html
+	These would be the single source of truth used by /ruka-lang.org and /ruka

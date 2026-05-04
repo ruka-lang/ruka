@@ -1,6 +1,6 @@
-let { Single, Multi } = ruka.import("perceptron/root.ruka")
+local { Single, Multi } = ruka.import("perceptron/stem.ruka")
 
-let training = {
+local training = {
 	({ 0.0, 0.0 }, 0.0)
 	({ 0.0, 1.0 }, 1.0)
 	({ 1.0, 0.0 }, 1.0)

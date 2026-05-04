@@ -16,7 +16,7 @@ let train (*self) = (training) do
 	end
 end
 
-let local fit (*self) = (input, target) do
+local fit (*self) = (input, target) do
 	let guess = self.predict(input)	
 	let error = target - guess
 
@@ -38,4 +38,4 @@ let predict (self) = (inputs) do
 	sigmoid(sum)
 end
 
-let local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
+local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
