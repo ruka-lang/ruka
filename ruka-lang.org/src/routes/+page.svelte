@@ -1,7 +1,7 @@
 <script lang="ts">
-	import ExampleViewer from "$lib/components/example-viewer/index.svelte";
+	import ExampleViewer from "$lib/components/ExampleViewer.svelte";
 	import { Button } from "$lib/components/ui";
-	import { pickExamples } from "$lib/playground/landing-examples";
+	import { pickExamples } from "$lib/playground/landingExamples";
 
 	const examples = pickExamples();
 </script>
@@ -52,7 +52,6 @@
 
 	.hero-title {
 		font-size: clamp(40px, 6vw, var(--fs-2xl));
-		letter-spacing: -0.02em;
 	}
 
 	.hero-title em {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import logo from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
-	import ThemeToggle from "$lib/components/theme-toggle/index.svelte";
+	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
 	type NavLink = { href: string; label: string };
 
@@ -77,15 +77,15 @@
 
 	.brand-name {
 		font-family: var(--font-display);
-		font-size: var(--fs-lg);
+		font-size: var(--fs-xl);
 		line-height: 1;
-		letter-spacing: -0.01em;
 	}
 
 	nav {
 		display: flex;
 		gap: 4px;
 		flex: 1;
+		justify-content: center;
 	}
 
 	.nav-link {

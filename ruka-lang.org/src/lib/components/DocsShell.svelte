@@ -120,7 +120,6 @@
 		font-family: var(--font-sans);
 		font-size: var(--fs-xs);
 		font-weight: 600;
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--fg-muted);
 		margin-bottom: 12px;

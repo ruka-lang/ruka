@@ -159,7 +159,6 @@
 		gap: 8px;
 		padding: 6px 10px;
 		font-size: 11px;
-		letter-spacing: 0.08em;
 		border-bottom: 1px solid var(--border);
 	}
 	.terminal-header-label {

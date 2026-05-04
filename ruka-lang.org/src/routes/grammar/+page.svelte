@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DocsShell, { type TocSection } from "$lib/components/docs-shell/index.svelte";
+	import DocsShell, { type TocSection } from "$lib/components/DocsShell.svelte";
 
 	const sections: TocSection[] = [
 		{ id: "notation", title: "Notation" },
@@ -860,7 +860,6 @@ guard-pattern ::=  pattern "if" expr
 		color: var(--fg-muted);
 		font-size: var(--fs-xs);
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
 	}
 
 	tbody tr:last-child td {

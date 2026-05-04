@@ -10,7 +10,7 @@
 	} from "lucide-svelte";
 	import Editor from "$lib/components/editor/index.svelte";
 	import Terminal from "$lib/components/terminal/index.svelte";
-	import FileTree, { type TreeAction } from "$lib/components/file-tree/index.svelte";
+	import FileTree, { type TreeAction } from "$lib/components/FileTree.svelte";
 	import { Button, Popover, Select, type SelectGroup } from "$lib/components/ui";
 	import { examples, findExample } from "$lib/playground/examples";
 	import {
@@ -835,7 +835,6 @@
 		padding: 8px 12px;
 		border-bottom: 1px solid var(--border);
 		font-size: 11px;
-		letter-spacing: 0.08em;
 		flex-wrap: wrap;
 	}
 	.playground-label {
@@ -853,7 +852,6 @@
 		gap: 6px;
 		padding: 6px 10px;
 		font-size: var(--fs-xs);
-		letter-spacing: 0.06em;
 		text-transform: uppercase;
 	}
 
@@ -930,7 +928,6 @@
 		border-left: 1px solid var(--border);
 		font: inherit;
 		font-size: 10px;
-		letter-spacing: 0.12em;
 		cursor: pointer;
 	}
 	.output-rail:hover {
