@@ -34,7 +34,7 @@
 	];
 </script>
 
-<svelte:head><title>Ruka — Grammar</title></svelte:head>
+<svelte:head><title>Grammar 💐 Ruka Programming Langauge</title></svelte:head>
 
 <DocsShell title="Grammar" {sections}>
 	<h1>Grammar</h1>

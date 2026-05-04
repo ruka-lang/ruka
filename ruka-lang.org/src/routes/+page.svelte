@@ -6,7 +6,7 @@
 	const examples = pickExamples();
 </script>
 
-<svelte:head><title>Ruka</title></svelte:head>
+<svelte:head><title>Home 💐 Ruka Programming Langauge</title></svelte:head>
 
 <section class="landing">
 	<header class="hero">

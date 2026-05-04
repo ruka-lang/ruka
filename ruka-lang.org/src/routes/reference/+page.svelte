@@ -26,7 +26,7 @@
 	];
 </script>
 
-<svelte:head><title>Ruka — Reference</title></svelte:head>
+<svelte:head><title>Reference 💐 Ruka Programming Language</title></svelte:head>
 
 <DocsShell title="Reference" {sections}>
 	<h1>Reference</h1>

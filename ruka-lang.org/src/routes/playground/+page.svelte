@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
 	import {
-		FilePlus2,
+		FilePlus,
 		PanelRightOpen,
 		Pencil,
 		Play,
@@ -639,7 +639,7 @@
 	}
 </script>
 
-<svelte:head><title>Ruka — Playground</title></svelte:head>
+<svelte:head><title>Playground 💐 Ruka Programming Langauge</title></svelte:head>
 
 <section class="playground">
 	<header class="playground-header">
@@ -652,7 +652,7 @@
 				onChange={onSelectFromDropdown}
 			/>
 			<Button variant="ghost" onclick={(e) => openProjectPopover("new", e)}>
-				<FilePlus2 size={14} strokeWidth={1.75} />
+				<FilePlus size={14} strokeWidth={1.75} />
 				NEW
 			</Button>
 			{#if active.kind === "example"}
