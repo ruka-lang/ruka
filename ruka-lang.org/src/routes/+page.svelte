@@ -29,7 +29,7 @@
 			Pick an example to run it in-browser. The interpreter is a TypeScript port of the
 			upcoming compiler — same syntax, same semantics.
 		</p>
-		<ExampleViewer {examples} />
+		<ExampleViewer height="400px" {examples} />
 	</section>
 </section>
 

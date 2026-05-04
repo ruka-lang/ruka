@@ -47,7 +47,8 @@ export const allOkExamples: LandingExample[] = buildAll();
 // programs — the landing viewer auto-runs on selection and has no input UI.
 export const featuredIds: readonly string[] = [
 	"hello-world",
-	"fibonacci"
+	"fibonacci",
+	"gradient"
 ];
 
 export function pickExamples(ids: readonly string[] = featuredIds): LandingExample[] {
