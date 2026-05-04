@@ -1098,10 +1098,10 @@ let PartialUser = Partial(User)
 
 		<h3>Math</h3>
 		<p>
-			<code>abs</code>, <code>sqrt</code>, <code>pow</code>,
-			<code>floor</code>, <code>ceil</code>, <code>min</code>,
-			<code>max</code>, <code>sin</code>, <code>cos</code>,
-			<code>tan</code>.
+			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, 
+			<code>exp</code>, <code>floor</code>, <code>ceil</code>, 
+			<code>min</code>, <code>max</code>, <code>sin</code>, 
+			<code>cos</code>, <code>tan</code>.
 		</p>
 
 		<h3>Testing</h3>
@@ -1109,7 +1109,7 @@ let PartialUser = Partial(User)
 			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code>.
 		</p>
 
-		<h3>Modules</h3>
+		<h3>File Import</h3>
 		<p>
 			<code>import("path")</code> — see <a href="#modules">Modules &amp; imports</a>.
 		</p>
