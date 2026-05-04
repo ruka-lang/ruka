@@ -26,6 +26,8 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 	Applying the statics directly to t is unneccessary and would make the code more cumbersome. But still allowing static receivers may be useful for extending types particularly from the stdlib or third-party libraries
 - [ ] Docs & [ ] Interpreter: Type inference does not synthesize types. All values must match a predefined type. Type inferences figures out what type annotations would have be written based on the types in scope with any ambiguity being a compile error
 - [ ] Docs: Methods also support move mode & and maybe stack and compile-time mode (which would require the receiver to be in a corresponding binding) I'm just the use cases for those yet
+- [ ] Docs: Closures (runtime functions)
+- [ ] Docs: Code creating or inspecting type values can only be run at compile-time
 - [ ] Docs: More destructuring functionality
 	- [ ] `if pattern = var do ...` executes block if pattern matches
 	- [ ] `for pattern in iter do ...` skips elements that don't match
