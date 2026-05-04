@@ -739,16 +739,13 @@ let inc (*self) = () do
 end`}
 		/>
 		<p>
-			A <em>constructor</em> is just a static that returns a value of the type. A
-			<em>destructor</em>
-			is a method named <code>drop</code>; the compiler calls it when a value goes out of
-			scope.
+			Ruka has no concept of constructors or destructors. By convention, a <em>constructor</em> is a 
+			function that returns a value of the type and a <em>destructor</em>
+			is a method that takes moves the receivers ownership into the method disallowing it's further use.
 		</p>
 		<h3>Extending types</h3>
 		<p>
-			Methods and statics declared in the same module as the type extend it. To add
-			methods to a type from outside its declaring module, re-export the type and declare
-			methods alongside it; the type system will find them by structural lookup.
+			An imported may be extended with additional methods and statics but they cannot access locals and shadowing is disallowed (at least implicitly).
 		</p>
 	</section>
 
