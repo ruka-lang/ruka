@@ -196,7 +196,7 @@
 		color: var(--fg-muted);
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 4px;
+		border-radius: 3px;
 		cursor: pointer;
 	}
 	.terminal-collapse:hover {

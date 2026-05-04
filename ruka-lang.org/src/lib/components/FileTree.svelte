@@ -548,12 +548,11 @@
 		font-size: 9px;
 		color: var(--fg-muted);
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: 2px;
 	}
 
 	.kind-tag[data-kind="ruka"] {
 		color: var(--accent);
-		border-color: var(--accent);
 	}
 
 	.file-row[data-active="true"] {
@@ -582,7 +581,7 @@
 		color: var(--fg-muted);
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 4px;
+		border-radius: 3px;
 		cursor: pointer;
 	}
 

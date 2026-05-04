@@ -70,3 +70,4 @@ TODO (Features, Docs and playground)
 	- [ ] Line numbers
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
 - [ ] Rose-pine attribution footer
+- [ ] Return to top button in bottom right when scrolled down

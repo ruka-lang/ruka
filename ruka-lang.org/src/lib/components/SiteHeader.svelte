@@ -22,7 +22,7 @@
 
 <header class="site-header">
 	<a class="brand" href="/" aria-label="Ruka home">
-		<img src={logo} alt="" width="24" height="24" />
+		<img class="brand-logo" src={logo} alt="" width="24" height="24" />
 		<span class="brand-name">Ruka</span>
 	</a>
 
@@ -75,6 +75,10 @@
 		text-decoration: none;
 	}
 
+	.brand-logo {
+		border-radius: 3px;
+	}
+
 	.brand-name {
 		font-family: var(--font-display);
 		font-size: var(--fs-xl);
@@ -120,7 +124,7 @@
 		width: 28px;
 		height: 28px;
 		color: var(--fg-muted);
-		border-radius: 6px;
+		border-radius: 3px;
 		transition:
 			color 120ms ease,
 			background 120ms ease;

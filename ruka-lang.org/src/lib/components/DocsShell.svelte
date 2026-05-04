@@ -150,7 +150,6 @@
 		padding: 4px 8px;
 		color: var(--fg-muted);
 		text-decoration: none;
-		border-radius: 4px;
 		border-left: 2px solid transparent;
 		transition:
 			color 120ms ease,
@@ -221,13 +220,13 @@
 		padding: 1px 5px;
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 4px;
+		border-radius: 3px;
 	}
 
 	.content :global(pre) {
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 3px;
 		padding: 16px;
 		overflow: auto;
 		margin: 16px 0;

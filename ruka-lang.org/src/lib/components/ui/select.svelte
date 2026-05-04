@@ -62,7 +62,7 @@
 		border: 1px solid var(--ui-border);
 		background: var(--ui-select-bg);
 		color: var(--ui-select-fg);
-		border-radius: 4px;
+		border-radius: 3px;
 		cursor: pointer;
 	}
 

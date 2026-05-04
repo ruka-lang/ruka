@@ -822,7 +822,7 @@
 		height: calc(100vh - 88px);
 		margin: 16px auto;
 		border: 1px solid var(--border);
-		border-radius: 8px;
+		border-radius: 3px;
 		background: var(--bg);
 		overflow: hidden;
 	}
@@ -1002,7 +1002,6 @@
 		flex-direction: column;
 		gap: 6px;
 		font-size: var(--fs-xs);
-		letter-spacing: 0.04em;
 		color: var(--fg-muted);
 		text-transform: uppercase;
 	}
@@ -1015,7 +1014,7 @@
 		background: var(--bg);
 		color: var(--fg);
 		border: 1px solid var(--border);
-		border-radius: 4px;
+		border-radius: 3px;
 		outline: none;
 	}
 

@@ -46,7 +46,7 @@
 		 * unhighlighted prose snippets. */
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 3px;
 		padding: 16px;
 		overflow: auto;
 		margin: 16px 0;
