@@ -15,3 +15,5 @@ TODO (Docs and Playground)
 - [ ] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
 - [ ] Return to top button in bottom right when scrolled down
 - [ ] Accent colour and associated logo shift between emerald, amber, and berry periodically
+- [ ] Floral background pattern (not on site header)
+- [ ] In site header brand name sitting on vines
