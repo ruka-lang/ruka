@@ -7,7 +7,7 @@
 Monorepo for the `Ruka` programming language
 
 # Brief Overview
-`Ruka` is a compiled programming language with a focus on simplicity and ease of use
+`Ruka` is a programming language with a focus on simplicity and ease of use while still providing type safety and performance. Compiled, statically typed, garbage collected.
 
 # Installation
 When `Ruka` reaches a usable state, the instructions for installing and using the tools will live here
