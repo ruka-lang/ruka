@@ -54,7 +54,7 @@
 	.ruka-code code {
 		display: block;
 		font-family: var(--font-mono);
-		font-size: var(--fs-code);
+		font-size: var(--fs-base);
 		font-weight: 550;
 		line-height: 1.4;
 		white-space: pre;

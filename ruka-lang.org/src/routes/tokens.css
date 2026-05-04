@@ -49,10 +49,9 @@ html[data-theme="light"] {
 	--font-mono: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 	/* Type scale — compact-leaning. Use the named steps; don't sprinkle raw px. */
-	--fs-xs: 14px;
-	--fs-sm: 15px;
-	--fs-base: 16px;
-	--fs-code: 16px;
+	--fs-xs: 13px;
+	--fs-sm: 14px;
+	--fs-base: 15px;
 	--fs-md: 18px;
 	--fs-lg: 22px;
 	--fs-xl: 32px;

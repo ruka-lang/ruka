@@ -223,7 +223,7 @@
 		margin: 0;
 		padding: 12px;
 		font-family: var(--font-mono);
-		font-size: var(--font-code);
+		font-size: var(--font-base);
 		line-height: 1.4;
 		font-weight: 550;
 		white-space: pre;
@@ -265,7 +265,7 @@
 		box-shadow: none;
 		box-sizing: border-box;
 		font-family: var(--font-mono);
-		font-size: var(--fs-code);
+		font-size: var(--fs-base);
 		line-height: 1.4;
 		font-weight: 550;
 		white-space: pre;
@@ -301,7 +301,7 @@
 		position: absolute;
 		left: 12px;
 		font-family: inherit;
-		font-size: var(--fs-code);
+		font-size: var(--fs-base);
 		line-height: 1.4;
 		font-weight: 550;
 		font-style: italic;
