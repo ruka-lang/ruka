@@ -147,9 +147,9 @@
 		flex-direction: column;
 		min-height: 0;
 		height: 100%;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 13px;
-		line-height: 1.5;
+		font-family: var(--font-mono);
+		font-size: 14px;
+		line-height: 1.4;
 		/* max-height is set inline from the prop so the body's overflow:auto
 		 * has something to clip against. */
 	}

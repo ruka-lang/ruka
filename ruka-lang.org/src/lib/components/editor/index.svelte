@@ -203,8 +203,7 @@
 		grid-template-rows: max-content;
 		overflow: auto;
 		position: relative;
-		font-family:
-			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-family: var(--font-mono);
 	}
 	.editor > pre,
 	.editor > textarea {
@@ -223,10 +222,9 @@
 		display: block;
 		margin: 0;
 		padding: 12px;
-		font-family:
-			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 14px;
-		line-height: 1.5;
+		font-family: var(--font-mono);
+		font-size: var(--font-code);
+		line-height: 1.4;
 		font-weight: 550;
 		white-space: pre;
 		tab-size: 4;
@@ -266,10 +264,9 @@
 		border: 0;
 		box-shadow: none;
 		box-sizing: border-box;
-		font-family:
-			"Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 14px;
-		line-height: 1.5;
+		font-family: var(--font-mono);
+		font-size: var(--fs-code);
+		line-height: 1.4;
 		font-weight: 550;
 		white-space: pre;
 		tab-size: 4;
@@ -304,8 +301,8 @@
 		position: absolute;
 		left: 12px;
 		font-family: inherit;
-		font-size: 14px;
-		line-height: 1.5;
+		font-size: var(--fs-code);
+		line-height: 1.4;
 		font-weight: 550;
 		font-style: italic;
 		color: var(--danger);

@@ -58,7 +58,7 @@
 	.select {
 		font: inherit;
 		font-size: 12px;
-		padding: 4px 10px;
+		padding: 8px 14px;
 		border: 1px solid var(--ui-border);
 		background: var(--ui-select-bg);
 		color: var(--ui-select-fg);

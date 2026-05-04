@@ -216,7 +216,6 @@
 
 	.content :global(code) {
 		font-family: var(--font-mono);
-		font-size: 0.9em;
 		padding: 1px 5px;
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
@@ -236,7 +235,8 @@
 		background: transparent;
 		border: 0;
 		padding: 0;
-		font-size: var(--fs-sm);
+		font-size: var(--fs-code);
+		line-height: 1.4;
 	}
 
 	@media (max-width: 880px) {
