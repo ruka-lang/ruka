@@ -14,6 +14,7 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 	Type annotations follow `[Key => Value]` and literals `[Key => Value] { key => value, ... }` or `{ key => value, ... }`
 - [ ] Docs: Compile-time type parameters can be inferred by where the result is stored when final arg is a named param with a type of type so
 		`let x: u32 = ruka.float_to_int(f64, some_f64_value)` here float_to_int would return a u32
+		ruka.random does this to determine return and range type
 - [ ] Docs: Static receivers are typically used for attaching statics to foreign types. A file can represent a single type following the pattern
 	```
 		// Vector.ruka
@@ -31,6 +32,10 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 	```
 	Applying the statics directly to t is unneccessary and would make the code more cumbersome. But still allowing static receivers may be useful for extending types particularly from the stdlib or third-party libraries
 - [ ] Docs & [ ] Interpreter: Type inference does not synthesize types. All values must match a predefined type. Type inferences figures out what type annotations would have be written based on the types in scope with any ambiguity being a compile error
+- [ ] Docs: 
+	Integers and floats can be implicitly cast to larger types
+		- to smaller types or from float <-> integer requires casting builtins
+	Strings can be cast to [u8] and vice versa
 - [ ] Docs: Methods also support move mode & and maybe stack and compile-time mode (which would require the receiver to be in a corresponding binding) I'm just the use cases for those yet
 - [ ] Docs: Closures (runtime functions)
 - [ ] Docs: Code creating or inspecting type values can only be run at compile-time
@@ -43,6 +48,6 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 - [ ] Docs: Remove any reference of modules from docs. Files are record types and have no fields, only members. Refer to them as files or records as appropriate.
 - [ ] Docs: Array comprehensions are missing from the reference
 - [ ] Docs: Packages called Bouquets `ruka bouquet new` and index files are traditionally called petals `petal.ruka`
-- [ ] Docs: Library only packages use `src/stem.ruka` as their entry
+- [ ] Docs: Library only packages use `src/petal.ruka` as their entry
 - [ ] Docs: /docs should contain the grammar and reference information as well so it's in a simple form readable without all the html
 	These would be the single source of truth used by /ruka-lang.org and /ruka

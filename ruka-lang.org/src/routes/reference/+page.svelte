@@ -1107,7 +1107,7 @@ let PartialUser = Partial(User)
 			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, 
 			<code>exp</code>, <code>floor</code>, <code>ceil</code>, 
 			<code>min</code>, <code>max</code>, <code>sin</code>, 
-			<code>cos</code>, <code>tan</code>, <code>random(range: [Type..]) -> Type</code>.
+			<code>cos</code>, <code>tan</code>, <code>random</code>.
 		</p>
 
 		<h3>Testing</h3>
