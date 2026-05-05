@@ -147,9 +147,9 @@
 		flex-direction: column;
 		min-height: 0;
 		height: 100%;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 13px;
-		line-height: 1.5;
+		font-family: var(--font-mono);
+		font-size: 14px;
+		line-height: 1.4;
 		/* max-height is set inline from the prop so the body's overflow:auto
 		 * has something to clip against. */
 	}
@@ -159,7 +159,6 @@
 		gap: 8px;
 		padding: 6px 10px;
 		font-size: 11px;
-		letter-spacing: 0.08em;
 		border-bottom: 1px solid var(--border);
 	}
 	.terminal-header-label {
@@ -197,7 +196,7 @@
 		color: var(--fg-muted);
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 4px;
+		border-radius: 3px;
 		cursor: pointer;
 	}
 	.terminal-collapse:hover {

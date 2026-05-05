@@ -120,7 +120,6 @@
 		font-family: var(--font-sans);
 		font-size: var(--fs-xs);
 		font-weight: 600;
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--fg-muted);
 		margin-bottom: 12px;
@@ -151,7 +150,6 @@
 		padding: 4px 8px;
 		color: var(--fg-muted);
 		text-decoration: none;
-		border-radius: 4px;
 		border-left: 2px solid transparent;
 		transition:
 			color 120ms ease,
@@ -218,17 +216,16 @@
 
 	.content :global(code) {
 		font-family: var(--font-mono);
-		font-size: 0.9em;
 		padding: 1px 5px;
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 4px;
+		border-radius: 3px;
 	}
 
 	.content :global(pre) {
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 3px;
 		padding: 16px;
 		overflow: auto;
 		margin: 16px 0;
@@ -238,7 +235,8 @@
 		background: transparent;
 		border: 0;
 		padding: 0;
-		font-size: var(--fs-sm);
+		font-size: var(--fs-code);
+		line-height: 1.4;
 	}
 
 	@media (max-width: 880px) {

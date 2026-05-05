@@ -1,6 +1,6 @@
 <script lang="ts">
-	import DocsShell, { type TocSection } from "$lib/components/docs-shell/index.svelte";
-	import CodeBlock from "$lib/components/code-block/index.svelte";
+	import DocsShell, { type TocSection } from "$lib/components/DocsShell.svelte";
+	import CodeBlock from "$lib/components/ui/codeBlock.svelte";
 
 	const sections: TocSection[] = [
 		{ id: "comments", title: "Comments" },
@@ -26,7 +26,7 @@
 	];
 </script>
 
-<svelte:head><title>Ruka — Reference</title></svelte:head>
+<svelte:head><title>Reference 💐 Ruka Programming Language</title></svelte:head>
 
 <DocsShell title="Reference" {sections}>
 	<h1>Reference</h1>
@@ -739,16 +739,13 @@ let inc (*self) = () do
 end`}
 		/>
 		<p>
-			A <em>constructor</em> is just a static that returns a value of the type. A
-			<em>destructor</em>
-			is a method named <code>drop</code>; the compiler calls it when a value goes out of
-			scope.
+			Ruka has no concept of constructors or destructors. By convention, a <em>constructor</em> is a 
+			function that returns a value of the type and a <em>destructor</em>
+			is a method that takes moves the receivers ownership into the method disallowing it's further use.
 		</p>
 		<h3>Extending types</h3>
 		<p>
-			Methods and statics declared in the same module as the type extend it. To add
-			methods to a type from outside its declaring module, re-export the type and declare
-			methods alongside it; the type system will find them by structural lookup.
+			An imported may be extended with additional methods and statics but they cannot access locals and shadowing is disallowed (at least implicitly).
 		</p>
 	</section>
 
@@ -1099,12 +1096,18 @@ let PartialUser = Partial(User)
 			</tbody>
 		</table>
 
+		<h3>Type conversions</h3>
+		<p>
+			<code>float_to_int()</code>, <code>int_to_float()</code>, 
+			<code>int_cast()</code>, <code>float_cast()</code>.
+		</p>
+
 		<h3>Math</h3>
 		<p>
-			<code>abs</code>, <code>sqrt</code>, <code>pow</code>,
-			<code>floor</code>, <code>ceil</code>, <code>min</code>,
-			<code>max</code>, <code>sin</code>, <code>cos</code>,
-			<code>tan</code>.
+			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, 
+			<code>exp</code>, <code>floor</code>, <code>ceil</code>, 
+			<code>min</code>, <code>max</code>, <code>sin</code>, 
+			<code>cos</code>, <code>tan</code>, <code>random(range: [Type..]) -> Type</code>.
 		</p>
 
 		<h3>Testing</h3>
@@ -1112,7 +1115,7 @@ let PartialUser = Partial(User)
 			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code>.
 		</p>
 
-		<h3>Modules</h3>
+		<h3>File Import</h3>
 		<p>
 			<code>import("path")</code> — see <a href="#modules">Modules &amp; imports</a>.
 		</p>
@@ -1148,7 +1151,6 @@ let PartialUser = Partial(User)
 		color: var(--fg-muted);
 		font-size: var(--fs-xs);
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
 	}
 
 	tbody tr:last-child td {

@@ -463,7 +463,6 @@
 
 	.tree-title {
 		font-size: var(--fs-xs);
-		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--fg-muted);
 	}
@@ -547,15 +546,13 @@
 		padding: 0 4px;
 		font-family: var(--font-mono);
 		font-size: 9px;
-		letter-spacing: 0.04em;
 		color: var(--fg-muted);
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: 2px;
 	}
 
 	.kind-tag[data-kind="ruka"] {
 		color: var(--accent);
-		border-color: var(--accent);
 	}
 
 	.file-row[data-active="true"] {
@@ -584,7 +581,7 @@
 		color: var(--fg-muted);
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 4px;
+		border-radius: 3px;
 		cursor: pointer;
 	}
 

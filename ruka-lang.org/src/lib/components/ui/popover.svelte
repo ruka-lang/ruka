@@ -175,7 +175,7 @@
 		background: var(--bg-elevated);
 		color: var(--fg);
 		border: 1px solid var(--border);
-		border-radius: 8px;
+		border-radius: 3px;
 		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 		font-family: var(--font-sans);
 		font-size: var(--fs-sm);

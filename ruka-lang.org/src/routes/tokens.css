@@ -49,9 +49,9 @@ html[data-theme="light"] {
 	--font-mono: "Intel One Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 	/* Type scale — compact-leaning. Use the named steps; don't sprinkle raw px. */
-	--fs-xs: 12px;
-	--fs-sm: 13px;
-	--fs-base: 16px;
+	--fs-xs: 13px;
+	--fs-sm: 14px;
+	--fs-base: 15px;
 	--fs-md: 18px;
 	--fs-lg: 22px;
 	--fs-xl: 32px;
@@ -77,6 +77,7 @@ body {
 	font-family: var(--font-sans);
 	font-size: var(--fs-base);
 	line-height: 1.55;
+	letter-spacing: 0.04em;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -86,7 +87,6 @@ h2 {
 	font-family: var(--font-display);
 	font-weight: 400;
 	line-height: 1.1;
-	letter-spacing: -0.01em;
 	margin: 0;
 }
 

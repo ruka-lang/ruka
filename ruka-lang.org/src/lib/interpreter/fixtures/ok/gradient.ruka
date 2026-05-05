@@ -1,0 +1,25 @@
+local ALPHA = 0.01
+local EPSILON = 0.000001
+
+let gradientDescent = (df) do
+	let step = (x) do ALPHA * df(x)
+
+	let *x = 10
+	let *steps = 0
+	while df(x) >= EPSILON do
+		x = x - step(x)
+		steps += 1
+	end
+
+	(x, steps)
+end
+
+let main = () do
+	let df = (x) do 
+		(4.0 * (x ** 3.0)) - 
+		(9.0 * (x ** 2.0))	
+	end
+	let (minimum, steps) = gradientDescent(df)
+
+	ruka.println("A minimum of ${} found in ${} steps")
+end

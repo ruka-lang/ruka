@@ -1,68 +1,20 @@
-TODO (Features, Docs and playground)
-- [x] ! `.(...)` for tuple syntax and `(...)` for destructuring so arrays and tuples don't require explicit annotation or type prefix syntax for inference. Updated for docs, interpreter and examples needs change
-	- [ ] Consider `.[...]` and `[...]` for tuple literals and patterns to differentiate from argument/parameter/reciever lists
-	- or [ ] Get rid of tuple types entirely and just use records. Record functionality would be handled by returning a record `.{var1, var2, ...}` using shorthand, if no matching types in scope a record will be generated as `record { var1: var1_type, ... }` then the caller can destructure as `let {var1, var2, ...} = ...`. I think this may be the best alternative since current fuctionality makes the syntax from a reader less intuitive becuase tuple patterns look just like argument lists but tuple types resemble arrays but don't follow array literals (doing so introduces ambiguity so we don't want that). This option would keep the language smaller as well
-- [ ] Consider getting rid of privacy, or swapping to golangs Ident = public, or adding local keyword back
-- [ ] More destructuring functionality
-	- [ ] `if some(x) = var do ...`
-	- [ ] `for some(x) in iter do ...`
-	- [ ] `while some(x) = var do ...`
-- [ ] More playground language support (in order of importance)
-	- [ ] Bug: can't use types defined in records ie. `let pos: vector.t = .{...}` `let pos = vector.t.{...}`
-	- [x] Modes (Parameter and Binding)
-		- [ ] @ 'Compile-time' mode simulation so we can use functions to generate parameterized types
-			- [ ] Builtin option(T) function `...do variant { some: T, none }`
-			- [ ] Builtin result(T, E) function `...do variant { ok: T, err: E }`
-				- [ ] Can return results from main
-            - [ ] Builtin functions for converting int types and float types
-		- [ ] & (mov) mode not allowing binding to be used afterward passing / capture
-		- [ ] $ needs some way to simulate stack mode
-		- Pass parameters by reference for real if not too complicated otherwise just simulate above functionality
-    - [ ] Arbitrary width integers not just multiples of 8
-	- [x] Records
-		- [x] Assignment to fields
-        - [ ] Assign to record fields only if the reciever is mutable and the field is not private or the field is private but the access is from the same scope as the record declaration
-	- [x] Variants
-		- [x] Variant instanciation and parameter inference
-			- For example matching parameter `a` with `red` implies the type of `a` to be a variant with atleast a red member with no payload
-	- [x] Methods and statics including privacy
-		- [ ] Methods defined on types from different scopes can only access public members
-		- [ ] Method modes (*, &) and mutability / ownership change checks
-		- [ ] Builtin type methods built the same as user type methods (basically builtin and primitive types should be predefined types instead of special cases)
-	- [x] Patterns / Matching / Destructuring
-		- [x] Bug: Match exaustivness is a runtime check...this is a statically typed language we shouldn't be doing runtime checks, exaustiveness should be checked before the code is run.
-		- [x] Record destructuring only allowing public members (idents must match the member name)
-		- [x] Tuple destructuring
-		- [x] Range matching for integers
-		- [x] Variant patterns with a payload can currently be implicitly ignored by not providing `(...)`. It should require `(_)` to explicitly ignore payload
-		- [x] Bug: Patterns not matching expected type should be a compile-error
-	- [ ] Behaviours
-	- [ ] Builtin behaviours
-		- [ ] ruka.iteratable used by for loops (defined by default for relevant builtins and primatives)
-		- [ ] ruka.printable used by print functions (only builtin types and primatives have this behaviour defined by default)
-		- [ ] operators (allowing operator functionality like +, /, [] to be supported for custom types, defined by default for relevant builtin and primatives)
-    - [x] Builtin import function for importing other files in the playground
-	- [ ] Builtin function for clearing the terminal
-	- [ ] Mock std lib with std.random module
-    - [ ] Bugfixes
-        - [x] Can't use match expression as rhs of `+` (might want to match to decide a value to add, probably same issue with other operators). This is a expression based langauge, expressions should work the same everywhere
-        - [ ] Literal type inference should take into account use. If I define `let x = 5` and then later pass x into a uint parameter it should infer x to be uint instead of int (greedy on first use)
-        - [ ] Methods are not callable on rhs values
-        - [x] Else matches require do for multiline blocks when the else should take the place of the do (like for if expressions)
-        - [ ] Can't use variant or record type literals for variant payloads or record fields
-        - [x] Record/Variant prints shoud use type prefixed syntax like `thing.{ field = value }` instead of `{ _typeName = t, field = value }`
-		- [x] if/else blocks should be mixable between single-line and multi-line within a chain. Currently if one else branch is multi-line the final else can't be `else .none` for example
+TODO (Docs and Playground)
 - [ ] Playground functionality
-	- [x] User projects supporting multiple files, saved with indexedDB
+	- [x] User packages supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
 		- [ ] Terminal resizable
 		- [ ] Terminal starts collapsed
 		- [ ] Bug: Terminal output disappears when uncollapsing the terminal
-		- [ ] Bug: User project state isn't being saved automatically
-		- [ ] Bug: Text files are not loaded from examples projects
+		- [ ] Bug: User package state isn't being saved automatically
+		- [ ] Bug: Text files are not loaded from examples packages
 		- [ ] File icon for ruka files should use ruka svg
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
 	- [ ] Line numbers
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
-- [ ] Rose-pine attribution footer
+- [ ] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
+- [ ] Return to top button in bottom right when scrolled down
+- [ ] Accent colour and associated logo shift between berry, amber, and emerald periodically
+- [ ] Subtle spinning floral background pattern on page body
+- [ ] Better mobile styling
+	- [ ] Navlinks collapse into menu

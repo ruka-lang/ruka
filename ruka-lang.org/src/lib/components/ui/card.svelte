@@ -18,7 +18,7 @@
 <style>
 	.card {
 		border: 1px solid var(--ui-border);
-		border-radius: 6px;
+		border-radius: 3px;
 		background: var(--ui-card-bg);
 		overflow: hidden;
 	}

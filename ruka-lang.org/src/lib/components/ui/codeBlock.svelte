@@ -46,7 +46,7 @@
 		 * unhighlighted prose snippets. */
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: 3px;
 		padding: 16px;
 		overflow: auto;
 		margin: 16px 0;
@@ -54,9 +54,9 @@
 	.ruka-code code {
 		display: block;
 		font-family: var(--font-mono);
-		font-size: var(--fs-sm);
+		font-size: var(--fs-base);
 		font-weight: 550;
-		line-height: 1.5;
+		line-height: 1.4;
 		white-space: pre;
 		tab-size: 4;
 		-moz-tab-size: 4;

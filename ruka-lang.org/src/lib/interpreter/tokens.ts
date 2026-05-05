@@ -6,6 +6,7 @@
 
 export const KEYWORDS = new Set([
 	"let",
+	"local",
 	"do",
 	"end",
 	"if",

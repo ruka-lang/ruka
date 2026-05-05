@@ -1,12 +1,12 @@
 <script lang="ts">
-	import ExampleViewer from "$lib/components/example-viewer/index.svelte";
+	import ExampleViewer from "$lib/components/ExampleViewer.svelte";
 	import { Button } from "$lib/components/ui";
-	import { pickExamples } from "$lib/playground/landing-examples";
+	import { pickExamples } from "$lib/playground/landingExamples";
 
 	const examples = pickExamples();
 </script>
 
-<svelte:head><title>Ruka</title></svelte:head>
+<svelte:head><title>Home 💐 Ruka Programming Langauge</title></svelte:head>
 
 <section class="landing">
 	<header class="hero">
@@ -15,7 +15,7 @@
 		</h1>
 		<p class="hero-lede">
 			Ruka is an opinionated language focused on simplicity and useability, opt in to fine
-			control when desired. Write what you mean; let the compiler fill in the rest.
+			control when needed. Write what you mean; let the compiler fill in the rest.
 		</p>
 		<div class="hero-actions">
 			<Button variant="primary" href="/playground">Open the playground</Button>
@@ -29,7 +29,7 @@
 			Pick an example to run it in-browser. The interpreter is a TypeScript port of the
 			upcoming compiler — same syntax, same semantics.
 		</p>
-		<ExampleViewer {examples} />
+		<ExampleViewer height="400px" {examples} />
 	</section>
 </section>
 
@@ -52,7 +52,6 @@
 
 	.hero-title {
 		font-size: clamp(40px, 6vw, var(--fs-2xl));
-		letter-spacing: -0.02em;
 	}
 
 	.hero-title em {

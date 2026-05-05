@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state";
 	import logo from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
-	import ThemeToggle from "$lib/components/theme-toggle/index.svelte";
+	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
 	type NavLink = { href: string; label: string };
 
@@ -22,7 +22,7 @@
 
 <header class="site-header">
 	<a class="brand" href="/" aria-label="Ruka home">
-		<img src={logo} alt="" width="24" height="24" />
+		<img class="brand-logo" src={logo} alt="" width="24" height="24" />
 		<span class="brand-name">Ruka</span>
 	</a>
 
@@ -75,17 +75,21 @@
 		text-decoration: none;
 	}
 
+	.brand-logo {
+		border-radius: 3px;
+	}
+
 	.brand-name {
 		font-family: var(--font-display);
-		font-size: var(--fs-lg);
+		font-size: var(--fs-xl);
 		line-height: 1;
-		letter-spacing: -0.01em;
 	}
 
 	nav {
 		display: flex;
 		gap: 4px;
 		flex: 1;
+		justify-content: center;
 	}
 
 	.nav-link {
@@ -120,7 +124,7 @@
 		width: 28px;
 		height: 28px;
 		color: var(--fg-muted);
-		border-radius: 6px;
+		border-radius: 3px;
 		transition:
 			color 120ms ease,
 			background 120ms ease;

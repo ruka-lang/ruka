@@ -1,5 +1,0 @@
-let Single = ruka.import("single.ruka")
-let single = Single.t
-
-let Multi = ruka.import("multi.ruka")
-let multi = Multi.t

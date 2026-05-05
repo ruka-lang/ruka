@@ -1,0 +1,23 @@
+let t = record {
+	local buf: [float]
+	rows: int
+	cols: int
+}
+
+let new = (rows, cols) do {
+	buf = { for 0..rows * cols do ruka.random(-1.0..=1.0) }
+	rows
+	cols
+}
+
+let (self) multiply = (other) do
+
+end
+
+let (self) add = (other) do
+
+end
+
+let (self) dot = (other) do
+
+end

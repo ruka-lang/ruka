@@ -12,6 +12,7 @@ import type { TokenClass } from "./themes";
 
 const KEYWORDS = new Set([
 	"let",
+	"local",
 	"if",
 	"match",
 	"while",

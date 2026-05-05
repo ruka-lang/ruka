@@ -4,7 +4,7 @@
 	import Terminal from "$lib/components/terminal/index.svelte";
 	import { Card, Select } from "$lib/components/ui";
 	import { runSource } from "$lib/playground/driver";
-	import type { LandingExample } from "$lib/playground/landing-examples";
+	import type { LandingExample } from "$lib/playground/landingExamples";
 
 	type Props = {
 		examples: LandingExample[];
@@ -108,7 +108,7 @@
 
 	.split {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 2fr 1fr;
 		gap: 8px;
 		align-items: stretch;
 	}
