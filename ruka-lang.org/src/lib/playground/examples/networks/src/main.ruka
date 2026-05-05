@@ -1,4 +1,4 @@
-local { Single, Multi } = ruka.import("perceptron/stem.ruka")
+local { Single, Multi } = ruka.import("perceptron/petal.ruka")
 
 local training = {
 	({ 0.0, 0.0 }, 0.0)

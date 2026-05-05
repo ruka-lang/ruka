@@ -1096,12 +1096,18 @@ let PartialUser = Partial(User)
 			</tbody>
 		</table>
 
+		<h3>Type conversions</h3>
+		<p>
+			<code>float_to_int()</code>, <code>int_to_float()</code>, 
+			<code>int_cast()</code>, <code>float_cast()</code>.
+		</p>
+
 		<h3>Math</h3>
 		<p>
 			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, 
 			<code>exp</code>, <code>floor</code>, <code>ceil</code>, 
 			<code>min</code>, <code>max</code>, <code>sin</code>, 
-			<code>cos</code>, <code>tan</code>.
+			<code>cos</code>, <code>tan</code>, <code>random(range: [Type..]) -> Type</code>.
 		</p>
 
 		<h3>Testing</h3>

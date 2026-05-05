@@ -1,12 +1,10 @@
 let t = record {
 	local weights: [float]
-	local inputs: int
-	local learning: float
+	learning: float
 }
 
 let new = (inputs, learning) do {
-	weights = { for 0..inputs do 0.0 }
-	inputs
+	weights = { for 0..inputs do ruka.random(-1.0..=1.0) }
 	learning
 }
 
@@ -20,7 +18,7 @@ local fit (*self) = (input, target) do
 	let guess = self.predict(input)	
 	let error = target - guess
 
-	for i in 0..self.inputs do
+	for i in 0..self.weights.len() do
 		self.weights[i] = 
 			self.weights[i] + 
 			error * 
@@ -35,7 +33,7 @@ let predict (self) = (inputs) do
 		sum = sum + inputs[i] * self.weights[i]
 	end
 
-	sigmoid(sum)
+	activate(sum)
 end
 
-local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
+local activate = (z) do 1.0 if z >= 0.0 else -1.0

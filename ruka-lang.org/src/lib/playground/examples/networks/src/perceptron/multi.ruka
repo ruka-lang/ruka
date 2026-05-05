@@ -1,3 +1,18 @@
 let t = record {
-
+	local weights: [float]
+	learning: float
 }
+
+let predict (self) = () do
+
+end
+
+local fit (*self) = () do
+
+end
+
+let train (*self) = () do
+
+end
+
+local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))

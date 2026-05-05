@@ -10,17 +10,23 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 	Variants become `some(...)` and `none`
 		- For inference, the compiler would check if these match identifiers first, if not then check members of in scope variants
 	Tuples become `(e, e, ...)` (no option for type prefixing which is not neccessary)
-- [ ] Docs: Static receivers are typically used attaching statics to foreign types. A file can represent a single type following the pattern
+- [ ] Docs & [ ] Interpreter: Add builtin map type
+	Type annotations follow `[Key => Value]` and literals `[Key => Value] { key => value, ... }` or `{ key => value, ... }`
+- [ ] Docs: Compile-time type parameters can be inferred by where the result is stored when final arg is a named param with a type of type so
+		`let x: u32 = ruka.float_to_int(f64, some_f64_value)` here float_to_int would return a u32
+- [ ] Docs: Static receivers are typically used for attaching statics to foreign types. A file can represent a single type following the pattern
 	```
 		// Vector.ruka
 		let t = ...
 		let new = (...) -> t do ...
+		let method (self) = () do ...
 
 		// main.ruka	
 		local Vector = ruka.import("Vector.ruka")
 
 		let main = () do
 			let v: Vector.t = Vector.new(...)
+			v.method()
 		end
 	```
 	Applying the statics directly to t is unneccessary and would make the code more cumbersome. But still allowing static receivers may be useful for extending types particularly from the stdlib or third-party libraries
@@ -36,7 +42,7 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 - [ ] Docs & [ ] Interpreter: Records with no fields cannot be instanciated.
 - [ ] Docs: Remove any reference of modules from docs. Files are record types and have no fields, only members. Refer to them as files or records as appropriate.
 - [ ] Docs: Array comprehensions are missing from the reference
-- [ ] Docs: Packages called Bouquets `ruka bouquet new` and index files are traditionally called stems `stem.ruka`
+- [ ] Docs: Packages called Bouquets `ruka bouquet new` and index files are traditionally called petals `petal.ruka`
 - [ ] Docs: Library only packages use `src/stem.ruka` as their entry
 - [ ] Docs: /docs should contain the grammar and reference information as well so it's in a simple form readable without all the html
 	These would be the single source of truth used by /ruka-lang.org and /ruka
