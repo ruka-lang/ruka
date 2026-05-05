@@ -9,7 +9,7 @@ local training = {
 
 let main = () do
 	let *network = Single.new(2, 0.01)
-	for 0..100 do network.train(training)
+	network.train(training, 100)
 
 	ruka.println(
 		|"
