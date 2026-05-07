@@ -1,0 +1,12 @@
+// Multiple `defer`s run in LIFO order at block exit.
+let traced = (n) do
+	defer ruka.println("defer 1")
+	defer ruka.println("defer 2")
+	ruka.println("body: ${n}")
+	defer ruka.println("defer 3")
+end
+
+let main = () do
+	traced(7)
+	ruka.println("after")
+end

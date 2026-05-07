@@ -1,0 +1,26 @@
+let lookup = (key: string) -> ?(int) do
+	if key == "answer" do some(42)
+	else none
+end
+
+let parse = (s: string) -> !(int, string) do
+	if s == "1" do ok(1)
+	else err("not a number: ${s}")
+end
+
+let main = () do
+	match lookup("answer") with
+		some(v) do ruka.println("got ${v}")
+		none    do ruka.println("missing")
+	end
+
+	match parse("1") with
+		ok(v)  do ruka.println("parsed ${v}")
+		err(e) do ruka.println("error: ${e}")
+	end
+
+	match parse("hi") with
+		ok(_)  do ruka.println("ok")
+		err(e) do ruka.println("error: ${e}")
+	end
+end

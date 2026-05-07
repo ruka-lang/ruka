@@ -1,0 +1,5 @@
+// expect: cannot cast
+let main = () do
+	let r = record { x: int } { x = 1 }
+	let s = r as string
+end

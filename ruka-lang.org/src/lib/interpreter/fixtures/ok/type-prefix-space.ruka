@@ -1,0 +1,13 @@
+// A typed literal accepts whitespace between the type prefix and the brace.
+let main = () do
+	let a = [int] { 1, 2, 3 }
+	let b = [int]{ 4, 5, 6 }
+
+	let point = record { x: int, y: int }
+	let p = point { x = 1, y = 2 }
+	let q = point{ x = 3, y = 4 }
+
+	let m = [string => int] { "a" => 1, "b" => 2 }
+
+	ruka.println("${a} ${b} ${p.x} ${q.x} ${m}")
+end

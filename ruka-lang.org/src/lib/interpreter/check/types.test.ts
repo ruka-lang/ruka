@@ -86,9 +86,9 @@ describe("checkTypes: targeted cases", () => {
 
 	it("destructures a record by field name", () => {
 		const src = [
-			"let Point = record { x: int, y: int }",
+			"let point = record { x: int, y: int }",
 			"let main = () do",
-			"    let p: Point = .{ x = 1, y = 2 }",
+			"    let p: point = { x = 1, y = 2 }",
 			"    let { x, y } = p",
 			'    ruka.println("${x} ${y}")',
 			"end"
@@ -99,9 +99,9 @@ describe("checkTypes: targeted cases", () => {
 	it("infers self-method receiver type from field accesses", () => {
 		const src = [
 			"let counter = record { count: int }",
-			"let bump (self) = .{ count = self.count + 1 }",
+			"let bump (self) = { count = self.count + 1 }",
 			"let main = () do",
-			"    let c: counter = .{ count = 0 }",
+			"    let c: counter = { count = 0 }",
 			"    let d = c.bump",
 			"end"
 		].join("\n");
@@ -110,10 +110,10 @@ describe("checkTypes: targeted cases", () => {
 
 	it("variant constructor unique to one variant resolves cleanly", () => {
 		const src = [
-			"let Hit = variant { critical: int, miss }",
+			"let hit = variant { critical: int, miss }",
 			"let main = () do",
-			"    let h: Hit = .miss",
-			"    let g: Hit = .critical(10)",
+			"    let h: hit = miss",
+			"    let g: hit = critical(10)",
 			"end"
 		].join("\n");
 		expect(check(src)).toBeNull();
@@ -121,9 +121,9 @@ describe("checkTypes: targeted cases", () => {
 
 	it("flags ambiguous variant constructor across multiple variants", () => {
 		const src = [
-			"let A = variant { x: int }",
-			"let B = variant { x: int }",
-			"let main = () do let a = .x(1)"
+			"let a_t = variant { tag: int }",
+			"let b_t = variant { tag: int }",
+			"let main = () do let a = tag(1)"
 		].join("\n");
 		const error = check(src);
 		expect(error).toBeInstanceOf(RukaError);
@@ -133,7 +133,7 @@ describe("checkTypes: targeted cases", () => {
 	it("for-loop binding gets the array element type", () => {
 		const src = [
 			"let main = () do",
-			"    let *xs = [int].{ 1, 2, 3 }",
+			"    let *xs = [int]{ 1, 2, 3 }",
 			'    for x in xs do ruka.println("${x}")',
 			"end"
 		].join("\n");
@@ -155,7 +155,7 @@ describe("checkTypes: targeted cases", () => {
 		const src = [
 			"let counter = record { count: int }",
 			"let main = () do",
-			"    let c: counter = .{ count = 0 }",
+			"    let c: counter = { count = 0 }",
 			'    ruka.println("${c.count}")',
 			"end"
 		].join("\n");

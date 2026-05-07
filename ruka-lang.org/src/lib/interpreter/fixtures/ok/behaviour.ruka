@@ -1,0 +1,22 @@
+// A behaviour is satisfied structurally — no `implements` declaration needed.
+let shape = behaviour {
+	area(self): () -> float
+}
+
+let circle = record { radius: float }
+let square = record { side: float }
+
+let area (self: circle) = () do 3.14159 * self.radius * self.radius
+let area (self: square) = () do self.side * self.side
+
+// Behaviour-typed parameter — monomorphised per concrete argument type.
+let describe = (s: shape) do
+	ruka.println("area: ${s.area()}")
+end
+
+let main = () do
+	let c = circle { radius = 2.0 }
+	let s = square { side = 3.0 }
+	describe(c)
+	describe(s)
+end

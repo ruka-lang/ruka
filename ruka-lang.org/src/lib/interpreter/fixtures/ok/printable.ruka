@@ -1,0 +1,11 @@
+// Defining `format(self) -> string` makes a type satisfy `ruka.printable`,
+// so it may appear inside string interpolation and be passed to println.
+let point = record { x: float, y: float }
+
+let format (self: point) = () do "(${self.x}, ${self.y})"
+
+let main = () do
+	let p = point { x = 1.0, y = 2.0 }
+	ruka.println("p = ${p}")
+	ruka.println(p)
+end

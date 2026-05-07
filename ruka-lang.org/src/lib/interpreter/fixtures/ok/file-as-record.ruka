@@ -1,0 +1,19 @@
+// A Ruka file is a record. Top-level `let` declarations are exported members;
+// `local` declarations stay private. There is no separate "module" concept.
+local SECRET = 42
+
+let public_value = 7
+let double = (x) do x * 2
+let bump = () do public_value + 1
+
+// `test` declares a zero-arg function that runs in the test suite.
+test bump_increments = () do
+	ruka.expect_eq(bump(), 8)
+end
+
+let main = () do
+	ruka.println("public_value: ${public_value}")
+	ruka.println("double(5):    ${double(5)}")
+	ruka.println("bump():       ${bump()}")
+	ruka.println("SECRET (file-private): ${SECRET}")
+end

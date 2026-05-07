@@ -1,0 +1,7 @@
+// expect: ambiguous
+// `{ x }` could be a one-element array or a record shorthand. With no
+// expected type from context, it is a compile error.
+let main = () do
+	let x = 1
+	let y = { x }
+end

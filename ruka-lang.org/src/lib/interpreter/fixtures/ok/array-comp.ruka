@@ -1,14 +1,18 @@
 let main = () do
-	// Pattern-less: repeat a value n times
-	let zeros = [float].{ for 0..5 do 0.0 }
-	ruka.println("zeros: ${zeros}")
+	// Body-only: derive each element from the iterator
+	let squares = { x * x for x in 0..5 }
+	ruka.println("squares: ${squares}")
 
-	// Named binding: transform each element
-	let doubled = .{ for i in 0..4 do i * 2 }
+	// Type-pinned, named binding
+	let doubled = [int]{ i * 2 for i in 0..4 }
 	ruka.println("doubled: ${doubled}")
 
+	// Filter with `if`
+	let evens = { x for x in 0..10 if x % 2 == 0 }
+	ruka.println("evens: ${evens}")
+
 	// Tuple destructuring in comprehension
-	let pairs = [[int, int]].{ .(1, 10), .(2, 20), .(3, 30) }
-	let sums = .{ for (a, b) in pairs do a + b }
+	let pairs = [(int, int)]{ (1, 10), (2, 20), (3, 30) }
+	let sums = { a + b for (a, b) in pairs }
 	ruka.println("sums: ${sums}")
 end

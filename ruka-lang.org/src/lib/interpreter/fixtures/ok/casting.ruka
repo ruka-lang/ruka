@@ -1,0 +1,20 @@
+let main = () do
+	let n: i64 = 10
+
+	// Numeric narrowing requires `as`
+	let m = n as i32
+	ruka.println("i32: ${m}")
+
+	// Numeric → string via the prelude's cast behaviour
+	let s = n as string
+	ruka.println("as string: ${s}")
+
+	// Number → char (u8)
+	let c = 65 as u8
+	ruka.println("char: ${c}")
+
+	// Float → int truncates
+	let f = 3.75
+	let i = f as int
+	ruka.println("trunc: ${i}")
+end

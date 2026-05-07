@@ -1,0 +1,14 @@
+let main = () do
+	// Body shape `key => value` selects a map comprehension
+	let squares = { n => n * n for n in 1..=5 }
+	ruka.println("squares: ${squares}")
+
+	// With a filter
+	let pairs = [(string, int)]{ ("alice", 91), ("bob", 50), ("carol", 73) }
+	let passing = { name => score for (name, score) in pairs if score >= 60 }
+	ruka.println("passing: ${passing}")
+
+	// Type-pinned
+	let lookup = [string => int] { name => id for (name, id) in [(string, int)]{ ("a", 1), ("b", 2) } }
+	ruka.println("lookup: ${lookup}")
+end

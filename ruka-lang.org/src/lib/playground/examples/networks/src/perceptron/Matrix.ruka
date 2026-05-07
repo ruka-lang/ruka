@@ -5,19 +5,19 @@ let t = record {
 }
 
 let new = (rows, cols) do {
-	buf = { for 0..rows * cols do ruka.random(-1.0..=1.0) }
+	buf = { ruka.random(-1.0..=1.0) for 0..rows * cols }
 	rows
 	cols
 }
 
-let (self) multiply = (other) do
+let multiply (self) = (other) do
 
 end
 
-let (self) add = (other) do
+let add (self) = (other) do
 
 end
 
-let (self) dot = (other) do
+let dot (self) = (other) do
 
 end

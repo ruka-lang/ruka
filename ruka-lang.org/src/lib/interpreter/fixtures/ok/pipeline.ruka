@@ -1,0 +1,12 @@
+let inc = (x) do x + 1
+let double = (x) do x * 2
+let to_string = (x) do "${x}"
+
+let main = () do
+	// `x |> f` rewrites to `f(x)`; chains compose left-to-right
+	let result = 10 |> inc() |> double() |> to_string()
+	ruka.println("result: ${result}")
+
+	// Pipeline into a builtin
+	"hello, ruka" |> ruka.println()
+end
