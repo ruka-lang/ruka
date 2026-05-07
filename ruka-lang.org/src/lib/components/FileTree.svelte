@@ -102,6 +102,7 @@
 		Trash2
 	} from "lucide-svelte";
 	import { isProtectedPath } from "$lib/playground/project";
+	import rukaLogo from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
 
 	type Props = {
 		files: ProjectFile[];
@@ -408,7 +409,11 @@
 					type="button"
 					onclick={() => fire({ kind: "open", path: node.path })}
 				>
-					<span class="kind-tag" data-kind={node.fileKind}>{node.fileKind}</span>
+					{#if node.fileKind === "ruka"}
+						<img class="ruka-icon" src={rukaLogo} alt="" width="14" height="14" />
+					{:else}
+						<span class="kind-tag" data-kind={node.fileKind}>{node.fileKind}</span>
+					{/if}
 					<span class="name">{node.name}</span>
 				</button>
 				<div class="row-actions">
@@ -551,8 +556,9 @@
 		border-radius: 2px;
 	}
 
-	.kind-tag[data-kind="ruka"] {
-		color: var(--accent);
+	.ruka-icon {
+		flex-shrink: 0;
+		opacity: 0.85;
 	}
 
 	.file-row[data-active="true"] {

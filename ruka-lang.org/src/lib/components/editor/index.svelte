@@ -204,6 +204,7 @@
 		overflow: auto;
 		position: relative;
 		font-family: var(--font-mono);
+		background: var(--bg-elevated);
 	}
 	.editor > pre,
 	.editor > textarea {
