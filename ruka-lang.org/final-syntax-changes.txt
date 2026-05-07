@@ -45,5 +45,3 @@ Final syntax/semantics/docs changes before beginning compiler implementation
 - [ ] Docs: Array comprehensions are missing from the reference
 - [ ] Docs: Packages called Bouquets `ruka bouquet new` and index files are traditionally called petals `petal.ruka`
 - [ ] Docs: Library only packages use `src/petal.ruka` as their entry
-- [ ] Docs: /docs should contain the grammar and reference information as well so it's in a simple form readable without all the html
-	These would be the single source of truth used by /ruka-lang.org and /ruka
