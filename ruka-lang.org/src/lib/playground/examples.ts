@@ -9,11 +9,19 @@
 // `main.ruka` (and any additional files). Vite's `import.meta.glob` picks
 // it up at build time — no manual registration needed.
 
-const FILE_MODULES = import.meta.glob("./examples/**/*.ruka", {
+const RUKA_MODULES = import.meta.glob("./examples/**/*.ruka", {
 	query: "?raw",
 	import: "default",
 	eager: true
 }) as Record<string, string>;
+
+const TXT_MODULES = import.meta.glob("./examples/**/*.txt", {
+	query: "?raw",
+	import: "default",
+	eager: true
+}) as Record<string, string>;
+
+const FILE_MODULES: Record<string, string> = { ...RUKA_MODULES, ...TXT_MODULES };
 
 export type ExampleFile = {
 	path: string;
@@ -39,8 +47,8 @@ function buildExamples(): Example[] {
 	const grouped = new Map<string, ExampleFile[]>();
 
 	for (const fullPath in FILE_MODULES) {
-		// `./examples/<id>/<rest...>.ruka`
-		const match = fullPath.match(/^\.\/examples\/([^/]+)\/(.+\.ruka)$/);
+		// `./examples/<id>/<rest...>.(ruka|txt)`
+		const match = fullPath.match(/^\.\/examples\/([^/]+)\/(.+\.(ruka|txt))$/);
 		if (!match) continue;
 		const id = match[1]!;
 		const path = match[2]!;

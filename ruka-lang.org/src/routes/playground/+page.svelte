@@ -70,7 +70,7 @@
 	// vertical gutter between tree and editor; the output column
 	// collapses to a thin vertical rail with a chevron toggle.
 	let treeWidth = $state(220);
-	let outputCollapsed = $state(false);
+	let outputCollapsed = $state(true);
 	let resizing = false;
 
 	function onResizeStart(event: PointerEvent) {
@@ -197,28 +197,50 @@
 	// Autosave runs only when the active source is a user project.
 	// Examples are read-only — edits to them stay in-memory and are
 	// discarded when the user picks something else.
+	async function doSave(id: string, snapshot: Project) {
+		const stored = await loadProject(id);
+		if (!stored) return;
+
+		// $state wraps values in reactive Proxies that IndexedDB's structured
+		// clone can't serialize. $state.snapshot() returns a plain JS copy.
+		const plain = $state.snapshot(snapshot);
+		stored.files = plain.files;
+		stored.folders = plain.folders;
+		stored.entry = plain.entry;
+		stored.order = plain.order;
+		await saveProject(stored);
+
+		// Refresh the in-memory list so updatedAt-based ordering
+		// stays accurate without another DB roundtrip on every save.
+		userProjects = await listProjects();
+	}
+
 	function scheduleSave() {
 		if (active.kind !== "project") return;
 		const id = active.id;
 
 		if (saveTimer) clearTimeout(saveTimer);
 
-		saveTimer = setTimeout(async () => {
+		// Snapshot the in-memory state now so the async callback writes
+		// the version that triggered this save, even if the user switches
+		// to a different project before the timer fires.
+		const snapshot = project;
+
+		saveTimer = setTimeout(() => {
 			saveTimer = null;
-
-			const stored = await loadProject(id);
-			if (!stored) return;
-
-			stored.files = project.files;
-			stored.folders = project.folders;
-			stored.entry = project.entry;
-			stored.order = project.order;
-			await saveProject(stored);
-
-			// Refresh the in-memory list so updatedAt-based ordering
-			// stays accurate without another DB roundtrip on every save.
-			userProjects = await listProjects();
+			doSave(id, snapshot);
 		}, 500);
+	}
+
+	// When the user navigates away from a user project, flush any pending
+	// debounced save immediately so the DB is up-to-date before the next
+	// project is loaded. Without this, switching away and back before the
+	// timer fires would load stale state from the DB.
+	async function flushSave() {
+		if (!saveTimer || active.kind !== "project") return;
+		clearTimeout(saveTimer);
+		saveTimer = null;
+		await doSave(active.id, project);
 	}
 
 	function onSourceChange(next: string) {
@@ -248,6 +270,8 @@
 	}
 
 	async function loadExample(id: string) {
+		await flushSave();
+
 		const example = findExample(id);
 		if (!example) return;
 
@@ -260,6 +284,8 @@
 	}
 
 	async function loadUserProject(id: string) {
+		await flushSave();
+
 		const stored = await loadProject(id);
 		if (!stored) {
 			// Fell out of the list (deleted in another tab, say); refresh
@@ -709,6 +735,8 @@
 			/>
 		</div>
 
+		<!-- The rail and pane are always rendered so the Terminal component stays
+		     mounted and its output segments survive collapse/expand cycles. -->
 		{#if outputCollapsed}
 			<button
 				class="output-rail"
@@ -721,16 +749,15 @@
 				<span class="output-rail-label">OUTPUT</span>
 				<span class="output-rail-status" data-status={status} aria-hidden="true"></span>
 			</button>
-		{:else}
-			<div class="pane output-pane">
-				<Terminal
-					bind:this={terminal}
-					{status}
-					maxHeight="none"
-					onCollapse={() => (outputCollapsed = true)}
-				/>
-			</div>
 		{/if}
+		<div class="pane output-pane" class:pane-hidden={outputCollapsed}>
+			<Terminal
+				bind:this={terminal}
+				{status}
+				maxHeight="none"
+				onCollapse={() => (outputCollapsed = true)}
+			/>
+		</div>
 	</div>
 </section>
 
@@ -889,6 +916,10 @@
 	.output-pane {
 		flex: 0 0 320px;
 		border-left: 1px solid var(--border);
+	}
+
+	.pane-hidden {
+		display: none;
 	}
 
 	.workspace.output-collapsed .editor-pane {

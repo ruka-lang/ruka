@@ -1,14 +1,15 @@
 TODO (Docs and Playground)
 - [ ] ruka.clear() to clear the output
+- [ ] ruka.now() to get current seconds
 - [ ] Refer to projects as packages
 - [ ] Playground functionality
 	- [x] User packages supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
 		- [ ] Terminal resizable
-		- [ ] Terminal starts collapsed
-		- [ ] Bug: Terminal output disappears when uncollapsing the terminal
-		- [ ] Bug: User package state isn't being saved automatically
-		- [ ] Bug: Text files are not loaded from examples packages
+		- [x] Terminal starts collapsed
+		- [x] Bug: Terminal output disappears when uncollapsing the terminal
+		- [x] Bug: User package state isn't being saved automatically
+		- [x] Bug: Text files are not loaded from examples packages
 		- [ ] File icon for ruka files should use ruka svg
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
@@ -20,6 +21,8 @@ TODO (Docs and Playground)
 - [ ] Accent colour and associated logo shift between berry, amber, and emerald periodically
 - [ ] Subtle spinning floral background pattern on page body gutters (empty left and right columns)
 - [ ] Better mobile styling
-	- [ ] Navlinks collapse into menu
+	- [ ] Navlinks github and theme toggle collapse into menu
+	- [ ] Reference / Grammar TOC collapses into a button with the current section title as the button text
+	- [ ] Smaller text
 - [ ] Add language overview after examples on home page
 - [ ] Extract playground packages to .zip file
