@@ -1,18 +1,18 @@
-let Hit = variant {
-	critical: int,
-	normal: int,
+let hit = variant {
+	critical: int
+	normal: int
 	miss
 }
 
 let attack = (power, accuracy) do
 	let score = power + accuracy
-	if score >= 15 do .critical(score * 2)
-	else if score >= 6 do .normal(score)
-	else .miss
+	if score >= 15 do critical(score * 2)
+	else if score >= 6 do normal(score)
+	else miss
 end
 
-let report = (hit) do
-	match hit with
+let report = (h) do
+	match h with
 		critical(dmg) do "*** Critical hit for ${dmg} damage! ***"
 		normal(dmg)   do "Hit for ${dmg} damage."
 		miss          do "Missed!"

@@ -1,0 +1,6 @@
+// expect: requires an explicit cast
+// Narrowing across numeric widths is not implicit — it needs `as`.
+let main = () do
+	let big: i64 = 100
+	let small: i8 = big
+end

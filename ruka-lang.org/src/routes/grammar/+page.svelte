@@ -759,7 +759,9 @@ while-cond    ::=  expr
 		</p>
 		<pre class="ebnf"><code
 				>for-expr      ::=  "for" pattern "in" expr block-expr
-               |   "for" expr block-expr                  -- iterator without a binding variable</code
+               |   "for" expr block-expr                  -- iterator without a binding variable
+               |   "for" expr "with" pattern "in" expr block-expr
+                                                          -- sugar: outer "for expr" wraps an inner "for pattern in expr"</code
 			></pre>
 
 		<h4>Return</h4>

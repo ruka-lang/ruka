@@ -1,0 +1,16 @@
+// `value if cond else other` — ternary form of if/else
+let abs = (n) do n if n >= 0 else -n
+
+let bucket = (x) do
+	"large" if x >= 100
+	else "medium" if x >= 10
+	else "small"
+end
+
+let main = () do
+	ruka.println("abs(-5): ${abs(-5)}")
+	ruka.println("abs(7):  ${abs(7)}")
+	ruka.println("100: ${bucket(100)}")
+	ruka.println("50:  ${bucket(50)}")
+	ruka.println("3:   ${bucket(3)}")
+end

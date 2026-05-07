@@ -1,0 +1,25 @@
+// In multi-line braced literals, newlines stand in for commas.
+// Commas are only required when two members share a line.
+let main = () do
+	let xs = [int]{
+		1
+		2
+		3
+	}
+	ruka.println("xs: ${xs}")
+
+	let point = record { x: int, y: int, z: int }
+	let p = point {
+		x = 1
+		y = 2
+		z = 3
+	}
+	ruka.println("p: ${p.x} ${p.y} ${p.z}")
+
+	let m = [string => int] {
+		"one"   => 1
+		"two"   => 2
+		"three" => 3
+	}
+	ruka.println("m: ${m}")
+end

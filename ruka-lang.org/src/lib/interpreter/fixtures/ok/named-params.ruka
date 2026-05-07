@@ -1,0 +1,25 @@
+let greet = (~name, ~greeting) do
+	"${greeting}, ${name}!"
+end
+
+let greet_titled = (~name, ~title: ?(string)) do
+	match title with
+		some(t) do "${t} ${name}"
+		none    do name
+	end
+end
+
+let main = () do
+	// Named arguments may appear in any order
+	ruka.println(greet(~name = "Ruka", ~greeting = "Hello"))
+	ruka.println(greet(~greeting = "Hi", ~name = "World"))
+
+	// Label shorthand: a same-named local stands in for `~label = label`
+	let name = "Ruka"
+	let greeting = "Hey"
+	ruka.println(greet(~name, ~greeting))
+
+	// Optional named param: `?(T)` annotation makes it optional
+	ruka.println(greet_titled(~name = "Ruka"))
+	ruka.println(greet_titled(~name = "Ruka", ~title = "Dr."))
+end

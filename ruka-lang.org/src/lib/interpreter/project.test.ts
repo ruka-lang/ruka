@@ -46,19 +46,19 @@ describe("checkProject", () => {
 		expect(checkProject(project, "main.ruka")).toBeNull();
 	});
 
-	test("only public (lowercase) bindings are exported", () => {
+	test("only `let` bindings are exported; `local` bindings are private", () => {
 		const project = sources({
 			"main.ruka": [
 				'let util = ruka.import("util.ruka")',
 				"let main = () do",
-				"\truka.println(util.Hidden)",
+				"\truka.println(util.hidden)",
 				"end"
 			].join("\n"),
-			"util.ruka": ['let Hidden = "secret"'].join("\n")
+			"util.ruka": ['local hidden = "secret"'].join("\n")
 		});
 
 		const error = checkProject(project, "main.ruka");
-		expect(error?.message).toMatch(/no static 'Hidden' on record/);
+		expect(error?.message).toMatch(/no static 'hidden' on record/);
 	});
 
 	test("reports a missing module error", () => {

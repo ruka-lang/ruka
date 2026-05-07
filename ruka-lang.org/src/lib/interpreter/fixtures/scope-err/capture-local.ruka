@@ -1,0 +1,15 @@
+// expect: cannot capture local
+// A `local` runtime binding cannot be captured by a closure that outlives
+// the declaring function.
+let make = () do
+	local *n = 0
+	() do
+		n = n + 1
+		n
+	end
+end
+
+let main = () do
+	let f = make()
+	ruka.println("${f()}")
+end

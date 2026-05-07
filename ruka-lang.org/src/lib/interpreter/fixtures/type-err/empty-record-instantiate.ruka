@@ -1,0 +1,7 @@
+// expect: cannot instantiate
+// A record with no fields is a type-level marker only — it cannot be constructed.
+let marker = record { }
+
+let main = () do
+	let m = marker { }
+end

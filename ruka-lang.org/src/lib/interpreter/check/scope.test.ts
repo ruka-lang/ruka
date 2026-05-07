@@ -82,7 +82,7 @@ describe("checkScope: targeted cases", () => {
 			"        none    do 0",
 			"    end",
 			"end",
-			"let main = () do f(.some(1))"
+			"let main = () do f(some(1))"
 		].join("\n");
 		expect(check(src)).toBeNull();
 	});
@@ -104,7 +104,7 @@ describe("checkScope: targeted cases", () => {
 	it("method/static bindings do not pollute the top-level name space", () => {
 		const src = [
 			"let counter = record { count: int }",
-			"let zero (counter) = .{ count = 0 }",
+			"let zero (counter) = { count = 0 }",
 			"let main = () do counter.zero"
 		].join("\n");
 		expect(check(src)).toBeNull();

@@ -1,7 +1,7 @@
 local Matrix = ruka.import("Matrix.ruka")
 
 let t = record {
-	local layers: [Matrix]
+	local layers: [Matrix.t]
 	local inputs: int
 	local hiddens: int
 	local outputs: int
@@ -9,17 +9,14 @@ let t = record {
 }
 
 let new = (inputs, hiddens, outputs, learning) do {
-	layers = { 
-		Matrix.new()
-		for 0..hiddens do Matrix.new()
-	}
+	layers = { Matrix.new() for 0..=hiddens }
 	inputs
 	hiddens
 	outputs
 	learning
 }
 
-let train (*self) = (training, epochs) do 
+let train (*self) = (training, epochs) do
 	for 0..epochs with (input, target) in training do
 		self.backpropigate(input, target)
 	end

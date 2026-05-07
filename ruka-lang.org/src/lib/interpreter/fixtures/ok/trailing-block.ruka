@@ -1,0 +1,19 @@
+// A single named argument may follow the closing parenthesis as a trailing block.
+let map = (~t: type, xs: [t], ~f) do
+	let *out = [t]{}
+	for x in xs do out.append(f(x))
+	out
+end
+
+let main = () do
+	let nums = [int]{ 1, 2, 3, 4 }
+
+	let doubled = map(nums) ~f = (x) do x * 2
+	ruka.println("doubled: ${doubled}")
+
+	let squared = map(nums) ~f = (x) do
+		let s = x * x
+		s
+	end
+	ruka.println("squared: ${squared}")
+end

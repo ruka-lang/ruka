@@ -523,12 +523,41 @@ end`}
 		<h3>For</h3>
 		<p>
 			<code>for x in iter do … end</code> — <code>iter</code> must satisfy
-			<code>ruka.iterable</code>. The loop variable is immutable within the body.
+			<code>ruka.iterable</code>. The loop variable is immutable within the body. The
+			<code>x in</code> clause may be omitted when the body does not need the iterated value,
+			useful for "do this N times".
 		</p>
 		<CodeBlock
 			code={`for n in 0..5 do ruka.println("\${n}")
-for (k, v) in pairs do ruka.println("\${k}=\${v}")`}
+for (k, v) in pairs do ruka.println("\${k}=\${v}")
+
+for 0..3 do ruka.println("tick")    // no binding — runs 3 times`}
 		/>
+
+		<h4>Nested for with <code>with</code></h4>
+		<p>
+			A common shape is "repeat a body N times, each time iterating over a collection".
+			Writing this as two nested <code>for</code> loops works, but reads heavily because the
+			outer loop has no useful binding. The
+			<code>for outer with pattern in inner do …</code> form is sugar for that nesting:
+		</p>
+		<CodeBlock
+			code={`for 0..epochs with (input, target) in training do
+    self.fit(input, target)
+end
+
+// equivalent to:
+for 0..epochs do
+    for (input, target) in training do
+        self.fit(input, target)
+    end
+end`}
+		/>
+		<p>
+			The outer iterator never binds a name (use a plain nested
+			<code>for x in … do for y in …</code> if you need the outer value).
+			<code>break</code> and <code>continue</code> apply to the <em>inner</em> loop.
+		</p>
 
 		<h3 id="conditional-pattern-binding">Conditional pattern binding</h3>
 		<p>

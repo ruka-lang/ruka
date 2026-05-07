@@ -1,0 +1,10 @@
+// `~t: type` is inferred from the result location when the call site omits it.
+let empty = (~t: type) -> [t] do [t]{}
+
+let main = () do
+	let xs: [i32] = empty()
+	let ys: [string] = empty()
+
+	ruka.println("xs len: ${xs.len()}")
+	ruka.println("ys len: ${ys.len()}")
+end

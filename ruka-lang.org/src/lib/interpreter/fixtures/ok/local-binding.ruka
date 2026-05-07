@@ -1,0 +1,11 @@
+// `local` declares a non-escaping binding. At file scope it is private; at
+// function scope it cannot be captured by a closure that outlives the function.
+local PI = 3.14159
+
+let circle_area = (r) do PI * r * r
+
+let main = () do
+	local cache = ruka.sqrt(2.0)
+	ruka.println("cache: ${cache}")
+	ruka.println("area(2.0): ${circle_area(2.0)}")
+end

@@ -1,0 +1,17 @@
+let main = () do
+	let scores: [string => int] = { "alice" => 91, "bob" => 84 }
+	ruka.println("alice: ${scores["alice"]}")
+	ruka.println("bob:   ${scores["bob"]}")
+
+	let *counts = [string => int] { "a" => 0 }
+	counts["a"] = counts["a"] + 1
+	counts["b"] = 7
+	ruka.println("counts: ${counts}")
+
+	// Multi-line map literal — newlines in place of commas
+	let cfg = [string => int] {
+		"width"  => 80
+		"height" => 24
+	}
+	ruka.println("cfg width: ${cfg["width"]}")
+end

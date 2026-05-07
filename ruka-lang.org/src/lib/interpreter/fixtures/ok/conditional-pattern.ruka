@@ -1,0 +1,34 @@
+let lookup = (id: int) -> ?(string) do
+	if id == 1 do some("alice")
+	else if id == 2 do some("bob")
+	else none
+end
+
+let main = () do
+	// `if pattern = expr` — runs the block only when the pattern matches
+	if some(name) = lookup(1) do
+		ruka.println("hello, ${name}")
+	else
+		ruka.println("unknown")
+	end
+
+	if some(name) = lookup(99) do
+		ruka.println("hello, ${name}")
+	else
+		ruka.println("unknown")
+	end
+
+	// `for pattern in iter` — silently skip non-matching elements
+	let rows = [?(int)]{ some(1), none, some(2), none, some(3) }
+	let *sum = 0
+	for some(n) in rows do sum = sum + n
+	ruka.println("sum of present: ${sum}")
+
+	// `while pattern = expr` — drain until the first non-match
+	let *i = 0
+	let next = () do
+		i = i + 1
+		if i <= 3 do some(i) else none
+	end
+	while some(v) = next() do ruka.println("got ${v}")
+end

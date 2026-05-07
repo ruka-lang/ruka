@@ -1,0 +1,20 @@
+let make_counter = () do
+	let *n = 0
+	() do
+		n = n + 1
+		n
+	end
+end
+
+let make_adder = (x) do (y) do x + y
+
+let main = () do
+	let counter = make_counter()
+	ruka.println("${counter()}")
+	ruka.println("${counter()}")
+	ruka.println("${counter()}")
+
+	let add5 = make_adder(5)
+	ruka.println("${add5(10)}")
+	ruka.println("${add5(20)}")
+end

@@ -345,12 +345,33 @@ end
 
 ### For
 
-`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable within the body.
+`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable within the body. The `x in` clause may be omitted when the body does not need the iterated value, useful for "do this N times":
 
 ```ruka
 for n in 0..5 do ruka.println("${n}")
 for (k, v) in pairs do ruka.println("${k}=${v}")
+
+for 0..3 do ruka.println("tick")    // no binding — runs 3 times
 ```
+
+#### Nested for with `with`
+
+A common shape is "repeat a body N times, each time iterating over a collection". Writing this as two nested `for` loops works, but reads heavily because the outer loop has no useful binding. The `for outer with pattern in inner do …` form is sugar for that nesting:
+
+```ruka
+for 0..epochs with (input, target) in training do
+    self.fit(input, target)
+end
+
+// equivalent to:
+for 0..epochs do
+    for (input, target) in training do
+        self.fit(input, target)
+    end
+end
+```
+
+The outer iterator never binds a name (use a plain nested `for x in … do for y in …` if you need the outer value). `break` and `continue` apply to the *inner* loop.
 
 ### Conditional pattern binding
 

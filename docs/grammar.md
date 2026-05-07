@@ -574,6 +574,8 @@ while-cond    ::=  expr
 ```ebnf
 for-expr      ::=  "for" pattern "in" expr block-expr
                |   "for" expr block-expr                  -- iterator without a binding variable
+               |   "for" expr "with" pattern "in" expr block-expr
+                                                          -- sugar: outer "for expr" wraps an inner "for pattern in expr"
 ```
 
 #### Return

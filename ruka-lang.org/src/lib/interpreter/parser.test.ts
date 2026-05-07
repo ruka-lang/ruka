@@ -80,8 +80,8 @@ describe("parse: bindings", () => {
 		expect(firstStatement("let *x = 1")).toMatchObject({ kind: "Binding", mode: "*" });
 	});
 
-	it("uppercase first letter sets local=true", () => {
-		expect(firstStatement("let Foo = 1")).toMatchObject({ kind: "Binding", local: true });
+	it("`local` keyword sets local=true", () => {
+		expect(firstStatement("local foo = 1")).toMatchObject({ kind: "Binding", local: true });
 	});
 
 	it("destructuring let { a, b } = expression", () => {
@@ -142,7 +142,7 @@ describe("parse: control flow", () => {
 			"else if b do",
 			"    2",
 			"    3",
-			"else .none"
+			"else none"
 		].join("\n");
 		const node = expressionOf(src);
 		expect(node.kind).toBe("If");
@@ -269,6 +269,14 @@ describe("parse: operators", () => {
 		expect(node.args.map((arg) => arg.name)).toEqual(["x", "y"]);
 	});
 
+	it("`x as T` parses as a Cast expression", () => {
+		expect(expressionOf("x as i32")).toMatchObject({
+			kind: "Cast",
+			value: { kind: "Identifier", name: "x" },
+			type: { kind: "NamedType", name: "i32" }
+		});
+	});
+
 	it("pipeline with bare function `x |> f` desugars to `f(x)`", () => {
 		const node = expressionOf("x |> f") as { kind: string; args: { name: string }[] };
 		expect(node.kind).toBe("Call");
@@ -287,15 +295,15 @@ describe("parse: postfix chains", () => {
 		expect(node.object.callee.kind).toBe("Member");
 	});
 
-	it("record literal .{ a = 1 }", () => {
-		expect(expressionOf(".{a = 1}")).toMatchObject({
+	it("record literal { a = 1 }", () => {
+		expect(expressionOf("{a = 1}")).toMatchObject({
 			kind: "RecordLiteral",
 			fields: [{ name: "a", value: { kind: "Literal", value: 1 } }]
 		});
 	});
 
-	it("list literal .{1, 2, 3}", () => {
-		const node = expressionOf(".{1, 2, 3}") as {
+	it("list literal {1, 2, 3}", () => {
+		const node = expressionOf("{1, 2, 3}") as {
 			kind: "ListLiteral";
 			elements: unknown[];
 		};
@@ -303,30 +311,43 @@ describe("parse: postfix chains", () => {
 		expect(node.elements.length).toBe(3);
 	});
 
-	it("typed list literal [int].{1, 2}", () => {
-		expect(expressionOf("[int].{1, 2}")).toMatchObject({
+	it("typed list literal [int]{1, 2}", () => {
+		expect(expressionOf("[int]{1, 2}")).toMatchObject({
 			kind: "ListLiteral",
 			typePrefix: { kind: "ArrayType", element: { kind: "NamedType", name: "int" } }
 		});
 	});
 
-	it("variant constructor .tag(payload)", () => {
-		expect(expressionOf(".some(1)")).toMatchObject({
+	it("typed list literal allows whitespace before brace", () => {
+		expect(expressionOf("[int] {1, 2}")).toMatchObject({
+			kind: "ListLiteral",
+			typePrefix: { kind: "ArrayType", element: { kind: "NamedType", name: "int" } }
+		});
+	});
+
+	it("variant constructor tag(payload)", () => {
+		expect(expressionOf("some(1)")).toMatchObject({
 			kind: "VariantConstructor",
 			tag: "some"
+		});
+	});
+
+	it("map literal { k => v }", () => {
+		expect(expressionOf('{ "a" => 1, "b" => 2 }')).toMatchObject({
+			kind: "MapLiteral"
 		});
 	});
 });
 
 describe("parse: types", () => {
-	it("option(T)", () => {
-		expect(firstStatement("let x: option(int) = 1")).toMatchObject({
+	it("?(T) option type", () => {
+		expect(firstStatement("let x: ?(int) = 1")).toMatchObject({
 			type: { kind: "OptionType", inner: { kind: "NamedType", name: "int" } }
 		});
 	});
 
-	it("result(T, E)", () => {
-		expect(firstStatement("let x: result(int, string) = 1")).toMatchObject({
+	it("!(T, E) result type", () => {
+		expect(firstStatement("let x: !(int, string) = 1")).toMatchObject({
 			type: {
 				kind: "ResultType",
 				ok: { kind: "NamedType", name: "int" },
@@ -335,8 +356,8 @@ describe("parse: types", () => {
 		});
 	});
 
-	it("tuple [a, b]", () => {
-		expect(firstStatement("let x: [int, string] = 1")).toMatchObject({
+	it("tuple (a, b)", () => {
+		expect(firstStatement("let x: (int, string) = 1")).toMatchObject({
 			type: { kind: "TupleType" }
 		});
 	});
@@ -344,6 +365,16 @@ describe("parse: types", () => {
 	it("array [a]", () => {
 		expect(firstStatement("let x: [int] = 1")).toMatchObject({
 			type: { kind: "ArrayType" }
+		});
+	});
+
+	it("map [K => V]", () => {
+		expect(firstStatement("let x: [string => int] = 1")).toMatchObject({
+			type: {
+				kind: "MapType",
+				key: { kind: "NamedType", name: "string" },
+				value: { kind: "NamedType", name: "int" }
+			}
 		});
 	});
 });

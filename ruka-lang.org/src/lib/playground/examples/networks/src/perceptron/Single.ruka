@@ -4,11 +4,11 @@ let t = record {
 }
 
 let new = (inputs, learning) do {
-	weights = { for 0..inputs + 1 do ruka.random(-1.0..=1.0) }
+	weights = { ruka.random(-1.0..=1.0) for 0..inputs + 1 }
 	learning
 }
 
-let train (*self) = (training, epochs) do 
+let train (*self) = (training, epochs) do
 	for 0..epochs with (input, target) in training do
 		self.fit(input, target)
 	end
