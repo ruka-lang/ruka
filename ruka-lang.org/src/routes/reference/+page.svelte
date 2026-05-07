@@ -4,22 +4,27 @@
 
 	const sections: TocSection[] = [
 		{ id: "comments", title: "Comments" },
-		{ id: "identifiers", title: "Identifiers & privacy" },
+		{ id: "identifiers", title: "Identifiers" },
+		{ id: "privacy", title: "Privacy" },
 		{ id: "bindings", title: "Bindings" },
 		{ id: "modes", title: "Modes" },
 		{ id: "literals", title: "Literals" },
 		{ id: "builtin-types", title: "Built-in types" },
 		{ id: "operators", title: "Operators" },
+		{ id: "casting", title: "Casting" },
 		{ id: "patterns", title: "Patterns" },
 		{ id: "control-flow", title: "Control flow" },
 		{ id: "match", title: "Match" },
 		{ id: "functions", title: "Functions" },
+		{ id: "closures", title: "Closures" },
 		{ id: "named-params", title: "Named parameters" },
 		{ id: "records-variants", title: "Records & variants" },
-		{ id: "methods", title: "Methods & statics" },
+		{ id: "methods", title: "Methods & members" },
 		{ id: "inference", title: "Type inference" },
 		{ id: "behaviours", title: "Behaviours" },
-		{ id: "modules", title: "Modules & imports" },
+		{ id: "comprehensions", title: "Comprehensions" },
+		{ id: "files", title: "Files & imports" },
+		{ id: "bouquets", title: "Bouquets" },
 		{ id: "tests", title: "Tests" },
 		{ id: "comptime", title: "Compile-time evaluation" },
 		{ id: "ruka-module", title: "The ruka module" }
@@ -57,66 +62,100 @@ let x = 1   // trailing comments are fine`}
 	</section>
 
 	<section id="identifiers">
-		<h2>Identifiers &amp; privacy</h2>
+		<h2>Identifiers</h2>
 		<p>
 			Identifiers are letters, digits, and underscores; they cannot start with a digit.
-			Visibility is encoded in the first letter:
+			Casing carries no semantic weight — visibility is controlled by the
+			<a href="#privacy"><code>local</code></a> keyword, not by case.
 		</p>
-		<ul>
-			<li>
-				<strong>lowercase first letter</strong> — exported from the module (public).
-			</li>
-			<li><strong>uppercase first letter</strong> — module-private.</li>
-		</ul>
 		<p>
-			There is no separate <code>pub</code> keyword. Renaming a binding to change its case changes
-			its visibility.
+			By convention, <strong>imported files are capitalised</strong> to distinguish a file's
+			record value from ordinary bindings. Type bindings, members, methods, and locals are
+			lowercase like any other value.
 		</p>
 		<CodeBlock
-			code={`let greet = () do ruka.println("hi")    // exported
-let Helper = () do ruka.println("...")  // private`}
+			code={`let point = record { x: f64, y: f64 }      // type binding
+let Math  = ruka.import("Math.ruka")       // imported file`}
 		/>
+	</section>
+
+	<section id="privacy">
+		<h2>Privacy</h2>
+		<p>
+			Ruka has two binding keywords. <code>let</code> declares a binding that may escape
+			its scope: at file scope it is exported as part of the file's public record, and at
+			function scope it may be captured by a closure. <code>local</code> declares a
+			non-escaping binding: at file scope it is private to the file (importers cannot see
+			it), and at function scope it cannot be captured by a closure that outlives the
+			declaring function. See <a href="#closures">Closures</a> for the capture rule.
+		</p>
+		<p>
+			<code>let</code> and <code>local</code> are alternative binding forms, not modifiers
+			— write <code>local x = …</code>, never <code>let local x = …</code>.
+		</p>
+		<p>
+			A field of a record (or a tag of a variant, or a member of a behaviour) prefixed
+			with <code>local</code> is private in the same sense — accessible inside the declaring
+			file, hidden everywhere else.
+		</p>
+		<CodeBlock
+			code={`local helper = () do ruka.println("...")   // private file-scope binding
+
+let point = record {
+    x: f64
+    y: f64
+    local cache: f64    // private field
+}`}
+		/>
+		<p>
+			<code>local</code> is the only privacy modifier; there is no <code>pub</code> keyword.
+		</p>
 	</section>
 
 	<section id="bindings">
 		<h2>Bindings</h2>
 		<p>
-			A <code>let</code> binding introduces a name. The type is inferred from the right-hand
-			side; an explicit annotation is only needed when inference cannot reach the type you want.
-			Binding can be shadowed by reusing the same name.
+			<code>let</code> and <code>local</code> introduce names. The right-hand side drives type
+			inference; an explicit annotation is only needed when inference cannot reach the type
+			you want. Bindings can be shadowed by reusing the same name.
 		</p>
 		<CodeBlock
 			code={`let answer = 42
 let pi     = 3.14159
 let name   = "Ruka"
-let count: u32 = 0   // annotation pins the integer type`}
+let count: u32 = 0   // annotation pins the integer type
+
+local cache = ruka.sqrt(2.0)   // file-private; same syntax, different keyword`}
 		/>
 		<p>
+			See <a href="#privacy">Privacy</a> for what <code>local</code> does and where it differs
+			from <code>let</code>.
+		</p>
+		<p>
 			Bindings are immutable by default. To make a binding mutable, or to change how it is
-			stored or evaluated, use a <em>mode prefix</em>
-			directly before the name (no space). See <a href="#modes">Modes</a>.
+			stored or evaluated, use a <em>mode prefix</em> directly before the name (no space).
+			See <a href="#modes">Modes</a>.
 		</p>
 		<CodeBlock
-			code={`let *count = 0    // mutable
+			code={`let *count = 0     // mutable
 count = count + 1`}
 		/>
 		<h3>Destructuring</h3>
 		<p>
-			A <code>let</code> binding may take any irrefutable
-			<a href="#patterns">pattern</a> on the left-hand side. Destructuring patterns never
-			include a type prefix or leading
-			<code>.</code> — those forms belong to <em>literals</em>, not patterns.
+			A binding may take any irrefutable <a href="#patterns">pattern</a> on the left-hand
+			side. Destructuring patterns reuse the same shapes as value literals — a tuple
+			pattern is <code>(a, b)</code>, a record pattern is <code>&#123; a, b &#125;</code>.
 		</p>
 		<CodeBlock
-			code={`let (x, y) = .(1, 2)     // tuple pattern; .(...) is the tuple literal
-let {x, y} = origin      // record pattern; identifiers must match record members`}
+			code={`let (x, y) = (1, 2)         // tuple pattern
+let { x, y } = origin       // record pattern; identifiers must match record fields`}
 		/>
 		<h3>File scope is declarative</h3>
 		<p>
-			A Ruka file's top level holds declarations only — <code>let</code>
-			bindings, type definitions, methods, statics, behaviours, tests. There are no executable
-			statements at file scope. Every top-level right-hand side is therefore evaluated at compile
-			time.
+			A Ruka file's top level holds declarations only — <code>let</code>/<code>local</code>
+			bindings, type definitions, methods, members, behaviours, tests. There are no
+			executable statements at file scope. Every top-level right-hand side is therefore
+			evaluated at compile time.
 		</p>
 	</section>
 
@@ -124,37 +163,15 @@ let {x, y} = origin      // record pattern; identifiers must match record member
 		<h2>Modes</h2>
 		<p>
 			Mode prefixes adjust how a binding or parameter is stored, captured, or evaluated.
-			The same four prefixes apply in both positions.
+			The same four prefixes apply in both positions, and on method receivers.
 		</p>
 		<table>
 			<thead><tr><th>Prefix</th><th>Meaning</th></tr></thead>
 			<tbody>
-				<tr
-					><td><code>*</code></td><td
-						>Mutable. Bindings may be reassigned; parameters mutate in place and the
-						change is visible to the caller.</td
-					></tr
-				>
-				<tr
-					><td><code>&amp;</code></td><td
-						>Move. Ownership transfers — only into a closure on capture (annotated on
-						bindings), variables pulled into the function on call (annotated on
-						parameters). The original is invalid afterwards.</td
-					></tr
-				>
-				<tr
-					><td><code>$</code></td><td
-						>Stack-allocated. Not GC-managed; passed by pointer or copy. Movable as a
-						compile error only.</td
-					></tr
-				>
-				<tr
-					><td><code>@</code></td><td
-						>Compile-time. The value must be known at compile time. See <a
-							href="#comptime">Compile-time evaluation</a
-						>.</td
-					></tr
-				>
+				<tr><td><code>*</code></td><td>Mutable. Bindings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
+				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture (annotated on the binding being captured), or into a function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
+				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Cannot be moved.</td></tr>
+				<tr><td><code>@</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
 		<CodeBlock
@@ -165,8 +182,14 @@ let repeat  = (@n: uint, msg) do .. // n must be comptime`}
 		/>
 		<p>
 			The <code>@</code> prefix is rarely written explicitly. At file scope and on
-			methods/statics, compile-time evaluation is the default; inside function bodies it
+			methods/members, compile-time evaluation is the default; inside function bodies it
 			is inferred whenever a parameter's type is <code>type</code>.
+		</p>
+		<p>
+			Method receivers also accept mode prefixes. <code>*self</code> is a mutating receiver;
+			<code>&amp;self</code> consumes the receiver (a destructor-like method);
+			<code>$self</code> and <code>@self</code> are reserved for cases where the receiver
+			itself is stack-bound or compile-time known. See <a href="#methods">Methods &amp; members</a>.
 		</p>
 	</section>
 
@@ -175,11 +198,9 @@ let repeat  = (@n: uint, msg) do .. // n must be comptime`}
 
 		<h3>Numbers</h3>
 		<p>
-			Integer literals default to <code>int</code>; literals containing a
-			<code>.</code> default to <code>float</code>. The literal text is preserved —
-			<code>2</code>
-			and <code>2.0</code> are different literals. An explicit annotation pins a more specific
-			type.
+			Integer literals default to <code>int</code>; literals containing a <code>.</code>
+			default to <code>float</code>. The literal text is preserved — <code>2</code> and
+			<code>2.0</code> are different literals. An explicit annotation pins a more specific type.
 		</p>
 		<CodeBlock
 			code={`let a = 42
@@ -189,11 +210,10 @@ let c: u8 = 255   // annotated when a smaller integer type is needed`}
 
 		<h3>Characters</h3>
 		<p>
-			A character literal is a single byte wrapped in single quotes; it has type <code
-				>u8</code
-			>. There is no separate <code>char</code>
-			type. Escapes: <code>\n</code>, <code>\t</code>, <code>\r</code>,
-			<code>\\</code>, <code>\'</code>, <code>\"</code>, <code>\0</code>.
+			A character literal is a single byte wrapped in single quotes; it has type <code>u8</code>.
+			There is no separate <code>char</code> type. Escapes:
+			<code>\n</code>, <code>\t</code>, <code>\r</code>, <code>\\</code>, <code>\'</code>,
+			<code>\"</code>, <code>\0</code>.
 		</p>
 		<CodeBlock
 			code={`let nl = '\\n'
@@ -213,9 +233,8 @@ let s = "hello, \${name}!"`}
 		<h3>Multiline strings</h3>
 		<p>
 			A multiline string opens with <code>|"</code> on its own line and closes with
-			<code>|"</code>
-			on its own line. Interior lines begin with <code>|</code>; one optional space after
-			the bar is stripped. Interpolation works the same as in single-line strings.
+			<code>|"</code> on its own line. Interior lines begin with <code>|</code>; one optional
+			space after the bar is stripped. Interpolation works the same as in single-line strings.
 		</p>
 		<CodeBlock
 			code={`let report =
@@ -235,61 +254,94 @@ let nothing = ()    // the unit value, type ()`}
 		<h3>Tuples and arrays</h3>
 		<p>
 			Tuples are heterogeneous fixed-arity; arrays are homogeneous and variable-length.
-			Both literals begin with <code>.</code>, mirroring the leading <code>.</code> of record
-			and variant literals — the dot is what tells the parser this is a value being constructed,
-			not a destructuring pattern.
+			Both literals share the brace/paren shapes used by their type annotations: arrays use
+			<code>&#123; … &#125;</code>, tuples use <code>( …, … )</code>. Tuple literals always
+			contain at least one comma; a single parenthesised expression is just a grouping.
 		</p>
 		<CodeBlock
-			code={`let pair = .(1, "one")     // tuple, inferred [int, string]
-let xs   = .{1, 2, 3}     // array,  inferred [int]
-let prefixed = [u8].{0, 1, 2}   // type prefix initializes the enforces element type
-let typed: [u8] = .{0, 1, 2}   // can also use annotation to pin the element type`}
+			code={`let pair = (1, "one")           // tuple, inferred (int, string)
+let xs   = { 1, 2, 3 }          // array, inferred [int]
+let prefixed = [u8] { 0, 1, 2 } // type prefix pins the element type
+let typed: [u8] = { 0, 1, 2 }   // annotation does the same`}
+		/>
+		<p>
+			In multi-line literals, members may be separated by newlines instead of commas.
+			Commas are only required when two members share a single line.
+		</p>
+		<CodeBlock
+			code={`let xs = {
+    1
+    2
+    3
+}`}
 		/>
 
 		<h3>Records</h3>
 		<p>
-			A record literal is written as <code>.&#123;...&#125;</code> and the record type is
-			inferred from context. Prefix the literal with a type name only when no context is
-			available to drive inference. See
-			<a href="#records-variants">Records &amp; variants</a> for declaration syntax.
+			A record literal is <code>&#123; field = value, … &#125;</code> and the record type
+			is inferred from context. Prefix the literal with the type name when no context is
+			available to drive inference. See <a href="#records-variants">Records &amp; variants</a>
+			for declaration syntax.
 		</p>
 		<CodeBlock
-			code={`let Point = record {
+			code={`let point = record {
     x: f64
     y: f64
 }
 
-let make = (p: Point) do p
-let p = make(.{ x = 1.0, y = 2.0 })   // inferred from parameter type
-let q = Point.{ x = 1.0, y = 2.0 }    // explicit when there is no context`}
+let make = (p: point) do p
+let p = make({ x = 1.0, y = 2.0 })   // inferred from parameter type
+let q = point { x = 1.0, y = 2.0 }   // explicit when there is no context`}
 		/>
+		<p>
+			A record literal disambiguates from an array literal by the <code>=</code> in each
+			field initialiser. A single-element shape such as <code>&#123; x &#125;</code> is treated
+			as a record shorthand when an enclosing record type is expected, and as an array literal
+			when an array type is expected; if neither context is available it is a compile error.
+		</p>
 
 		<h3>Variant constructors</h3>
 		<p>
-			A variant value is written <code>.tag</code> for a payloadless case or
-			<code>.tag(value)</code> with a payload. The variant type is inferred from context.
+			A variant value is constructed by writing the tag name like a function call:
+			<code>tag(value)</code> for a tag with payload, <code>tag</code> for a payloadless
+			tag. The constructor resolves against context — if an in-scope binding shares the
+			name, that binding wins; otherwise the compiler searches in-scope variant types for
+			a tag of that name. Use a type-prefixed form <code>type.tag(value)</code> to
+			disambiguate or to read more explicitly.
 		</p>
 		<CodeBlock
-			code={`let report = (h: Hit) do
+			code={`let report = (h: hit) do
     match h with
         critical(d) do ...
         miss        do ...
     end
 end
 
-report(.critical(20))    // tag is resolved against Hit
-report(.miss)`}
+report(critical(20))      // resolved against hit
+report(miss)
+report(hit.critical(20))  // type-prefixed; always unambiguous`}
 		/>
+
+		<h3>Maps</h3>
+		<p>
+			A map is a homogeneous key→value collection. The type annotation is
+			<code>[K =&gt; V]</code>; the literal is <code>&#123; k =&gt; v, … &#125;</code> or
+			<code>[K =&gt; V] &#123; k =&gt; v, … &#125;</code> when context is unavailable.
+		</p>
+		<CodeBlock
+			code={`let scores: [string => int] = { "alice" => 91, "bob" => 84 }
+let prefixed = [string => int] { "alice" => 91 }`}
+		/>
+		<p>
+			Multi-line map literals separate entries with newlines like every other braced literal;
+			commas are only needed on a single line.
+		</p>
 
 		<h3>Option &amp; result</h3>
 		<p>
-			Option and result are ordinary variants in the prelude with shorthand type syntax: <code
-				>?(T)</code
-			>
-			for option,
-			<code>!(T, E)</code> for result. Constructors are
-			<code>.some(v)</code> / <code>.none</code> and <code>.ok(v)</code> /
-			<code>.err(e)</code>.
+			Option and result are ordinary variants in the prelude with shorthand type syntax:
+			<code>?(T)</code> for option, <code>!(T, E)</code> for result. Constructors are
+			<code>some(v)</code> / <code>none</code> and <code>ok(v)</code> / <code>err(e)</code>.
 		</p>
 
 		<h3>Ranges</h3>
@@ -309,36 +361,12 @@ let r: [int..] = 1..=5`}
 		<table>
 			<thead><tr><th>Group</th><th>Types</th></tr></thead>
 			<tbody>
-				<tr
-					><td>Signed integers</td><td
-						><code>i8 i16 i32 i64</code>, <code>int</code> (target word size)</td
-					></tr
-				>
-				<tr
-					><td>Unsigned integers</td><td
-						><code>u8 u16 u32 u64</code>, <code>uint</code></td
-					></tr
-				>
-				<tr
-					><td>Floats</td><td
-						><code>f32 f64</code>, <code>float</code> (target word size)</td
-					></tr
-				>
-				<tr
-					><td>Other primitives</td><td
-						><code>bool</code>, <code>string</code>, <code>()</code> (unit)</td
-					></tr
-				>
-				<tr
-					><td>Collections</td><td
-						><code>[T]</code> (array), <code>[T, U, …]</code> (tuple), <code>[T..]</code> (range)</td
-					></tr
-				>
-				<tr
-					><td>Generic prelude</td><td
-						><code>?(T)</code> (option), <code>!(T, E)</code> (result)</td
-					></tr
-				>
+				<tr><td>Signed integers</td><td><code>i8 i16 i32 i64 i128</code>, <code>int</code> (target word size)</td></tr>
+				<tr><td>Unsigned integers</td><td><code>u8 u16 u32 u64 u128</code>, <code>uint</code></td></tr>
+				<tr><td>Floats</td><td><code>f32 f64</code>, <code>float</code> (target word size)</td></tr>
+				<tr><td>Other primitives</td><td><code>bool</code>, <code>string</code>, <code>()</code> (unit)</td></tr>
+				<tr><td>Collections</td><td><code>[T]</code> (array), <code>(T, U, …)</code> (tuple), <code>[T..]</code> (range), <code>[K =&gt; V]</code> (map)</td></tr>
+				<tr><td>Generic prelude</td><td><code>?(T)</code> (option), <code>!(T, E)</code> (result)</td></tr>
 				<tr><td>Compile-time</td><td><code>type</code> (the type of types)</td></tr>
 			</tbody>
 		</table>
@@ -349,9 +377,17 @@ let r: [int..] = 1..=5`}
 		</p>
 		<CodeBlock
 			code={`let count: u32 = 0
-let pair: [int, string] = .(1, "one")
+let pair: (int, string) = (1, "one")
 let lookup = (key: string) -> ?(int) do ...`}
 		/>
+		<h3>Implicit numeric widening</h3>
+		<p>
+			An integer or float value may be implicitly converted to a larger type of the same
+			family — <code>i32</code> to <code>i64</code>, <code>f32</code> to <code>f64</code>,
+			<code>u8</code> to <code>u32</code>, and so on. Narrowing or cross-family
+			conversions (signed↔unsigned, int↔float) require an explicit
+			<a href="#casting">cast</a>.
+		</p>
 	</section>
 
 	<section id="operators">
@@ -364,30 +400,15 @@ let lookup = (key: string) -> ?(int) do ...`}
 				<tr><td>Logical or</td><td><code>or</code></td></tr>
 				<tr><td>Logical and</td><td><code>and</code></td></tr>
 				<tr><td>Equality</td><td><code>==</code> <code>!=</code></td></tr>
-				<tr
-					><td>Comparison</td><td
-						><code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td
-					></tr
-				>
+				<tr><td>Comparison</td><td><code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td></tr>
 				<tr><td>Range</td><td><code>..</code> <code>..=</code></td></tr>
-				<tr
-					><td>Bitwise</td><td
-						><code>|</code> <code>^</code> <code>&amp;</code> <code>&lt;&lt;</code>
-						<code>&gt;&gt;</code></td
-					></tr
-				>
+				<tr><td>Bitwise</td><td><code>|</code> <code>^</code> <code>&amp;</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code></td></tr>
 				<tr><td>Additive</td><td><code>+</code> <code>-</code></td></tr>
-				<tr
-					><td>Multiplicative</td><td><code>*</code> <code>/</code> <code>%</code></td
-					></tr
-				>
+				<tr><td>Multiplicative</td><td><code>*</code> <code>/</code> <code>%</code></td></tr>
 				<tr><td>Exponent</td><td><code>**</code> (right-assoc)</td></tr>
 				<tr><td>Unary</td><td><code>not</code> <code>-</code></td></tr>
-				<tr
-					><td>Postfix</td><td
-						>call <code>f(x)</code>, member <code>x.f</code>, index <code>x[i]</code></td
-					></tr
-				>
+				<tr><td>Cast</td><td><code>as</code></td></tr>
+				<tr><td>Postfix</td><td>call <code>f(x)</code>, member <code>x.f</code>, index <code>x[i]</code></td></tr>
 			</tbody>
 		</table>
 		<p>
@@ -402,47 +423,67 @@ let lookup = (key: string) -> ?(int) do ...`}
 		<p>
 			Operators on user-defined types are dispatched via
 			<a href="#behaviours">operator behaviours</a>: defining a method named
-			<code>add</code>
-			makes
-			<code>+</code> available for the type.
+			<code>add</code> makes <code>+</code> available for the type.
+		</p>
+	</section>
+
+	<section id="casting">
+		<h2>Casting</h2>
+		<p>
+			The <code>as</code> operator converts a value to a target type:
+			<code>value as Type</code>. Implicit widening (see
+			<a href="#builtin-types">Built-in types</a>) is the only conversion the compiler
+			performs without an explicit cast — every other conversion goes through
+			<code>as</code>.
+		</p>
+		<p>
+			<code>as</code> is a behaviour-driven operator. It dispatches on
+			<code>ruka.cast</code>: any type that defines a <code>cast</code> method satisfying
+			the behaviour can be the source of an <code>as</code> conversion to whichever
+			target types its <code>cast</code> method enumerates. The prelude provides casts
+			between numeric types, between numeric types and characters, and between numeric
+			types and strings.
+		</p>
+		<CodeBlock
+			code={`let n: i64 = 10
+let m = n as i32       // explicit narrowing
+let s = n as string    // numeric → string
+let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)`}
+		/>
+		<p>
+			A type customises <code>as</code> by defining a <code>cast</code> member that
+			matches the <a href="#rukacast"><code>ruka.cast</code></a> behaviour. Casting source
+			code is checked at compile time; if the conversion is invalid for the source/target
+			pair, the program fails to compile.
 		</p>
 	</section>
 
 	<section id="patterns">
 		<h2>Patterns</h2>
 		<p>
-			Patterns appear in <code>let</code> destructuring, <code>match</code> arms, and
-			<code>for</code>
-			loop binders. Patterns may be <em>refutable</em>
-			(may not match) or <em>irrefutable</em> (always match) — only irrefutable patterns
-			are allowed in <code>let</code> and
-			<code>for</code>.
-		</p>
-		<p>
-			Destructuring patterns are bare: tuple patterns are
-			<code>(a, b)</code> and record patterns are
-			<code>&#123; a, b &#125;</code>. The leading <code>.</code> is reserved for value literals.
+			Patterns appear in <code>let</code>/<code>local</code> destructuring,
+			<code>match</code> arms, <code>for</code> loop binders, and the
+			<a href="#conditional-pattern-binding">conditional pattern forms</a> of
+			<code>if</code> and <code>while</code>. Patterns may be <em>refutable</em> (may not
+			match) or <em>irrefutable</em> (always match) — only irrefutable patterns are allowed
+			in <code>let</code>/<code>local</code> and in the pattern position of <code>for</code>
+			(where non-matching elements are skipped instead of failing).
 		</p>
 		<table>
 			<thead><tr><th>Form</th><th>Example</th><th>Refutable?</th></tr></thead>
 			<tbody>
 				<tr><td>Identifier</td><td><code>x</code></td><td>no</td></tr>
-				<tr><td>Tuple</td><td><code>(a, b)</code></td><td>no (when arity matches)</td></tr
-				>
+				<tr><td>Tuple</td><td><code>(a, b)</code></td><td>no (when arity matches)</td></tr>
 				<tr><td>Record</td><td><code>&#123; x, y &#125;</code></td><td>no</td></tr>
 				<tr><td>Literal</td><td><code>0</code>, <code>"yes"</code></td><td>yes</td></tr>
 				<tr><td>Range</td><td><code>1..=9</code></td><td>yes</td></tr>
-				<tr
-					><td>Variant</td><td><code>some(x)</code>, <code>miss</code></td><td>yes</td
-					></tr
-				>
+				<tr><td>Variant</td><td><code>some(x)</code>, <code>miss</code></td><td>yes</td></tr>
 				<tr><td>Guard</td><td><code>x if x &gt; 0</code></td><td>yes</td></tr>
 			</tbody>
 		</table>
 		<p>
-			Inside variant patterns the payload may itself be a tuple or binding pattern — <code
-				>ok((a, b))</code
-			>, <code>some(value)</code>.
+			Inside variant patterns the payload may itself be a tuple or binding pattern —
+			<code>ok((a, b))</code>, <code>some(value)</code>.
 		</p>
 	</section>
 
@@ -450,23 +491,18 @@ let lookup = (key: string) -> ?(int) do ...`}
 		<h2>Control flow</h2>
 		<p>
 			Every block in Ruka follows one rule, regardless of whether it belongs to a
-			function, an <code>if</code>, a loop, or a
-			<code>match</code> arm. <code>do expr</code> on a single line is a single-expression
-			body closed by the newline. <code>do</code>
-			followed by a newline opens a multi-statement block closed by
-			<code>end</code>. The two forms are interchangeable; pick whichever reads better.
+			function, an <code>if</code>, a loop, or a <code>match</code> arm.
+			<code>do expr</code> on a single line is a single-expression body closed by the
+			newline. <code>do</code> followed by a newline opens a multi-statement block closed
+			by <code>end</code>. The two forms are interchangeable; pick whichever reads better.
 		</p>
 
 		<h3>If / else</h3>
 		<p>
-			<code>if</code> is an expression. The condition is followed by
-			<code>do</code>; <code>else</code> is optional and may chain with another
-			<code>if</code>. A multi-statement branch uses
-			<code>do … end</code>, or <code>do … else …</code> when the
-			<code>else</code> closes the branch. The ternary form swaps the leading
-			<code>do</code>
-			with
-			<code>if</code>:
+			<code>if</code> is an expression. The condition is followed by <code>do</code>;
+			<code>else</code> is optional and may chain with another <code>if</code>. A
+			multi-statement branch uses <code>do … end</code>. The ternary form swaps the
+			leading <code>do</code> with <code>if</code>:
 			<code>value if condition else other</code>.
 		</p>
 		<CodeBlock
@@ -494,6 +530,48 @@ end`}
 for (k, v) in pairs do ruka.println("\${k}=\${v}")`}
 		/>
 
+		<h3 id="conditional-pattern-binding">Conditional pattern binding</h3>
+		<p>
+			<code>if</code>, <code>while</code>, and <code>for</code> accept a <em>refutable</em>
+			pattern in place of a plain condition or binding. Each construct interprets a
+			non-match differently:
+		</p>
+		<ul>
+			<li>
+				<code>if pattern = expr do …</code> — evaluates <code>expr</code>, runs the block
+				(with the bindings introduced by <code>pattern</code>) only if the pattern matches.
+				May chain with <code>else if</code> / <code>else</code>.
+			</li>
+			<li>
+				<code>while pattern = expr do …</code> — re-evaluates <code>expr</code> each
+				iteration; terminates the first time the pattern fails to match.
+			</li>
+			<li>
+				<code>for pattern in iter do …</code> — silently skips elements that fail to match.
+				Useful for filtering by shape.
+			</li>
+		</ul>
+		<CodeBlock
+			code={`if some(name) = lookup(id) do
+    ruka.println("hello, \${name}")
+else
+    ruka.println("unknown")
+end
+
+while some(line) = stream.next() do
+    process(line)
+end
+
+for ok(row) in rows do
+    handle(row)    // err(_) elements are skipped
+end`}
+		/>
+		<p>
+			Use the form whose semantics match the intent: <code>if</code> for opportunistic
+			action, <code>while</code> to drain matching values until the first non-match,
+			<code>for</code> to filter as you iterate.
+		</p>
+
 		<h3>Break, continue, return</h3>
 		<p>
 			<code>break</code> and <code>continue</code> apply to the nearest enclosing loop.
@@ -503,10 +581,8 @@ for (k, v) in pairs do ruka.println("\${k}=\${v}")`}
 		<h3>Defer</h3>
 		<p>
 			<code>defer expr</code> schedules <code>expr</code> to run when the enclosing
-			<code>do…end</code>
-			block exits — by reaching the end, by
-			<code>return</code>, or by <code>break</code>. Multiple
-			<code>defer</code>s in the same block run in LIFO order.
+			<code>do…end</code> block exits — by reaching the end, by <code>return</code>, or by
+			<code>break</code>. Multiple <code>defer</code>s in the same block run in LIFO order.
 		</p>
 		<CodeBlock
 			code={`let read_file = (path) do
@@ -540,11 +616,8 @@ end`}
 		/>
 		<p>
 			Match must be <em>exhaustive</em>: the patterns together must cover every possible
-			value of the subject's type. A trailing
-			<code>else</code> arm covers anything not matched explicitly. A multi-statement
-			<code>else</code>
-			branch uses <code>do … end</code>
-			like any other branch.
+			value of the subject's type. A trailing <code>else</code> arm covers anything not
+			matched explicitly.
 		</p>
 		<CodeBlock
 			code={`match n with
@@ -580,21 +653,59 @@ end`}
 			only when inference cannot reach the type you need, or when the annotation is
 			documentation. Parameter modes follow the <a href="#modes">mode</a> rules.
 		</p>
-		<h3>Closures</h3>
+	</section>
+
+	<section id="closures">
+		<h2>Closures</h2>
 		<p>
-			Function literals capture their lexical environment. A binding declared with <code
-				>&amp;</code
-			> moves into the closure rather than being captured by reference.
+			A <em>closure</em> is a runtime function value that references runtime bindings from
+			an enclosing scope. Its <em>capture set</em> is exactly those referenced bindings —
+			every name the body uses that is not one of the function's parameters and not a
+			top-level (compile-time) value. The compiler infers the set from the body. Functions
+			defined at file scope are <em>not</em> closures: file scope is compile-time, so
+			there is no runtime state to close over.
+		</p>
+		<p>Two rules constrain capture:</p>
+		<ol>
+			<li>
+				<strong>Only <code>let</code> runtime bindings may be captured.</strong> A
+				<code>local</code> runtime binding cannot escape its declaring function, so a
+				closure that outlives that function cannot reference it.
+			</li>
+			<li>
+				<strong><code>&amp;</code>-annotated bindings transfer ownership on capture.</strong>
+				A binding declared <code>let &amp;name = …</code> <em>moves</em> into the first
+				closure that captures it; the original binding is invalid afterwards. Without
+				<code>&amp;</code>, capture is by reference.
+			</li>
+		</ol>
+		<CodeBlock
+			code={`let make_counter = () do
+    let *n = 0
+    () do
+        n = n + 1
+        n
+    end
+end
+
+let counter = make_counter()
+ruka.println("\${counter()}")   // 1
+ruka.println("\${counter()}")   // 2`}
+		/>
+		<p>
+			In the example above, the inner function captures <code>n</code> (a <code>let</code>
+			binding) from <code>make_counter</code>. If <code>n</code> had been declared
+			<code>local *n = 0</code>, the inner closure could not have escaped
+			<code>make_counter</code> and the program would fail to compile.
 		</p>
 	</section>
 
 	<section id="named-params">
 		<h2>Named parameters</h2>
 		<p>
-			Prefixing a parameter with <code>~</code> makes it
-			<em>named</em>. Named arguments are passed as
-			<code>~label=value</code> at the call site and may appear in any order. Positional and
-			named parameters can be mixed; positional arguments come first.
+			Prefixing a parameter with <code>~</code> makes it <em>named</em>. Named arguments
+			are passed as <code>~label=value</code> at the call site and may appear in any order.
+			Positional and named parameters can be mixed; positional arguments come first.
 		</p>
 		<CodeBlock
 			code={`let greet = (~name, ~greeting) do
@@ -606,10 +717,7 @@ greet(~greeting="Hi", ~name="World")`}
 		/>
 
 		<h3>Label shorthand</h3>
-		<p>
-			If a local variable shares the label name, the
-			<code>=value</code> may be omitted.
-		</p>
+		<p>If a local variable shares the label name, the <code>=value</code> may be omitted.</p>
 		<CodeBlock
 			code={`let name = "Ruka"
 let greeting = "Hello"
@@ -619,8 +727,8 @@ greet(~name, ~greeting)`}
 		<h3>Optional named parameters</h3>
 		<p>
 			A named parameter typed <code>?(T)</code> is optional. When omitted, it receives
-			<code>.none</code>; when given a bare value, the value is automatically wrapped in
-			<code>.some(...)</code>. This is the one place where annotating a named parameter is
+			<code>none</code>; when given a bare value, the value is automatically wrapped in
+			<code>some(...)</code>. This is the one place where annotating a named parameter is
 			required — the <code>?(T)</code> annotation is what marks it optional.
 		</p>
 		<CodeBlock
@@ -641,7 +749,7 @@ greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"`}
 			higher-order functions whose closure parameter is named and placed last.
 		</p>
 		<CodeBlock
-			code={`let map = (t, xs: [t], ~f) do ...
+			code={`let map = (~t: type, xs: [t], ~f) do ...
 
 let doubled = map(nums) ~f=(x) do x * 2
 let squared = map(nums) ~f=(x) do
@@ -649,6 +757,25 @@ let squared = map(nums) ~f=(x) do
     s
 end`}
 		/>
+
+		<h3>Compile-time type inference from a trailing named parameter</h3>
+		<p>
+			When a function declares a <code>~t: type</code> named parameter and the call site
+			does not pass <code>~t</code> explicitly, the compiler infers <code>t</code> from
+			the <em>result location</em> — the type of the binding, parameter, or field that
+			will receive the call's result. This makes generic factory functions read like
+			ordinary literals at the call site.
+		</p>
+		<CodeBlock
+			code={`let empty = (~t: type) -> [t] do [t] {}
+
+let xs: [i32] = empty()         // ~t=i32 inferred from the binding's type
+let ys: [string] = empty()      // ~t=string inferred similarly`}
+		/>
+		<p>
+			If no result-location type is available, the compiler falls back to the usual rules
+			— ambiguity is a compile error.
+		</p>
 	</section>
 
 	<section id="records-variants">
@@ -659,26 +786,34 @@ end`}
 			A record is a fixed set of named, typed fields. Declare with
 			<code>record &#123; … &#125;</code>. In a multi-line declaration the fields are
 			separated by newlines; commas are only needed when fields share a single line.
+			Fields prefixed with <code>local</code> are private to the declaring file.
 		</p>
 		<CodeBlock
-			code={`let Point = record {
+			code={`let point = record {
     x: f64
     y: f64
+    local cache: f64
 }
 
-let Inline = record { x: f64, y: f64 }   // commas required on one line`}
+let inline = record { x: f64, y: f64 }   // commas required on one line`}
 		/>
 		<p>
-			Construct a record with <code>.&#123;...&#125;</code>; the type is inferred from
-			context. Records destructure with the same field names — <strong>without</strong> a
-			leading
-			<code>.</code> or type prefix, since destructuring is a pattern, not a literal.
+			Construct a record with <code>&#123; field = value, … &#125;</code>; the type is
+			inferred from context, or written as a type-name prefix when not. Records destructure
+			with the same field names — <code>&#123; a, b &#125;</code>.
 		</p>
 		<CodeBlock
-			code={`let move = (p: Point) do .{ x = p.x + 1.0, y = p.y }
+			code={`let move = (p: point) do { x = p.x + 1.0, y = p.y, cache = p.cache }
 
-let { x, y } = move(.{ x = 0.0, y = 0.0 })`}
+let { x, y } = move({ x = 0.0, y = 0.0, cache = 0.0 })`}
 		/>
+		<p>
+			A record type with <strong>no fields</strong> cannot be instantiated — there is no
+			value to construct, since there are no fields to give. An empty
+			<code>record &#123; &#125;</code> is reserved for use as a type-level marker (a
+			declaration that exists only to attach members to). To express "no information",
+			use the unit type <code>()</code>.
+		</p>
 
 		<h3>Variants</h3>
 		<p>
@@ -687,38 +822,44 @@ let { x, y } = move(.{ x = 0.0, y = 0.0 })`}
 			needed on a single line.
 		</p>
 		<CodeBlock
-			code={`let Hit = variant {
+			code={`let hit = variant {
     critical: int
     normal:   int
     miss
 }`}
 		/>
 		<p>
-			Construct a variant with <code>.tag</code> or <code>.tag(payload)</code>
-			and consume it with <a href="#match"><code>match</code></a>. The tag is resolved
-			against the variant type that flows in from context.
+			Construct a variant with <code>tag</code> or <code>tag(payload)</code> (resolved
+			against context, with a binding of the same name winning over a tag — see
+			<a href="#literals">Variant constructors</a>) and consume it with
+			<a href="#match"><code>match</code></a>.
 		</p>
 	</section>
 
 	<section id="methods">
-		<h2>Methods &amp; statics</h2>
+		<h2>Methods &amp; members</h2>
 		<p>
-			Methods and statics are declared with the same <code>let</code>
-			form, distinguished by what appears in parentheses after the name:
+			Methods and <em>members</em> are declared with the same <code>let</code> form,
+			distinguished by what appears in parentheses after the name. (Members are constants
+			attached to a type — what other languages call statics. Reserve "fields" for the
+			runtime data of a record.)
 		</p>
 		<ul>
 			<li>
-				<code>let name (Type) = …</code> — <strong>static</strong> on <code>Type</code>,
-				called as
-				<code>Type.name(...)</code>.
+				<code>let name (type) = …</code> — <strong>member</strong> on <code>type</code>,
+				called as <code>type.name(...)</code>.
 			</li>
 			<li>
 				<code>let name (self) = …</code> — <strong>method</strong>, called as
 				<code>value.name(...)</code>.
 			</li>
 			<li>
-				<code>let name (*self) = …</code> — <strong>mutating method</strong>; the receiver
-				follows the <code>*</code> mode rules.
+				<code>let name (*self) = …</code> — <strong>mutating method</strong>.
+			</li>
+			<li>
+				<code>let name (&amp;self) = …</code> — <strong>consuming method</strong>;
+				ownership of the receiver moves into the method (the destructor-style form). The
+				receiver is invalid after the call.
 			</li>
 		</ul>
 		<CodeBlock
@@ -726,12 +867,12 @@ let { x, y } = move(.{ x = 0.0, y = 0.0 })`}
     count: int
 }
 
-// statics — accessed as counter.zero, counter.new(...)
-let zero (counter) = .{ count = 0 }
-let new  (counter) = (start) do .{ count = start }
+// members — accessed as counter.zero, counter.new(...)
+let zero (counter) = { count = 0 }
+let new  (counter) = (start) do { count = start }
 
 // method — accessed as c.bump()
-let bump (self) = () do .{ count = self.count + 1 }
+let bump (self) = () do { count = self.count + 1 }
 
 // mutating method
 let inc (*self) = () do
@@ -739,60 +880,92 @@ let inc (*self) = () do
 end`}
 		/>
 		<p>
-			Ruka has no concept of constructors or destructors. By convention, a <em>constructor</em> is a 
-			function that returns a value of the type and a <em>destructor</em>
-			is a method that takes moves the receivers ownership into the method disallowing it's further use.
+			Ruka has no concept of constructors or destructors. By convention, a <em>constructor</em>
+			is a function that returns a value of the type and a <em>destructor</em> is a method
+			declared <code>(&amp;self)</code> that consumes the receiver, disallowing its further use.
 		</p>
-		<h3>Extending types</h3>
+
+		<h3>Type receivers vs file-as-type</h3>
 		<p>
-			An imported may be extended with additional methods and statics but they cannot access locals and shadowing is disallowed (at least implicitly).
+			A type receiver (<code>let name (type) = …</code>) is most useful for
+			<em>extending</em> foreign types — primitives, prelude generics, or types imported
+			from another file. For first-party types, the cleanest pattern is a file-per-type:
+			bind the type to <code>t</code> at the top of its file, define members and methods
+			alongside it, and consumers refer to it through the imported file.
+		</p>
+		<CodeBlock
+			code={`// Vector.ruka
+let t = record {
+    x: f64
+    y: f64
+}
+
+let new = (x: f64, y: f64) -> t do { x, y }
+
+let length (self) = () do ruka.sqrt(self.x * self.x + self.y * self.y)`}
+		/>
+		<CodeBlock
+			code={`// main.ruka
+local Vector = ruka.import("Vector.ruka")
+
+let main = () do
+    let v: Vector.t = Vector.new(3.0, 4.0)
+    ruka.println("\${v.length()}")
+end`}
+		/>
+		<p>
+			Type receivers remain available for genuine extension — adding a method to
+			<code>i32</code>, to a third-party record, or to a prelude type — where the
+			file-per-type pattern is not possible.
 		</p>
 	</section>
 
 	<section id="inference">
 		<h2>Type inference</h2>
 		<p>
-			Bidirectional inference flows in two directions: a known type can drive the shape of
-			an expression (the <em>checking</em>
-			direction), and the shape of an expression can determine its type (the
-			<em>synthesis</em> direction). Annotations are needed only when neither direction reaches
-			a unique answer.
+			Type inference in Ruka is <em>resolution</em>, not <em>synthesis</em>. Every value's
+			type must already exist somewhere in scope; inference figures out which one.
+			Bidirectional flow lets a known type drive the shape of an expression, and the shape
+			of an expression narrows which in-scope type matches it. Annotations are needed only
+			when more than one in-scope type fits — ambiguity is always a compile error, never an
+			excuse to invent an anonymous type.
 		</p>
 
 		<h3>Numeric defaults</h3>
 		<p>
 			An integer literal with no contextual type takes <code>int</code>; a literal
-			containing
-			<code>.</code>
-			takes <code>float</code>. A type-annotated binding or parameter pulls the literal
-			toward a more specific numeric type.
+			containing <code>.</code> takes <code>float</code>. A type-annotated binding or
+			parameter pulls the literal toward a more specific numeric type. Implicit widening
+			between numeric types of the same family is allowed; everything else needs an
+			explicit <a href="#casting">cast</a>.
 		</p>
 
 		<h3>Record literals</h3>
 		<p>
-			A <code>.&#123;...&#125;</code> record literal first looks for an expected type from context
-			— a binding annotation, a parameter type, the field type of an enclosing record. If context
-			exists, that type wins and the literal is checked against it.
+			A <code>&#123; … &#125;</code> record literal first looks for an expected type from
+			context — a binding annotation, a parameter type, the field type of an enclosing
+			record. If context exists, that type wins and the literal is checked against it.
 		</p>
 		<p>
 			With no context, the compiler searches the surrounding scope for record types whose
 			field set matches the literal exactly. If exactly one type fits, the literal infers
-			to that type. If two or more types fit, the literal is ambiguous and an annotation
-			or type prefix is required.
+			to that type. If two or more types fit, the literal is ambiguous and a type-name
+			prefix or annotation is required.
 		</p>
 		<CodeBlock
-			code={`let Point = record { x: f64, y: f64 }
+			code={`let point = record { x: f64, y: f64 }
 
-let p = .{ x = 1.0, y = 2.0 }   // ok — only Point matches in scope
-let q = Point.{ x = 1.0, y = 2.0 }   // explicit prefix when ambiguous`}
+let p = { x = 1.0, y = 2.0 }       // ok — only point matches in scope
+let q = point { x = 1.0, y = 2.0 } // explicit prefix when ambiguous`}
 		/>
 
 		<h3>Variant constructors</h3>
 		<p>
-			A constructor written <code>.tag</code> or <code>.tag(value)</code>
-			is resolved against the expected type from context. With no context, the compiler searches
-			scope for variant types that declare the tag with a compatible payload. If exactly one
-			matches, the constructor infers to that type.
+			A constructor written <code>tag</code> or <code>tag(value)</code> is first resolved
+			as an ordinary identifier — if a binding of that name is in scope, it wins.
+			Otherwise the compiler searches in-scope variant types for a tag of that name with a
+			compatible payload. If exactly one variant matches, the constructor infers to that
+			type; ambiguity requires a <code>type.tag</code> prefix.
 		</p>
 
 		<h3>Record parameters</h3>
@@ -804,24 +977,23 @@ let q = Point.{ x = 1.0, y = 2.0 }   // explicit prefix when ambiguous`}
 			function is ambiguous and the parameter must be annotated.
 		</p>
 		<CodeBlock
-			code={`let Point = record { x: f64, y: f64 }
+			code={`let point = record { x: f64, y: f64 }
 
-// uses .x and .y — only Point has both → param inferred as Point
+// uses .x and .y — only point has both → param inferred as point
 let length = (p) do ruka.sqrt(p.x * p.x + p.y * p.y)`}
 		/>
 
 		<h3>Variant parameters</h3>
 		<p>
-			The same rule applies to a parameter used only by
-			<code>match</code>: the compiler collects the tags the arms require, and if exactly
-			one variant in scope declares those tags (with compatible payload arities), the
-			parameter infers to that variant.
+			The same rule applies to a parameter used only by <code>match</code>: the compiler
+			collects the tags the arms require, and if exactly one variant in scope declares
+			those tags (with compatible payload arities), the parameter infers to that variant.
 		</p>
 
 		<h3>Method receivers</h3>
 		<p>
 			On a method declared <code>let name (self) = …</code>, the receiver type is inferred
-			by the same record-or-variant structural rule against the bodies field accesses,
+			by the same record-or-variant structural rule against the body's field accesses,
 			mutations, and pattern arms.
 		</p>
 
@@ -834,14 +1006,15 @@ let length = (p) do ruka.sqrt(p.x * p.x + p.y * p.y)`}
 
 		<h3>Behaviours never infer</h3>
 		<p>
-			A behaviour-typed parameter is <strong>never</strong> inferred. The behaviour must be
-			written explicitly as the parameter annotation. This is what distinguishes a structurally-inferred
-			record parameter (concrete type, monomorphic) from a behaviour parameter (polymorphic
-			over every type that satisfies the behaviour, monomorphised per call site).
+			A behaviour-typed parameter is <strong>never</strong> inferred. The behaviour must
+			be written explicitly as the parameter annotation. This is what distinguishes a
+			structurally-inferred record parameter (concrete type, monomorphic) from a behaviour
+			parameter (polymorphic over every type that satisfies the behaviour, monomorphised
+			per call site).
 		</p>
 		<CodeBlock
 			code={`let area = (s) do s.area()             // inferred to a single concrete type
-let area = (s: Shape) do s.area()      // polymorphic over Shape`}
+let area = (s: shape) do s.area()      // polymorphic over shape`}
 		/>
 	</section>
 
@@ -849,13 +1022,12 @@ let area = (s: Shape) do s.area()      // polymorphic over Shape`}
 		<h2>Behaviours</h2>
 		<p>
 			A behaviour declares a set of method signatures. Any type whose methods cover those
-			signatures <em>satisfies</em>
-			the behaviour — no <code>implements</code> declaration is required. Like records and variants,
-			signatures are separated by newlines in a multi-line declaration; commas are only needed
-			on a single line.
+			signatures <em>satisfies</em> the behaviour — no <code>implements</code> declaration
+			is required. Like records and variants, signatures are separated by newlines in a
+			multi-line declaration; commas are only needed on a single line.
 		</p>
 		<CodeBlock
-			code={`let Shape = behaviour {
+			code={`let shape = behaviour {
     area(self):      () -> f64
     perimeter(self): () -> f64
 }`}
@@ -867,7 +1039,7 @@ let area = (s: Shape) do s.area()      // polymorphic over Shape`}
 			concrete argument type — this is static dispatch, not virtual.
 		</p>
 		<CodeBlock
-			code={`let describe = (s: Shape) do
+			code={`let describe = (s: shape) do
     ruka.println("area: \${s.area()}")
 end`}
 		/>
@@ -878,28 +1050,26 @@ end`}
 		</p>
 
 		<h3>Builtin behaviours</h3>
-		<p>The compiler recognises three families of behaviours specially.</p>
+		<p>The compiler recognises four families of behaviours specially.</p>
 
 		<h4><code>ruka.printable</code></h4>
 		<p>
 			A type satisfying <code>printable</code> may appear inside
 			<code>&#36;&#123;…&#125;</code> string interpolation and may be passed to
-			<code>ruka.print</code>
-			/ <code>ruka.println</code>.
+			<code>ruka.print</code> / <code>ruka.println</code>.
 		</p>
 		<CodeBlock
 			code={`let printable = behaviour {
     format(self): () -> string
 }
 
-let format (self) = () do "(\${self.x}, \${self.y})"   // makes Point printable`}
+let format (self) = () do "(\${self.x}, \${self.y})"   // makes point printable`}
 		/>
 
 		<h4><code>ruka.iterable</code></h4>
 		<p>
-			A type satisfying <code>iterable</code> may be used in a
-			<code>for</code> loop. The compiler calls <code>next</code> per iteration;
-			<code>.none</code> ends the loop.
+			A type satisfying <code>iterable</code> may be used in a <code>for</code> loop. The
+			compiler calls <code>next</code> per iteration; <code>none</code> ends the loop.
 		</p>
 		<CodeBlock
 			code={`let iterable = behaviour {
@@ -907,51 +1077,118 @@ let format (self) = () do "(\${self.x}, \${self.y})"   // makes Point printable`
 }`}
 		/>
 
+		<h4 id="rukacast"><code>ruka.cast</code></h4>
+		<p>
+			A type satisfying <code>cast</code> is the source type of
+			<code>value as Target</code>. The behaviour declares which target types are reachable
+			from the source; the operator dispatches to the matching overload at compile time.
+		</p>
+		<CodeBlock
+			code={`let cast = behaviour {
+    cast(self): (~t: type) -> t
+}`}
+		/>
+
 		<h4>Operator behaviours</h4>
 		<p>
-			Methods with names like <code>add</code>, <code>sub</code>,
-			<code>mul</code>, <code>div</code>, <code>eq</code>,
-			<code>lt</code>, <code>index</code> are recognised as operator implementations. Defining
-			one of these enables the corresponding operator on the type.
+			Methods with names like <code>UNDECIDED</code> are recognised
+			as operator implementations. Defining one of these enables the corresponding operator
+			on the type.
 		</p>
 	</section>
 
-	<section id="modules">
-		<h2>Modules &amp; imports</h2>
+	<section id="comprehensions">
+		<h2>Comprehensions</h2>
 		<p>
-			A Ruka file <em>is</em> a module — its top-level declarations are the module's fields.
-			Lowercase-named declarations are exported; uppercase-named declarations are private.
+			A comprehension builds a collection from an iterator. Two forms are recognised —
+			they share the same outer brace shape used by every braced literal, and disambiguate
+			by what their body expression looks like.
 		</p>
-		<p>
-			<code>ruka.import("path")</code> evaluates at compile time and returns the imported file
-			as a record value. Access fields, or destructure to bring names into scope.
-		</p>
+		<p><strong>Array comprehension</strong> — body is a single expression:</p>
 		<CodeBlock
-			code={`let math = ruka.import("math")
-let r = math.sqrt(2.0)
+			code={`let squares = { x * x for x in 0..10 }
+let evens   = { x for x in 0..100 if x % 2 == 0 }
+let pairs   = { (k, v) for (k, v) in scores if v >= 90 }`}
+		/>
+		<p><strong>Map comprehension</strong> — body is a <code>key =&gt; value</code> pair:</p>
+		<CodeBlock
+			code={`let lookup  = { name => id for (name, id) in roster }
+let squares = { n => n * n for n in 1..=10 }
+let passing = { name => score for (name, score) in scores if score >= 60 }`}
+		/>
+		<p>
+			The pattern follows the same rules as a <code>for</code> loop pattern — refutable
+			patterns silently skip non-matching elements, so
+			<code>&#123; x for some(x) in maybes &#125;</code> extracts the values of every
+			<code>some</code> element.
+		</p>
+		<p>
+			The element type is inferred from the body expression and may be pinned by a type
+			prefix or surrounding annotation:
+			<code>[u32] &#123; f(x) for x in src &#125;</code>,
+			<code>[string =&gt; i32] &#123; k =&gt; f(k) for k in keys &#125;</code>.
+		</p>
+	</section>
 
-// destructuring import — bare record pattern, no leading dot
-let { sqrt, pow } = ruka.import("math")
-let { Dog, Cat } = ruka.import("animals")`}
-		/>
+	<section id="files">
+		<h2>Files &amp; imports</h2>
 		<p>
-			Because the result is compile-time known, an imported type may be passed to a <code
-				>type</code
-			>-typed parameter directly:
+			A Ruka file <em>is</em> a record — a record type whose only constituents are members
+			(constants attached at compile time), with no runtime fields. Every top-level
+			<code>let</code> declaration becomes a member of that record; <code>local</code>
+			declarations are members the file uses internally but does not export. There is no
+			separate "module" concept.
+		</p>
+		<p>
+			<code>ruka.import("path")</code> evaluates at compile time and returns the imported
+			file as that record value. Access members through it, or destructure to bring names
+			into scope.
 		</p>
 		<CodeBlock
-			code={`let describe = (t: type) do ruka.println("\${t}")
-describe(animals.Dog)`}
+			code={`let Math = ruka.import("Math.ruka")
+let r = Math.sqrt(2.0)
+
+// destructuring import
+let { sqrt, pow } = ruka.import("Math.ruka")`}
 		/>
+		<p>
+			Because the result is compile-time known, an imported type may be passed to a
+			<code>type</code>-typed parameter directly:
+		</p>
+		<CodeBlock
+			code={`let Animals = ruka.import("Animals.ruka")
+let describe = (t: type) do ruka.println("\${t}")
+describe(Animals.dog)`}
+		/>
+	</section>
+
+	<section id="bouquets">
+		<h2>Bouquets</h2>
+		<p>
+			A <em>bouquet</em> is Ruka's package unit. Bouquets are created and managed through
+			the <code>ruka</code> CLI:
+		</p>
+		<pre><code>ruka bouquet new my-package</code></pre>
+		<p>
+			Every bouquet has an <em>index</em> file conventionally called
+			<code>petal.ruka</code>. The index file is the entry point: it is what
+			<code>ruka.import("bouquet-name")</code> returns. Library-only bouquets place their
+			petal at <code>src/petal.ruka</code> to keep the project root uncluttered; binary
+			bouquets typically place it at the root and accompany it with an executable entry.
+		</p>
+		<p>
+			A bouquet may import other bouquets; the resolver looks them up by name against the
+			project's manifest and returns each one's petal as a record.
+		</p>
 	</section>
 
 	<section id="tests">
 		<h2>Tests</h2>
 		<p>
 			A <code>test</code> binding declares a zero-argument function that runs as part of
-			the test suite. Tests are compiled in
-			<em>debug</em> and <em>test</em> builds and elided entirely in
-			<em>release</em> — assertions inside a <code>test</code> have no runtime cost in production.
+			the test suite. Tests are compiled in <em>debug</em> and <em>test</em> builds and
+			elided entirely in <em>release</em> — assertions inside a <code>test</code> have no
+			runtime cost in production.
 		</p>
 		<CodeBlock
 			code={`let add = (a, b) do a + b
@@ -962,7 +1199,7 @@ test addition = () do
 end`}
 		/>
 		<p>
-			Tests live in their module's scope and can therefore call uppercase-named (private)
+			Tests live in their declaring file's scope and can therefore call <code>local</code>
 			declarations directly. There is no separate test-visibility mechanism.
 		</p>
 	</section>
@@ -970,16 +1207,22 @@ end`}
 	<section id="comptime">
 		<h2>Compile-time evaluation</h2>
 		<p>
-			Ruka has a compile-time interpreter. Functions with
-			<code>@</code>-prefixed parameters run at compile time; their results are
-			compile-time constants. Types, functions, and modules are first-class values in
-			compile-time contexts.
+			Ruka has a compile-time interpreter. Functions with <code>@</code>-prefixed
+			parameters run at compile time; their results are compile-time constants. Types,
+			functions, and records-of-members are first-class values in compile-time contexts.
+		</p>
+		<p>
+			<strong>Type values are compile-time only.</strong> Any code that <em>creates</em>,
+			<em>inspects</em>, or <em>passes around</em> a <code>type</code> value must run at
+			compile time. There is no runtime reflection — <code>ruka.type_of</code>,
+			<code>ruka.fields_of</code>, <code>ruka.record_of</code>, and friends are all
+			compile-time. A binding of type <code>type</code> is, by definition, compile-time.
 		</p>
 
 		<h3>Inferring <code>@</code> from <code>type</code></h3>
 		<p>
-			A parameter typed <code>type</code> infers the <code>@</code>
-			prefix automatically. A parameter used to annotate another parameter infers both.
+			A parameter typed <code>type</code> infers the <code>@</code> prefix automatically.
+			A parameter used to annotate another parameter infers both.
 		</p>
 		<CodeBlock
 			code={`// all three forms are equivalent
@@ -991,8 +1234,7 @@ let min = (t,        a: t, b: t) do if a < b do a else b`}
 		<h3>Generics</h3>
 		<p>
 			Each unique compile-time argument set produces a distinct specialisation, much like
-			monomorphisation in Rust or
-			<code>comptime</code> in Zig.
+			monomorphisation in Rust or <code>comptime</code> in Zig.
 		</p>
 		<CodeBlock
 			code={`let x = min(i32, 3, 7)      // i32 instantiation
@@ -1001,20 +1243,19 @@ let y = min(f64, 1.5, 2.0)  // f64 instantiation`}
 
 		<h3>Generating types</h3>
 		<p>
-			A compile-time function may return a type. Non-<code>type</code>
-			parameters that must be compile-time still need an explicit
-			<code>@</code>.
+			A compile-time function may return a type. Non-<code>type</code> parameters that
+			must be compile-time still need an explicit <code>@</code>.
 		</p>
 		<CodeBlock
-			code={`let FixedArray = (t, @cap: uint) do
+			code={`let fixed_array = (t, @cap: uint) do
     record {
         data: [t]
         len:  uint
     }
 end
 
-let IntBuf   = FixedArray(i32, 64)
-let FloatBuf = FixedArray(f64, 16)`}
+let int_buf   = fixed_array(i32, 64)
+let float_buf = fixed_array(f64, 16)`}
 		/>
 
 		<h3>Storing compile-time results</h3>
@@ -1024,7 +1265,7 @@ let FloatBuf = FixedArray(f64, 16)`}
 			<code>@</code> to force compile-time storage.
 		</p>
 		<CodeBlock
-			code={`let SQRT_2 = ruka.sqrt(2.0)    // top level — comptime by default
+			code={`let sqrt_2 = ruka.sqrt(2.0)    // top level — comptime by default
 
 let run = () do
     let @table = build_lookup_table(256)   // forced to comptime
@@ -1035,29 +1276,26 @@ end`}
 		<h3>Reflection</h3>
 		<p>
 			<code>ruka.type_of(e)</code> returns the type of <code>e</code> as a compile-time
-			value.
-			<code>ruka.fields_of</code>,
-			<code>ruka.methods_of</code>, and <code>ruka.statics_of</code>
-			return the structural pieces of a type.
+			value. <code>ruka.fields_of</code>, <code>ruka.methods_of</code>, and
+			<code>ruka.members_of</code> return the structural pieces of a type.
 			<code>ruka.record_of(fields)</code> constructs a new record type from a list of
-			field descriptors. All four take
-			<code>@</code>-prefixed type arguments and run at compile time — there is no runtime
-			reflection.
+			field descriptors. All four take <code>@</code>-prefixed type arguments and run at
+			compile time — there is no runtime reflection.
 		</p>
 		<CodeBlock
 			code={`// derive: produce an option-of-every-field version of any record
-let Partial = (t) do
+let partial = (t) do
     let fs = ruka.fields_of(t)
-        |> map((f) do .{ name = f.name, type = ?(f.type) })
+        |> map((f) do { name = f.name, type = ?(f.type) })
     ruka.record_of(fs)
 end
 
-let User = record {
+let user = record {
     id: i32
     name: string
 }
-let PartialUser = Partial(User)
-// PartialUser ≡ record { id: ?(i32), name: ?(string) }`}
+let partial_user = partial(user)
+// partial_user ≡ record { id: ?(i32), name: ?(string) }`}
 		/>
 	</section>
 
@@ -1072,59 +1310,40 @@ let PartialUser = Partial(User)
 		<table>
 			<thead><tr><th>Member</th><th>Purpose</th></tr></thead>
 			<tbody>
-				<tr
-					><td><code>print(printable)</code></td><td
-						>Write an argument implementing <code>ruka.printable</code> to stdout, 
-                        no newline.</td
-					></tr
-				>
-				<tr
-					><td><code>println(printable)</code></td><td
-						>Like <code>print</code>, appends a newline.</td
-					></tr
-				>
-				<tr
-					><td><code>readln()</code></td><td
-						>Read a single line of input from stdin and return it as a <code>string</code>.</td
-					></tr
-				>
-				<tr
-					><td><code>read()</code></td><td
-						>Like <code>readln()</code> but continues until user terminates with a ctrl-d.</td
-					></tr
-				>
+				<tr><td><code>print(printable)</code></td><td>Write an argument implementing <code>ruka.printable</code> to stdout, no newline.</td></tr>
+				<tr><td><code>println(printable)</code></td><td>Like <code>print</code>, appends a newline.</td></tr>
+				<tr><td><code>readln()</code></td><td>Read a single line of input from stdin and return it as a <code>string</code>.</td></tr>
+				<tr><td><code>read()</code></td><td>Like <code>readln()</code> but continues until user terminates with a ctrl-d.</td></tr>
 			</tbody>
 		</table>
 
-		<h3>Type conversions</h3>
-		<p>
-			<code>float_to_int()</code>, <code>int_to_float()</code>, 
-			<code>int_cast()</code>, <code>float_cast()</code>.
-		</p>
+		<h3>Behaviours</h3>
+		<table>
+			<tbody>
+				<tr><td><code>printable</code> driving string interpolation.</td></tr>
+				<tr><td><code>iterable</code> driving for loops.</td></tr>
+				<tr><td><code>cast</code> driving the <a href="#casting"><code>as</code> operator</a>.</td></tr>
+				<tr><td>There are also behaviours driving mathematical, indexing, and bitwise operators.</td></tr>
+			</tbody>
+		</table>
 
 		<h3>Math</h3>
 		<p>
-			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, 
-			<code>exp</code>, <code>floor</code>, <code>ceil</code>, 
-			<code>min</code>, <code>max</code>, <code>sin</code>, 
-			<code>cos</code>, <code>tan</code>, <code>random</code>.
+			<code>abs</code>, <code>sqrt</code>, <code>pow</code>, <code>exp</code>,
+			<code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code>,
+			<code>sin</code>, <code>cos</code>, <code>tan</code>, <code>random</code>.
 		</p>
 
 		<h3>Testing</h3>
-		<p>
-			<code>expect_eq(a, b)</code> returns an <code>!((), string)</code>.
-		</p>
+		<p><code>expect_eq(a, b)</code> returns an <code>!((), string)</code>.</p>
 
-		<h3>File Import</h3>
-		<p>
-			<code>import("path")</code> — see <a href="#modules">Modules &amp; imports</a>.
-		</p>
+		<h3>File import</h3>
+		<p><code>import("path")</code> — see <a href="#files">Files &amp; imports</a>.</p>
 
 		<h3>Compile-time</h3>
 		<p>
-			<code>type_of</code>, <code>fields_of</code>,
-			<code>methods_of</code>, <code>statics_of</code>,
-			<code>record_of</code>, <code>compile_error(msg)</code>. See
+			<code>type_of</code>, <code>fields_of</code>, <code>methods_of</code>,
+			<code>members_of</code>, <code>record_of</code>, <code>compile_error(msg)</code>. See
 			<a href="#comptime">Compile-time evaluation</a>.
 		</p>
 	</section>
@@ -1164,7 +1383,8 @@ let PartialUser = Partial(User)
 		margin-bottom: 8px;
 	}
 
-	ul {
+	ul,
+	ol {
 		margin: 0 0 16px 24px;
 		color: var(--fg);
 		max-width: 70ch;

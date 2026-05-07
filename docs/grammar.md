@@ -47,7 +47,7 @@ comment       ::=  "//" <any char except "\n">* "\n"?
 
 ### Identifiers
 
-An identifier begins with a letter or underscore and is followed by zero or more letters, digits, or underscores. Any identifier that matches a keyword or mode keyword is reserved and cannot be used as a user-defined name. The first letter of an identifier determines visibility at file scope: lowercase exports, uppercase is private.
+An identifier begins with a letter or underscore and is followed by zero or more letters, digits, or underscores. Any identifier that matches a keyword or mode keyword is reserved and cannot be used as a user-defined name. Casing carries no semantic weight; visibility is controlled by the `local` keyword (see [Declarations](#declarations)).
 
 ```ebnf
 letter        ::=  [a-zA-Z_]
@@ -61,19 +61,19 @@ identifier    ::=  letter ( letter | digit )*
 
 The following identifiers are reserved as keywords:
 
-`and` `behaviour` `break` `continue` `defer` `do` `else` `end` `false` `for` `if` `in` `let` `match` `not` `or` `record` `return` `self` `test` `true` `variant` `while` `with`
+`and` `as` `behaviour` `break` `continue` `defer` `do` `else` `end` `false` `for` `if` `in` `let` `local` `match` `not` `or` `record` `return` `self` `test` `true` `variant` `while` `with`
 
 The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or binding identifier with no whitespace between the prefix and the identifier.
 
 ```ebnf
 mode-prefix   ::=  "*"    -- mutable; binding may be reassigned, parameter mutates in place
                |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on runtime bindings, capture by a closure transfers ownership into the closure
+                          --   on bindings, capture by a closure transfers ownership into the closure
                |   "$"    -- stack-allocated; value cannot escape the function scope
                |   "@"    -- compile-time; value must be known at compile time
 ```
 
-`self` is reserved for the method receiver; it may only appear in the receiver clause of a binding declaration or as a parameter inside a method body. `with` is used only as part of `match` syntax. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
+`self` is reserved for the method receiver; it may only appear in the receiver clause of a binding declaration or as a parameter inside a method body. `with` is used only as part of `match` syntax. `as` is used only as the cast operator. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
 
 ### Literals
 
@@ -139,11 +139,11 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'
 
 ## Syntactic grammar
 
-The syntactic grammar is defined over token sequences. Whitespace and comments between any two tokens are implicitly permitted and ignored. A few rules below refer explicitly to `newline` as a structural marker — these are the cases where the scanner's line breaks become syntactically significant (single-expression block bodies).
+The syntactic grammar is defined over token sequences. Whitespace and comments between any two tokens are implicitly permitted and ignored. A few rules below refer explicitly to `newline` as a structural marker — these are the cases where the scanner's line breaks become syntactically significant (single-expression block bodies, and as a member separator inside braced declarations and literals).
 
 ### Program
 
-A Ruka source file is a flat sequence of declarations. Every file is implicitly a compile-time record: top-level `let` declarations whose names begin with a lowercase letter become its public fields; those whose names begin with an uppercase letter are private fields, inaccessible to importers. `ruka.import` returns this record value; there is no separate module concept.
+A Ruka source file is a flat sequence of declarations. Every file is implicitly a compile-time record: top-level `let` declarations become its public members; top-level `local` declarations are private members the file uses internally but does not export. `ruka.import` returns this record value; there is no separate module concept.
 
 ```ebnf
 program       ::=  declaration*
@@ -151,20 +151,24 @@ program       ::=  declaration*
 
 ### Declarations
 
-There are two declaration forms: ordinary `let` bindings and `test` bindings. There is no separate `fn`, `type`, or `mod` keyword. Mutability and evaluation time are expressed through modes; privacy is determined by the case of the binding name.
+There are three declaration forms: `let` bindings, `local` bindings, and `test` bindings. There is no separate `fn`, `type`, or `mod` keyword. Mutability and evaluation time are expressed through modes; privacy is selected by the binding keyword.
 
 ```ebnf
 declaration   ::=  binding | test-binding
 
-binding       ::=  "let" binding-lhs "=" expr
-               |   "let" binding-lhs ":" type "=" expr
+binding       ::=  binding-keyword binding-lhs "=" expr
+               |   binding-keyword binding-lhs ":" type "=" expr
+
+binding-keyword
+              ::=  "let"                                    -- public binding (or capture-eligible at function scope)
+               |   "local"                                  -- file-private (or non-capturable at function scope)
 
 binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
                |   mode-prefix? identifier receiver         -- function or method binding
                |   destructure-pattern                      -- destructuring binding
 
 receiver      ::=  "(" type-receiver ")"
-type-receiver ::=  identifier                               -- static function: associated type name
+type-receiver ::=  identifier                               -- member: associated type name
                |   mode-prefix? "self"                      -- method: instance receiver
 
 destructure-pattern
@@ -172,23 +176,23 @@ destructure-pattern
                    -- destructures any irrefutable pattern; see Patterns
                    -- e.g.  let { x, y } = point
                    -- e.g.  let (a, b)   = pair
-                   -- e.g.  let { sqrt, pow } = ruka.import("math")
+                   -- e.g.  let { sqrt, pow } = ruka.import("Math.ruka")
 
 test-binding  ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only
 ```
 
-**Uniform declarations.** Functions, types, behaviours, and modules are all values stored in ordinary `let` bindings. A *receiver* in the binding left-hand side associates the value with a named type as either a static function (type-name receiver) or a method (`self` receiver). The receiver appears between the binding name and the `=` sign.
+**Uniform declarations.** Functions, types, behaviours, and imported files are all values stored in ordinary `let` or `local` bindings. A *receiver* in the binding left-hand side associates the value with a named type as either a *member* (type-name receiver) or a *method* (`self` receiver). The receiver appears between the binding name and the `=` sign.
 
-**Type extension.** The type named by a receiver is not required to be declared in the current scope — any type is a valid receiver, including primitives (`i32`, `bool`, etc.) and built-in generics. An extension declared outside the type's original scope shadows the type within the extending scope rather than mutating it. See [Methods & statics](./reference.md#methods--statics).
+**Type extension.** The type named by a receiver is not required to be declared in the current scope — any type is a valid receiver, including primitives (`i32`, `bool`, etc.) and built-in generics. An extension declared outside the type's original scope shadows the type within the extending scope rather than mutating it. See [Methods & members](./reference.md#methods--members).
 
-**Privacy.** Visibility is determined by the first letter of the binding name — the inverse of Go's convention. A binding whose name begins with a lowercase letter is public (exported from the file record); a binding whose name begins with an uppercase letter is private. The same rule applies to methods, statics, and record or variant fields. Privacy does not apply inside function bodies, where name case is purely conventional.
+**Privacy.** `let` introduces a binding that may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. `local` introduces a non-escaping binding: at file scope it is private to the file (importers cannot see it); at function scope it cannot be captured by a closure that outlives the declaring function. The same applies to `local`-prefixed fields, variant tags, and behaviour members (see [Types](#types)).
 
-**Mutability.** By default a `let` binding is immutable. The `*` mode prefix makes the binding a mutable variable: `let *count = 0`. Reassignment is only permitted on bindings declared with `*`.
+**Mutability.** By default a binding is immutable. The `*` mode prefix makes the binding a mutable variable: `let *count = 0`. Reassignment is only permitted on bindings declared with `*`.
 
-**Evaluation time.** Bindings at file scope (including methods, statics, and type declarations) are implicitly compile-time. The `@` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain `let` is runtime; `@` must be written explicitly to force compile-time evaluation of the right-hand side.
+**Evaluation time.** Bindings at file scope (including methods, members, and type declarations) are implicitly compile-time. The `@` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain binding is runtime; `@` must be written explicitly to force compile-time evaluation of the right-hand side.
 
-**Test bindings.** A `test` binding declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test bindings have no visibility qualifier and no receiver clause. The name is an ordinary identifier used by the test runner to identify the test.
+**Test bindings.** A `test` binding declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test bindings have no privacy modifier and no receiver clause.
 
 ### Types
 
@@ -200,6 +204,7 @@ type          ::=  "()"                              -- unit type
                |   array-type
                |   tuple-type
                |   range-type
+               |   map-type
                |   option-type
                |   result-type
                |   function-type
@@ -224,14 +229,16 @@ primitive-type
 -- ── Collection types ──────────────────────────────
 
 array-type    ::=  "[" type "]"                      -- homogeneous array:        [i32]
-tuple-type    ::=  "[" type ( "," type )+ "]"        -- fixed-length tuple:        [i32, string]
-range-type    ::=  "[" type ".." "]"                 -- iterator range:            [int..]
+tuple-type    ::=  "(" type ( "," type )+ ","? ")"   -- fixed-length tuple:       (i32, string)
+                                                     --   at least one comma; a single parenthesised type is just a grouping
+range-type    ::=  "[" type ".." "]"                 -- iterator range:           [int..]
+map-type      ::=  "[" type "=>" type "]"            -- key-to-value map:         [string => int]
 
 -- ── Generic built-in types ────────────────────────
 -- Both have shorthand forms; the shorthand is canonical.
 
-option-type   ::=  "?" "(" type ")"                  -- value that may be absent:  ?(int)
-result-type   ::=  "!" "(" type "," type ")"         -- value or error:            !(int, string)
+option-type   ::=  "?" "(" type ")"                  -- value that may be absent: ?(int)
+result-type   ::=  "!" "(" type "," type ")"         -- value or error:           !(int, string)
 
 -- ── Function type ─────────────────────────────────
 
@@ -241,25 +248,29 @@ type-list     ::=  type ( "," type )*
 -- ── User-defined types ────────────────────────────
 -- Inside record / variant / behaviour blocks, members are separated by
 -- newlines. Commas are only required when two members share a single line.
+-- Each member may be prefixed with "local" to mark it private to the
+-- declaring file.
 
 record-type   ::=  "record" "{" field-list? "}"
 field-list    ::=  field ( field-sep field )* field-sep?
-field         ::=  identifier ":" type               -- private iff identifier starts with an uppercase letter
+field         ::=  "local"? identifier ":" type
 
 variant-type  ::=  "variant" "{" tag-list? "}"
 tag-list      ::=  tag ( field-sep tag )* field-sep?
-tag           ::=  identifier ( ":" type )?          -- payload type is optional; absent means unit
+tag           ::=  "local"? identifier ( ":" type )?  -- payload type is optional; absent means unit
 
 behaviour-type
               ::=  "behaviour" "{" method-sig-list? "}"
 method-sig-list
               ::=  method-sig ( field-sep method-sig )* field-sep?
-method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
+method-sig    ::=  "local"? identifier "(" mode-prefix? "self" ")" ":" function-type
 
 field-sep     ::=  newline | ","                     -- newline separates members; comma only required on a single line
 ```
 
-**Result-location semantics.** The collection literal `.{…}` produces an array, and `.(…)` produces a tuple. The element type of an array literal and the field types of a record literal flow in from context; an annotation pins them when context is unavailable.
+**Empty records cannot be instantiated.** A `record { }` with no fields is a type-level marker (something to attach members to) and has no values. To express "no information," use `()`.
+
+**Result-location semantics.** The braced literal `{ … }` produces an array, a record, or a map depending on the shape of its items (see [Primary expressions](#primary)) and the type expected from context.
 
 ### Expressions
 
@@ -306,7 +317,10 @@ pow-expr      ::=  unary-expr ( "**" pow-expr )?
 
 unary-expr    ::=  "not" unary-expr
                |   "-" unary-expr
-               |   postfix-expr
+               |   cast-expr
+
+cast-expr     ::=  postfix-expr ( "as" type )*
+                   -- left-associative; binds tighter than unary, looser than postfix
 ```
 
 ### Operator precedence
@@ -330,7 +344,8 @@ The table below summarises all operators from lowest to highest precedence.
 | 13 | `*` `/` `%` | Left | Multiplicative arithmetic |
 | 14 | `**` | Right | Exponentiation |
 | 15 | `not`, `-` (prefix) | Prefix | Logical NOT, arithmetic negation |
-| 16 (highest) | `.` `[]` `()` `.?()` `.!()` | Left | Field access, index, call, unwrap |
+| 16 | `as` | Left | Type cast |
+| 17 (highest) | `.` `[]` `()` `.?()` `.!()` | Left | Field access, index, call, unwrap |
 
 ### Postfix expressions
 
@@ -339,11 +354,11 @@ Postfix operations bind tighter than any prefix or infix operator and are left-a
 ```ebnf
 postfix-expr  ::=  primary postfix-op*
 
-postfix-op    ::=  "." identifier                         -- field access
+postfix-op    ::=  "." identifier                         -- field/member access (also used to qualify variant tags: type.tag)
                |   "." identifier "(" arg-list? ")"       -- method call
                |   ".?()"                                 -- option force-unwrap; panics if .none
                |   ".!()"                                 -- result force-unwrap; panics if .err
-               |   "[" expr "]"                           -- index (array, tuple, range slice)
+               |   "[" expr "]"                           -- index (array, tuple, range slice, map)
                |   "(" arg-list? ")" trailing-arg*        -- function call
 
 arg-list      ::=  arg ( "," arg )*
@@ -362,7 +377,9 @@ trailing-arg  ::=  "~" identifier "=" function-expr
 
 ```ebnf
 primary       ::=  literal-expr
-               |   identifier                              -- `ruka` is reserved as the built-in module reference
+               |   identifier                              -- "ruka" is reserved as the built-in module reference;
+                                                           --   bare identifiers also serve as payloadless variant constructors
+                                                           --   (resolved against in-scope bindings first, then variant tags)
                |   block-expr
                |   if-expr
                |   match-expr
@@ -372,11 +389,11 @@ primary       ::=  literal-expr
                |   break-expr
                |   continue-expr
                |   function-expr
-               |   array-lit
-               |   tuple-lit
-               |   record-lit
-               |   variant-ctor
+               |   brace-lit                              -- "{ ... }"  array, record, or map (resolved by item shape and context)
+               |   typed-brace-lit                        -- "Type { ... }" or "[T] { ... }" or "[K=>V] { ... }"
+               |   tuple-lit                              -- "(e, e, ...)"
                |   "(" expr ")"                           -- parenthesised expression
+               |   unit-lit                               -- "()"
 
 -- ── Literal expressions ───────────────────────────
 
@@ -386,7 +403,6 @@ literal-expr  ::=  integer-lit
                |   char-lit
                |   string-lit
                |   multiline-lit
-               |   unit-lit
 
 unit-lit      ::=  "(" ")"                                -- the unit value; the only inhabitant of the unit type
 
@@ -403,38 +419,77 @@ block-expr    ::=  "do" expr                                  -- single-expressi
 
 stmt          ::=  declaration | defer-stmt | expr
 
--- ── Array and tuple literals ──────────────────────
--- Array literals use ".{...}" and are homogeneous. Tuple literals use
--- ".(...)" and are heterogeneous fixed-arity. The leading "." marks a value
--- being constructed and distinguishes literals from destructuring patterns.
+-- ── Tuple literals ────────────────────────────────
+-- A tuple literal is a parenthesised list with at least one comma; a
+-- single parenthesised expression is just a grouping (see "primary"),
+-- and "()" is the unit value. There are no zero- or one-element tuples
+-- without an explicit trailing comma — "(x,)" is a one-element tuple.
 
-array-lit     ::=  ".{" "}"                               -- empty array
-               |   ".{" expr-items "}"                    -- non-empty array
-               |   identifier "." array-lit               -- explicit element-type prefix: [u8].{0, 1, 2}
+tuple-lit     ::=  "(" expr "," ")"                       -- one-element tuple
+               |   "(" expr ( "," expr )+ ","? ")"        -- two-or-more-element tuple
 
-tuple-lit     ::=  ".(" ")"                               -- empty tuple
-               |   ".(" expr-items ")"                    -- non-empty tuple
+-- ── Brace literals (array / record / map) ─────────
+-- All three share the same outer shape "{ ... }". They are syntactically
+-- distinguished by the form of their items:
+--   array  — bare expressions:           { e, e, ... }
+--   record — "ident = expr":             { f = v, f = v, ... }
+--   map    — "expr => expr":             { k => v, k => v, ... }
+-- Items within a single literal must all use the same form. Empty braces
+-- "{ }" denote an empty array or empty map; the kind is resolved by context.
+-- Comprehensions (see Array comprehensions) are an additional alternative
+-- form that may appear inside braces.
 
-expr-items    ::=  expr ( "," expr )* ","?
+brace-lit     ::=  "{" "}"
+               |   "{" array-items "}"
+               |   "{" record-items "}"
+               |   "{" map-items "}"
+               |   "{" comprehension "}"
 
--- ── Record literals ───────────────────────────────
--- Constructs a value of a record type. Field initialisers are separated by
--- newlines or commas using the same "field-sep" rule as type declarations.
+array-items   ::=  expr ( field-sep expr )* field-sep?
 
-record-lit    ::=  ( identifier "." )? ".{" field-inits? "}"
-                   -- optional "TypeName." prefix forces the type; omitted when inferrable
+record-items  ::=  field-init ( field-sep field-init )* field-sep?
+field-init    ::=  identifier "=" expr                    -- explicit:  name = value
+               |   identifier                             -- shorthand: variable name matches field name
 
-field-inits   ::=  field-init ( field-sep field-init )* field-sep?
-field-init    ::=  identifier "=" expr                    -- explicit:   name = value
-               |   identifier                             -- shorthand:  variable name matches field name
+map-items     ::=  map-entry ( field-sep map-entry )* field-sep?
+map-entry     ::=  expr "=>" expr
+
+-- ── Type-prefixed brace literals ──────────────────
+-- A type prefix pins the literal's type when context cannot.
+
+typed-brace-lit
+              ::=  type-prefix brace-lit
+
+type-prefix   ::=  identifier                             -- record:  point { x = 1.0, y = 2.0 }
+               |   "[" type "]"                           -- array:   [u8] { 0, 1, 2 }
+               |   "[" type "=>" type "]"                 -- map:     [string => int] { "a" => 1 }
+
+-- ── Comprehensions ───────────────────────────────
+-- Builds a collection by iterating; placed inside a brace-lit. The
+-- pattern follows the same rule as a "for" loop pattern — refutable
+-- patterns silently skip non-matching elements.
+--   array form — body is a single expression:        { e for p in xs (if c)? }
+--   map form   — body is a "key => value" pair:      { k => v for p in xs (if c)? }
+-- The chosen kind is fixed by the body shape; the element type(s) are
+-- inferred from the body and may be pinned by a type prefix or
+-- surrounding annotation.
+
+comprehension ::=  array-comprehension | map-comprehension
+
+array-comprehension
+              ::=  expr "for" pattern "in" expr ( "if" expr )?
+
+map-comprehension
+              ::=  expr "=>" expr "for" pattern "in" expr ( "if" expr )?
 
 -- ── Variant constructors ──────────────────────────
--- Constructs a value of a variant type.
-
-variant-ctor  ::=  "." identifier                         -- unqualified, no payload: .tagName
-               |   "." identifier "(" expr ")"            -- unqualified, with payload: .tagName(expr)
-               |   identifier "." identifier              -- qualified, no payload:   Type.tagName
-               |   identifier "." identifier "(" expr ")" -- qualified, with payload: Type.tagName(expr)
+-- There is no dedicated variant-constructor syntax. A payloadless tag is
+-- written as a bare identifier; a tag with payload is written as a call
+-- "tag(payload)". Both forms reuse the ordinary identifier and call
+-- productions, and are resolved by the type checker — an in-scope
+-- binding of the same name wins over a variant tag. A type-qualified
+-- form "type.tag" or "type.tag(payload)" is just a postfix field access
+-- followed (optionally) by a call.
 ```
 
 ### Function expressions
@@ -471,10 +526,9 @@ Prepending `~` to a parameter name makes it a *named parameter*. Named parameter
 -- Trailing form (after the closing parenthesis)
 --   "~" identifier "=" function-expr
 --   e.g.  map(nums) ~f=(x) do x * 2
---   e.g.  reduce(nums, 0) ~f=(acc, x) do
---             acc + x
---         end
 ```
+
+A trailing named parameter typed `~t: type` may be omitted at the call site — the compiler infers `t` from the *result location* (the type of the binding, parameter, or field that receives the call's value). See [Reference §Compile-time type inference from a trailing named parameter](./reference.md#compile-time-type-inference-from-a-trailing-named-parameter).
 
 ### Control flow
 
@@ -482,14 +536,16 @@ All control flow constructs are expressions and produce a value. When used purel
 
 #### If expression
 
-A multi-statement `if` chain is closed by a single trailing `end`; an all-single-expression chain has no `end`, since each branch closes at its newline.
+A multi-statement `if` chain is closed by a single trailing `end`; an all-single-expression chain has no `end`, since each branch closes at its newline. The condition position accepts either a plain boolean expression or a *conditional pattern binding* — `pattern = expr` — which runs the branch only if the pattern matches the value of `expr` (the bindings introduced by the pattern are in scope inside that branch).
 
 ```ebnf
-if-expr       ::=  "if" expr block-expr
-                   ( "else" "if" expr block-expr )*
+if-expr       ::=  "if" if-cond block-expr
+                   ( "else" "if" if-cond block-expr )*
                    ( "else" block-expr )?
-                   -- when any branch uses the multi-statement block-expr form, the chain ends with "end"
-                   -- when every branch is single-expression, the chain has no "end"
+
+if-cond       ::=  expr                                   -- ordinary boolean condition
+               |   pattern "=" expr                       -- conditional pattern binding;
+                                                          --   pattern is typically refutable
 ```
 
 **Conditional expression (ternary).** A right-hand-side conditional uses `value if cond else value` — the same keywords, rearranged. The form sits at the top of the expression hierarchy (just below `expr`), is right-associative on the `else` branch, and parses the `cond` at `or-expr` precedence — a nested ternary in the condition position requires parentheses.
@@ -498,26 +554,26 @@ if-expr       ::=  "if" expr block-expr
 ternary-expr  ::=  assign-expr ( "if" or-expr "else" ternary-expr )?
                    -- right-associative on the else branch; the value may chain freely
                    -- e.g.  let label = "positive" if x > 0 else "non-positive"
-                   -- e.g.  let grade = "A" if score >= 90 else
-                   --                   "B" if score >= 80 else
-                   --                   "C"
 ```
 
 #### While expression
 
+A `while` accepts the same condition forms as `if`. With a `pattern = expr` form, the loop terminates the first time the pattern fails to match.
+
 ```ebnf
-while-expr    ::=  "while" expr block-expr
+while-expr    ::=  "while" while-cond block-expr
+
+while-cond    ::=  expr
+               |   pattern "=" expr                       -- terminates on first non-match
 ```
 
 #### For expression
 
-```ebnf
-for-expr      ::=  "for" for-pattern "in" expr block-expr
-               |   "for" expr block-expr            -- iterator without a binding variable
+`for` accepts any pattern in its binder position. An *irrefutable* pattern (identifier, tuple, record) binds every element. A *refutable* pattern (variant, literal, range, guard) silently skips elements that fail to match.
 
-for-pattern   ::=  identifier                       -- simple binding
-               |   tuple-pattern                    -- "(a, b, ...)"   tuple destructure
-               |   record-pattern                   -- "{ a, b, ... }" record destructure
+```ebnf
+for-expr      ::=  "for" pattern "in" expr block-expr
+               |   "for" expr block-expr                  -- iterator without a binding variable
 ```
 
 #### Return
@@ -547,15 +603,14 @@ A `defer` statement schedules an expression to execute at the end of the enclosi
 ```ebnf
 defer-stmt    ::=  "defer" expr
                    -- expr is evaluated when the enclosing block exits
-                   -- expr is typically a function call or a do...end block
                    -- defers in the same block run LIFO: last defer statement runs first
 ```
 
 ### Patterns
 
-Patterns appear in `let`-destructuring, `match` arms, and `for` loop binders. Patterns are *refutable* (may not match) or *irrefutable* (always match) — only irrefutable patterns are allowed in `let` and `for`.
+Patterns appear in `let` / `local` destructuring, `match` arms, `for` loop binders, and the `pattern = expr` forms of `if` and `while`. Patterns are *refutable* (may not match) or *irrefutable* (always match) — only irrefutable patterns are allowed in `let` / `local` destructuring; the other positions accept either form (refutable patterns skip non-matching values where they appear).
 
-**No leading dot in patterns.** The leading `.` of `.tag`, `.{…}`, and `.(…)` belongs to *value literals*; in patterns the same shapes are written bare.
+Patterns share their concrete shapes with value literals — without the literal's type-prefix or initialiser syntax. A tuple pattern is `(a, b)`; a record pattern is `{ a, b }`; a variant pattern is `tag` or `tag(inner)`.
 
 ```ebnf
 match-expr    ::=  "match" expr "with" arm+ else-arm? "end"
@@ -568,12 +623,13 @@ pattern       ::=  identifier                              -- binds the value (i
                |   range-pattern                           -- numeric range: 0..=9, 'a'..='z'
                |   tuple-pattern                           -- "(a, b)"          irrefutable when arity matches
                |   record-pattern                          -- "{ x, y }"        irrefutable when fields match
-               |   variant-pattern                         -- "tag" or "tag(p)"  refutable
+               |   variant-pattern                         -- "tag" or "tag(p)" refutable
                |   guard-pattern                           -- pattern with boolean guard
 
 range-pattern ::=  literal-expr ( ".." | "..=" ) literal-expr
 
-tuple-pattern ::=  "(" pattern ( "," pattern )* ","? ")"
+tuple-pattern ::=  "(" pattern "," ")"                     -- one-element tuple pattern
+               |   "(" pattern ( "," pattern )+ ","? ")"   -- two-or-more
 
 record-pattern
               ::=  "{" identifier ( field-sep identifier )* field-sep? "}"
@@ -587,3 +643,5 @@ guard-pattern ::=  pattern "if" expr
 ```
 
 **Option and result patterns.** `?(T)` and `!(T, E)` are built-in variant types and follow the same variant-pattern syntax: `some(name)`, `none`, `ok(name)`, `err(name)`.
+
+**Identifier vs variant-pattern resolution.** A bare identifier in pattern position binds (irrefutably) by default. The same identifier resolves to a payloadless variant tag only when the pattern's expected type is a variant whose tags include that name — matching the same "binding wins over tag" precedence used in expressions, but inverted for the destination context.

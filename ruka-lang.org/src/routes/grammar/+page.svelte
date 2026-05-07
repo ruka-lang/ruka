@@ -40,10 +40,9 @@
 	<h1>Grammar</h1>
 	<p>
 		This page is the formal grammar of Ruka, written in a variant of Extended Backus–Naur
-		Form. It pairs with the
-		<a href="/reference">reference</a>: the reference describes semantics in prose, and
-		this page pins down the surface syntax. This is the defacto single source of truth for
-		the language syntax.
+		Form. It pairs with the <a href="/reference">reference</a>: the reference describes
+		semantics in prose, and this page pins down the surface syntax. This is the defacto
+		single source of truth for the language syntax.
 	</p>
 
 	<section id="notation">
@@ -57,28 +56,13 @@
 				<tr><td><code>A B</code></td><td>Concatenation — A followed by B.</td></tr>
 				<tr><td><code>A | B</code></td><td>Alternation — A or B.</td></tr>
 				<tr><td><code>A?</code></td><td>Option — zero or one occurrence of A.</td></tr>
-				<tr
-					><td><code>A*</code></td><td>Repetition — zero or more occurrences of A.</td
-					></tr
-				>
+				<tr><td><code>A*</code></td><td>Repetition — zero or more occurrences of A.</td></tr>
 				<tr><td><code>A+</code></td><td>One or more occurrences of A.</td></tr>
 				<tr><td><code>( A )</code></td><td>Grouping — treats A as a single unit.</td></tr>
 				<tr><td><code>"terminal"</code></td><td>A literal character sequence.</td></tr>
-				<tr
-					><td><code>[a-z]</code></td><td
-						>A character class — any character in the given range.</td
-					></tr
-				>
-				<tr
-					><td><code>&lt;description&gt;</code></td><td
-						>An informal prose description of a terminal set.</td
-					></tr
-				>
-				<tr
-					><td><code>-- comment</code></td><td
-						>An explanatory note; not part of the production.</td
-					></tr
-				>
+				<tr><td><code>[a-z]</code></td><td>A character class — any character in the given range.</td></tr>
+				<tr><td><code>&lt;description&gt;</code></td><td>An informal prose description of a terminal set.</td></tr>
+				<tr><td><code>-- comment</code></td><td>An explanatory note; not part of the production.</td></tr>
 			</tbody>
 		</table>
 		<p>
@@ -98,8 +82,8 @@
 
 		<h3 id="encoding">Source encoding</h3>
 		<p>
-			Ruka source files are encoded in UTF-8. The term <em>char</em>
-			below means any Unicode scalar value.
+			Ruka source files are encoded in UTF-8. The term <em>char</em> below means any
+			Unicode scalar value.
 		</p>
 
 		<h3 id="whitespace">Whitespace &amp; comments</h3>
@@ -117,9 +101,9 @@ comment       ::=  "//" &lt;any char except "\n"&gt;* "\n"?</code
 		<p>
 			An identifier begins with a letter or underscore and is followed by zero or more
 			letters, digits, or underscores. Any identifier that matches a keyword or mode
-			keyword is reserved and cannot be used as a user-defined name. The first letter of
-			an identifier determines visibility at file scope: lowercase exports, uppercase is
-			private.
+			keyword is reserved and cannot be used as a user-defined name. Casing carries no
+			semantic weight; visibility is controlled by the <code>local</code> keyword (see
+			<a href="#declarations">Declarations</a>).
 		</p>
 		<pre class="ebnf"><code
 				>letter        ::=  [a-zA-Z_]
@@ -133,6 +117,7 @@ identifier    ::=  letter ( letter | digit )*
 		<p>The following identifiers are reserved as keywords:</p>
 		<div class="kwgrid">
 			<code>and</code>
+			<code>as</code>
 			<code>behaviour</code>
 			<code>break</code>
 			<code>continue</code>
@@ -145,6 +130,7 @@ identifier    ::=  letter ( letter | digit )*
 			<code>if</code>
 			<code>in</code>
 			<code>let</code>
+			<code>local</code>
 			<code>match</code>
 			<code>not</code>
 			<code>or</code>
@@ -165,17 +151,17 @@ identifier    ::=  letter ( letter | digit )*
 		<pre class="ebnf"><code
 				>mode-prefix   ::=  "*"    -- mutable; binding may be reassigned, parameter mutates in place
                |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on runtime bindings, capture by a closure transfers ownership into the closure
+                          --   on bindings, capture by a closure transfers ownership into the closure
                |   "$"    -- stack-allocated; value cannot escape the function scope
                |   "@"    -- compile-time; value must be known at compile time</code
 			></pre>
 		<p>
 			<code>self</code> is reserved for the method receiver; it may only appear in the
 			receiver clause of a binding declaration or as a parameter inside a method body.
-			<code>with</code>
-			is used only as part of <code>match</code> syntax. <code>ruka</code> is a reserved identifier
-			referring to the built-in module; it is implicitly in scope in every source file and cannot
-			be shadowed or rebound.
+			<code>with</code> is used only as part of <code>match</code> syntax.
+			<code>as</code> is used only as the cast operator.
+			<code>ruka</code> is a reserved identifier referring to the built-in module; it is
+			implicitly in scope in every source file and cannot be shadowed or rebound.
 		</p>
 
 		<h3 id="literals-lex">Literals</h3>
@@ -207,8 +193,8 @@ integer-lit   ::=  decimal-lit | hex-lit | binary-lit
 
 		<h4>Character literals</h4>
 		<p>
-			A character literal is a single byte in single quotes. It has type
-			<code>u8</code>; there is no separate <code>char</code> primitive.
+			A character literal is a single byte in single quotes. It has type <code>u8</code>;
+			there is no separate <code>char</code> primitive.
 		</p>
 		<pre class="ebnf"><code
 				>char-escape   ::=  "\\" ( "n" | "t" | "r" | "\\" | "'" | '"' | "0" )
@@ -217,9 +203,9 @@ char-lit      ::=  "'" ( &lt;any char except "'", "\\", "\n"&gt; | char-escape )
 
 		<h4>String literals</h4>
 		<p>
-			String literals are delimited by double quotes. Expressions may be embedded with <code
-				>&#36;&#123;…&#125;</code
-			>; the interpolated expression must satisfy the <code>ruka.printable</code> behaviour.
+			String literals are delimited by double quotes. Expressions may be embedded with
+			<code>&#36;&#123;…&#125;</code>; the interpolated expression must satisfy the
+			<code>ruka.printable</code> behaviour.
 		</p>
 		<pre class="ebnf"><code
 				>str-escape    ::=  "\\" ( "n" | "t" | "r" | "\\" | "'" | '"' | "0" )
@@ -247,41 +233,44 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code
 		<p>
 			The syntactic grammar is defined over token sequences. Whitespace and comments
 			between any two tokens are implicitly permitted and ignored. A few rules below refer
-			explicitly to <code>newline</code>
-			as a structural marker — these are the cases where the scanner's line breaks become syntactically
-			significant (single-expression block bodies).
+			explicitly to <code>newline</code> as a structural marker — these are the cases where
+			the scanner's line breaks become syntactically significant (single-expression block
+			bodies, and as a member separator inside braced declarations and literals).
 		</p>
 
 		<h3 id="program">Program</h3>
 		<p>
 			A Ruka source file is a flat sequence of declarations. Every file is implicitly a
-			compile-time record: top-level <code>let</code>
-			declarations whose names begin with a lowercase letter become its public fields; those
-			whose names begin with an uppercase letter are private fields, inaccessible to importers.
-			<code>ruka.import</code> returns this record value; there is no separate module concept.
+			compile-time record: top-level <code>let</code> declarations become its public
+			members; top-level <code>local</code> declarations are private members the file uses
+			internally but does not export. <code>ruka.import</code> returns this record value;
+			there is no separate module concept.
 		</p>
 		<pre class="ebnf"><code>program       ::=  declaration*</code></pre>
 
 		<h3 id="declarations">Declarations</h3>
 		<p>
-			There are two declaration forms: ordinary <code>let</code> bindings and
-			<code>test</code>
-			bindings. There is no separate <code>fn</code>,
-			<code>type</code>, or <code>mod</code> keyword. Mutability and evaluation time are expressed
-			through modes; privacy is determined by the case of the binding name.
+			There are three declaration forms: <code>let</code> bindings, <code>local</code>
+			bindings, and <code>test</code> bindings. There is no separate <code>fn</code>,
+			<code>type</code>, or <code>mod</code> keyword. Mutability and evaluation time are
+			expressed through modes; privacy is selected by the binding keyword.
 		</p>
 		<pre class="ebnf"><code
 				>declaration   ::=  binding | test-binding
 
-binding       ::=  "let" binding-lhs "=" expr
-               |   "let" binding-lhs ":" type "=" expr
+binding       ::=  binding-keyword binding-lhs "=" expr
+               |   binding-keyword binding-lhs ":" type "=" expr
+
+binding-keyword
+              ::=  "let"                                    -- public binding (or capture-eligible at function scope)
+               |   "local"                                  -- file-private (or non-capturable at function scope)
 
 binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
                |   mode-prefix? identifier receiver         -- function or method binding
                |   destructure-pattern                      -- destructuring binding
 
 receiver      ::=  "(" type-receiver ")"
-type-receiver ::=  identifier                               -- static function: associated type name
+type-receiver ::=  identifier                               -- member: associated type name
                |   mode-prefix? "self"                      -- method: instance receiver
 
 destructure-pattern
@@ -289,65 +278,60 @@ destructure-pattern
                    -- destructures any irrefutable pattern; see Patterns
                    -- e.g.  let &#123; x, y &#125; = point
                    -- e.g.  let (a, b)   = pair
-                   -- e.g.  let &#123; sqrt, pow &#125; = ruka.import("math")
+                   -- e.g.  let &#123; sqrt, pow &#125; = ruka.import("Math.ruka")
 
 test-binding  ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only</code
 			></pre>
 		<p>
-			<strong>Uniform declarations.</strong> Functions, types, behaviours, and modules are
-			all values stored in ordinary
-			<code>let</code> bindings. A <em>receiver</em> in the binding left-hand side
-			associates the value with a named type as either a static function (type-name
-			receiver) or a method (<code>self</code>
-			receiver). The receiver appears between the binding name and the
+			<strong>Uniform declarations.</strong> Functions, types, behaviours, and imported
+			files are all values stored in ordinary <code>let</code> or <code>local</code>
+			bindings. A <em>receiver</em> in the binding left-hand side associates the value with
+			a named type as either a <em>member</em> (type-name receiver) or a <em>method</em>
+			(<code>self</code> receiver). The receiver appears between the binding name and the
 			<code>=</code> sign.
 		</p>
 		<p>
 			<strong>Type extension.</strong> The type named by a receiver is not required to be
-			declared in the current scope — any type is a valid receiver, including primitives (<code
-				>i32</code
-			>,
-			<code>bool</code>, etc.) and built-in generics. An extension declared outside the
-			type's original scope shadows the type within the extending scope rather than
-			mutating it. See
-			<a href="/reference#methods">Methods &amp; statics</a>.
+			declared in the current scope — any type is a valid receiver, including primitives
+			(<code>i32</code>, <code>bool</code>, etc.) and built-in generics. An extension
+			declared outside the type's original scope shadows the type within the extending
+			scope rather than mutating it. See
+			<a href="/reference#methods">Methods &amp; members</a>.
 		</p>
 		<p>
-			<strong>Privacy.</strong> Visibility is determined by the first letter of the binding
-			name — the inverse of Go's convention. A binding whose name begins with a lowercase letter
-			is public (exported from the file record); a binding whose name begins with an uppercase
-			letter is private. The same rule applies to methods, statics, and record or variant fields.
-			Privacy does not apply inside function bodies, where name case is purely conventional.
+			<strong>Privacy.</strong> <code>let</code> introduces a binding that may escape its
+			scope: at file scope it becomes a public member of the file's record; at function
+			scope it is eligible for capture by a closure. <code>local</code> introduces a
+			non-escaping binding: at file scope it is private to the file (importers cannot see
+			it); at function scope it cannot be captured by a closure that outlives the
+			declaring function. The same applies to <code>local</code>-prefixed fields, variant
+			tags, and behaviour members (see <a href="#types">Types</a>).
 		</p>
 		<p>
-			<strong>Mutability.</strong> By default a <code>let</code> binding is immutable. The
-			<code>*</code>
+			<strong>Mutability.</strong> By default a binding is immutable. The <code>*</code>
 			mode prefix makes the binding a mutable variable: <code>let *count = 0</code>.
 			Reassignment is only permitted on bindings declared with <code>*</code>.
 		</p>
 		<p>
 			<strong>Evaluation time.</strong> Bindings at file scope (including methods,
-			statics, and type declarations) are implicitly compile-time. The <code>@</code> mode
+			members, and type declarations) are implicitly compile-time. The <code>@</code> mode
 			may be written explicitly but is redundant there. Inside an inner scope (function
-			body, block) a plain <code>let</code>
-			is runtime; <code>@</code> must be written explicitly to force compile-time evaluation
-			of the right-hand side.
+			body, block) a plain binding is runtime; <code>@</code> must be written explicitly
+			to force compile-time evaluation of the right-hand side.
 		</p>
 		<p>
-			<strong>Test bindings.</strong> A <code>test</code> binding declares a function that is
-			only compiled in debug and test builds and elided entirely in optimised builds. The value
-			must be a function expression. Test bindings have no visibility qualifier and no receiver
-			clause. The name is an ordinary identifier used by the test runner to identify the test.
+			<strong>Test bindings.</strong> A <code>test</code> binding declares a function that
+			is only compiled in debug and test builds and elided entirely in optimised builds.
+			The value must be a function expression. Test bindings have no privacy modifier and
+			no receiver clause.
 		</p>
 
 		<h3 id="types">Types</h3>
 		<p>
 			Type expressions appear after <code>:</code> in parameter and binding annotations,
-			after
-			<code>-&gt;</code>
-			in return-type annotations, and as values passed to <code>type</code>-typed
-			parameters.
+			after <code>-&gt;</code> in return-type annotations, and as values passed to
+			<code>type</code>-typed parameters.
 		</p>
 		<pre class="ebnf"><code
 				>type          ::=  "()"                              -- unit type
@@ -355,6 +339,7 @@ test-binding  ::=  "test" identifier "=" expr
                |   array-type
                |   tuple-type
                |   range-type
+               |   map-type
                |   option-type
                |   result-type
                |   function-type
@@ -379,14 +364,16 @@ primitive-type
 -- ── Collection types ──────────────────────────────
 
 array-type    ::=  "[" type "]"                      -- homogeneous array:        [i32]
-tuple-type    ::=  "[" type ( "," type )+ "]"        -- fixed-length tuple:        [i32, string]
-range-type    ::=  "[" type ".." "]"                 -- iterator range:            [int..]
+tuple-type    ::=  "(" type ( "," type )+ ","? ")"   -- fixed-length tuple:       (i32, string)
+                                                     --   at least one comma; a single parenthesised type is just a grouping
+range-type    ::=  "[" type ".." "]"                 -- iterator range:           [int..]
+map-type      ::=  "[" type "=&gt;" type "]"            -- key-to-value map:         [string =&gt; int]
 
 -- ── Generic built-in types ────────────────────────
 -- Both have shorthand forms; the shorthand is canonical.
 
-option-type   ::=  "?" "(" type ")"                  -- value that may be absent:  ?(int)
-result-type   ::=  "!" "(" type "," type ")"         -- value or error:            !(int, string)
+option-type   ::=  "?" "(" type ")"                  -- value that may be absent: ?(int)
+result-type   ::=  "!" "(" type "," type ")"         -- value or error:           !(int, string)
 
 -- ── Function type ─────────────────────────────────
 
@@ -396,29 +383,35 @@ type-list     ::=  type ( "," type )*
 -- ── User-defined types ────────────────────────────
 -- Inside record / variant / behaviour blocks, members are separated by
 -- newlines. Commas are only required when two members share a single line.
+-- Each member may be prefixed with "local" to mark it private to the
+-- declaring file.
 
 record-type   ::=  "record" "&#123;" field-list? "&#125;"
 field-list    ::=  field ( field-sep field )* field-sep?
-field         ::=  identifier ":" type               -- private iff identifier starts with an uppercase letter
+field         ::=  "local"? identifier ":" type
 
 variant-type  ::=  "variant" "&#123;" tag-list? "&#125;"
 tag-list      ::=  tag ( field-sep tag )* field-sep?
-tag           ::=  identifier ( ":" type )?          -- payload type is optional; absent means unit
+tag           ::=  "local"? identifier ( ":" type )?  -- payload type is optional; absent means unit
 
 behaviour-type
               ::=  "behaviour" "&#123;" method-sig-list? "&#125;"
 method-sig-list
               ::=  method-sig ( field-sep method-sig )* field-sep?
-method-sig    ::=  identifier "(" mode-prefix? "self" ")" ":" function-type
+method-sig    ::=  "local"? identifier "(" mode-prefix? "self" ")" ":" function-type
 
 field-sep     ::=  newline | ","                     -- newline separates members; comma only required on a single line</code
 			></pre>
 		<p>
-			<strong>Result-location semantics.</strong> The collection literal
-			<code>.&#123;…&#125;</code> produces an array, and
-			<code>.(…)</code> produces a tuple. The element type of an array literal and the field
-			types of a record literal flow in from context; an annotation pins them when context is
-			unavailable.
+			<strong>Empty records cannot be instantiated.</strong> A
+			<code>record &#123; &#125;</code> with no fields is a type-level marker (something to
+			attach members to) and has no values. To express "no information," use <code>()</code>.
+		</p>
+		<p>
+			<strong>Result-location semantics.</strong> The braced literal
+			<code>&#123; … &#125;</code> produces an array, a record, or a map depending on the
+			shape of its items (see <a href="#primary">Primary expressions</a>) and the type
+			expected from context.
 		</p>
 
 		<h3 id="expressions">Expressions</h3>
@@ -426,8 +419,8 @@ field-sep     ::=  newline | ","                     -- newline separates member
 			Ruka is expression-based: blocks, conditionals, match expressions, and function
 			bodies all evaluate to a value. The following layered grammar encodes operator
 			precedence structurally, from lowest-binding (outermost rule) to highest-binding
-			(innermost rule). The <a href="/reference#operators">reference's operator table</a> presents
-			the same precedence in tabular form.
+			(innermost rule). The <a href="#operators">operator table</a> below presents the
+			same precedence in tabular form.
 		</p>
 		<pre class="ebnf"><code
 				>expr          ::=  ternary-expr
@@ -470,7 +463,10 @@ pow-expr      ::=  unary-expr ( "**" pow-expr )?
 
 unary-expr    ::=  "not" unary-expr
                |   "-" unary-expr
-               |   postfix-expr</code
+               |   cast-expr
+
+cast-expr     ::=  postfix-expr ( "as" type )*
+                   -- left-associative; binds tighter than unary, looser than postfix</code
 			></pre>
 
 		<h3 id="operators">Operator precedence</h3>
@@ -485,57 +481,23 @@ unary-expr    ::=  "not" unary-expr
 				</tr>
 			</thead>
 			<tbody>
-				<tr
-					><td>1 (lowest)</td><td><code>=</code></td><td>Right</td><td>Assignment</td></tr
-				>
-				<tr
-					><td>2</td><td><code>|&gt;</code></td><td>Left</td><td
-						>Pipeline (forward application)</td
-					></tr
-				>
+				<tr><td>1 (lowest)</td><td><code>=</code></td><td>Right</td><td>Assignment</td></tr>
+				<tr><td>2</td><td><code>|&gt;</code></td><td>Left</td><td>Pipeline (forward application)</td></tr>
 				<tr><td>3</td><td><code>or</code></td><td>Left</td><td>Logical OR</td></tr>
 				<tr><td>4</td><td><code>and</code></td><td>Left</td><td>Logical AND</td></tr>
-				<tr><td>5</td><td><code>== &nbsp; !=</code></td><td>None</td><td>Equality</td></tr
-				>
-				<tr
-					><td>6</td><td><code>&lt; &nbsp; &lt;= &nbsp; &gt; &nbsp; &gt;=</code></td><td
-						>None</td
-					><td>Comparison</td></tr
-				>
-				<tr
-					><td>7</td><td><code>.. &nbsp; ..=</code></td><td>None</td><td
-						>Range construction</td
-					></tr
-				>
+				<tr><td>5</td><td><code>== &nbsp; !=</code></td><td>None</td><td>Equality</td></tr>
+				<tr><td>6</td><td><code>&lt; &nbsp; &lt;= &nbsp; &gt; &nbsp; &gt;=</code></td><td>None</td><td>Comparison</td></tr>
+				<tr><td>7</td><td><code>.. &nbsp; ..=</code></td><td>None</td><td>Range construction</td></tr>
 				<tr><td>8</td><td><code>|</code></td><td>Left</td><td>Bitwise OR</td></tr>
 				<tr><td>9</td><td><code>^</code></td><td>Left</td><td>Bitwise XOR</td></tr>
 				<tr><td>10</td><td><code>&amp;</code></td><td>Left</td><td>Bitwise AND</td></tr>
-				<tr
-					><td>11</td><td><code>&lt;&lt; &nbsp; &gt;&gt;</code></td><td>Left</td><td
-						>Bitwise shift</td
-					></tr
-				>
-				<tr
-					><td>12</td><td><code>+ &nbsp; -</code></td><td>Left</td><td
-						>Additive arithmetic</td
-					></tr
-				>
-				<tr
-					><td>13</td><td><code>* &nbsp; / &nbsp; %</code></td><td>Left</td><td
-						>Multiplicative arithmetic</td
-					></tr
-				>
+				<tr><td>11</td><td><code>&lt;&lt; &nbsp; &gt;&gt;</code></td><td>Left</td><td>Bitwise shift</td></tr>
+				<tr><td>12</td><td><code>+ &nbsp; -</code></td><td>Left</td><td>Additive arithmetic</td></tr>
+				<tr><td>13</td><td><code>* &nbsp; / &nbsp; %</code></td><td>Left</td><td>Multiplicative arithmetic</td></tr>
 				<tr><td>14</td><td><code>**</code></td><td>Right</td><td>Exponentiation</td></tr>
-				<tr
-					><td>15</td><td><code>not</code> &nbsp; <code>-</code> (prefix)</td><td
-						>Prefix</td
-					><td>Logical NOT, arithmetic negation</td></tr
-				>
-				<tr
-					><td>16 (highest)</td><td
-						><code>. &nbsp; [] &nbsp; () &nbsp; .?() &nbsp; .!()</code></td
-					><td>Left</td><td>Field access, index, call, unwrap</td></tr
-				>
+				<tr><td>15</td><td><code>not</code> &nbsp; <code>-</code> (prefix)</td><td>Prefix</td><td>Logical NOT, arithmetic negation</td></tr>
+				<tr><td>16</td><td><code>as</code></td><td>Left</td><td>Type cast</td></tr>
+				<tr><td>17 (highest)</td><td><code>. &nbsp; [] &nbsp; () &nbsp; .?() &nbsp; .!()</code></td><td>Left</td><td>Field access, index, call, unwrap</td></tr>
 			</tbody>
 		</table>
 
@@ -547,11 +509,11 @@ unary-expr    ::=  "not" unary-expr
 		<pre class="ebnf"><code
 				>postfix-expr  ::=  primary postfix-op*
 
-postfix-op    ::=  "." identifier                         -- field access
+postfix-op    ::=  "." identifier                         -- field/member access (also used to qualify variant tags: type.tag)
                |   "." identifier "(" arg-list? ")"       -- method call
                |   ".?()"                                 -- option force-unwrap; panics if .none
                |   ".!()"                                 -- result force-unwrap; panics if .err
-               |   "[" expr "]"                           -- index (array, tuple, range slice)
+               |   "[" expr "]"                           -- index (array, tuple, range slice, map)
                |   "(" arg-list? ")" trailing-arg*        -- function call
 
 arg-list      ::=  arg ( "," arg )*
@@ -569,7 +531,9 @@ trailing-arg  ::=  "~" identifier "=" function-expr
 		<h3 id="primary">Primary expressions</h3>
 		<pre class="ebnf"><code
 				>primary       ::=  literal-expr
-               |   identifier                              -- `ruka` is reserved as the built-in module reference
+               |   identifier                              -- "ruka" is reserved as the built-in module reference;
+                                                           --   bare identifiers also serve as payloadless variant constructors
+                                                           --   (resolved against in-scope bindings first, then variant tags)
                |   block-expr
                |   if-expr
                |   match-expr
@@ -579,11 +543,11 @@ trailing-arg  ::=  "~" identifier "=" function-expr
                |   break-expr
                |   continue-expr
                |   function-expr
-               |   array-lit
-               |   tuple-lit
-               |   record-lit
-               |   variant-ctor
+               |   brace-lit                              -- "&#123; ... &#125;"  array, record, or map (resolved by item shape and context)
+               |   typed-brace-lit                        -- "Type &#123; ... &#125;" or "[T] &#123; ... &#125;" or "[K=&gt;V] &#123; ... &#125;"
+               |   tuple-lit                              -- "(e, e, ...)"
                |   "(" expr ")"                           -- parenthesised expression
+               |   unit-lit                               -- "()"
 
 -- ── Literal expressions ───────────────────────────
 
@@ -593,7 +557,6 @@ literal-expr  ::=  integer-lit
                |   char-lit
                |   string-lit
                |   multiline-lit
-               |   unit-lit
 
 unit-lit      ::=  "(" ")"                                -- the unit value; the only inhabitant of the unit type
 
@@ -610,46 +573,84 @@ block-expr    ::=  "do" expr                                  -- single-expressi
 
 stmt          ::=  declaration | defer-stmt | expr
 
--- ── Array and tuple literals ──────────────────────
--- Array literals use ".&#123;...&#125;" and are homogeneous. Tuple literals use
--- ".(...)" and are heterogeneous fixed-arity. The leading "." marks a value
--- being constructed and distinguishes literals from destructuring patterns.
+-- ── Tuple literals ────────────────────────────────
+-- A tuple literal is a parenthesised list with at least one comma; a
+-- single parenthesised expression is just a grouping (see "primary"),
+-- and "()" is the unit value. There are no zero- or one-element tuples
+-- without an explicit trailing comma — "(x,)" is a one-element tuple.
 
-array-lit     ::=  ".&#123;" "&#125;"                               -- empty array
-               |   ".&#123;" expr-items "&#125;"                    -- non-empty array
-               |   identifier "." array-lit               -- explicit element-type prefix: [u8].&#123;0, 1, 2&#125;
+tuple-lit     ::=  "(" expr "," ")"                       -- one-element tuple
+               |   "(" expr ( "," expr )+ ","? ")"        -- two-or-more-element tuple
 
-tuple-lit     ::=  ".(" ")"                               -- empty tuple
-               |   ".(" expr-items ")"                    -- non-empty tuple
+-- ── Brace literals (array / record / map) ─────────
+-- All three share the same outer shape "&#123; ... &#125;". They are syntactically
+-- distinguished by the form of their items:
+--   array  — bare expressions:           &#123; e, e, ... &#125;
+--   record — "ident = expr":             &#123; f = v, f = v, ... &#125;
+--   map    — "expr =&gt; expr":             &#123; k =&gt; v, k =&gt; v, ... &#125;
+-- Items within a single literal must all use the same form. Empty braces
+-- "&#123; &#125;" denote an empty array or empty map; the kind is resolved by context.
+-- Comprehensions (see Array comprehensions) are an additional alternative
+-- form that may appear inside braces.
 
-expr-items    ::=  expr ( "," expr )* ","?
+brace-lit     ::=  "&#123;" "&#125;"
+               |   "&#123;" array-items "&#125;"
+               |   "&#123;" record-items "&#125;"
+               |   "&#123;" map-items "&#125;"
+               |   "&#123;" comprehension "&#125;"
 
--- ── Record literals ───────────────────────────────
--- Constructs a value of a record type. Field initialisers are separated by
--- newlines or commas using the same "field-sep" rule as type declarations.
+array-items   ::=  expr ( field-sep expr )* field-sep?
 
-record-lit    ::=  ( identifier "." )? ".&#123;" field-inits? "&#125;"
-                   -- optional "TypeName." prefix forces the type; omitted when inferrable
+record-items  ::=  field-init ( field-sep field-init )* field-sep?
+field-init    ::=  identifier "=" expr                    -- explicit:  name = value
+               |   identifier                             -- shorthand: variable name matches field name
 
-field-inits   ::=  field-init ( field-sep field-init )* field-sep?
-field-init    ::=  identifier "=" expr                    -- explicit:   name = value
-               |   identifier                             -- shorthand:  variable name matches field name
+map-items     ::=  map-entry ( field-sep map-entry )* field-sep?
+map-entry     ::=  expr "=&gt;" expr
+
+-- ── Type-prefixed brace literals ──────────────────
+-- A type prefix pins the literal's type when context cannot.
+
+typed-brace-lit
+              ::=  type-prefix brace-lit
+
+type-prefix   ::=  identifier                             -- record:  point &#123; x = 1.0, y = 2.0 &#125;
+               |   "[" type "]"                           -- array:   [u8] &#123; 0, 1, 2 &#125;
+               |   "[" type "=&gt;" type "]"                 -- map:     [string =&gt; int] &#123; "a" =&gt; 1 &#125;
+
+-- ── Comprehensions ───────────────────────────────
+-- Builds a collection by iterating; placed inside a brace-lit. The
+-- pattern follows the same rule as a "for" loop pattern — refutable
+-- patterns silently skip non-matching elements.
+--   array form — body is a single expression:        &#123; e for p in xs (if c)? &#125;
+--   map form   — body is a "key =&gt; value" pair:      &#123; k =&gt; v for p in xs (if c)? &#125;
+-- The chosen kind is fixed by the body shape; the element type(s) are
+-- inferred from the body and may be pinned by a type prefix or
+-- surrounding annotation.
+
+comprehension ::=  array-comprehension | map-comprehension
+
+array-comprehension
+              ::=  expr "for" pattern "in" expr ( "if" expr )?
+
+map-comprehension
+              ::=  expr "=&gt;" expr "for" pattern "in" expr ( "if" expr )?
 
 -- ── Variant constructors ──────────────────────────
--- Constructs a value of a variant type.
-
-variant-ctor  ::=  "." identifier                         -- unqualified, no payload: .tagName
-               |   "." identifier "(" expr ")"            -- unqualified, with payload: .tagName(expr)
-               |   identifier "." identifier              -- qualified, no payload:   Type.tagName
-               |   identifier "." identifier "(" expr ")" -- qualified, with payload: Type.tagName(expr)</code
+-- There is no dedicated variant-constructor syntax. A payloadless tag is
+-- written as a bare identifier; a tag with payload is written as a call
+-- "tag(payload)". Both forms reuse the ordinary identifier and call
+-- productions, and are resolved by the type checker — an in-scope
+-- binding of the same name wins over a variant tag. A type-qualified
+-- form "type.tag" or "type.tag(payload)" is just a postfix field access
+-- followed (optionally) by a call.</code
 			></pre>
 
 		<h3 id="functions">Function expressions</h3>
 		<p>
 			Functions are anonymous values. A function expression is a parameter list, an
 			optional return-type annotation, and a body introduced by <code>do</code>. The body
-			uses the same
-			<code>block-expr</code> rule as every other block.
+			uses the same <code>block-expr</code> rule as every other block.
 		</p>
 		<pre class="ebnf"><code
 				>function-expr ::=  "(" param-list? ")" return-annot? block-expr
@@ -664,20 +665,18 @@ type-annot    ::=  ":" type</code
 			></pre>
 		<p>
 			<strong>Receiver and function expression.</strong> When a binding declaration
-			carries a receiver clause, the
-			<code>param-list</code> describes only the <em>explicit</em>
-			parameters — the receiver itself is declared by the binding, not by the function expression.
-			See
-			<a href="#declarations">Declarations</a>.
+			carries a receiver clause, the <code>param-list</code> describes only the
+			<em>explicit</em> parameters — the receiver itself is declared by the binding, not
+			by the function expression. See <a href="#declarations">Declarations</a>.
 		</p>
 
 		<h4>Named parameters</h4>
 		<p>
-			Prepending <code>~</code> to a parameter name makes it a
-			<em>named parameter</em>. Named parameters are always passed by label at the call
-			site and may appear in any order. A named parameter may also be passed as a trailing
-			argument outside the closing parenthesis, which is useful for higher-order functions
-			that accept a closure.
+			Prepending <code>~</code> to a parameter name makes it a <em>named parameter</em>.
+			Named parameters are always passed by label at the call site and may appear in any
+			order. A named parameter may also be passed as a trailing argument outside the
+			closing parenthesis, which is useful for higher-order functions that accept a
+			closure.
 		</p>
 		<pre class="ebnf"><code
 				>-- Declaration (in param-list)
@@ -690,65 +689,77 @@ type-annot    ::=  ":" type</code
 
 -- Trailing form (after the closing parenthesis)
 --   "~" identifier "=" function-expr
---   e.g.  map(nums) ~f=(x) do x * 2
---   e.g.  reduce(nums, 0) ~f=(acc, x) do
---             acc + x
---         end</code
+--   e.g.  map(nums) ~f=(x) do x * 2</code
 			></pre>
+		<p>
+			A trailing named parameter typed <code>~t: type</code> may be omitted at the call
+			site — the compiler infers <code>t</code> from the <em>result location</em> (the
+			type of the binding, parameter, or field that receives the call's value). See the
+			<a href="/reference#named-params">reference</a> for details.
+		</p>
 
 		<h3 id="control-flow">Control flow</h3>
 		<p>
 			All control flow constructs are expressions and produce a value. When used purely
-			for side effects the result is the unit type
-			<code>()</code>. Each construct's body is a <code>block-expr</code>
-			(see Block expression above) — the single-line and multi-line forms apply uniformly.
+			for side effects the result is the unit type <code>()</code>. Each construct's body
+			is a <code>block-expr</code> (see Block expression above) — the single-line and
+			multi-line forms apply uniformly.
 		</p>
 
 		<h4>If expression</h4>
 		<p>
 			A multi-statement <code>if</code> chain is closed by a single trailing
-			<code>end</code>; an all-single-expression chain has no
-			<code>end</code>, since each branch closes at its newline.
+			<code>end</code>; an all-single-expression chain has no <code>end</code>, since each
+			branch closes at its newline. The condition position accepts either a plain boolean
+			expression or a <em>conditional pattern binding</em> — <code>pattern = expr</code> —
+			which runs the branch only if the pattern matches the value of <code>expr</code>
+			(the bindings introduced by the pattern are in scope inside that branch).
 		</p>
 		<pre class="ebnf"><code
-				>if-expr       ::=  "if" expr block-expr
-                   ( "else" "if" expr block-expr )*
+				>if-expr       ::=  "if" if-cond block-expr
+                   ( "else" "if" if-cond block-expr )*
                    ( "else" block-expr )?
-                   -- when any branch uses the multi-statement block-expr form, the chain ends with "end"
-                   -- when every branch is single-expression, the chain has no "end"</code
+
+if-cond       ::=  expr                                   -- ordinary boolean condition
+               |   pattern "=" expr                       -- conditional pattern binding;
+                                                          --   pattern is typically refutable</code
 			></pre>
 		<p>
 			<strong>Conditional expression (ternary).</strong> A right-hand-side conditional
-			uses
-			<code>value if cond else value</code>
-			— the same keywords, rearranged. The form sits at the top of the expression hierarchy
-			(just below <code>expr</code>), is right-associative on the <code>else</code>
-			branch, and parses the
-			<code>cond</code>
-			at
-			<code>or-expr</code> precedence — a nested ternary in the condition position requires
-			parentheses.
+			uses <code>value if cond else value</code> — the same keywords, rearranged. The form
+			sits at the top of the expression hierarchy (just below <code>expr</code>), is
+			right-associative on the <code>else</code> branch, and parses the <code>cond</code>
+			at <code>or-expr</code> precedence — a nested ternary in the condition position
+			requires parentheses.
 		</p>
 		<pre class="ebnf"><code
 				>ternary-expr  ::=  assign-expr ( "if" or-expr "else" ternary-expr )?
                    -- right-associative on the else branch; the value may chain freely
-                   -- e.g.  let label = "positive" if x > 0 else "non-positive"
-                   -- e.g.  let grade = "A" if score >= 90 else
-                   --                   "B" if score >= 80 else
-                   --                   "C"</code
+                   -- e.g.  let label = "positive" if x > 0 else "non-positive"</code
 			></pre>
 
 		<h4>While expression</h4>
-		<pre class="ebnf"><code>while-expr    ::=  "while" expr block-expr</code></pre>
+		<p>
+			A <code>while</code> accepts the same condition forms as <code>if</code>. With a
+			<code>pattern = expr</code> form, the loop terminates the first time the pattern
+			fails to match.
+		</p>
+		<pre class="ebnf"><code
+				>while-expr    ::=  "while" while-cond block-expr
+
+while-cond    ::=  expr
+               |   pattern "=" expr                       -- terminates on first non-match</code
+			></pre>
 
 		<h4>For expression</h4>
+		<p>
+			<code>for</code> accepts any pattern in its binder position. An <em>irrefutable</em>
+			pattern (identifier, tuple, record) binds every element. A <em>refutable</em>
+			pattern (variant, literal, range, guard) silently skips elements that fail to match.
+		</p>
 		<pre class="ebnf"><code
-				>for-expr      ::=  "for" for-pattern "in" expr block-expr
-               |   "for" expr block-expr            -- iterator without a binding variable
-
-for-pattern   ::=  identifier                       -- simple binding
-               |   tuple-pattern                    -- "(a, b, ...)"   tuple destructure
-               |   record-pattern                   -- "&#123; a, b, ... &#125;" record destructure</code
+				>for-expr      ::=  "for" pattern "in" expr block-expr
+               |   "for" expr block-expr                  -- iterator without a binding variable</code
 			></pre>
 
 		<h4>Return</h4>
@@ -760,10 +771,8 @@ for-pattern   ::=  identifier                       -- simple binding
 
 		<h4>Break and continue</h4>
 		<p>
-			<code>break</code> and <code>continue</code> are only valid inside a
-			<code>while</code>
-			or
-			<code>for</code> loop body. Both produce the unit value.
+			<code>break</code> and <code>continue</code> are only valid inside a <code>while</code>
+			or <code>for</code> loop body. Both produce the unit value.
 		</p>
 		<pre class="ebnf"><code
 				>break-expr    ::=  "break"
@@ -776,30 +785,30 @@ continue-expr ::=  "continue"
 		<h3 id="defer">Defer</h3>
 		<p>
 			A <code>defer</code> statement schedules an expression to execute at the end of the
-			enclosing
-			<code>do…end</code> block, regardless of how control exits that block. Multiple defers
-			in the same block execute in LIFO order (last deferred, first to run).
+			enclosing <code>do…end</code> block, regardless of how control exits that block.
+			Multiple defers in the same block execute in LIFO order (last deferred, first to run).
 		</p>
 		<pre class="ebnf"><code
 				>defer-stmt    ::=  "defer" expr
                    -- expr is evaluated when the enclosing block exits
-                   -- expr is typically a function call or a do...end block
                    -- defers in the same block run LIFO: last defer statement runs first</code
 			></pre>
 
 		<h3 id="patterns">Patterns</h3>
 		<p>
-			Patterns appear in <code>let</code>-destructuring, <code>match</code>
-			arms, and <code>for</code> loop binders. Patterns are <em>refutable</em>
-			(may not match) or <em>irrefutable</em> (always match) — only irrefutable patterns
-			are allowed in <code>let</code> and
-			<code>for</code>.
+			Patterns appear in <code>let</code> / <code>local</code> destructuring,
+			<code>match</code> arms, <code>for</code> loop binders, and the
+			<code>pattern = expr</code> forms of <code>if</code> and <code>while</code>. Patterns
+			are <em>refutable</em> (may not match) or <em>irrefutable</em> (always match) — only
+			irrefutable patterns are allowed in <code>let</code> / <code>local</code>
+			destructuring; the other positions accept either form (refutable patterns skip
+			non-matching values where they appear).
 		</p>
 		<p>
-			<strong>No leading dot in patterns.</strong> The leading
-			<code>.</code> of <code>.tag</code>, <code>.&#123;…&#125;</code>, and
-			<code>.(…)</code> belongs to <em>value literals</em>; in patterns the same shapes
-			are written bare.
+			Patterns share their concrete shapes with value literals — without the literal's
+			type-prefix or initialiser syntax. A tuple pattern is <code>(a, b)</code>; a record
+			pattern is <code>&#123; a, b &#125;</code>; a variant pattern is <code>tag</code> or
+			<code>tag(inner)</code>.
 		</p>
 		<pre class="ebnf"><code
 				>match-expr    ::=  "match" expr "with" arm+ else-arm? "end"
@@ -811,13 +820,14 @@ pattern       ::=  identifier                              -- binds the value (i
                |   literal-expr                            -- exact value: integer, float, bool, char, string
                |   range-pattern                           -- numeric range: 0..=9, 'a'..='z'
                |   tuple-pattern                           -- "(a, b)"          irrefutable when arity matches
-               |   record-pattern                          -- "&#123; x, y &#125;"         irrefutable when fields match
-               |   variant-pattern                         -- "tag" or "tag(p)"  refutable
+               |   record-pattern                          -- "&#123; x, y &#125;"        irrefutable when fields match
+               |   variant-pattern                         -- "tag" or "tag(p)" refutable
                |   guard-pattern                           -- pattern with boolean guard
 
 range-pattern ::=  literal-expr ( ".." | "..=" ) literal-expr
 
-tuple-pattern ::=  "(" pattern ( "," pattern )* ","? ")"
+tuple-pattern ::=  "(" pattern "," ")"                     -- one-element tuple pattern
+               |   "(" pattern ( "," pattern )+ ","? ")"   -- two-or-more
 
 record-pattern
               ::=  "&#123;" identifier ( field-sep identifier )* field-sep? "&#125;"
@@ -832,9 +842,15 @@ guard-pattern ::=  pattern "if" expr
 		<p>
 			<strong>Option and result patterns.</strong> <code>?(T)</code> and
 			<code>!(T, E)</code> are built-in variant types and follow the same variant-pattern
-			syntax:
-			<code>some(name)</code>,
-			<code>none</code>, <code>ok(name)</code>, <code>err(name)</code>.
+			syntax: <code>some(name)</code>, <code>none</code>, <code>ok(name)</code>,
+			<code>err(name)</code>.
+		</p>
+		<p>
+			<strong>Identifier vs variant-pattern resolution.</strong> A bare identifier in
+			pattern position binds (irrefutably) by default. The same identifier resolves to a
+			payloadless variant tag only when the pattern's expected type is a variant whose
+			tags include that name — matching the same "binding wins over tag" precedence used
+			in expressions, but inverted for the destination context.
 		</p>
 	</section>
 </DocsShell>
