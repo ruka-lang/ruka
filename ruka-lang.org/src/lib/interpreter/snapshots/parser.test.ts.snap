@@ -1321,6 +1321,810 @@ exports[`parse: fixture snapshots > calculator.ruka 1`] = `
 }
 `;
 
+exports[`parse: fixture snapshots > casting.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 2,
+              "local": false,
+              "mode": null,
+              "name": "n",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "n",
+              },
+              "receiver": null,
+              "type": {
+                "col": 9,
+                "kind": "NamedType",
+                "line": 2,
+                "name": "i64",
+              },
+              "value": {
+                "col": 15,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 2,
+                "value": 10,
+              },
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 5,
+              "local": false,
+              "mode": null,
+              "name": "m",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "m",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 10,
+                "kind": "Ident",
+                "line": 5,
+                "name": "n",
+              },
+            },
+            {
+              "col": 12,
+              "expression": {
+                "col": 12,
+                "kind": "Ident",
+                "line": 5,
+                "name": "as",
+              },
+              "kind": "ExpressionStmt",
+              "line": 5,
+            },
+            {
+              "col": 15,
+              "expression": {
+                "col": 15,
+                "kind": "Ident",
+                "line": 5,
+                "name": "i32",
+              },
+              "kind": "ExpressionStmt",
+              "line": 5,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 6,
+                    "raw": "i32: \${m}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 6,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 6,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 6,
+              },
+              "kind": "ExpressionStmt",
+              "line": 6,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 9,
+              "local": false,
+              "mode": null,
+              "name": "s",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "s",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 10,
+                "kind": "Ident",
+                "line": 9,
+                "name": "n",
+              },
+            },
+            {
+              "col": 12,
+              "expression": {
+                "col": 12,
+                "kind": "Ident",
+                "line": 9,
+                "name": "as",
+              },
+              "kind": "ExpressionStmt",
+              "line": 9,
+            },
+            {
+              "col": 15,
+              "expression": {
+                "col": 15,
+                "kind": "Ident",
+                "line": 9,
+                "name": "string",
+              },
+              "kind": "ExpressionStmt",
+              "line": 9,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 10,
+                    "raw": "as string: \${s}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 10,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 10,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 10,
+              },
+              "kind": "ExpressionStmt",
+              "line": 10,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 13,
+              "local": false,
+              "mode": null,
+              "name": "c",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "c",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 10,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 13,
+                "value": 65,
+              },
+            },
+            {
+              "col": 13,
+              "expression": {
+                "col": 13,
+                "kind": "Ident",
+                "line": 13,
+                "name": "as",
+              },
+              "kind": "ExpressionStmt",
+              "line": 13,
+            },
+            {
+              "col": 16,
+              "expression": {
+                "col": 16,
+                "kind": "Ident",
+                "line": 13,
+                "name": "u8",
+              },
+              "kind": "ExpressionStmt",
+              "line": 13,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 14,
+                    "raw": "char: \${c}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 14,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 14,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 14,
+              },
+              "kind": "ExpressionStmt",
+              "line": 14,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 17,
+              "local": false,
+              "mode": null,
+              "name": "f",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "f",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 10,
+                "isFloat": true,
+                "kind": "Literal",
+                "line": 17,
+                "value": 3.75,
+              },
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 18,
+              "local": false,
+              "mode": null,
+              "name": "i",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "i",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 10,
+                "kind": "Ident",
+                "line": 18,
+                "name": "f",
+              },
+            },
+            {
+              "col": 12,
+              "expression": {
+                "col": 12,
+                "kind": "Ident",
+                "line": 18,
+                "name": "as",
+              },
+              "kind": "ExpressionStmt",
+              "line": 18,
+            },
+            {
+              "col": 15,
+              "expression": {
+                "col": 15,
+                "kind": "Ident",
+                "line": 18,
+                "name": "int",
+              },
+              "kind": "ExpressionStmt",
+              "line": 18,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 19,
+                    "raw": "trunc: \${i}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 19,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 19,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 19,
+              },
+              "kind": "ExpressionStmt",
+              "line": 19,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > closures.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "make_counter",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "make_counter",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 2,
+              "local": false,
+              "mode": "*",
+              "name": "n",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "n",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "col": 11,
+                "isFloat": false,
+                "kind": "Literal",
+                "line": 2,
+                "value": 0,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "body": {
+                  "body": [
+                    {
+                      "col": 3,
+                      "kind": "Assign",
+                      "line": 4,
+                      "name": "n",
+                      "value": {
+                        "col": 9,
+                        "kind": "BinaryOp",
+                        "left": {
+                          "col": 7,
+                          "kind": "Ident",
+                          "line": 4,
+                          "name": "n",
+                        },
+                        "line": 4,
+                        "op": "+",
+                        "right": {
+                          "col": 11,
+                          "isFloat": false,
+                          "kind": "Literal",
+                          "line": 4,
+                          "value": 1,
+                        },
+                      },
+                    },
+                    {
+                      "col": 3,
+                      "expression": {
+                        "col": 3,
+                        "kind": "Ident",
+                        "line": 5,
+                        "name": "n",
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 5,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+                "col": 2,
+                "kind": "FunctionExpr",
+                "line": 3,
+                "paramModes": [],
+                "paramTypes": [],
+                "params": [],
+                "returnType": null,
+              },
+              "kind": "ExpressionStmt",
+              "line": 3,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 20,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 9,
+      "local": false,
+      "mode": null,
+      "name": "make_adder",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "make_adder",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 25,
+              "expression": {
+                "body": {
+                  "body": [
+                    {
+                      "col": 32,
+                      "expression": {
+                        "col": 34,
+                        "kind": "BinaryOp",
+                        "left": {
+                          "col": 32,
+                          "kind": "Ident",
+                          "line": 9,
+                          "name": "x",
+                        },
+                        "line": 9,
+                        "op": "+",
+                        "right": {
+                          "col": 36,
+                          "kind": "Ident",
+                          "line": 9,
+                          "name": "y",
+                        },
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 9,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+                "col": 25,
+                "kind": "FunctionExpr",
+                "line": 9,
+                "paramModes": [
+                  null,
+                ],
+                "paramTypes": [
+                  null,
+                ],
+                "params": [
+                  "y",
+                ],
+                "returnType": null,
+              },
+              "kind": "ExpressionStmt",
+              "line": 9,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 18,
+        "kind": "FunctionExpr",
+        "line": 9,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "x",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 11,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 12,
+              "local": false,
+              "mode": null,
+              "name": "counter",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "counter",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [],
+                "callee": {
+                  "col": 16,
+                  "kind": "Ident",
+                  "line": 12,
+                  "name": "make_counter",
+                },
+                "col": 28,
+                "kind": "Call",
+                "line": 12,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 13,
+                    "raw": "\${counter()}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 13,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 13,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 13,
+              },
+              "kind": "ExpressionStmt",
+              "line": 13,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 14,
+                    "raw": "\${counter()}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 14,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 14,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 14,
+              },
+              "kind": "ExpressionStmt",
+              "line": 14,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 15,
+                    "raw": "\${counter()}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 15,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 15,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 15,
+              },
+              "kind": "ExpressionStmt",
+              "line": 15,
+            },
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 17,
+              "local": false,
+              "mode": null,
+              "name": "add5",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "add5",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [
+                  {
+                    "col": 24,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 17,
+                    "value": 5,
+                  },
+                ],
+                "callee": {
+                  "col": 13,
+                  "kind": "Ident",
+                  "line": 17,
+                  "name": "make_adder",
+                },
+                "col": 23,
+                "kind": "Call",
+                "line": 17,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 18,
+                    "raw": "\${add5(10)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 18,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 18,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 18,
+              },
+              "kind": "ExpressionStmt",
+              "line": 18,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 19,
+                    "raw": "\${add5(20)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 19,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 19,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 19,
+              },
+              "kind": "ExpressionStmt",
+              "line": 19,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 11,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > combat.ruka 1`] = `
 {
   "body": [
@@ -4426,6 +5230,989 @@ And so are you!",
 }
 `;
 
+exports[`parse: fixture snapshots > option-result.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "lookup",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "lookup",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "expression": {
+                "_multiline": false,
+                "col": 2,
+                "condition": {
+                  "col": 9,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 5,
+                    "kind": "Ident",
+                    "line": 2,
+                    "name": "key",
+                  },
+                  "line": 2,
+                  "op": "==",
+                  "right": {
+                    "col": 12,
+                    "kind": "StringLiteral",
+                    "line": 2,
+                    "raw": "answer",
+                  },
+                },
+                "elseBranch": {
+                  "body": [
+                    {
+                      "col": 7,
+                      "expression": {
+                        "col": 7,
+                        "kind": "Ident",
+                        "line": 3,
+                        "name": "none",
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 3,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+                "kind": "If",
+                "line": 2,
+                "thenBranch": {
+                  "body": [
+                    {
+                      "col": 24,
+                      "expression": {
+                        "args": [
+                          {
+                            "col": 29,
+                            "isFloat": false,
+                            "kind": "Literal",
+                            "line": 2,
+                            "value": 42,
+                          },
+                        ],
+                        "callee": {
+                          "col": 24,
+                          "kind": "Ident",
+                          "line": 2,
+                          "name": "some",
+                        },
+                        "col": 28,
+                        "kind": "Call",
+                        "line": 2,
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 2,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 2,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 14,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          {
+            "col": 20,
+            "kind": "NamedType",
+            "line": 1,
+            "name": "string",
+          },
+        ],
+        "params": [
+          "key",
+        ],
+        "returnType": {
+          "col": 31,
+          "inner": {
+            "col": 33,
+            "kind": "NamedType",
+            "line": 1,
+            "name": "int",
+          },
+          "kind": "OptionType",
+          "line": 1,
+        },
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 6,
+      "local": false,
+      "mode": null,
+      "name": "parse",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "parse",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "expression": {
+                "_multiline": false,
+                "col": 2,
+                "condition": {
+                  "col": 7,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 5,
+                    "kind": "Ident",
+                    "line": 7,
+                    "name": "s",
+                  },
+                  "line": 7,
+                  "op": "==",
+                  "right": {
+                    "col": 10,
+                    "kind": "StringLiteral",
+                    "line": 7,
+                    "raw": "1",
+                  },
+                },
+                "elseBranch": {
+                  "body": [
+                    {
+                      "col": 7,
+                      "expression": {
+                        "args": [
+                          {
+                            "col": 11,
+                            "kind": "StringLiteral",
+                            "line": 8,
+                            "raw": "not a number: \${s}",
+                          },
+                        ],
+                        "callee": {
+                          "col": 7,
+                          "kind": "Ident",
+                          "line": 8,
+                          "name": "err",
+                        },
+                        "col": 10,
+                        "kind": "Call",
+                        "line": 8,
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 8,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+                "kind": "If",
+                "line": 7,
+                "thenBranch": {
+                  "body": [
+                    {
+                      "col": 17,
+                      "expression": {
+                        "args": [
+                          {
+                            "col": 20,
+                            "isFloat": false,
+                            "kind": "Literal",
+                            "line": 7,
+                            "value": 1,
+                          },
+                        ],
+                        "callee": {
+                          "col": 17,
+                          "kind": "Ident",
+                          "line": 7,
+                          "name": "ok",
+                        },
+                        "col": 19,
+                        "kind": "Call",
+                        "line": 7,
+                      },
+                      "kind": "ExpressionStmt",
+                      "line": 7,
+                    },
+                  ],
+                  "kind": "Block",
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 7,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 13,
+        "kind": "FunctionExpr",
+        "line": 6,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          {
+            "col": 17,
+            "kind": "NamedType",
+            "line": 6,
+            "name": "string",
+          },
+        ],
+        "params": [
+          "s",
+        ],
+        "returnType": {
+          "col": 28,
+          "err": {
+            "col": 35,
+            "kind": "NamedType",
+            "line": 6,
+            "name": "string",
+          },
+          "kind": "ResultType",
+          "line": 6,
+          "ok": {
+            "col": 30,
+            "kind": "NamedType",
+            "line": 6,
+            "name": "int",
+          },
+        },
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 11,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "expression": {
+                "arms": [
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 14,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 27,
+                                "kind": "StringLiteral",
+                                "line": 13,
+                                "raw": "got \${v}",
+                              },
+                            ],
+                            "callee": {
+                              "col": 18,
+                              "kind": "Member",
+                              "line": 13,
+                              "object": {
+                                "col": 14,
+                                "kind": "Ident",
+                                "line": 13,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 26,
+                            "kind": "Call",
+                            "line": 13,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 13,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": {
+                        "kind": "BindingPattern",
+                        "name": "v",
+                      },
+                      "kind": "VariantPattern",
+                      "tag": "some",
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 14,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 27,
+                                "kind": "StringLiteral",
+                                "line": 14,
+                                "raw": "missing",
+                              },
+                            ],
+                            "callee": {
+                              "col": 18,
+                              "kind": "Member",
+                              "line": 14,
+                              "object": {
+                                "col": 14,
+                                "kind": "Ident",
+                                "line": 14,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 26,
+                            "kind": "Call",
+                            "line": 14,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 14,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": null,
+                      "kind": "VariantPattern",
+                      "tag": "none",
+                    },
+                  },
+                ],
+                "col": 2,
+                "elseArm": null,
+                "kind": "Match",
+                "line": 12,
+                "subject": {
+                  "args": [
+                    {
+                      "col": 15,
+                      "kind": "StringLiteral",
+                      "line": 12,
+                      "raw": "answer",
+                    },
+                  ],
+                  "callee": {
+                    "col": 8,
+                    "kind": "Ident",
+                    "line": 12,
+                    "name": "lookup",
+                  },
+                  "col": 14,
+                  "kind": "Call",
+                  "line": 12,
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 12,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "arms": [
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 13,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 26,
+                                "kind": "StringLiteral",
+                                "line": 18,
+                                "raw": "parsed \${v}",
+                              },
+                            ],
+                            "callee": {
+                              "col": 17,
+                              "kind": "Member",
+                              "line": 18,
+                              "object": {
+                                "col": 13,
+                                "kind": "Ident",
+                                "line": 18,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 25,
+                            "kind": "Call",
+                            "line": 18,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 18,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": {
+                        "kind": "BindingPattern",
+                        "name": "v",
+                      },
+                      "kind": "VariantPattern",
+                      "tag": "ok",
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 13,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 26,
+                                "kind": "StringLiteral",
+                                "line": 19,
+                                "raw": "error: \${e}",
+                              },
+                            ],
+                            "callee": {
+                              "col": 17,
+                              "kind": "Member",
+                              "line": 19,
+                              "object": {
+                                "col": 13,
+                                "kind": "Ident",
+                                "line": 19,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 25,
+                            "kind": "Call",
+                            "line": 19,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 19,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": {
+                        "kind": "BindingPattern",
+                        "name": "e",
+                      },
+                      "kind": "VariantPattern",
+                      "tag": "err",
+                    },
+                  },
+                ],
+                "col": 2,
+                "elseArm": null,
+                "kind": "Match",
+                "line": 17,
+                "subject": {
+                  "args": [
+                    {
+                      "col": 14,
+                      "kind": "StringLiteral",
+                      "line": 17,
+                      "raw": "1",
+                    },
+                  ],
+                  "callee": {
+                    "col": 8,
+                    "kind": "Ident",
+                    "line": 17,
+                    "name": "parse",
+                  },
+                  "col": 13,
+                  "kind": "Call",
+                  "line": 17,
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 17,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "arms": [
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 13,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 26,
+                                "kind": "StringLiteral",
+                                "line": 23,
+                                "raw": "ok",
+                              },
+                            ],
+                            "callee": {
+                              "col": 17,
+                              "kind": "Member",
+                              "line": 23,
+                              "object": {
+                                "col": 13,
+                                "kind": "Ident",
+                                "line": 23,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 25,
+                            "kind": "Call",
+                            "line": 23,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 23,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": {
+                        "kind": "BindingPattern",
+                        "name": "_",
+                      },
+                      "kind": "VariantPattern",
+                      "tag": "ok",
+                    },
+                  },
+                  {
+                    "body": {
+                      "body": [
+                        {
+                          "col": 13,
+                          "expression": {
+                            "args": [
+                              {
+                                "col": 26,
+                                "kind": "StringLiteral",
+                                "line": 24,
+                                "raw": "error: \${e}",
+                              },
+                            ],
+                            "callee": {
+                              "col": 17,
+                              "kind": "Member",
+                              "line": 24,
+                              "object": {
+                                "col": 13,
+                                "kind": "Ident",
+                                "line": 24,
+                                "name": "ruka",
+                              },
+                              "property": "println",
+                            },
+                            "col": 25,
+                            "kind": "Call",
+                            "line": 24,
+                          },
+                          "kind": "ExpressionStmt",
+                          "line": 24,
+                        },
+                      ],
+                      "kind": "Block",
+                    },
+                    "pattern": {
+                      "binding": {
+                        "kind": "BindingPattern",
+                        "name": "e",
+                      },
+                      "kind": "VariantPattern",
+                      "tag": "err",
+                    },
+                  },
+                ],
+                "col": 2,
+                "elseArm": null,
+                "kind": "Match",
+                "line": 22,
+                "subject": {
+                  "args": [
+                    {
+                      "col": 14,
+                      "kind": "StringLiteral",
+                      "line": 22,
+                      "raw": "hi",
+                    },
+                  ],
+                  "callee": {
+                    "col": 8,
+                    "kind": "Ident",
+                    "line": 22,
+                    "name": "parse",
+                  },
+                  "col": 13,
+                  "kind": "Call",
+                  "line": 22,
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 22,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 11,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > pipeline.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "inc",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "inc",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 18,
+              "expression": {
+                "col": 20,
+                "kind": "BinaryOp",
+                "left": {
+                  "col": 18,
+                  "kind": "Ident",
+                  "line": 1,
+                  "name": "x",
+                },
+                "line": 1,
+                "op": "+",
+                "right": {
+                  "col": 22,
+                  "isFloat": false,
+                  "kind": "Literal",
+                  "line": 1,
+                  "value": 1,
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 1,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 11,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "x",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 2,
+      "local": false,
+      "mode": null,
+      "name": "double",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "double",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 21,
+              "expression": {
+                "col": 23,
+                "kind": "BinaryOp",
+                "left": {
+                  "col": 21,
+                  "kind": "Ident",
+                  "line": 2,
+                  "name": "x",
+                },
+                "line": 2,
+                "op": "*",
+                "right": {
+                  "col": 25,
+                  "isFloat": false,
+                  "kind": "Literal",
+                  "line": 2,
+                  "value": 2,
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 2,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 14,
+        "kind": "FunctionExpr",
+        "line": 2,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "x",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 3,
+      "local": false,
+      "mode": null,
+      "name": "to_string",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "to_string",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 24,
+              "expression": {
+                "col": 24,
+                "kind": "StringLiteral",
+                "line": 3,
+                "raw": "\${x}",
+              },
+              "kind": "ExpressionStmt",
+              "line": 3,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 17,
+        "kind": "FunctionExpr",
+        "line": 3,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "x",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 5,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 7,
+              "local": false,
+              "mode": null,
+              "name": "result",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "result",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "col": 15,
+                            "isFloat": false,
+                            "kind": "Literal",
+                            "line": 7,
+                            "value": 10,
+                          },
+                        ],
+                        "callee": {
+                          "col": 21,
+                          "kind": "Ident",
+                          "line": 7,
+                          "name": "inc",
+                        },
+                        "col": 24,
+                        "kind": "Call",
+                        "line": 7,
+                      },
+                    ],
+                    "callee": {
+                      "col": 30,
+                      "kind": "Ident",
+                      "line": 7,
+                      "name": "double",
+                    },
+                    "col": 36,
+                    "kind": "Call",
+                    "line": 7,
+                  },
+                ],
+                "callee": {
+                  "col": 42,
+                  "kind": "Ident",
+                  "line": 7,
+                  "name": "to_string",
+                },
+                "col": 51,
+                "kind": "Call",
+                "line": 7,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 8,
+                    "raw": "result: \${result}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 8,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 8,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 8,
+              },
+              "kind": "ExpressionStmt",
+              "line": 8,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 2,
+                    "kind": "StringLiteral",
+                    "line": 11,
+                    "raw": "hello, ruka",
+                  },
+                ],
+                "callee": {
+                  "col": 23,
+                  "kind": "Member",
+                  "line": 11,
+                  "object": {
+                    "col": 19,
+                    "kind": "Ident",
+                    "line": 11,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 31,
+                "kind": "Call",
+                "line": 11,
+              },
+              "kind": "ExpressionStmt",
+              "line": 11,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 5,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > projectile.ruka 1`] = `
 {
   "body": [
@@ -6280,6 +8067,376 @@ exports[`parse: fixture snapshots > ranges-and-chars.ruka 1`] = `
         "col": 12,
         "kind": "FunctionExpr",
         "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > ternary.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 2,
+      "local": false,
+      "mode": null,
+      "name": "abs",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "abs",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 18,
+              "expression": {
+                "col": 18,
+                "condition": {
+                  "col": 25,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 23,
+                    "kind": "Ident",
+                    "line": 2,
+                    "name": "n",
+                  },
+                  "line": 2,
+                  "op": ">=",
+                  "right": {
+                    "col": 28,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 2,
+                    "value": 0,
+                  },
+                },
+                "elseBranch": {
+                  "expression": {
+                    "col": 36,
+                    "kind": "Ident",
+                    "line": 2,
+                    "name": "n",
+                  },
+                  "kind": "UnaryOp",
+                  "op": "-",
+                },
+                "kind": "If",
+                "line": 2,
+                "thenBranch": {
+                  "col": 18,
+                  "kind": "Ident",
+                  "line": 2,
+                  "name": "n",
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 2,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 11,
+        "kind": "FunctionExpr",
+        "line": 2,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "n",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 4,
+      "local": false,
+      "mode": null,
+      "name": "bucket",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "bucket",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "expression": {
+                "col": 2,
+                "condition": {
+                  "col": 15,
+                  "kind": "BinaryOp",
+                  "left": {
+                    "col": 13,
+                    "kind": "Ident",
+                    "line": 5,
+                    "name": "x",
+                  },
+                  "line": 5,
+                  "op": ">=",
+                  "right": {
+                    "col": 18,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 5,
+                    "value": 100,
+                  },
+                },
+                "elseBranch": {
+                  "col": 7,
+                  "condition": {
+                    "col": 21,
+                    "kind": "BinaryOp",
+                    "left": {
+                      "col": 19,
+                      "kind": "Ident",
+                      "line": 6,
+                      "name": "x",
+                    },
+                    "line": 6,
+                    "op": ">=",
+                    "right": {
+                      "col": 24,
+                      "isFloat": false,
+                      "kind": "Literal",
+                      "line": 6,
+                      "value": 10,
+                    },
+                  },
+                  "elseBranch": {
+                    "col": 7,
+                    "kind": "StringLiteral",
+                    "line": 7,
+                    "raw": "small",
+                  },
+                  "kind": "If",
+                  "line": 6,
+                  "thenBranch": {
+                    "col": 7,
+                    "kind": "StringLiteral",
+                    "line": 6,
+                    "raw": "medium",
+                  },
+                },
+                "kind": "If",
+                "line": 5,
+                "thenBranch": {
+                  "col": 2,
+                  "kind": "StringLiteral",
+                  "line": 5,
+                  "raw": "large",
+                },
+              },
+              "kind": "ExpressionStmt",
+              "line": 5,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 14,
+        "kind": "FunctionExpr",
+        "line": 4,
+        "paramModes": [
+          null,
+        ],
+        "paramTypes": [
+          null,
+        ],
+        "params": [
+          "x",
+        ],
+        "returnType": null,
+      },
+    },
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 10,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 11,
+                    "raw": "abs(-5): \${abs(-5)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 11,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 11,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 11,
+              },
+              "kind": "ExpressionStmt",
+              "line": 11,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 12,
+                    "raw": "abs(7):  \${abs(7)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 12,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 12,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 12,
+              },
+              "kind": "ExpressionStmt",
+              "line": 12,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 13,
+                    "raw": "100: \${bucket(100)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 13,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 13,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 13,
+              },
+              "kind": "ExpressionStmt",
+              "line": 13,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 14,
+                    "raw": "50:  \${bucket(50)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 14,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 14,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 14,
+              },
+              "kind": "ExpressionStmt",
+              "line": 14,
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "StringLiteral",
+                    "line": 15,
+                    "raw": "3:   \${bucket(3)}",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 15,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 15,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 15,
+              },
+              "kind": "ExpressionStmt",
+              "line": 15,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 10,
         "paramModes": [],
         "paramTypes": [],
         "params": [],

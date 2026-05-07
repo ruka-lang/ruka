@@ -13,8 +13,10 @@ TODO (Docs and Playground)
 	- [ ] Line numbers
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
 - [ ] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
+- [ ] Code example/block/editor backgrounds should use the Rose-pine variants background colour
 - [ ] Return to top button in bottom right when scrolled down
 - [ ] Accent colour and associated logo shift between berry, amber, and emerald periodically
-- [ ] Subtle spinning floral background pattern on page body
+- [ ] Subtle spinning floral background pattern on page body gutters (empty left and right columns)
 - [ ] Better mobile styling
 	- [ ] Navlinks collapse into menu
+- [ ] Add language overview after examples on home page
