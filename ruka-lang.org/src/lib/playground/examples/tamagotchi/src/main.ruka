@@ -1,0 +1,3 @@
+let main = () do
+	ruka.println("Hello, world!")
+end

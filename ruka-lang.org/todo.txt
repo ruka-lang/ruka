@@ -1,4 +1,6 @@
 TODO (Docs and Playground)
+- [ ] ruka.clear() to clear the output
+- [ ] Refer to projects as packages
 - [ ] Playground functionality
 	- [x] User packages supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
@@ -20,3 +22,4 @@ TODO (Docs and Playground)
 - [ ] Better mobile styling
 	- [ ] Navlinks collapse into menu
 - [ ] Add language overview after examples on home page
+- [ ] Extract playground packages to .zip file

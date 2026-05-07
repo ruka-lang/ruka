@@ -58,7 +58,7 @@
 		display: flex;
 		align-items: center;
 		gap: 24px;
-		padding: 14px 24px;
+		padding: 8px 24px;
 		border-bottom: 1px solid var(--border);
 		background: var(--bg);
 		/* Sticky so the toggle and nav stay reachable while scrolling docs. */
