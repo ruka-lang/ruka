@@ -2,7 +2,7 @@
 let Box = variant { wrap: int, empty }
 
 let main = () do
-	let b: Box = .wrap(5)
+	let b: Box = wrap(5)
 	match b with
 		wrap  do "boxed"
 		empty do "empty"

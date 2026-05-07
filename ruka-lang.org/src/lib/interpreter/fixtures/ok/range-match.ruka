@@ -9,7 +9,7 @@ let grade = (score) do
 end
 
 let main = () do
-	let scores = [int].{95, 83, 71, 65, 42}
+	let scores = [int]{95, 83, 71, 65, 42}
 	for s in scores do
 		ruka.println("Score ${s}: ${grade(s)}")
 	end

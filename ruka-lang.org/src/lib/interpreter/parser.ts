@@ -3,10 +3,14 @@ import type { Token } from "./tokens";
 import { RukaError } from "./diagnostics";
 import type {
 	ArrayComp,
+	BehaviourMethod,
+	BehaviourType,
 	Binding,
 	BindingPattern,
 	Block,
+	Cast,
 	ComplexAssign,
+	Defer,
 	Expression,
 	For,
 	FunctionExpr,
@@ -14,6 +18,9 @@ import type {
 	Index,
 	LetPattern,
 	ListLiteral,
+	MapComp,
+	MapLiteral,
+	MapLiteralEntry,
 	Match,
 	MatchArm,
 	MatchPattern,
@@ -114,13 +121,47 @@ export function parse(tokens: Token[]): Program {
 		if (token.kind === "(") {
 			eat("(");
 			skipNewlines();
+			if (check(")")) {
+				eat(")");
+				return { kind: "UnitType", line: token.line, col: token.col };
+			}
+			// Multi-element: (T, U, ...) → TupleType; single element: (T) → T
+			const first = parseType();
+			skipNewlines();
+			if (!check(",")) {
+				eat(")");
+				return first;
+			}
+			const elements: TypeExpr[] = [first];
+			while (tryMatch(",")) {
+				skipNewlines();
+				elements.push(parseType());
+				skipNewlines();
+			}
 			eat(")");
-			return { kind: "UnitType", line: token.line, col: token.col };
+			return { kind: "TupleType", elements, line: token.line, col: token.col };
 		}
 		if (token.kind === "[") {
 			eat("[");
 			skipNewlines();
-			const elements: TypeExpr[] = [parseType()];
+			const first = parseType();
+			skipNewlines();
+			// Map type: [K => V]
+			if (check("=>")) {
+				eat("=>");
+				skipNewlines();
+				const valueType = parseType();
+				skipNewlines();
+				eat("]");
+				return {
+					kind: "MapType",
+					key: first,
+					value: valueType,
+					line: token.line,
+					col: token.col
+				};
+			}
+			const elements: TypeExpr[] = [first];
 			skipNewlines();
 			while (tryMatch(",")) {
 				skipNewlines();
@@ -229,13 +270,13 @@ export function parse(tokens: Token[]): Program {
 	// Lookahead from the current position (after `{` has been consumed and
 	// newlines skipped): is this a record literal rather than an array literal?
 	//
-	// True if the first field is `ID =` (explicit) or if every element in the
-	// braces is a bare identifier (pure shorthand: `.{ x, y }`).
+	// True if the content starts with `ID =` (explicit), contains `ID =` anywhere
+	// (mixed shorthand + explicit), or every element is a bare identifier (pure shorthand).
 	function isRecordLiteralStart(): boolean {
 		if (tokens[pos + 1]?.kind === "=") return true;
 
-		// Scan forward to check whether every element between `{` and `}` is a
-		// bare identifier — if so, treat it as a pure-shorthand record literal.
+		// Scan forward: if any element has `ID =`, it's a record. If all elements
+		// are bare IDs (no `=`), it's pure shorthand. If a non-ID appears, it's not.
 		let i = pos;
 		while (i < tokens.length) {
 			const kind = tokens[i]!.kind;
@@ -244,6 +285,34 @@ export function parse(tokens: Token[]): Program {
 			if (kind !== "ID") return false;
 			i++;
 			const next = tokens[i]?.kind;
+			// Explicit field: ID = value
+			if (next === "=") return true;
+			// Shorthand or separator
+			if (next === "," || next === "NL" || next === "}") {
+				if (next === ",") i++;
+				continue;
+			}
+			return false;
+		}
+		return false;
+	}
+
+	// Lookahead when pos points AT `{` (not yet consumed):
+	// same rules as isRecordLiteralStart() but starts scanning one token ahead.
+	// Returns true if the brace content looks like a record literal
+	// (explicit `ID =`, pure shorthand `ID ,/}`, or mixed).
+	function isRecordLiteralAtBrace(): boolean {
+		let i = pos + 1; // first token inside the brace
+		while (i < tokens.length) {
+			const kind = tokens[i]!.kind;
+			if (kind === "}" || kind === "EOF") return true;
+			if (kind === "NL") { i++; continue; }
+			if (kind !== "ID") return false;
+			i++;
+			const next = tokens[i]?.kind;
+			// Explicit field: ID =
+			if (next === "=") return true;
+			// Shorthand or more elements: ID , / ID NL / ID }
 			if (next === "," || next === "NL" || next === "}") {
 				if (next === ",") i++;
 				continue;
@@ -268,7 +337,21 @@ export function parse(tokens: Token[]): Program {
 	function parseStatement(): Statement {
 		const letToken = tryMatch("let");
 		if (letToken) {
-			return parseLet(letToken);
+			return parseLet(letToken, false);
+		}
+
+		// `local` and `test` declare bindings with local=true.
+		const localToken = tryMatch("local", "test");
+		if (localToken) {
+			return parseLet(localToken, true);
+		}
+
+		if (check("defer")) {
+			const line = peek().line;
+			const col = peek().col;
+			pos++;
+			const expression = parseExpression();
+			return { kind: "Defer", expression, line, col } satisfies Defer;
 		}
 
 		// Assignments: `name = expr`, `name.field = expr`, `name[i] = expr`, etc.
@@ -365,7 +448,7 @@ export function parse(tokens: Token[]): Program {
 		return { kind: "ExpressionStmt", expression: parseExpression(), line, col };
 	}
 
-	function parseLet(letToken: Token): Binding {
+	function parseLet(letToken: Token, forcedLocal: boolean): Binding {
 		// Optional mode prefix: *, &, $, @
 		let mode: Binding["mode"] = null;
 		if (check("*") || check("&") || check("$") || check("@")) {
@@ -399,7 +482,7 @@ export function parse(tokens: Token[]): Program {
 		}
 
 		const name = eat("ID").value as string;
-		const isLocal = /^[A-Z]/.test(name);
+		const isLocal = forcedLocal;
 
 		// Optional receiver clause:
 		//   (self)         — instance method, receiver type inferred
@@ -454,6 +537,7 @@ export function parse(tokens: Token[]): Program {
 
 		let name: string | null = null;
 		let tuplePattern: string[] | null = null;
+		let matchPattern: MatchPattern | null = null;
 
 		// Tuple destructuring: `for (a, b) in iterable`
 		if (check("(")) {
@@ -473,6 +557,10 @@ export function parse(tokens: Token[]): Program {
 			// Single name binding: `for name in iterable`
 			name = eat("ID").value as string;
 			eat("in");
+		} else if (check("ID") && tokens[pos + 1] && tokens[pos + 1]!.kind === "(") {
+			// Variant pattern filter: `for some(n) in iterable`
+			matchPattern = parsePattern();
+			eat("in");
 		}
 
 		const iterable = parseOr(); // no trailing ternary; `do` opens the body
@@ -483,14 +571,12 @@ export function parse(tokens: Token[]): Program {
 		} else {
 			tryMatch("end");
 		}
-		return { kind: "For", name, tuplePattern, iterable, body: body.node.body, line, col };
+		return { kind: "For", name, tuplePattern, matchPattern, iterable, body: body.node.body, line, col };
 	}
 
-	// Parse the body of an array comprehension after the opening `{` has been
-	// consumed and `for` is the current token. Returns an ArrayComp node.
-	function parseArrayComp(typePrefix: TypeExpr | null, line: number, col: number): ArrayComp {
-		eat("for");
-
+	// Parse the binding clause shared by array/map comprehensions: `for x in iter` or `for (a,b) in iter`.
+	// Caller has already consumed `for`.
+	function parseCompBinding(): { name: string | null; tuplePattern: string[] | null; iterable: Expression } {
 		let name: string | null = null;
 		let tuplePattern: string[] | null = null;
 
@@ -505,19 +591,171 @@ export function parse(tokens: Token[]): Program {
 			}
 			eat(")");
 			eat("in");
-		} else if (check("ID") && tokens[pos + 1] && tokens[pos + 1]!.kind === "in") {
-			name = eat("ID").value as string;
+		} else if (check("ID") || check("_")) {
+			name = peek().value as string;
+			pos++;
+			eat("in");
+		} else {
+			// Wildcard pattern: `_`
+			name = "_";
 			eat("in");
 		}
 
 		const iterable = parseOr();
+		return { name, tuplePattern, iterable };
+	}
+
+	// Parse the body of a body-first comprehension after `{` has been consumed and
+	// `for` is the current token. Returns an ArrayComp or MapComp node.
+	function parseBodyFirstComp(
+		body: Expression,
+		typePrefix: TypeExpr | null,
+		line: number,
+		col: number
+	): ArrayComp | MapComp {
+		eat("for");
+		const { name, tuplePattern, iterable } = parseCompBinding();
+		const filter = tryMatch("if") ? parseOr() : null;
+		eat("}");
+
+		if (body.kind === "BinaryOp" && body.op === "=>") {
+			// Map comprehension: { key => val for ... }
+			return {
+				kind: "MapComp",
+				typePrefix,
+				keyBody: body.left,
+				valueBody: body.right,
+				name,
+				tuplePattern,
+				iterable,
+				filter,
+				line,
+				col
+			} satisfies MapComp;
+		}
+		return { kind: "ArrayComp", typePrefix, name, tuplePattern, iterable, body, filter, line, col };
+	}
+
+	// Parse the body of a typed comprehension after `{` has been consumed and
+	// `for` is the current token. Returns an ArrayComp node. (Legacy helper, still used for [T]{ for ...})
+	function parseArrayComp(typePrefix: TypeExpr | null, line: number, col: number): ArrayComp | MapComp {
+		eat("for");
+		const { name, tuplePattern, iterable } = parseCompBinding();
+		const filter = tryMatch("if") ? parseOr() : null;
 		eat("do");
 		skipNewlines();
 		const body = parseExpression();
 		skipNewlines();
 		eat("}");
 
-		return { kind: "ArrayComp", typePrefix, name, tuplePattern, iterable, body, line, col };
+		return { kind: "ArrayComp", typePrefix, name, tuplePattern, iterable, body, filter, line, col };
+	}
+
+	// Parse a collection literal opened by `{` (already consumed), with a known typePrefix.
+	// Handles: record literals, array literals, map literals, comprehensions.
+	function parseBraceLiteral(typePrefix: TypeExpr | null, line: number, col: number): Expression {
+		skipNewlines();
+
+		// Empty brace literal
+		if (check("}")) {
+			eat("}");
+			if (typePrefix && typePrefix.kind === "MapType") {
+				return { kind: "MapLiteral", entries: [], typePrefix, line, col } satisfies MapLiteral;
+			}
+			return { kind: "ListLiteral", shape: "array", typePrefix, elements: [], line, col };
+		}
+
+		// Body-first comprehension: `{ for x in iter do body }`
+		if (check("for")) {
+			return parseArrayComp(typePrefix, line, col);
+		}
+
+		// Record literal: starts with `ID =` or all-bare-ID (shorthand)
+		if (!typePrefix && check("ID") && isRecordLiteralStart()) {
+			const fields: RecordLiteralField[] = [];
+			while (!check("}") && !check("EOF")) {
+				skipNewlines();
+				const fieldLine = peek().line;
+				const fieldCol = peek().col;
+				const fieldName = eat("ID").value as string;
+				if (tryMatch("=")) {
+					skipNewlines();
+					fields.push({ name: fieldName, value: parseExpression() });
+				} else {
+					fields.push({
+						name: fieldName,
+						value: { kind: "Ident", name: fieldName, line: fieldLine, col: fieldCol }
+					});
+				}
+				skipNewlines();
+				if (tryMatch(",")) skipNewlines();
+			}
+			eat("}");
+			return { kind: "RecordLiteral", fields, line, col };
+		}
+
+		// Parse the first expression, then branch on what follows.
+		const first = parseExpression();
+		skipNewlines();
+
+		if (check("=>")) {
+			// Map literal or map comprehension
+			eat("=>");
+			skipNewlines();
+			const firstValue = parseExpression();
+			skipNewlines();
+
+			if (check("for")) {
+				// Map comprehension: { key => val for ... }
+				eat("for");
+				const { name, tuplePattern, iterable } = parseCompBinding();
+				const filter = tryMatch("if") ? parseOr() : null;
+				eat("}");
+				return {
+					kind: "MapComp",
+					typePrefix,
+					keyBody: first,
+					valueBody: firstValue,
+					name,
+					tuplePattern,
+					iterable,
+					filter,
+					line,
+					col
+				} satisfies MapComp;
+			}
+
+			// Map literal: collect remaining entries
+			const entries: MapLiteralEntry[] = [{ key: first, value: firstValue }];
+			while ((tryMatch(",") || !check("}")) && !check("EOF")) {
+				skipNewlines();
+				if (check("}")) break;
+				const k = parseExpression();
+				skipNewlines();
+				eat("=>");
+				skipNewlines();
+				entries.push({ key: k, value: parseExpression() });
+				skipNewlines();
+			}
+			eat("}");
+			return { kind: "MapLiteral", entries, typePrefix, line, col } satisfies MapLiteral;
+		}
+
+		if (check("for")) {
+			// Array comprehension: { body for ... }
+			return parseBodyFirstComp(first, typePrefix, line, col);
+		}
+
+		// Array literal: collect remaining elements
+		const elements: Expression[] = [first];
+		while (!check("}") && !check("EOF")) {
+			if (tryMatch(",")) skipNewlines();
+			if (check("}")) break;
+			elements.push(parseExpression());
+			skipNewlines();
+		}
+		eat("}");
+		return { kind: "ListLiteral", shape: "array", typePrefix, elements, line, col };
 	}
 
 	// ── Expressions ──────────────────────────────────────────────────────
@@ -555,7 +793,7 @@ export function parse(tokens: Token[]): Program {
 		const paramModes: (string | null)[] = [];
 		skipNewlines();
 		while (!check(")") && !check("EOF")) {
-			const modeToken = tryMatch("*", "&", "$", "@");
+			const modeToken = tryMatch("*", "&", "$", "@", "~");
 			paramModes.push(modeToken ? modeToken.kind : null);
 			if (check("ID")) {
 				params.push(eat("ID").value as string);
@@ -591,6 +829,43 @@ export function parse(tokens: Token[]): Program {
 		const line = peek().line;
 		const col = peek().col;
 		eat("while");
+
+		// Conditional pattern: `while pattern = expr do`
+		if (isPatternBind()) {
+			const { pattern, subject } = parsePatternBindCondition();
+			eat("do");
+			const bodyParsed = parseDoBody();
+			if (bodyParsed.multiline) eat("end");
+			else tryMatch("end");
+			// Desugar: wrap body in a match that breaks on non-match
+			const matchBody: Block = {
+				kind: "Block",
+				body: [
+					{
+						kind: "ExpressionStmt",
+						expression: {
+							kind: "Match",
+							subject,
+							arms: [{ pattern, body: bodyParsed.node }],
+							elseArm: { kind: "Block", body: [{ kind: "Break", line, col }] },
+							line,
+							col
+						},
+						line,
+						col
+					}
+				]
+			};
+			// Use `true` as condition; the match's else arm breaks
+			return {
+				kind: "While",
+				condition: { kind: "Literal", value: true, line, col },
+				body: matchBody.body,
+				line,
+				col
+			};
+		}
+
 		const condition = parseOr(); // no trailing ternary; `do` opens the body
 		eat("do");
 		const body = parseDoBody();
@@ -744,6 +1019,39 @@ export function parse(tokens: Token[]): Program {
 		return { kind: "Match", subject, arms, elseArm, line, col };
 	}
 
+	// Lookahead: does the current token sequence look like `pattern = expr do`?
+	// True when there's a `=` (not `==`) token before `do` at bracket depth 0.
+	function isPatternBind(): boolean {
+		let i = pos;
+		let depth = 0;
+		while (i < tokens.length) {
+			const kind = tokens[i]!.kind;
+			if (kind === "(" || kind === "[" || kind === "{") depth++;
+			else if (kind === ")" || kind === "]" || kind === "}") {
+				if (depth === 0) return false;
+				depth--;
+			}
+			else if (depth === 0 && kind === "do") return false;
+			else if (depth === 0 && kind === "NL") return false;
+			else if (depth === 0 && kind === "EOF") return false;
+			else if (depth === 0 && kind === "=" && tokens[i + 1]?.kind !== "=") return true;
+			else if (depth === 0 && kind === "==" ) return false;
+			i++;
+		}
+		return false;
+	}
+
+	// Parse a pattern-bind condition: `pattern = expr`. Returns a Match node
+	// with a single arm that captures names and a synthetic subject.
+	// Used for `if pattern = expr do`, `while pattern = expr do`.
+	function parsePatternBindCondition(): { pattern: MatchPattern; subject: Expression } {
+		const pattern = parsePattern();
+		eat("=");
+		skipNewlines();
+		const subject = parseOr();
+		return { pattern, subject };
+	}
+
 	// `inChain` = this parseIf is the RHS of an enclosing `else if`, so the
 	// enclosing call owns the shared trailing `end` (when any branch is multi-line).
 	function parseIf(inChain: boolean): Expression {
@@ -751,6 +1059,38 @@ export function parse(tokens: Token[]): Program {
 		if (!ifToken) {
 			return parseTernary();
 		}
+
+		// Conditional pattern: `if pattern = expr do`
+		if (isPatternBind()) {
+			const { pattern, subject } = parsePatternBindCondition();
+			eat("do");
+			const thenParsed = parseDoBody();
+			const thenBranch = thenParsed.node;
+			let terminalMultiline = thenParsed.multiline;
+			skipNewlines();
+			let elseArm: Block | null = null;
+			if (tryMatch("else")) {
+				tryMatch("do");
+				const parsedElse = parseDoBody();
+				elseArm = parsedElse.node;
+				terminalMultiline = parsedElse.multiline;
+			}
+			if (!inChain) {
+				skipNewlines();
+				if (terminalMultiline) eat("end");
+			}
+			// Desugar to a match expression on the subject
+			const arms: MatchArm[] = [{ pattern, body: thenBranch }];
+			return {
+				kind: "Match",
+				subject,
+				arms,
+				elseArm,
+				line: ifToken.line,
+				col: ifToken.col
+			};
+		}
+
 		const condition = parseOr();
 		eat("do");
 		const thenParsed = parseDoBody();
@@ -981,8 +1321,46 @@ export function parse(tokens: Token[]): Program {
 		return parseCall();
 	}
 
+	// Bare variant constructor names — any ID immediately followed by `(` in a
+	// context where it could be a constructor rather than a regular call.
+	// The scope and type checkers resolve ambiguity; here we just emit the node.
+	const VARIANT_CONSTRUCTORS = new Set(["some", "none", "ok", "err"]);
+
 	function parseCall(): Expression {
 		let expression: Expression = parsePrimary();
+
+		// Convert bare variant constructor Idents into VariantConstructor nodes.
+		// `none` has no payload; `some`, `ok`, `err` take one wrapped in `(...)`.
+		if (
+			expression.kind === "Ident" &&
+			VARIANT_CONSTRUCTORS.has(expression.name)
+		) {
+			if (check("(")) {
+				const callLine = peek().line;
+				const callCol = peek().col;
+				eat("(");
+				skipNewlines();
+				const payload = check(")") ? null : parseExpression();
+				skipNewlines();
+				eat(")");
+				return {
+					kind: "VariantConstructor",
+					tag: expression.name,
+					payload,
+					line: callLine,
+					col: callCol
+				};
+			}
+			// Bare `none` (no parens) — unit variant constructor
+			return {
+				kind: "VariantConstructor",
+				tag: expression.name,
+				payload: null,
+				line: expression.line,
+				col: expression.col
+			};
+		}
+
 		while (true) {
 			if (check("(")) {
 				const callLine = peek().line;
@@ -991,7 +1369,20 @@ export function parse(tokens: Token[]): Program {
 				skipNewlines();
 				const args: Expression[] = [];
 				while (!check(")") && !check("EOF")) {
-					args.push(parseExpression());
+					// Named argument: `~name = expr` or shorthand `~name`
+					if (check("~")) {
+						pos++; // eat ~
+						const argName = eat("ID").value as string;
+						if (tryMatch("=")) {
+							skipNewlines();
+							args.push(parseExpression());
+						} else {
+							// Shorthand: ~name refers to a local binding of the same name
+							args.push({ kind: "Ident", name: argName, line: peek().line, col: peek().col });
+						}
+					} else {
+						args.push(parseExpression());
+					}
 					skipNewlines();
 					if (tryMatch(",")) {
 						skipNewlines();
@@ -1010,48 +1401,13 @@ export function parse(tokens: Token[]): Program {
 				const memberCol = peek().col;
 				eat(".");
 				skipNewlines();
-				if (check("{")) {
-					// Type-prefixed record literal: Expr.{ field = val, ... }
-					// Shorthand fields (Expr.{ x, y }) are also supported.
-					eat("{");
-					skipNewlines();
-					const fields: RecordLiteralField[] = [];
-					while (!check("}") && !check("EOF")) {
-						const fieldLine = peek().line;
-						const fieldCol = peek().col;
-						const fieldName = eat("ID").value as string;
-						if (tryMatch("=")) {
-							skipNewlines();
-							fields.push({ name: fieldName, value: parseExpression() });
-						} else {
-							fields.push({
-								name: fieldName,
-								value: { kind: "Ident", name: fieldName, line: fieldLine, col: fieldCol }
-							});
-						}
-						skipNewlines();
-						if (tryMatch(",")) {
-							skipNewlines();
-						}
-					}
-					eat("}");
-					const node: RecordLiteral = {
-						kind: "RecordLiteral",
-						typeName: expression,
-						fields,
-						line: memberLine,
-						col: memberCol
-					};
-					expression = node;
-				} else {
-					expression = {
-						kind: "Member",
-						object: expression,
-						property: eat("ID").value as string,
-						line: memberLine,
-						col: memberCol
-					};
-				}
+				expression = {
+					kind: "Member",
+					object: expression,
+					property: eat("ID").value as string,
+					line: memberLine,
+					col: memberCol
+				};
 			} else if (check("[")) {
 				const indexLine = peek().line;
 				const indexCol = peek().col;
@@ -1066,6 +1422,66 @@ export function parse(tokens: Token[]): Program {
 					index,
 					line: indexLine,
 					col: indexCol
+				};
+			} else if (check("{") && isRecordLiteralAtBrace()) {
+				// TypeName { field = val, ... } — record literal with explicit type prefix.
+				const recLine = peek().line;
+				const recCol = peek().col;
+				eat("{");
+				skipNewlines();
+				const fields: RecordLiteralField[] = [];
+				while (!check("}") && !check("EOF")) {
+					skipNewlines();
+					const fieldLine = peek().line;
+					const fieldCol = peek().col;
+					const fieldName = eat("ID").value as string;
+					if (tryMatch("=")) {
+						skipNewlines();
+						fields.push({ name: fieldName, value: parseExpression() });
+					} else {
+						fields.push({
+							name: fieldName,
+							value: { kind: "Ident", name: fieldName, line: fieldLine, col: fieldCol }
+						});
+					}
+					skipNewlines();
+					if (tryMatch(",")) skipNewlines();
+				}
+				eat("}");
+				expression = {
+					kind: "RecordLiteral",
+					typeName: expression,
+					fields,
+					line: recLine,
+					col: recCol
+				} satisfies RecordLiteral;
+			} else if (check("as")) {
+				const castLine = peek().line;
+				const castCol = peek().col;
+				eat("as");
+				const castType = parseType();
+				expression = {
+					kind: "Cast",
+					value: expression,
+					type: castType,
+					line: castLine,
+					col: castCol
+				} satisfies Cast;
+			} else if (check("~") && expression.kind === "Call") {
+				// Trailing named argument: `f(args) ~name = expr`
+				const trailLine = peek().line;
+				const trailCol = peek().col;
+				pos++; // eat ~
+				eat("ID"); // eat param name (ignored semantically for now)
+				eat("=");
+				skipNewlines();
+				const trailArg = parseExpression();
+				expression = {
+					kind: "Call",
+					callee: expression.callee,
+					args: [...expression.args, trailArg],
+					line: trailLine,
+					col: trailCol
 				};
 			} else {
 				break;
@@ -1115,10 +1531,11 @@ export function parse(tokens: Token[]): Program {
 			return { kind: "Literal", value: false, line: token.line, col: token.col };
 		}
 		if (token.kind === "ID") {
+			const name = token.value as string;
 			pos++;
 			return {
 				kind: "Ident",
-				name: token.value as string,
+				name,
 				line: token.line,
 				col: token.col
 			};
@@ -1135,10 +1552,29 @@ export function parse(tokens: Token[]): Program {
 				eat(")");
 				return { kind: "Unit", line: token.line, col: token.col };
 			}
-			const inner = parseExpression();
+			const first = parseExpression();
 			skipNewlines();
+			// `(a, b, ...)` — tuple literal
+			if (check(",")) {
+				const elements: Expression[] = [first];
+				while (tryMatch(",")) {
+					skipNewlines();
+					if (check(")")) break;
+					elements.push(parseExpression());
+					skipNewlines();
+				}
+				eat(")");
+				return {
+					kind: "ListLiteral",
+					shape: "tuple",
+					typePrefix: null,
+					elements,
+					line: token.line,
+					col: token.col
+				};
+			}
 			eat(")");
-			return inner;
+			return first;
 		}
 
 		// Record type: record { name: Type, ... }
@@ -1150,10 +1586,11 @@ export function parse(tokens: Token[]): Program {
 			const fields: RecordType["fields"] = [];
 			while (!check("}") && !check("EOF")) {
 				skipNewlines();
+				const fieldLocal = tryMatch("local") !== null;
 				const fieldName = eat("ID").value as string;
 				eat(":");
 				skipNewlines();
-				fields.push({ name: fieldName, type: parseType() });
+				fields.push({ name: fieldName, type: parseType(), local: fieldLocal || undefined });
 				skipNewlines();
 				if (tryMatch(",")) {
 					skipNewlines();
@@ -1172,13 +1609,14 @@ export function parse(tokens: Token[]): Program {
 			const tags: VariantTag[] = [];
 			while (!check("}") && !check("EOF")) {
 				skipNewlines();
+				const tagLocal = tryMatch("local") !== null;
 				const tagName = eat("ID").value as string;
 				let tagType: TypeExpr | null = null;
 				if (tryMatch(":")) {
 					skipNewlines();
 					tagType = parseType();
 				}
-				tags.push({ name: tagName, type: tagType });
+				tags.push({ name: tagName, type: tagType, local: tagLocal || undefined });
 				skipNewlines();
 				if (tryMatch(",")) {
 					skipNewlines();
@@ -1194,145 +1632,21 @@ export function parse(tokens: Token[]): Program {
 			return node;
 		}
 
-		// Unqualified variant constructor: .tagName or .tagName(payload)
-		if (token.kind === "." && tokens[pos + 1] && tokens[pos + 1]!.kind === "ID") {
+		// Bare `{` — record literal, array/map literal, or comprehension.
+		if (token.kind === "{") {
 			pos++;
-			const tag = eat("ID").value as string;
-			let payload: Expression | null = null;
-			if (check("(")) {
-				eat("(");
-				payload = parseExpression();
-				eat(")");
-			}
-			const node: VariantConstructor = {
-				kind: "VariantConstructor",
-				tag,
-				payload,
-				line: token.line,
-				col: token.col
-			};
-			return node;
+			return parseBraceLiteral(null, token.line, token.col);
 		}
 
-		// Record or array literal: .{ ... }
-		if (token.kind === "." && tokens[pos + 1] && tokens[pos + 1]!.kind === "{") {
-			const literalLine = token.line;
-			const literalCol = token.col;
-			eat(".");
-			eat("{");
-			skipNewlines();
-			// Record literal detection:
-			//   explicit field:  ID = expr  → first token after ID is `=`
-			//   shorthand field: ID , or ID } → all elements are bare identifiers
-			// Mixed literals (some explicit, some shorthand) are also supported.
-			if (!check("}") && check("ID") && isRecordLiteralStart()) {
-				const fields: RecordLiteralField[] = [];
-				while (!check("}") && !check("EOF")) {
-					skipNewlines();
-					const fieldLine = peek().line;
-					const fieldCol = peek().col;
-					const fieldName = eat("ID").value as string;
-					if (tryMatch("=")) {
-						// Explicit field: name = expr
-						skipNewlines();
-						fields.push({ name: fieldName, value: parseExpression() });
-					} else {
-						// Shorthand field: name  →  name = name
-						fields.push({
-							name: fieldName,
-							value: { kind: "Ident", name: fieldName, line: fieldLine, col: fieldCol }
-						});
-					}
-					skipNewlines();
-					if (tryMatch(",")) {
-						skipNewlines();
-					}
-				}
-				eat("}");
-				return { kind: "RecordLiteral", fields, line: literalLine, col: literalCol };
-			}
-			// Comprehension: .{ for binding in iter do expr }
-			if (check("for")) {
-				return parseArrayComp(null, literalLine, literalCol);
-			}
-			// Array literal: .{a, b, c} — element type inferred from elements
-			// or from a type annotation / [T].{} prefix on the surrounding context.
-			const elements: Expression[] = [];
-			while (!check("}") && !check("EOF")) {
-				elements.push(parseExpression());
-				skipNewlines();
-				if (tryMatch(",")) {
-					skipNewlines();
-				}
-			}
-			eat("}");
-			const node: ListLiteral = {
-				kind: "ListLiteral",
-				shape: "array",
-				typePrefix: null,
-				elements,
-				line: literalLine,
-				col: literalCol
-			};
-			return node;
-		}
-
-		// Tuple literal: .(a, b, c) — each element typed independently.
-		if (token.kind === "." && tokens[pos + 1] && tokens[pos + 1]!.kind === "(") {
-			const literalLine = token.line;
-			const literalCol = token.col;
-			eat(".");
-			eat("(");
-			skipNewlines();
-			const elements: Expression[] = [];
-			while (!check(")") && !check("EOF")) {
-				elements.push(parseExpression());
-				skipNewlines();
-				if (tryMatch(",")) {
-					skipNewlines();
-				}
-			}
-			eat(")");
-			return {
-				kind: "ListLiteral",
-				shape: "tuple",
-				typePrefix: null,
-				elements,
-				line: literalLine,
-				col: literalCol
-			};
-		}
-
-		// Type-prefixed array literal: [int].{2, 3} — always an array since
-		// only `.{}` follows the prefix; tuples are written `.(…)` directly.
+		// Type-prefixed collection literal: [T]{ ... } or [K => V]{ ... }.
+		// The type prefix may be separated from `{` by optional whitespace.
 		if (token.kind === "[") {
 			const prefixLine = token.line;
 			const prefixCol = token.col;
 			const prefix = parseType(); // consumes through `]`
-			eat(".");
-			eat("{");
 			skipNewlines();
-			// Comprehension: [T].{ for binding in iter do expr }
-			if (check("for")) {
-				return parseArrayComp(prefix, prefixLine, prefixCol);
-			}
-			const elements: Expression[] = [];
-			while (!check("}") && !check("EOF")) {
-				elements.push(parseExpression());
-				skipNewlines();
-				if (tryMatch(",")) {
-					skipNewlines();
-				}
-			}
-			eat("}");
-			return {
-				kind: "ListLiteral",
-				shape: "array",
-				typePrefix: prefix,
-				elements,
-				line: prefixLine,
-				col: prefixCol
-			};
+			eat("{");
+			return parseBraceLiteral(prefix, prefixLine, prefixCol);
 		}
 
 		if (token.kind === "do") {
@@ -1344,6 +1658,61 @@ export function parse(tokens: Token[]): Program {
 				tryMatch("end");
 			}
 			return body.node;
+		}
+
+		// Behaviour type: behaviour { methodName(self): () -> ReturnType, ... }
+		if (token.kind === "behaviour") {
+			pos++;
+			skipNewlines();
+			eat("{");
+			skipNewlines();
+			const methods: BehaviourMethod[] = [];
+			while (!check("}") && !check("EOF")) {
+				skipNewlines();
+				const methodName = eat("ID").value as string;
+				eat("(");
+				skipNewlines();
+				// Parse receiver (self or type name) — skip for now, just eat it
+				const params: TypeExpr[] = [];
+				if (!check(")")) {
+					// First param is receiver like `self` — we parse types for any params
+					// The spec shows `area(self): () -> float` so first is receiver
+					if (check("self") || check("ID")) pos++; // eat receiver name
+					if (tryMatch(":")) {
+						skipNewlines();
+						parseType(); // eat receiver type annotation
+					}
+					while (tryMatch(",")) {
+						skipNewlines();
+						if (check("ID")) pos++;
+						if (tryMatch(":")) { skipNewlines(); params.push(parseType()); }
+					}
+				}
+				eat(")");
+				skipNewlines();
+				let returnType: TypeExpr = { kind: "UnitType", line: token.line, col: token.col };
+				if (tryMatch(":")) {
+					skipNewlines();
+					// Method type annotation: `params -> returnType` (e.g. `() -> float`)
+					const annotType = parseType();
+					if (tryMatch("->")) {
+						skipNewlines();
+						returnType = parseType();
+					} else {
+						returnType = annotType;
+					}
+				}
+				methods.push({ name: methodName, params, returnType });
+				skipNewlines();
+				if (tryMatch(",")) skipNewlines();
+			}
+			eat("}");
+			return {
+				kind: "BehaviourType",
+				methods,
+				line: token.line,
+				col: token.col
+			} satisfies BehaviourType;
 		}
 
 		// Block-like expressions can appear anywhere an expression is expected,

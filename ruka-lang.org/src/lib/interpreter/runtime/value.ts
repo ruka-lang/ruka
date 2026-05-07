@@ -170,7 +170,7 @@ export function display(value: Value): string {
 		return value;
 	}
 	if (Array.isArray(value)) {
-		return ".{" + value.map(display).join(", ") + "}";
+		return "{" + value.map(display).join(", ") + "}";
 	}
 	if (isFn(value)) {
 		return "<fn>";
@@ -197,9 +197,8 @@ export function display(value: Value): string {
 		return "<variant>";
 	}
 	if (isVariant(value)) {
-		const prefix = value.typeName ?? "";
 		const payload = value.payload !== null ? "(" + display(value.payload) + ")" : "";
-		return prefix + "." + value.tag + payload;
+		return value.tag + payload;
 	}
 	if (isRecordType(value)) {
 		return "<record>";
@@ -208,8 +207,8 @@ export function display(value: Value): string {
 		const parts = Object.keys(value.fields).map(
 			(name) => name + " = " + display(value.fields[name])
 		);
-		const prefix = value.typeName ?? "";
-		return prefix + ".{ " + parts.join(", ") + " }";
+		const prefix = value.typeName ? value.typeName + " " : "";
+		return prefix + "{ " + parts.join(", ") + " }";
 	}
 	if (isModule(value)) {
 		return "<module>";

@@ -7,6 +7,7 @@ export type TypeExpr =
 	| { kind: "UnitType"; line: number; col: number }
 	| { kind: "ArrayType"; element: TypeExpr; line: number; col: number }
 	| { kind: "TupleType"; elements: TypeExpr[]; line: number; col: number }
+	| { kind: "MapType"; key: TypeExpr; value: TypeExpr; line: number; col: number }
 	| { kind: "OptionType"; inner: TypeExpr; line: number; col: number }
 	| { kind: "ResultType"; ok: TypeExpr; err: TypeExpr; line: number; col: number }
 	| { kind: "NamedType"; name: string; line: number; col: number };
@@ -50,6 +51,7 @@ export type Statement =
 	| Continue
 	| Return
 	| For
+	| Defer
 	| ExpressionStmt;
 
 export type Binding = {
@@ -106,8 +108,17 @@ export type For = {
 	name: string | null;
 	// Tuple destructuring pattern: `for (a, b) in iter`. Mutually exclusive with name.
 	tuplePattern: string[] | null;
+	// Variant pattern filter: `for some(n) in iter`. Mutually exclusive with name/tuplePattern.
+	matchPattern?: MatchPattern | null;
 	iterable: Expression;
 	body: Statement[];
+	line: number;
+	col: number;
+};
+
+export type Defer = {
+	kind: "Defer";
+	expression: Expression;
 	line: number;
 	col: number;
 };
@@ -142,7 +153,11 @@ export type Expression =
 	| VariantConstructor
 	| RecordLiteral
 	| ListLiteral
-	| ArrayComp;
+	| ArrayComp
+	| MapLiteral
+	| MapComp
+	| BehaviourType
+	| Cast;
 
 export type Literal = {
 	kind: "Literal";
@@ -279,6 +294,7 @@ export type Index = {
 export type RecordTypeField = {
 	name: string;
 	type: TypeExpr;
+	local?: boolean;
 };
 
 export type RecordType = {
@@ -291,6 +307,7 @@ export type RecordType = {
 export type VariantTag = {
 	name: string;
 	type: TypeExpr | null;
+	local?: boolean;
 };
 
 export type VariantType = {
@@ -337,7 +354,7 @@ export type ListLiteral = {
 	col: number;
 };
 
-// Array comprehension: `.{ for x in iter do expr }` or `[T].{ for x in iter do expr }`.
+// Array comprehension: `{ body for x in iter [if cond] }` or `[T]{ ... }`.
 // Collects the body expression result for each iteration into a new array.
 export type ArrayComp = {
 	kind: "ArrayComp";
@@ -346,6 +363,55 @@ export type ArrayComp = {
 	tuplePattern: string[] | null;
 	iterable: Expression;
 	body: Expression;
+	filter: Expression | null;
+	line: number;
+	col: number;
+};
+
+export type MapLiteralEntry = {
+	key: Expression;
+	value: Expression;
+};
+
+export type MapLiteral = {
+	kind: "MapLiteral";
+	entries: MapLiteralEntry[];
+	typePrefix: TypeExpr | null;
+	line: number;
+	col: number;
+};
+
+// Map comprehension: `{ key => val for x in iter [if cond] }` or `[K => V]{ ... }`.
+export type MapComp = {
+	kind: "MapComp";
+	typePrefix: TypeExpr | null;
+	keyBody: Expression;
+	valueBody: Expression;
+	name: string | null;
+	tuplePattern: string[] | null;
+	iterable: Expression;
+	filter: Expression | null;
+	line: number;
+	col: number;
+};
+
+export type BehaviourMethod = {
+	name: string;
+	params: TypeExpr[];
+	returnType: TypeExpr;
+};
+
+export type BehaviourType = {
+	kind: "BehaviourType";
+	methods: BehaviourMethod[];
+	line: number;
+	col: number;
+};
+
+export type Cast = {
+	kind: "Cast";
+	value: Expression;
+	type: TypeExpr;
 	line: number;
 	col: number;
 };

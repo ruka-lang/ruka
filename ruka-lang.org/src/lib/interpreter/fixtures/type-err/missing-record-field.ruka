@@ -1,5 +1,5 @@
 // expect: missing field
 let Point = record { x: int, y: int }
 let main = () do
-    let p: Point = .{ x = 1 }
+    let p: Point = { x = 1 }
 end

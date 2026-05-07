@@ -4,11 +4,21 @@ import { splitInterp } from "../interpolator";
 import { parse } from "../parser";
 import { tokenize } from "../tokenizer";
 import { loadModuleAst, resolveImportPath, type ProjectContext } from "../project";
+import { PRIMITIVE_KINDS } from "./type";
 
-/** Scope value: `true` if the binding is mutable. */
-type Scope = Map<string, boolean>;
+/** Scope entry: mutability flag + whether the binding was declared `local`. */
+type ScopeEntry = { mutable: boolean; local: boolean; capturedLocal?: boolean };
+type Scope = Map<string, ScopeEntry>;
 
-const BUILTINS = ["ruka", "true", "false", "self"] as const;
+// Primitive type names can be used as first-class values in comptime contexts.
+const BUILTINS: ReadonlyArray<string> = [
+	"ruka",
+	"true",
+	"false",
+	"self",
+	"type",
+	...PRIMITIVE_KINDS,
+];
 
 type ModuleCtx = {
 	project: ProjectContext;
@@ -36,18 +46,25 @@ export function checkScope(
 
 	const topLevel: Scope = new Map();
 	for (const builtin of BUILTINS) {
-		topLevel.set(builtin, false);
+		topLevel.set(builtin, { mutable: false, local: false });
 	}
 
 	// Hoist top-level binding names (with mutability) so mutually-recursive
 	// functions work and forward references to mutable bindings are tracked.
 	for (const statement of ast.body) {
 		if (statement.kind === "Binding" && !statement.receiver) {
+			const mutable = statement.mode === "*";
 			if (statement.pattern.kind === "IdentifierPattern") {
-				topLevel.set(statement.pattern.name, statement.mode === "*");
+				topLevel.set(statement.pattern.name, { mutable, local: false });
 			} else {
 				for (const name of statement.pattern.names) {
-					topLevel.set(name, statement.mode === "*");
+					topLevel.set(name, { mutable, local: false });
+				}
+			}
+			// Hoist variant constructor tag names so bare calls like `tag(val)` resolve.
+			if (statement.value.kind === "VariantType") {
+				for (const tag of statement.value.tags) {
+					topLevel.set(tag.name, { mutable: false, local: false });
 				}
 			}
 		}
@@ -78,20 +95,34 @@ export function checkScope(
 	}
 }
 
-function checkStatement(node: Statement, scope: Scope, ctx: ModuleCtx): void {
+function checkStatement(
+	node: Statement,
+	scope: Scope,
+	ctx: ModuleCtx,
+	insideFunction = false
+): void {
 	switch (node.kind) {
 		case "Binding": {
-			checkExpression(node.value, scope, ctx);
+			checkExpression(node.value, scope, ctx, insideFunction);
 			// Methods/statics don't add a top-level binding — access is via the
 			// receiver type (`obj.method` or `Type.static`), not the bare name.
 			if (node.receiver) {
 				return;
 			}
+			const mutable = node.mode === "*";
+			// `local` bindings only restrict capture when declared inside a function body.
+			const isLocal = insideFunction && node.local;
 			if (node.pattern.kind === "IdentifierPattern") {
-				scope.set(node.pattern.name, node.mode === "*");
+				scope.set(node.pattern.name, { mutable, local: isLocal });
 			} else {
 				for (const name of node.pattern.names) {
-					scope.set(name, node.mode === "*");
+					scope.set(name, { mutable, local: isLocal });
+				}
+			}
+			// Add variant constructor tag names when a variant type is bound locally.
+			if (node.value.kind === "VariantType") {
+				for (const tag of node.value.tags) {
+					scope.set(tag.name, { mutable: false, local: false });
 				}
 			}
 			return;
@@ -100,45 +131,62 @@ function checkStatement(node: Statement, scope: Scope, ctx: ModuleCtx): void {
 			if (!scope.has(node.name)) {
 				throw new RukaError(`Undefined: ${node.name}`, node.line, node.col);
 			}
-			if (!scope.get(node.name)) {
+			if (!scope.get(node.name)!.mutable) {
 				throw new RukaError(
 					`Cannot assign to immutable binding '${node.name}' (use 'let *${node.name}' to make it mutable)`,
 					node.line,
 					node.col
 				);
 			}
-			checkExpression(node.value, scope, ctx);
+			checkExpression(node.value, scope, ctx, insideFunction);
 			return;
 		}
 		case "ComplexAssign":
-			checkExpression(node.target, scope, ctx);
-			checkExpression(node.value, scope, ctx);
+			checkExpression(node.target, scope, ctx, insideFunction);
+			checkExpression(node.value, scope, ctx, insideFunction);
 			return;
 		case "ExpressionStmt":
-			checkExpression(node.expression, scope, ctx);
+			checkExpression(node.expression, scope, ctx, insideFunction);
 			return;
 		case "For": {
-			checkExpression(node.iterable, scope, ctx);
+			checkExpression(node.iterable, scope, ctx, insideFunction);
 			const forScope: Scope = new Map(scope);
 			if (node.name) {
-				forScope.set(node.name, false); // loop variable is immutable
+				forScope.set(node.name, { mutable: false, local: false });
 			} else if (node.tuplePattern) {
 				for (const patternName of node.tuplePattern) {
-					forScope.set(patternName, false); // tuple vars are immutable
+					forScope.set(patternName, { mutable: false, local: false });
 				}
+			} else if (node.matchPattern) {
+				bindPatternNames(node.matchPattern, forScope);
 			}
 			for (const inner of node.body) {
-				checkStatement(inner, forScope, ctx);
+				checkStatement(inner, forScope, ctx, insideFunction);
 			}
 			return;
 		}
 		case "Return":
-			checkExpression(node.value, scope, ctx);
+			checkExpression(node.value, scope, ctx, insideFunction);
 			return;
 		case "Break":
 		case "Continue":
 			// Structural — nothing to resolve.
 			return;
+		case "Defer":
+			checkExpression(node.expression, scope, ctx, insideFunction);
+			return;
+	}
+}
+
+function bindPatternNames(pattern: import("../ast").MatchPattern, scope: Scope): void {
+	if (pattern.kind === "VariantPattern" && pattern.binding) {
+		if (pattern.binding.kind === "BindingPattern") {
+			scope.set(pattern.binding.name, { mutable: false, local: false });
+		} else {
+			for (const name of pattern.binding.names) {
+				scope.set(name, { mutable: false, local: false });
+			}
+		}
 	}
 }
 
@@ -147,7 +195,8 @@ function checkInterpolation(
 	scope: Scope,
 	line: number,
 	col: number,
-	ctx: ModuleCtx
+	ctx: ModuleCtx,
+	insideFunction: boolean
 ): void {
 	// Extract each ${...} (balanced braces, nested strings) and statically
 	// check it with the enclosing scope. The inner tokenizer restarts its
@@ -159,7 +208,7 @@ function checkInterpolation(
 			try {
 				const innerAst = parse(tokenize(part.interp));
 				for (const statement of innerAst.body) {
-					checkStatement(statement, scope, ctx);
+					checkStatement(statement, scope, ctx, insideFunction);
 				}
 			} catch (error) {
 				if (error instanceof RukaError) {
@@ -257,7 +306,8 @@ function checkImportCall(node: Call, ctx: ModuleCtx): void {
 function checkExpression(
 	node: Expression | Block | null | undefined,
 	scope: Scope,
-	ctx: ModuleCtx
+	ctx: ModuleCtx,
+	insideFunction = false
 ): void {
 	if (!node) {
 		return;
@@ -270,41 +320,57 @@ function checkExpression(
 		case "VariantType":
 			return;
 		case "StringLiteral":
-			checkInterpolation(node.raw, scope, node.line, node.col, ctx);
+			checkInterpolation(node.raw, scope, node.line, node.col, ctx, insideFunction);
 			return;
 		case "Ident":
 			if (!scope.has(node.name)) {
 				throw new RukaError(`Undefined: ${node.name}`, node.line, node.col);
 			}
+			if (scope.get(node.name)!.capturedLocal) {
+				throw new RukaError(
+					`cannot capture local binding '${node.name}'`,
+					node.line,
+					node.col
+				);
+			}
 			return;
 		case "FunctionExpr": {
-			const functionScope: Scope = new Map(scope);
+			const functionScope: Scope = new Map();
+			// Copy outer scope, marking function-scope locals as capturedLocal since
+			// closures cannot safely reference stack-frame bindings that outlive them.
+			for (const [name, entry] of scope) {
+				if (entry.local) {
+					functionScope.set(name, { mutable: entry.mutable, local: false, capturedLocal: true });
+				} else {
+					functionScope.set(name, entry);
+				}
+			}
 			node.params.forEach((paramName, index) => {
-				functionScope.set(paramName, node.paramModes[index] === "*");
+				functionScope.set(paramName, { mutable: node.paramModes[index] === "*", local: false });
 			});
-			checkExpression(node.body, functionScope, ctx);
+			checkExpression(node.body, functionScope, ctx, true);
 			return;
 		}
 		case "Block": {
 			const blockScope: Scope = new Map(scope);
 			for (const statement of node.body) {
-				checkStatement(statement, blockScope, ctx);
+				checkStatement(statement, blockScope, ctx, insideFunction);
 			}
 			return;
 		}
 		case "While": {
-			checkExpression(node.condition, scope, ctx);
+			checkExpression(node.condition, scope, ctx, insideFunction);
 			const whileScope: Scope = new Map(scope);
 			for (const statement of node.body) {
-				checkStatement(statement, whileScope, ctx);
+				checkStatement(statement, whileScope, ctx, insideFunction);
 			}
 			return;
 		}
 		case "If":
-			checkExpression(node.condition, scope, ctx);
-			checkExpression(node.thenBranch, scope, ctx);
+			checkExpression(node.condition, scope, ctx, insideFunction);
+			checkExpression(node.thenBranch, scope, ctx, insideFunction);
 			if (node.elseBranch) {
-				checkExpression(node.elseBranch, scope, ctx);
+				checkExpression(node.elseBranch, scope, ctx, insideFunction);
 			}
 			return;
 		case "Call":
@@ -312,88 +378,107 @@ function checkExpression(
 				checkImportCall(node, ctx);
 				return;
 			}
-			checkExpression(node.callee, scope, ctx);
+			checkExpression(node.callee, scope, ctx, insideFunction);
 			for (const arg of node.args) {
-				checkExpression(arg, scope, ctx);
+				checkExpression(arg, scope, ctx, insideFunction);
 			}
 			return;
 		case "Member":
-			checkExpression(node.object, scope, ctx);
+			checkExpression(node.object, scope, ctx, insideFunction);
 			// Don't check the property name — resolved on the value at runtime.
 			return;
 		case "Index":
-			checkExpression(node.object, scope, ctx);
-			checkExpression(node.index, scope, ctx);
+			checkExpression(node.object, scope, ctx, insideFunction);
+			checkExpression(node.index, scope, ctx, insideFunction);
 			return;
 		case "Range":
-			checkExpression(node.start, scope, ctx);
-			checkExpression(node.end, scope, ctx);
+			checkExpression(node.start, scope, ctx, insideFunction);
+			checkExpression(node.end, scope, ctx, insideFunction);
 			return;
 		case "ListLiteral":
 			for (const element of node.elements) {
-				checkExpression(element, scope, ctx);
+				checkExpression(element, scope, ctx, insideFunction);
 			}
 			return;
 		case "ArrayComp": {
-			checkExpression(node.iterable, scope, ctx);
+			checkExpression(node.iterable, scope, ctx, insideFunction);
 			const compScope: Scope = new Map(scope);
 			if (node.name) {
-				compScope.set(node.name, false);
+				compScope.set(node.name, { mutable: false, local: false });
 			} else if (node.tuplePattern) {
 				for (const patternName of node.tuplePattern) {
-					compScope.set(patternName, false);
+					compScope.set(patternName, { mutable: false, local: false });
 				}
 			}
-			checkExpression(node.body, compScope, ctx);
+			checkExpression(node.body, compScope, ctx, insideFunction);
+			if (node.filter) checkExpression(node.filter, compScope, ctx, insideFunction);
 			return;
 		}
+		case "MapLiteral":
+			for (const entry of node.entries) {
+				checkExpression(entry.key, scope, ctx, insideFunction);
+				checkExpression(entry.value, scope, ctx, insideFunction);
+			}
+			return;
+		case "MapComp": {
+			checkExpression(node.iterable, scope, ctx, insideFunction);
+			const mapCompScope: Scope = new Map(scope);
+			if (node.name) {
+				mapCompScope.set(node.name, { mutable: false, local: false });
+			} else if (node.tuplePattern) {
+				for (const patternName of node.tuplePattern) {
+					mapCompScope.set(patternName, { mutable: false, local: false });
+				}
+			}
+			checkExpression(node.keyBody, mapCompScope, ctx, insideFunction);
+			checkExpression(node.valueBody, mapCompScope, ctx, insideFunction);
+			if (node.filter) checkExpression(node.filter, mapCompScope, ctx, insideFunction);
+			return;
+		}
+		case "BehaviourType":
+			return;
+		case "Cast":
+			checkExpression(node.value, scope, ctx, insideFunction);
+			return;
 		case "BinaryOp":
-			checkExpression(node.left, scope, ctx);
-			checkExpression(node.right, scope, ctx);
+			checkExpression(node.left, scope, ctx, insideFunction);
+			checkExpression(node.right, scope, ctx, insideFunction);
 			return;
 		case "UnaryOp":
-			checkExpression(node.expression, scope, ctx);
+			checkExpression(node.expression, scope, ctx, insideFunction);
 			return;
 		case "VariantConstructor":
 			if (node.payload) {
-				checkExpression(node.payload, scope, ctx);
+				checkExpression(node.payload, scope, ctx, insideFunction);
 			}
 			return;
 		case "RecordLiteral":
 			if (node.typeName) {
-				checkExpression(node.typeName, scope, ctx);
+				checkExpression(node.typeName, scope, ctx, insideFunction);
 			}
 			for (const field of node.fields) {
-				checkExpression(field.value, scope, ctx);
+				checkExpression(field.value, scope, ctx, insideFunction);
 			}
 			return;
 		case "Match": {
-			checkExpression(node.subject, scope, ctx);
+			checkExpression(node.subject, scope, ctx, insideFunction);
 			for (const arm of node.arms) {
 				const armScope: Scope = new Map(scope);
-				if (arm.pattern.kind === "VariantPattern" && arm.pattern.binding) {
-					if (arm.pattern.binding.kind === "BindingPattern") {
-						armScope.set(arm.pattern.binding.name, false);
-					} else {
-						for (const name of arm.pattern.binding.names) {
-							armScope.set(name, false);
-						}
-					}
-				}
+				bindPatternNames(arm.pattern, armScope);
 				if (arm.pattern.kind === "GuardPattern") {
-					checkExpression(arm.pattern.expression, scope, ctx);
+					checkExpression(arm.pattern.expression, scope, ctx, insideFunction);
 				}
 				if (arm.pattern.kind === "LiteralPattern") {
-					checkExpression(arm.pattern.expression, scope, ctx);
+					checkExpression(arm.pattern.expression, scope, ctx, insideFunction);
 				}
 				if (arm.pattern.kind === "RangePattern") {
-					checkExpression(arm.pattern.low, scope, ctx);
-					checkExpression(arm.pattern.high, scope, ctx);
+					checkExpression(arm.pattern.low, scope, ctx, insideFunction);
+					checkExpression(arm.pattern.high, scope, ctx, insideFunction);
 				}
-				checkExpression(arm.body, armScope, ctx);
+				checkExpression(arm.body, armScope, ctx, insideFunction);
 			}
 			if (node.elseArm) {
-				checkExpression(node.elseArm, scope, ctx);
+				checkExpression(node.elseArm, scope, ctx, insideFunction);
 			}
 			return;
 		}
