@@ -19,5 +19,5 @@ jobs:
 
     - name: Test
       run: 
-        cd ruka/zig &&
+        cd ruka/zig-old &&
         zig build test --summary all

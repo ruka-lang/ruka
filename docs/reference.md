@@ -244,6 +244,16 @@ The following types are always in scope.
 | Generic prelude | `?(T)` (option), `!(T, E)` (result) |
 | Compile-time | `type` (the type of types) |
 
+Every type in Ruka — primitive, built-in generic, or user-defined — supports methods, members, and behaviour satisfaction. There is no privileged class of types that cannot be extended. `i32` can have methods; `[T]` can satisfy a behaviour; `bool` can have members. At runtime each type uses its natural representation (an integer is a machine integer, not an object), but at the language level the rules are uniform.
+
+```ruka
+// attaching a method to i32 is legal anywhere
+let is_positive (self) = () -> bool do self > 0
+
+let n: i32 = 42
+ruka.println("${n.is_positive()}")   // true
+```
+
 ### Type annotations
 
 A type appears after `:` on a binding or parameter, and after `->` on a function return.
@@ -305,7 +315,7 @@ A type customises `as` by defining a `cast` member that matches the [`ruka.cast`
 
 ## Patterns
 
-Patterns appear in `let`/`local` destructuring, `match` arms, `for` loop binders, and the [conditional pattern forms](#conditional-pattern-binding) of `if` and `while`. Patterns may be *refutable* (may not match) or *irrefutable* (always match) — only irrefutable patterns are allowed in `let`/`local` and in the pattern position of `for` (where non-matching elements are skipped instead of failing).
+The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop binders, and the [conditional pattern forms](#conditional-pattern-binding) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
 
 | Form | Example | Refutable? |
 | --- | --- | --- |

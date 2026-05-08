@@ -370,6 +370,21 @@ let r: [int..] = 1..=5`}
 				<tr><td>Compile-time</td><td><code>type</code> (the type of types)</td></tr>
 			</tbody>
 		</table>
+		<p>
+			Every type in Ruka — primitive, built-in generic, or user-defined — supports methods,
+			members, and behaviour satisfaction. There is no privileged class of types that cannot
+			be extended. <code>i32</code> can have methods; <code>[T]</code> can satisfy a
+			behaviour; <code>bool</code> can have members. At runtime each type uses its natural
+			representation (an integer is a machine integer, not an object), but at the language
+			level the rules are uniform.
+		</p>
+		<CodeBlock
+			code={`// attaching a method to i32 is legal anywhere
+let is_positive (self) = () -> bool do self > 0
+
+let n: i32 = 42
+ruka.println("\${n.is_positive()}")   // true`}
+		/>
 		<h3>Type annotations</h3>
 		<p>
 			A type appears after <code>:</code> on a binding or parameter, and after
@@ -461,13 +476,14 @@ let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)`}
 	<section id="patterns">
 		<h2>Patterns</h2>
 		<p>
-			Patterns appear in <code>let</code>/<code>local</code> destructuring,
-			<code>match</code> arms, <code>for</code> loop binders, and the
+			The same pattern syntax is used in every position —
+			<code>let</code>/<code>local</code> destructuring, <code>match</code> arms,
+			<code>for</code> loop binders, and the
 			<a href="#conditional-pattern-binding">conditional pattern forms</a> of
-			<code>if</code> and <code>while</code>. Patterns may be <em>refutable</em> (may not
-			match) or <em>irrefutable</em> (always match) — only irrefutable patterns are allowed
-			in <code>let</code>/<code>local</code> and in the pattern position of <code>for</code>
-			(where non-matching elements are skipped instead of failing).
+			<code>if</code> and <code>while</code>. There is no separate destructuring syntax per
+			construct. Whether a pattern is <em>refutable</em> (may not match) or
+			<em>irrefutable</em> (always matches) determines where it is allowed, but the forms
+			themselves are identical everywhere.
 		</p>
 		<table>
 			<thead><tr><th>Form</th><th>Example</th><th>Refutable?</th></tr></thead>
