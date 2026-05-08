@@ -2,7 +2,7 @@ TODO (Docs and Playground)
 - [x] ruka.clear() to clear the output
 - [x] ruka.now() to get current milliseconds
 - [x] Subtle floral background pattern on page body gutters (the empty left and right columns)
-- [ ] Add language overview after examples on home page
+- [x] Add language overview after examples on home page
 - [ ] Playground functionality
 	- [ ] Popover type information on hover over an identifier
 	- [x] User packages supporting multiple files, saved with indexedDB

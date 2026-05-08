@@ -354,7 +354,7 @@
 		display: flex;
 		overflow: auto;
 		font-family: var(--font-mono);
-		background: var(--ruka-hl-bg, var(--bg-elevated));
+		background: var(--bg-elevated);
 	}
 	.gutter {
 		flex: 0 0 auto;
@@ -362,7 +362,7 @@
 		left: 0;
 		z-index: 1;
 		padding: 12px 10px 12px 12px;
-		background: var(--ruka-hl-bg, var(--bg-elevated));
+		background: var(--bg-elevated);
 		border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 		text-align: right;
 		font-size: var(--fs-base);

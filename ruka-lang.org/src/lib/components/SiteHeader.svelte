@@ -42,7 +42,7 @@
 
 <header class="site-header">
 	<a class="brand" href="/" aria-label="Ruka home">
-		<img class="brand-logo" src={accentLogos[accentIndex]} alt="" width="24" height="24" />
+		<img class="brand-logo" src={accentLogos[accentIndex]} alt="" width="23" height="23" />
 		<span class="brand-name">Ruka</span>
 	</a>
 
@@ -96,7 +96,7 @@
 	}
 
 	.brand-logo {
-		border-radius: 1px;
+		border-radius: 0px;
 	}
 
 	.brand-name {

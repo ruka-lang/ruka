@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { highlight } from "$lib/components/editor/highlighter";
 	import {
-		rosePineMoon,
+		rosePine,
 		rosePineDawn,
 		themeToCssVars,
 		type Theme
@@ -33,7 +33,7 @@
 	});
 
 	const activeTheme = $derived(
-		theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon)
+		theme ?? (siteTheme === "light" ? rosePineDawn : rosePine)
 	);
 	const rootStyle = $derived(themeToCssVars(activeTheme));
 </script>
@@ -44,7 +44,7 @@
 	.ruka-code {
 		/* Match DocsShell's <pre> shell so the block sits naturally next to
 		 * unhighlighted prose snippets. */
-		background: var(--ruka-hl-bg, var(--bg-elevated));
+		background: var(--bg-elevated);
 		border: 1px solid var(--border);
 		border-radius: 3px;
 		padding: 16px;

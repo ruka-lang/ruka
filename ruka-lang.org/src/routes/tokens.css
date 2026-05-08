@@ -25,12 +25,12 @@ html[data-theme="dark"] {
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);
 	--flower-filter: invert(0.2);
-	--flower-opacity: 0.035;
+	--flower-opacity: 0.030;
 }
 
 html[data-theme="light"] {
 	--bg: #f1ede4;
-	--bg-elevated: #ede9df;
+	--bg-elevated: #f1ede3;
 	--fg: #1a1916;
 	--fg-muted: #60594a;
 	--border: #d8d2c2;
@@ -40,7 +40,7 @@ html[data-theme="light"] {
 	--danger: #992239;
 	--selection: rgba(53, 94, 137, 0.17);
 	--flower-filter: none;
-	--flower-opacity: 0.045;
+	--flower-opacity: 0.035;
 }
 
 /* Accent colour variants — default to berry. SiteHeader cycles data-accent
