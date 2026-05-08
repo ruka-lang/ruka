@@ -25,7 +25,7 @@ html[data-theme="dark"] {
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);
 	--flower-filter: invert(0.2);
-	--flower-opacity: 0.030;
+	--flower-opacity: 0.080;
 }
 
 html[data-theme="light"] {
