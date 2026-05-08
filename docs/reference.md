@@ -15,9 +15,7 @@ let x = 1   // trailing comments are fine
 
 ## Identifiers
 
-Identifiers are letters, digits, and underscores; they cannot start with a digit. Casing carries no semantic weight — visibility is controlled by the [`local`](#privacy) keyword, not by case.
-
-By convention, **imported files are capitalised** to distinguish a file's record value from ordinary bindings. Type bindings, members, methods, and locals are lowercase like any other value.
+Identifiers are letters, digits, and underscores; they cannot start with a digit. Casing carries no semantic weight.
 
 ```ruka
 let point = record { x: f64, y: f64 }      // type binding

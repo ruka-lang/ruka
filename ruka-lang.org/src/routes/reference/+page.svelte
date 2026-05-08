@@ -65,13 +65,7 @@ let x = 1   // trailing comments are fine`}
 		<h2>Identifiers</h2>
 		<p>
 			Identifiers are letters, digits, and underscores; they cannot start with a digit.
-			Casing carries no semantic weight — visibility is controlled by the
-			<a href="#privacy"><code>local</code></a> keyword, not by case.
-		</p>
-		<p>
-			By convention, <strong>imported files are capitalised</strong> to distinguish a file's
-			record value from ordinary bindings. Type bindings, members, methods, and locals are
-			lowercase like any other value.
+			Casing carries no semantic weight.
 		</p>
 		<CodeBlock
 			code={`let point = record { x: f64, y: f64 }      // type binding
