@@ -25,7 +25,7 @@ html[data-theme="dark"] {
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);
 	--flower-filter: invert(1);
-	--flower-opacity: 0.01;
+	--flower-opacity: 0.005;
 }
 
 html[data-theme="light"] {
@@ -34,9 +34,9 @@ html[data-theme="light"] {
 	--fg: #1a1916;
 	--fg-muted: #60594a;
 	--border: #d8d2c2;
-	--accent-berry: #a32c43;
-	--accent-amber: #e89a3c;
-	--accent-emerald: #386248;
+	--accent-berry: #ab344b;
+	--accent-amber: #e89748;
+	--accent-emerald: #406a50;
 	--danger: #992239;
 	--selection: rgba(53, 94, 137, 0.17);
 	--flower-filter: none;
