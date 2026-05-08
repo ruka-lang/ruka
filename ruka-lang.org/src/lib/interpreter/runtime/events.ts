@@ -13,7 +13,8 @@ import type { Value } from "./value";
 export type RuntimeEvent =
 	| { kind: "stdout"; text: string }
 	| { kind: "stderr"; text: string }
-	| { kind: "inputRequest"; prompt: string | null };
+	| { kind: "inputRequest"; prompt: string | null }
+	| { kind: "clearOutput" };
 
 export type ControlKind = "break" | "continue" | "return";
 

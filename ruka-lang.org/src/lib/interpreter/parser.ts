@@ -209,6 +209,12 @@ export function parse(tokens: Token[]): Program {
 		}
 		if (token.kind === "ID") {
 			const name = eat("ID").value as string;
+			// Module-qualified type: `Module.TypeName`
+			if (check(".") && tokens[pos + 1]?.kind === "ID") {
+				eat(".");
+				const member = eat("ID").value as string;
+				return { kind: "NamedType", name: `${name}.${member}`, line: token.line, col: token.col };
+			}
 			if ((name === "option" || name === "result") && check("(")) {
 				eat("(");
 				skipNewlines();
@@ -591,15 +597,12 @@ export function parse(tokens: Token[]): Program {
 			}
 			eat(")");
 			eat("in");
-		} else if (check("ID") || check("_")) {
+		} else if ((check("ID") || check("_")) && tokens[pos + 1]?.kind === "in") {
 			name = peek().value as string;
 			pos++;
 			eat("in");
-		} else {
-			// Wildcard pattern: `_`
-			name = "_";
-			eat("in");
 		}
+		// Otherwise there is no binding variable — iterate without naming the element.
 
 		const iterable = parseOr();
 		return { name, tuplePattern, iterable };

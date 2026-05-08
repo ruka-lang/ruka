@@ -2,6 +2,7 @@
 	import { onMount, untrack } from "svelte";
 	import {
 		FilePlus,
+		PanelLeftOpen,
 		PanelRightOpen,
 		Pencil,
 		Play,
@@ -66,10 +67,10 @@
 	let status: "idle" | "running" | "error" | "ok" = $state("idle");
 	let terminal: Terminal | undefined = $state();
 
-	// Pane layout state. The tree column is drag-resizable via the
-	// vertical gutter between tree and editor; the output column
-	// collapses to a thin vertical rail with a chevron toggle.
+	// Pane layout state. Both the tree and output columns collapse to thin
+	// vertical rails; the tree column is also drag-resizable via the gutter.
 	let treeWidth = $state(220);
+	let treeCollapsed = $state(false);
 	let outputCollapsed = $state(true);
 	let resizing = false;
 
@@ -634,7 +635,8 @@
 		const hooks = {
 			onStdout: (text: string) => terminal?.write(text),
 			onStderr: (text: string) => terminal?.writeErr(text),
-			requestInput: () => terminal?.requestInput() ?? Promise.resolve("")
+			requestInput: () => terminal?.requestInput() ?? Promise.resolve(""),
+			onClear: () => terminal?.clear()
 		};
 		// Use the project-aware runner whenever we have a real entry so
 		// `ruka.import(...)` can resolve across files. `runSource` stays as
@@ -703,20 +705,34 @@
 		</div>
 	</header>
 
-	<div class="workspace" class:output-collapsed={outputCollapsed}>
-		<div class="pane tree-pane" style="width: {treeWidth}px">
+	<div class="workspace" class:output-collapsed={outputCollapsed} class:tree-collapsed={treeCollapsed}>
+		{#if treeCollapsed}
+			<button
+				class="tree-rail"
+				type="button"
+				onclick={() => (treeCollapsed = false)}
+				aria-label="Expand file tree"
+				title="Expand file tree"
+			>
+				<PanelLeftOpen size={14} strokeWidth={1.75} />
+				<span class="tree-rail-label">FILES</span>
+			</button>
+		{/if}
+		<div class="pane tree-pane" class:pane-hidden={treeCollapsed} style="width: {treeWidth}px">
 			<FileTree
 				files={project.files}
 				folders={project.folders}
 				order={project.order}
 				selected={selectedPath}
 				onAction={onTreeAction}
+				onCollapse={() => (treeCollapsed = true)}
 			/>
 		</div>
 
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="resize-gutter"
+			class:pane-hidden={treeCollapsed}
 			role="separator"
 			aria-orientation="vertical"
 			aria-label="Resize file tree"
@@ -943,6 +959,33 @@
 		opacity: 0.4;
 	}
 
+	/* Vertical "FILES" rail shown when the tree pane is collapsed. */
+	.tree-rail {
+		display: flex;
+		flex: 0 0 28px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		padding: 10px 0;
+		color: var(--fg-muted);
+		background: transparent;
+		border: none;
+		border-right: 1px solid var(--border);
+		font: inherit;
+		font-size: 10px;
+		cursor: pointer;
+	}
+	.tree-rail:hover {
+		color: var(--fg);
+		background: var(--bg-elevated);
+	}
+	.tree-rail-label {
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		text-transform: uppercase;
+	}
+
 	/* Vertical "OUTPUT" rail shown when the output pane is collapsed.
 	 * Click anywhere on the rail to expand the pane back. */
 	.output-rail {
@@ -1002,6 +1045,9 @@
 			max-height: 200px;
 			border-right: none;
 			border-bottom: 1px solid var(--border);
+		}
+		.tree-rail {
+			display: none;
 		}
 		.resize-gutter {
 			display: none;

@@ -129,6 +129,17 @@ export function lookupEnv(env: TypeEnv | null, name: string): CheckedType | null
 	return null;
 }
 
+/** Resolves dotted type names like `Module.TypeName` through module statics. */
+export function lookupTypeEnv(env: TypeEnv | null, name: string): CheckedType | null {
+	const dot = name.indexOf(".");
+	if (dot === -1) return lookupEnv(env, name);
+	const moduleName = name.slice(0, dot);
+	const member = name.slice(dot + 1);
+	const moduleType = lookupEnv(env, moduleName);
+	if (!moduleType || moduleType.kind !== "recordDef") return null;
+	return moduleType.statics?.[member]?.type ?? null;
+}
+
 /** True when `target` is reachable from `current` via the parent chain. */
 export function envContains(
 	current: TypeEnv | null,

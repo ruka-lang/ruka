@@ -39,6 +39,7 @@ import {
 	INT_KINDS,
 	isNumericKind,
 	lookupEnv,
+	lookupTypeEnv,
 	type ArrayType,
 	type CheckedType,
 	type FunctionType,
@@ -71,7 +72,7 @@ function resolveRecord(type: CheckedType | null, env: TypeEnv): RecordDef | null
 	if (!type) return null;
 	if (type.kind === "recordDef") return type;
 	if (type.kind === "named") {
-		const looked = lookupEnv(env, type.name);
+		const looked = lookupTypeEnv(env, type.name);
 		if (looked && looked.kind === "recordDef") return looked;
 	}
 	return null;
@@ -228,7 +229,7 @@ function methodOf(
 	}
 
 	if (object.kind === "named" && env) {
-		const definition = lookupEnv(env, object.name);
+		const definition = lookupTypeEnv(env, object.name);
 		if (definition && definition.kind === "recordDef") {
 			const field = definition.fields.find((f) => f.name === name);
 			if (field) {
@@ -538,6 +539,8 @@ export function checkTypes(
 			min: rukaStatic(unknownFn2),
 			max: rukaStatic(unknownFn2),
 			pow: rukaStatic(numericFn2),
+			now: rukaStatic({ kind: "fn", params: [], returnType: { kind: "f64" } }),
+			clear: rukaStatic({ kind: "fn", params: [], returnType: { kind: "unit" } }),
 			import: rukaStatic(UNKNOWN)
 		}
 	};

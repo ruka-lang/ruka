@@ -1052,6 +1052,7 @@ exports[`parse: fixture snapshots > behaviour.ruka 1`] = `
         "col": 14,
         "fields": [
           {
+            "local": undefined,
             "name": "radius",
             "type": {
               "col": 31,
@@ -1082,6 +1083,7 @@ exports[`parse: fixture snapshots > behaviour.ruka 1`] = `
         "col": 14,
         "fields": [
           {
+            "local": undefined,
             "name": "side",
             "type": {
               "col": 29,
@@ -2703,6 +2705,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
         "line": 1,
         "tags": [
           {
+            "local": undefined,
             "name": "critical",
             "type": {
               "col": 12,
@@ -2712,6 +2715,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
             },
           },
           {
+            "local": undefined,
             "name": "normal",
             "type": {
               "col": 10,
@@ -2721,6 +2725,7 @@ exports[`parse: fixture snapshots > combat.ruka 1`] = `
             },
           },
           {
+            "local": undefined,
             "name": "miss",
             "type": null,
           },
@@ -3135,6 +3140,122 @@ Bare Fists  (pow=1,  acc=2):  \${report(attack(1,  2))}",
 }
 `;
 
+exports[`parse: fixture snapshots > comp-no-binding.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 2,
+              "local": false,
+              "mode": null,
+              "name": "xs",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "xs",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "body": {
+                  "col": 13,
+                  "isFloat": false,
+                  "kind": "Literal",
+                  "line": 2,
+                  "value": 1,
+                },
+                "col": 11,
+                "filter": null,
+                "iterable": {
+                  "col": 20,
+                  "end": {
+                    "col": 22,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 2,
+                    "value": 3,
+                  },
+                  "inclusive": false,
+                  "kind": "Range",
+                  "line": 2,
+                  "start": {
+                    "col": 19,
+                    "isFloat": false,
+                    "kind": "Literal",
+                    "line": 2,
+                    "value": 0,
+                  },
+                },
+                "kind": "ArrayComp",
+                "line": 2,
+                "name": null,
+                "tuplePattern": null,
+                "typePrefix": null,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 15,
+                    "kind": "Ident",
+                    "line": 3,
+                    "name": "xs",
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 3,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 3,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 3,
+              },
+              "kind": "ExpressionStmt",
+              "line": 3,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 1,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
 exports[`parse: fixture snapshots > comptime.ruka 1`] = `
 {
   "body": [
@@ -3276,6 +3397,7 @@ exports[`parse: fixture snapshots > comptime.ruka 1`] = `
                 "col": 28,
                 "fields": [
                   {
+                    "local": undefined,
                     "name": "first",
                     "type": {
                       "col": 44,
@@ -3285,6 +3407,7 @@ exports[`parse: fixture snapshots > comptime.ruka 1`] = `
                     },
                   },
                   {
+                    "local": undefined,
                     "name": "second",
                     "type": {
                       "col": 55,
@@ -5404,6 +5527,7 @@ exports[`parse: fixture snapshots > field-assign.ruka 1`] = `
         "col": 13,
         "fields": [
           {
+            "local": undefined,
             "name": "x",
             "type": {
               "col": 25,
@@ -5413,6 +5537,7 @@ exports[`parse: fixture snapshots > field-assign.ruka 1`] = `
             },
           },
           {
+            "local": undefined,
             "name": "y",
             "type": {
               "col": 35,
@@ -5728,6 +5853,7 @@ exports[`parse: fixture snapshots > field-assign.ruka 1`] = `
                 "col": 15,
                 "fields": [
                   {
+                    "local": undefined,
                     "name": "items",
                     "type": {
                       "col": 31,
@@ -7275,7 +7401,7 @@ exports[`parse: fixture snapshots > gradient.ruka 1`] = `
         "isFloat": true,
         "kind": "Literal",
         "line": 1,
-        "value": 0.01,
+        "value": 0.0001,
       },
     },
     {
@@ -7743,7 +7869,7 @@ exports[`parse: fixture snapshots > gradient.ruka 1`] = `
                     "col": 15,
                     "kind": "StringLiteral",
                     "line": 24,
-                    "raw": "A minimum of \${} found in \${} steps",
+                    "raw": "A minimum of \${minimum} found in \${steps} steps",
                   },
                 ],
                 "callee": {
@@ -9037,6 +9163,7 @@ exports[`parse: fixture snapshots > methods-and-statics.ruka 1`] = `
         "col": 15,
         "fields": [
           {
+            "local": undefined,
             "name": "count",
             "type": {
               "col": 31,
@@ -9682,6 +9809,7 @@ exports[`parse: fixture snapshots > multiline-collections.ruka 1`] = `
                 "col": 14,
                 "fields": [
                   {
+                    "local": undefined,
                     "name": "x",
                     "type": {
                       "col": 26,
@@ -9691,6 +9819,7 @@ exports[`parse: fixture snapshots > multiline-collections.ruka 1`] = `
                     },
                   },
                   {
+                    "local": undefined,
                     "name": "y",
                     "type": {
                       "col": 34,
@@ -9700,6 +9829,7 @@ exports[`parse: fixture snapshots > multiline-collections.ruka 1`] = `
                     },
                   },
                   {
+                    "local": undefined,
                     "name": "z",
                     "type": {
                       "col": 42,
@@ -10524,6 +10654,117 @@ exports[`parse: fixture snapshots > named-params.ruka 1`] = `
         "col": 12,
         "kind": "FunctionExpr",
         "line": 12,
+        "paramModes": [],
+        "paramTypes": [],
+        "params": [],
+        "returnType": null,
+      },
+    },
+  ],
+  "kind": "Program",
+}
+`;
+
+exports[`parse: fixture snapshots > now.ruka 1`] = `
+{
+  "body": [
+    {
+      "col": 1,
+      "kind": "Binding",
+      "line": 1,
+      "local": false,
+      "mode": null,
+      "name": "main",
+      "pattern": {
+        "kind": "IdentifierPattern",
+        "name": "main",
+      },
+      "receiver": null,
+      "type": null,
+      "value": {
+        "body": {
+          "body": [
+            {
+              "col": 2,
+              "kind": "Binding",
+              "line": 2,
+              "local": false,
+              "mode": null,
+              "name": "t",
+              "pattern": {
+                "kind": "IdentifierPattern",
+                "name": "t",
+              },
+              "receiver": null,
+              "type": null,
+              "value": {
+                "args": [],
+                "callee": {
+                  "col": 14,
+                  "kind": "Member",
+                  "line": 2,
+                  "object": {
+                    "col": 10,
+                    "kind": "Ident",
+                    "line": 2,
+                    "name": "ruka",
+                  },
+                  "property": "now",
+                },
+                "col": 18,
+                "kind": "Call",
+                "line": 2,
+              },
+            },
+            {
+              "col": 2,
+              "expression": {
+                "args": [
+                  {
+                    "col": 17,
+                    "kind": "BinaryOp",
+                    "left": {
+                      "col": 15,
+                      "kind": "Ident",
+                      "line": 3,
+                      "name": "t",
+                    },
+                    "line": 3,
+                    "op": ">",
+                    "right": {
+                      "col": 19,
+                      "isFloat": true,
+                      "kind": "Literal",
+                      "line": 3,
+                      "value": 0,
+                    },
+                  },
+                ],
+                "callee": {
+                  "col": 6,
+                  "kind": "Member",
+                  "line": 3,
+                  "object": {
+                    "col": 2,
+                    "kind": "Ident",
+                    "line": 3,
+                    "name": "ruka",
+                  },
+                  "property": "println",
+                },
+                "col": 14,
+                "kind": "Call",
+                "line": 3,
+              },
+              "kind": "ExpressionStmt",
+              "line": 3,
+            },
+          ],
+          "kind": "Block",
+        },
+        "col": 12,
+        "kind": "FunctionExpr",
+        "line": 1,
         "paramModes": [],
         "paramTypes": [],
         "params": [],
@@ -11518,6 +11759,7 @@ exports[`parse: fixture snapshots > printable.ruka 1`] = `
         "col": 13,
         "fields": [
           {
+            "local": undefined,
             "name": "x",
             "type": {
               "col": 25,
@@ -11527,6 +11769,7 @@ exports[`parse: fixture snapshots > printable.ruka 1`] = `
             },
           },
           {
+            "local": undefined,
             "name": "y",
             "type": {
               "col": 35,
@@ -11748,6 +11991,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
         "col": 12,
         "fields": [
           {
+            "local": undefined,
             "name": "x",
             "type": {
               "col": 24,
@@ -11757,6 +12001,7 @@ exports[`parse: fixture snapshots > projectile.ruka 1`] = `
             },
           },
           {
+            "local": undefined,
             "name": "y",
             "type": {
               "col": 34,
@@ -14598,6 +14843,7 @@ exports[`parse: fixture snapshots > type-prefix-space.ruka 1`] = `
                 "col": 14,
                 "fields": [
                   {
+                    "local": undefined,
                     "name": "x",
                     "type": {
                       "col": 26,
@@ -14607,6 +14853,7 @@ exports[`parse: fixture snapshots > type-prefix-space.ruka 1`] = `
                     },
                   },
                   {
+                    "local": undefined,
                     "name": "y",
                     "type": {
                       "col": 34,

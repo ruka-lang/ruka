@@ -98,6 +98,7 @@
 		ChevronRight,
 		FilePlus,
 		FolderPlus,
+		PanelLeftClose,
 		Pencil,
 		Trash2
 	} from "lucide-svelte";
@@ -110,9 +111,10 @@
 		order: string[];
 		selected: string;
 		onAction: (action: TreeAction) => void;
+		onCollapse?: () => void;
 	};
 
-	let { files, folders, order, selected, onAction }: Props = $props();
+	let { files, folders, order, selected, onAction, onCollapse }: Props = $props();
 
 	const tree = $derived(buildTree(files, folders, order));
 
@@ -250,6 +252,15 @@
 	<div class="tree-header">
 		<span class="tree-title">Files</span>
 		<div class="tree-header-actions">
+			{#if onCollapse}
+				<button
+					class="icon-btn"
+					type="button"
+					aria-label="Collapse file tree"
+					title="Collapse file tree"
+					onclick={onCollapse}
+				><PanelLeftClose size={14} strokeWidth={1.75} /></button>
+			{/if}
 			<button
 				class="icon-btn"
 				type="button"

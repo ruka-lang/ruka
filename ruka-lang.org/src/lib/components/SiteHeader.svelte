@@ -76,7 +76,7 @@
 	}
 
 	.brand-logo {
-		border-radius: 3px;
+		border-radius: 1px;
 	}
 
 	.brand-name {

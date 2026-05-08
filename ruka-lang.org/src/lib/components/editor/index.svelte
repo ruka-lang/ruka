@@ -75,10 +75,14 @@
 
 	const highlighted = $derived.by(() => {
 		const html = highlight(displayValue);
-		if (!showDiagnostic || !errorLine) return html;
-		const lines = html.split("\n");
+		// Browsers don't give height to a trailing newline in a <pre> element,
+		// so the caret appears between lines when the cursor is on the last empty
+		// line. Appending a space forces the pre to the same height as the textarea.
+		const padded = displayValue.endsWith("\n") ? html + " " : html;
+		if (!showDiagnostic || !errorLine) return padded;
+		const lines = padded.split("\n");
 		const idx = errorLine - 1;
-		if (idx < 0 || idx >= lines.length) return html;
+		if (idx < 0 || idx >= lines.length) return padded;
 		lines[idx] = `<span class="err-line">${lines[idx]}</span>`;
 		return lines.join("\n");
 	});
@@ -157,57 +161,87 @@
 		});
 	}
 
+	const lineCount = $derived(displayValue.split("\n").length);
+
 	export function focus() {
 		textarea?.focus();
 	}
 </script>
 
 <div class="editor" style={rootStyle}>
-	<pre aria-hidden="true"><code>{@html highlighted}</code></pre>
-	<textarea
-		bind:this={textarea}
-		spellcheck="false"
-		autocomplete="off"
-		autocapitalize="off"
-		aria-label={ariaLabel}
-		{readonly}
-		oninput={onInput}
-		onkeydown={onKeyDown}
-	></textarea>
-	{#if showDiagnostic && errorLine}
-		<!--
-			Absolutely positioned in the editor's scroll container so the
-			diagnostic scrolls with the source. `top` lands the overlay one
-			line below the error: padding (12px) + errorLine * 21px (line
-			height = font-size 14 × line-height 1.5).
-		-->
-		<div
-			class="err-overlay"
-			style="top: calc(12px + {errorLine} * 21px)"
-			aria-hidden="true"
-		>
-			<span class="err-overlay-indent">{errorIndent}</span>
-			<span class="err-overlay-msg">└─ {errorMessage}</span>
-		</div>
-	{/if}
+	<div class="gutter" aria-hidden="true">
+		{#each { length: lineCount } as _, i}
+			<div class="gutter-line">{i + 1}</div>
+		{/each}
+	</div>
+	<div class="editor-content">
+		<pre aria-hidden="true"><code>{@html highlighted}</code></pre>
+		<textarea
+			bind:this={textarea}
+			spellcheck="false"
+			autocomplete="off"
+			autocapitalize="off"
+			aria-label={ariaLabel}
+			{readonly}
+			oninput={onInput}
+			onkeydown={onKeyDown}
+		></textarea>
+		{#if showDiagnostic && errorLine}
+			<div
+				class="err-overlay"
+				style="top: calc(12px + {errorLine} * 21px)"
+				aria-hidden="true"
+			>
+				<span class="err-overlay-indent">{errorIndent}</span>
+				<span class="err-overlay-msg">└─ {errorMessage}</span>
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style>
-	/* Stack the highlight layer (pre > code) and the input layer (textarea)
-	 * in a single CSS grid cell. Grid sizes both children identically, which
-	 * is what keeps the caret aligned line-for-line — absolute positioning
-	 * lets the textarea round its line-box height differently from the pre,
-	 * and the error compounds as the cursor moves down the document. */
+	/* Flex row: gutter column on the left, editor-content on the right.
+	 * Both scroll together as one unit; position:sticky on the gutter
+	 * keeps line numbers visible when scrolling horizontally on long lines. */
 	.editor {
-		display: grid;
-		grid-template-rows: max-content;
+		display: flex;
 		overflow: auto;
-		position: relative;
 		font-family: var(--font-mono);
 		background: var(--bg-elevated);
 	}
-	.editor > pre,
-	.editor > textarea {
+	.gutter {
+		flex: 0 0 auto;
+		position: sticky;
+		left: 0;
+		z-index: 1;
+		padding: 12px 10px 12px 12px;
+		background: var(--bg-elevated);
+		border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+		text-align: right;
+		font-size: var(--fs-base);
+		line-height: 1.4;
+		font-weight: 550;
+		color: var(--fg-muted);
+		user-select: none;
+		pointer-events: none;
+	}
+	.gutter-line {
+		font-family: var(--font-mono);
+		line-height: 1.4;
+		opacity: 0.5;
+	}
+	/* Stack the highlight layer (pre > code) and the input layer (textarea)
+	 * in a single CSS grid cell. Grid sizes both identically, which is what
+	 * keeps the caret aligned line-for-line. */
+	.editor-content {
+		flex: 1 0 0;
+		display: grid;
+		grid-template-rows: max-content;
+		position: relative;
+		min-width: 0;
+	}
+	.editor-content > pre,
+	.editor-content > textarea {
 		grid-area: 1 / 1;
 	}
 	.editor pre {
@@ -224,7 +258,7 @@
 		margin: 0;
 		padding: 12px;
 		font-family: var(--font-mono);
-		font-size: var(--font-base);
+		font-size: var(--fs-base);
 		line-height: 1.4;
 		font-weight: 550;
 		white-space: pre;

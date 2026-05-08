@@ -1,6 +1,6 @@
 TODO (Docs and Playground)
-- [ ] ruka.clear() to clear the output
-- [ ] ruka.now() to get current seconds
+- [x] ruka.clear() to clear the output
+- [x] ruka.now() to get current seconds
 - [ ] Refer to projects as packages
 - [ ] Playground functionality
 	- [x] User packages supporting multiple files, saved with indexedDB
@@ -13,8 +13,8 @@ TODO (Docs and Playground)
 		- [x] File icon for ruka files should use ruka svg
 	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
         - [ ] do is only autoclosed with end if pressing enter right after it
-	- [ ] Line numbers
-	- [ ] File tree collapsable like terminal
+	- [x] Line numbers
+	- [x] File tree collapsable like terminal
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
 - [x] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
 - [x] Code example/block/editor backgrounds should use the Rose-pine variants background colour

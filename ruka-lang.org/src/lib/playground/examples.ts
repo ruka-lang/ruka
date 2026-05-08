@@ -52,7 +52,7 @@ function buildExamples(): Example[] {
 		if (!match) continue;
 		const id = match[1]!;
 		const path = match[2]!;
-		const source = FILE_MODULES[fullPath]!;
+		const source = FILE_MODULES[fullPath]!.trimEnd();
 		const files = grouped.get(id) ?? [];
 		files.push({ path, source });
 		grouped.set(id, files);
