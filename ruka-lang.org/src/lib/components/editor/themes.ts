@@ -17,6 +17,9 @@ export type TokenClass =
 
 export type Theme = {
 	name: string;
+	// Background for the editor/code-block surface. Falls back to the site's
+	// --bg-elevated token when omitted.
+	bg?: string;
 	// Foreground used for plain identifiers and unclassified text. Inherited
 	// from the surrounding element if omitted.
 	text?: string;
@@ -26,6 +29,7 @@ export type Theme = {
 // Default — Rosé Pine Moon, matching the existing docs site palette.
 export const rosePineMoon: Theme = {
 	name: "rose-pine-moon",
+	bg: "#2a273f",
 	text: "#e0def4",
 	tokens: {
 		kw: "#eb6f92",
@@ -40,9 +44,28 @@ export const rosePineMoon: Theme = {
 	}
 };
 
+// Rosé Pine (main) — darker base variant.
+export const rosePine: Theme = {
+	name: "rose-pine",
+	bg: "#1f1d2e",
+	text: "#e0def4",
+	tokens: {
+		kw: "#eb6f92",
+		str: "#9ccfd8",
+		num: "#f6c177",
+		lbl: "#ebbcba",
+		op: "#908caa",
+		surr: "#c4a7e7",
+		strc: "#908caa",
+		cmt: "#6e6a86",
+		tp: "#c4a7e7"
+	}
+};
+
 // A lighter alternative for future light-mode support.
 export const rosePineDawn: Theme = {
 	name: "rose-pine-dawn",
+	bg: "#fffaf3",
 	text: "#575279",
 	tokens: {
 		kw: "#b4637a",
@@ -61,6 +84,7 @@ export const rosePineDawn: Theme = {
 // element. Each token class becomes `--ruka-hl-<class>: <color>`.
 export function themeToCssVars(theme: Theme): string {
 	const parts: string[] = [];
+	if (theme.bg) parts.push(`--ruka-hl-bg: ${theme.bg}`);
 	if (theme.text) parts.push(`--ruka-hl-text: ${theme.text}`);
 	for (const cls in theme.tokens) {
 		parts.push(`--ruka-hl-${cls}: ${theme.tokens[cls as TokenClass]}`);

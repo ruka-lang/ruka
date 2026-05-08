@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { highlight as defaultHighlight } from "./highlighter";
-	import { rosePineMoon, rosePineDawn, themeToCssVars, type Theme } from "./themes";
+	import { rosePine, rosePineDawn, themeToCssVars, type Theme } from "./themes";
 	import { Popover } from "$lib/components/ui";
 
 	type Props = {
@@ -53,7 +53,7 @@
 	});
 
 	const activeTheme = $derived(
-		theme ?? (siteTheme === "light" ? rosePineDawn : rosePineMoon)
+		theme ?? (siteTheme === "light" ? rosePineDawn : rosePine)
 	);
 	const rootStyle = $derived(`${themeToCssVars(activeTheme)}; height: ${height}`);
 
@@ -354,7 +354,7 @@
 		display: flex;
 		overflow: auto;
 		font-family: var(--font-mono);
-		background: var(--bg-elevated);
+		background: var(--ruka-hl-bg, var(--bg-elevated));
 	}
 	.gutter {
 		flex: 0 0 auto;
@@ -362,7 +362,7 @@
 		left: 0;
 		z-index: 1;
 		padding: 12px 10px 12px 12px;
-		background: var(--bg-elevated);
+		background: var(--ruka-hl-bg, var(--bg-elevated));
 		border-right: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 		text-align: right;
 		font-size: var(--fs-base);

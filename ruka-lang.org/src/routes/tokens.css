@@ -24,8 +24,8 @@ html[data-theme="dark"] {
 	--accent-emerald: #386248;
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);
-	--flower-filter: invert(1);
-	--flower-opacity: 0.005;
+	--flower-filter: invert(0.2);
+	--flower-opacity: 0.035;
 }
 
 html[data-theme="light"] {
@@ -40,7 +40,7 @@ html[data-theme="light"] {
 	--danger: #992239;
 	--selection: rgba(53, 94, 137, 0.17);
 	--flower-filter: none;
-	--flower-opacity: 0.02;
+	--flower-opacity: 0.045;
 }
 
 /* Accent colour variants — default to berry. SiteHeader cycles data-accent

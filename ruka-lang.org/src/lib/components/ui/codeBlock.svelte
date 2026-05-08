@@ -44,7 +44,7 @@
 	.ruka-code {
 		/* Match DocsShell's <pre> shell so the block sits naturally next to
 		 * unhighlighted prose snippets. */
-		background: var(--bg-elevated);
+		background: var(--ruka-hl-bg, var(--bg-elevated));
 		border: 1px solid var(--border);
 		border-radius: 3px;
 		padding: 16px;
