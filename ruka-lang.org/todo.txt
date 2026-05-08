@@ -1,8 +1,10 @@
 TODO (Docs and Playground)
 - [x] ruka.clear() to clear the output
 - [x] ruka.now() to get current seconds
-- [ ] Refer to projects as packages
+- [ ] Subtle floral background pattern on page body gutters (the empty left and right columns)
+- [ ] Add language overview after examples on home page
 - [ ] Playground functionality
+	- [ ] Popover type information on hover over an identifier
 	- [x] User packages supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
 		- [ ] Terminal resizable
@@ -16,15 +18,12 @@ TODO (Docs and Playground)
 	- [x] Line numbers
 	- [x] File tree collapsable like terminal
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
-	- [ ] Popover type information on hover over an identifier
 - [x] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
 - [x] Code example/block/editor backgrounds should use the Rose-pine variants background colour
 - [x] Return to top button in bottom right when scrolled down
-- [ ] Accent colour and associated logo shift between berry, amber, and emerald periodically
-- [ ] Subtle spinning floral background pattern on page body gutters (empty left and right columns)
+- [x] Accent colour and associated logo shift between berry, amber, and emerald periodically
 - [ ] Better mobile styling
 	- [ ] Navlinks github and theme toggle collapse into menu
 	- [ ] Reference / Grammar TOC collapses into a button with the current section title as the button text
 	- [ ] Smaller text
-- [ ] Add language overview after examples on home page
 - [ ] Extract playground packages to .zip file
