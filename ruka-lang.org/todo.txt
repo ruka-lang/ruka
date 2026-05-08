@@ -11,11 +11,12 @@ TODO (Docs and Playground)
 		- [x] Bug: User package state isn't being saved automatically
 		- [x] Bug: Text files are not loaded from examples packages
 		- [x] File icon for ruka files should use ruka svg
-	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
-        - [ ] do is only autoclosed with end if pressing enter right after it
+	- [x] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
+        - [x] do is only autoclosed with end if pressing enter right after it
 	- [x] Line numbers
 	- [x] File tree collapsable like terminal
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
+	- [ ] Popover type information on hover over an identifier
 - [x] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
 - [x] Code example/block/editor backgrounds should use the Rose-pine variants background colour
 - [x] Return to top button in bottom right when scrolled down

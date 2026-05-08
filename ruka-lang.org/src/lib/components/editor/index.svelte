@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { highlight as defaultHighlight } from "./highlighter";
 	import { rosePineMoon, rosePineDawn, themeToCssVars, type Theme } from "./themes";
+	import { Popover } from "$lib/components/ui";
 
 	type Props = {
 		value: string;
@@ -57,28 +58,43 @@
 	const rootStyle = $derived(`${themeToCssVars(activeTheme)}; height: ${height}`);
 
 	let textarea: HTMLTextAreaElement | undefined = $state();
+	let preEl: HTMLPreElement | undefined = $state();
+
+	// Invisible anchor element positioned at the error line. The Popover
+	// measures its screen rect to place the bubble — it needs a real DOM node
+	// even though it has no visual presence of its own.
+	let errAnchorEl: HTMLDivElement | null = $state(null);
+	let errorHovered = $state(false);
+
+	// Horizontal position of the err-anchor, measured from the rendered .err-line
+	// span so the Popover centres on the actual text rather than the full editor width.
+	let errAnchorLeft = $state("12px");
+	let errAnchorWidth = $state("0px");
+
+	$effect(() => {
+		// Re-run when highlighted changes (i.e. whenever the error line updates).
+		void highlighted;
+		if (!preEl || !showDiagnostic) return;
+		queueMicrotask(() => {
+			const span = preEl?.querySelector(".err-line");
+			if (!span || !preEl) return;
+			const preRect = preEl.getBoundingClientRect();
+			const spanRect = span.getBoundingClientRect();
+			errAnchorLeft = `${spanRect.left - preRect.left}px`;
+			errAnchorWidth = `${spanRect.width}px`;
+		});
+	});
 
 	const showDiagnostic = $derived(errorLine != null && !!errorMessage);
 
-	// When a diagnostic is shown we splice a blank phantom line into the
-	// editor's display *just below* the offending source line. The phantom
-	// is what the textarea and pre both render — the line-for-line alignment
-	// the caret depends on stays intact because both layers see the same
-	// augmented string. The parent only ever sees the real value via
-	// onChange; the phantom is stripped on every input.
-	const displayValue = $derived.by(() => {
-		if (!showDiagnostic || !errorLine) return value;
-		const lines = value.split("\n");
-		if (errorLine < 1 || errorLine > lines.length) return value;
-		return [...lines.slice(0, errorLine), "", ...lines.slice(errorLine)].join("\n");
-	});
-
+	// Wrap the error line in a span so CSS can apply a wavy underline without
+	// touching the layout (no phantom lines, no cursor-offset bugs).
 	const highlighted = $derived.by(() => {
-		const html = highlight(displayValue);
+		const html = highlight(value);
 		// Browsers don't give height to a trailing newline in a <pre> element,
 		// so the caret appears between lines when the cursor is on the last empty
 		// line. Appending a space forces the pre to the same height as the textarea.
-		const padded = displayValue.endsWith("\n") ? html + " " : html;
+		const padded = value.endsWith("\n") ? html + " " : html;
 		if (!showDiagnostic || !errorLine) return padded;
 		const lines = padded.split("\n");
 		const idx = errorLine - 1;
@@ -87,81 +103,198 @@
 		return lines.join("\n");
 	});
 
-	// Indent prefix for the └─ connector. Without column info, we mirror the
-	// offending line's leading whitespace; with column info, we pad to the
-	// column-1 character offset on that line. The overlay uses the same
-	// monospace + tab-size as the editor, so widths match exactly.
-	const errorIndent = $derived.by(() => {
-		if (!errorLine) return "";
-		const lines = value.split("\n");
-		const line = lines[errorLine - 1];
-		if (!line) return "";
-		if (errorColumn != null && errorColumn > 1) {
-			return line.slice(0, Math.min(errorColumn - 1, line.length));
-		}
-		const match = line.match(/^[\t ]*/);
-		return match ? match[0] : "";
-	});
-
-	function displayToTrue(display: string): string {
-		// Inverse of displayValue: drop the phantom line at index errorLine
-		// (0-based), merging anything the user typed onto it into the next
-		// line. With no diagnostic shown, display === value, so passthrough.
-		if (!showDiagnostic || !errorLine) return display;
-		const lines = display.split("\n");
-		const idx = errorLine;
-		if (idx < 0 || idx >= lines.length) return display;
-		const phantomContent = lines[idx];
-		if (idx + 1 < lines.length) {
-			return [
-				...lines.slice(0, idx),
-				phantomContent + lines[idx + 1],
-				...lines.slice(idx + 2)
-			].join("\n");
-		}
-		return [...lines.slice(0, idx), phantomContent].join("\n");
-	}
-
-	function onInput(event: Event) {
-		const ta = event.target as HTMLTextAreaElement;
-		const next = displayToTrue(ta.value);
-		value = next;
-		onChange?.(next);
-	}
-
-	// Sync the textarea's value to displayValue, but only when they actually
+	// Sync the textarea's value to the source, but only when they actually
 	// differ. Setting textarea.value unconditionally on every render moves
 	// the caret to the end of the field — fine on first mount, disastrous
-	// while the user is typing. The diff check makes the common path (user
-	// typed → displayValue rederived to match → no DOM write) a no-op, so
-	// the caret stays put.
+	// while the user is typing.
 	$effect(() => {
 		if (!textarea) return;
-		if (textarea.value === displayValue) return;
+		if (textarea.value === value) return;
 		const start = textarea.selectionStart;
 		const end = textarea.selectionEnd;
-		textarea.value = displayValue;
+		textarea.value = value;
 		textarea.selectionStart = start;
 		textarea.selectionEnd = end;
 	});
 
-	function onKeyDown(event: KeyboardEvent) {
-		if (event.key !== "Tab" || !textarea) return;
-		event.preventDefault();
-		const start = textarea.selectionStart;
-		const end = textarea.selectionEnd;
-		const display = displayValue;
-		const nextDisplay = display.slice(0, start) + "\t" + display.slice(end);
-		const next = displayToTrue(nextDisplay);
+	function onInput(event: Event) {
+		const ta = event.target as HTMLTextAreaElement;
+		value = ta.value;
+		onChange?.(ta.value);
+	}
+
+	// Hover detection: compute which line the mouse is over from offsetY.
+	// The textarea has overflow:hidden so its scrollTop is always 0; offsetY
+	// is relative to the textarea's own top-left and is not affected by the
+	// parent .editor scroll position.
+	const LINE_HEIGHT_PX = 21; // matches font-size:15px * line-height:1.4
+	const PADDING_TOP_PX = 12;
+
+	function onMouseMove(event: MouseEvent) {
+		if (!showDiagnostic || !errorLine) {
+			errorHovered = false;
+			return;
+		}
+		const line = Math.floor((event.offsetY - PADDING_TOP_PX) / LINE_HEIGHT_PX) + 1;
+		errorHovered = line === errorLine;
+	}
+
+	function onMouseLeave() {
+		errorHovered = false;
+	}
+
+	// Pairs where typing the opener auto-inserts the closer.
+	const autoClosePairs: Record<string, string> = { "(": ")", "{": "}", "[": "]" };
+	// Closing chars that the cursor should skip over when already present.
+	const skipOverChars = new Set([")", "}", "]"]);
+	// All auto-closed pairs (for Backspace deletion of both chars).
+	const matchedPairs: Record<string, string> = { "(": ")", "{": "}", "[": "]", '"': '"', "'": "'" };
+
+	function insertAround(start: number, end: number, open: string, close: string) {
+		const hasSelection = start !== end;
+		const selected = value.slice(start, end);
+		const next = value.slice(0, start) + open + selected + close + value.slice(end);
 		value = next;
 		onChange?.(next);
 		queueMicrotask(() => {
 			if (!textarea) return;
-			textarea.selectionStart = textarea.selectionEnd = start + 1;
+			if (hasSelection) {
+				textarea.selectionStart = start + 1;
+				textarea.selectionEnd = start + 1 + selected.length;
+			} else {
+				textarea.selectionStart = textarea.selectionEnd = start + 1;
+			}
 		});
 	}
 
-	const lineCount = $derived(displayValue.split("\n").length);
+	function onKeyDown(event: KeyboardEvent) {
+		if (!textarea) return;
+
+		const start = textarea.selectionStart;
+		const end = textarea.selectionEnd;
+		const hasSelection = start !== end;
+
+		// Tab: insert literal tab at cursor / selection.
+		if (event.key === "Tab") {
+			event.preventDefault();
+			const next = value.slice(0, start) + "\t" + value.slice(end);
+			value = next;
+			onChange?.(next);
+			queueMicrotask(() => {
+				if (!textarea) return;
+				textarea.selectionStart = textarea.selectionEnd = start + 1;
+			});
+			return;
+		}
+
+		// Auto-close bracket pairs: ( { [
+		if (event.key in autoClosePairs) {
+			event.preventDefault();
+			insertAround(start, end, event.key, autoClosePairs[event.key]);
+			return;
+		}
+
+		// Skip over a closing bracket when it already sits at the cursor.
+		if (!hasSelection && skipOverChars.has(event.key) && value[start] === event.key) {
+			event.preventDefault();
+			queueMicrotask(() => {
+				if (!textarea) return;
+				textarea.selectionStart = textarea.selectionEnd = start + 1;
+			});
+			return;
+		}
+
+		// Auto-close quotes " and '. Skip over if the same quote is already next;
+		// otherwise insert the pair with cursor between them.
+		if (event.key === '"' || event.key === "'") {
+			event.preventDefault();
+			if (!hasSelection && value[start] === event.key) {
+				queueMicrotask(() => {
+					if (!textarea) return;
+					textarea.selectionStart = textarea.selectionEnd = start + 1;
+				});
+			} else {
+				insertAround(start, end, event.key, event.key);
+			}
+			return;
+		}
+
+		// Backspace: delete both chars when cursor sits between a matched pair.
+		if (!hasSelection && event.key === "Backspace" && start > 0) {
+			const prev = value[start - 1];
+			const next = value[start];
+			if (prev in matchedPairs && matchedPairs[prev] === next) {
+				event.preventDefault();
+				const updated = value.slice(0, start - 1) + value.slice(start + 1);
+				value = updated;
+				onChange?.(updated);
+				queueMicrotask(() => {
+					if (!textarea) return;
+					textarea.selectionStart = textarea.selectionEnd = start - 1;
+				});
+				return;
+			}
+		}
+
+		// Enter: auto-indent to match the current line, and auto-close `do end`
+		// blocks when the cursor is placed directly after the `do` keyword.
+		if (event.key === "Enter") {
+			event.preventDefault();
+
+			const beforeCursor = value.slice(0, start);
+			const lineStart = beforeCursor.lastIndexOf("\n") + 1;
+			const currentLine = beforeCursor.slice(lineStart);
+
+			const indentMatch = currentLine.match(/^[\t ]*/);
+			const indent = indentMatch ? indentMatch[0] : "";
+
+			// Auto-close: pressing Enter immediately after `do` inserts an indented
+			// blank line then `end` at the same indentation level.
+			const lineTrimmed = currentLine.trimEnd();
+			if (/(?:^|\s)do$/.test(lineTrimmed)) {
+				const innerIndent = indent + "\t";
+				const insert = "\n" + innerIndent + "\n" + indent + "end";
+				const next = value.slice(0, start) + insert + value.slice(end);
+				value = next;
+				onChange?.(next);
+				const cursorPos = start + 1 + innerIndent.length;
+				queueMicrotask(() => {
+					if (!textarea) return;
+					textarea.selectionStart = textarea.selectionEnd = cursorPos;
+				});
+				return;
+			}
+
+			// Expand `{\n}` into a properly indented block when Enter is pressed
+			// between a `{` and its auto-closed `}`.
+			if (!hasSelection && value[start - 1] === "{" && value[start] === "}") {
+				const innerIndent = indent + "\t";
+				const insert = "\n" + innerIndent + "\n" + indent;
+				const next = value.slice(0, start) + insert + value.slice(end);
+				value = next;
+				onChange?.(next);
+				const cursorPos = start + 1 + innerIndent.length;
+				queueMicrotask(() => {
+					if (!textarea) return;
+					textarea.selectionStart = textarea.selectionEnd = cursorPos;
+				});
+				return;
+			}
+
+			// Default: replicate the current line's indentation on the new line.
+			const insert = "\n" + indent;
+			const next = value.slice(0, start) + insert + value.slice(end);
+			value = next;
+			onChange?.(next);
+			queueMicrotask(() => {
+				if (!textarea) return;
+				textarea.selectionStart = textarea.selectionEnd = start + insert.length;
+			});
+			return;
+		}
+	}
+
+	const lineCount = $derived(value.split("\n").length);
 
 	export function focus() {
 		textarea?.focus();
@@ -175,7 +308,7 @@
 		{/each}
 	</div>
 	<div class="editor-content">
-		<pre aria-hidden="true"><code>{@html highlighted}</code></pre>
+		<pre bind:this={preEl} aria-hidden="true"><code>{@html highlighted}</code></pre>
 		<textarea
 			bind:this={textarea}
 			spellcheck="false"
@@ -185,19 +318,33 @@
 			{readonly}
 			oninput={onInput}
 			onkeydown={onKeyDown}
+			onmousemove={onMouseMove}
+			onmouseleave={onMouseLeave}
 		></textarea>
+
+		<!-- Invisible anchor at the error line's row. Its left/width are measured
+		     from the rendered .err-line span so the Popover bubble centres on
+		     the midpoint of the actual text content, not the full editor width. -->
 		{#if showDiagnostic && errorLine}
 			<div
-				class="err-overlay"
-				style="top: calc(12px + {errorLine} * 21px)"
+				bind:this={errAnchorEl}
+				class="err-anchor"
+				style="top: calc(12px + {errorLine - 1} * 1.4em); left: {errAnchorLeft}; width: {errAnchorWidth}"
 				aria-hidden="true"
-			>
-				<span class="err-overlay-indent">{errorIndent}</span>
-				<span class="err-overlay-msg">└─ {errorMessage}</span>
-			</div>
+			></div>
 		{/if}
 	</div>
 </div>
+
+<Popover
+	anchor={errAnchorEl}
+	open={showDiagnostic && errorHovered}
+	placement="bottom"
+	role="hint"
+	ariaLabel="Diagnostic"
+>
+	<span class="err-popover-msg">{errorMessage}</span>
+</Popover>
 
 <style>
 	/* Flex row: gutter column on the left, editor-content on the right.
@@ -323,31 +470,26 @@
 	.editor textarea::selection {
 		background: var(--selection, rgba(127, 127, 127, 0.35));
 	}
+
+	/* Wavy underline on the error line — no background shift, no layout change. */
 	.editor :global(.err-line) {
-		background: color-mix(in srgb, var(--danger) 18%, transparent);
-		display: inline-block;
-		width: 100%;
+		text-decoration: underline wavy var(--danger);
+		text-decoration-skip-ink: none;
+		text-underline-offset: 3px;
 	}
 
-	/* Virtual-text diagnostic line, rendered as an absolute overlay so the
-	 * underlying pre/textarea stay aligned line-for-line. The hidden indent
-	 * span pushes the └─ connector to match the offending line's indentation. */
-	.editor .err-overlay {
+	/* Invisible positioned element used only as a Popover anchor. */
+	.err-anchor {
 		position: absolute;
-		left: 12px;
-		font-family: inherit;
-		font-size: var(--fs-base);
-		line-height: 1.4;
-		font-weight: 550;
-		font-style: italic;
-		color: var(--danger);
-		white-space: pre;
-		tab-size: 4;
-		-moz-tab-size: 4;
+		left: 0;
+		right: 0;
+		height: 1.4em;
 		pointer-events: none;
-		user-select: none;
 	}
-	.editor .err-overlay-indent {
-		visibility: hidden;
+
+	/* Styling applied inside the hint popover for the error message. */
+	.err-popover-msg {
+		color: var(--danger);
+		font-style: italic;
 	}
 </style>
