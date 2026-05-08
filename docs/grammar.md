@@ -174,7 +174,7 @@ type-receiver ::=  identifier                               -- member: associate
 destructure-pattern
               ::=  record-pattern | tuple-pattern
                    -- destructures any irrefutable pattern; see Patterns
-                   -- e.g.  let { x, y } = point
+                   -- e.g.  let {x, y} = point
                    -- e.g.  let (a, b)   = pair
                    -- e.g.  let { sqrt, pow } = ruka.import("Math.ruka")
 

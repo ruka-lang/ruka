@@ -155,9 +155,9 @@ Tuples are heterogeneous fixed-arity; arrays are homogeneous and variable-length
 
 ```ruka
 let pair = (1, "one")           // tuple, inferred (int, string)
-let xs   = { 1, 2, 3 }          // array, inferred [int]
-let prefixed = [u8] { 0, 1, 2 } // type prefix pins the element type
-let typed: [u8] = { 0, 1, 2 }   // annotation does the same
+let xs   = {1, 2, 3}          // array, inferred [int]
+let prefixed = [u8] {0, 1, 2} // type prefix pins the element type
+let typed: [u8] = {0, 1, 2}   // annotation does the same
 ```
 
 In multi-line literals, members may be separated by newlines instead of commas. Commas are only required when two members share a single line.
@@ -289,9 +289,10 @@ From lowest to highest precedence:
 `and` / `or` short-circuit. The pipeline `x |> f` rewrites to `f(x)`; chains compose left-to-right.
 
 ```ruka
-let n = nums |> filter(~pred=(x) do x % 2 == 0)
-            |> map(~f=(x) do x * x)
-            |> sum()
+let n = nums 
+    |> filter(~pred=(x) do x % 2 == 0)
+    |> map(~f=(x) do x * x)
+    |> sum()
 ```
 
 Operators on user-defined types are dispatched via [operator behaviours](#behaviours): defining a method named `add` makes `+` available for the type.
@@ -319,7 +320,7 @@ The same pattern syntax is used in every position — `let`/`local` destructurin
 | --- | --- | --- |
 | Identifier | `x` | no |
 | Tuple | `(a, b)` | no (when arity matches) |
-| Record | `{ x, y }` | no |
+| Record | `{x, y}` | no |
 | Literal | `0`, `"yes"` | yes |
 | Range | `1..=9` | yes |
 | Variant | `some(x)`, `miss` | yes |

@@ -142,7 +142,7 @@ count = count + 1`}
 		</p>
 		<CodeBlock
 			code={`let (x, y) = (1, 2)         // tuple pattern
-let { x, y } = origin       // record pattern; identifiers must match record fields`}
+let {x, y} = origin       // record pattern; identifiers must match record fields`}
 		/>
 		<h3>File scope is declarative</h3>
 		<p>
@@ -254,9 +254,9 @@ let nothing = ()    // the unit value, type ()`}
 		</p>
 		<CodeBlock
 			code={`let pair = (1, "one")           // tuple, inferred (int, string)
-let xs   = { 1, 2, 3 }          // array, inferred [int]
-let prefixed = [u8] { 0, 1, 2 } // type prefix pins the element type
-let typed: [u8] = { 0, 1, 2 }   // annotation does the same`}
+let xs   = {1, 2, 3}          // array, inferred [int]
+let prefixed = [u8] {0, 1, 2} // type prefix pins the element type
+let typed: [u8] = {0, 1, 2}   // annotation does the same`}
 		/>
 		<p>
 			In multi-line literals, members may be separated by newlines instead of commas.
@@ -425,9 +425,10 @@ let lookup = (key: string) -> ?(int) do ...`}
 			<code>x |&gt; f</code> rewrites to <code>f(x)</code>; chains compose left-to-right.
 		</p>
 		<CodeBlock
-			code={`let n = nums |> filter(~pred=(x) do x % 2 == 0)
-            |> map(~f=(x) do x * x)
-            |> sum()`}
+			code={`let n = nums 
+	|> filter(~pred=(x) do x % 2 == 0)
+    |> map(~f=(x) do x * x)
+    |> sum()`}
 		/>
 		<p>
 			Operators on user-defined types are dispatched via
@@ -484,7 +485,7 @@ let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)`}
 			<tbody>
 				<tr><td>Identifier</td><td><code>x</code></td><td>no</td></tr>
 				<tr><td>Tuple</td><td><code>(a, b)</code></td><td>no (when arity matches)</td></tr>
-				<tr><td>Record</td><td><code>&#123; x, y &#125;</code></td><td>no</td></tr>
+				<tr><td>Record</td><td><code>&#123;x, y&#125;</code></td><td>no</td></tr>
 				<tr><td>Literal</td><td><code>0</code>, <code>"yes"</code></td><td>yes</td></tr>
 				<tr><td>Range</td><td><code>1..=9</code></td><td>yes</td></tr>
 				<tr><td>Variant</td><td><code>some(x)</code>, <code>miss</code></td><td>yes</td></tr>
