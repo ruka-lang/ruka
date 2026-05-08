@@ -272,7 +272,7 @@ describe("parse: operators", () => {
 	it("`x as T` parses as a Cast expression", () => {
 		expect(expressionOf("x as i32")).toMatchObject({
 			kind: "Cast",
-			value: { kind: "Identifier", name: "x" },
+			value: { kind: "Ident", name: "x" },
 			type: { kind: "NamedType", name: "i32" }
 		});
 	});

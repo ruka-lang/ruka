@@ -15,7 +15,7 @@ let train (*self) = (training, epochs) do
 end
 
 local fit (*self) = (input, target) do
-	let input = input + { 1.0 }
+	let input = input.concat(1.0)
 	let guess = self.predict(input)	
 	let error = target - guess
 

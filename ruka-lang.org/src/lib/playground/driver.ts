@@ -85,6 +85,7 @@ export type RunHooks = {
 	onStdout: (text: string) => void;
 	onStderr: (text: string) => void;
 	requestInput: () => Promise<string>;
+	onClear?: () => void;
 };
 
 export type RunResult =
@@ -135,6 +136,9 @@ export async function runProject(project: Project, hooks: RunHooks): Promise<Run
 				next = generator.next();
 			} else if (event.kind === "stderr") {
 				hooks.onStderr(event.text);
+				next = generator.next();
+			} else if (event.kind === "clearOutput") {
+				hooks.onClear?.();
 				next = generator.next();
 			} else {
 				const line = await hooks.requestInput();
@@ -199,6 +203,9 @@ export async function runSource(source: string, hooks: RunHooks): Promise<RunRes
 				next = generator.next();
 			} else if (event.kind === "stderr") {
 				hooks.onStderr(event.text);
+				next = generator.next();
+			} else if (event.kind === "clearOutput") {
+				hooks.onClear?.();
 				next = generator.next();
 			} else {
 				const line = await hooks.requestInput();

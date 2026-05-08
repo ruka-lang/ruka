@@ -47,6 +47,7 @@ export type CheckedType =
 	| { kind: PrimitiveKind }
 	| ArrayType
 	| TupleType
+	| MapType
 	| OptionType
 	| ResultType
 	| RangeType
@@ -75,6 +76,7 @@ export type PrimitiveKind =
 
 export type ArrayType = { kind: "array"; element: CheckedType };
 export type TupleType = { kind: "tuple"; elements: CheckedType[] };
+export type MapType = { kind: "map"; key: CheckedType; value: CheckedType };
 export type OptionType = { kind: "option"; inner: CheckedType };
 export type ResultType = { kind: "result"; ok: CheckedType; err: CheckedType };
 export type RangeType = { kind: "range"; element: CheckedType };
@@ -91,7 +93,7 @@ export type MemberInfo = {
 export type RecordDef = {
 	kind: "recordDef";
 	name?: string;
-	fields: { name: string; type: CheckedType }[];
+	fields: { name: string; type: CheckedType; local?: boolean }[];
 	methods?: Record<string, MemberInfo>;
 	statics?: Record<string, MemberInfo>;
 	declEnv?: TypeEnv | null;
@@ -100,7 +102,7 @@ export type RecordDef = {
 export type VariantDef = {
 	kind: "variantDef";
 	name?: string;
-	tags: { name: string; type: CheckedType | null }[];
+	tags: { name: string; type: CheckedType | null; local?: boolean }[];
 	methods?: Record<string, MemberInfo>;
 	statics?: Record<string, MemberInfo>;
 	declEnv?: TypeEnv | null;
@@ -125,6 +127,17 @@ export function lookupEnv(env: TypeEnv | null, name: string): CheckedType | null
 		current = current.parent;
 	}
 	return null;
+}
+
+/** Resolves dotted type names like `Module.TypeName` through module statics. */
+export function lookupTypeEnv(env: TypeEnv | null, name: string): CheckedType | null {
+	const dot = name.indexOf(".");
+	if (dot === -1) return lookupEnv(env, name);
+	const moduleName = name.slice(0, dot);
+	const member = name.slice(dot + 1);
+	const moduleType = lookupEnv(env, moduleName);
+	if (!moduleType || moduleType.kind !== "recordDef") return null;
+	return moduleType.statics?.[member]?.type ?? null;
 }
 
 /** True when `target` is reachable from `current` via the parent chain. */
@@ -163,6 +176,12 @@ export function astToType(node: TypeExpr | null | undefined): CheckedType | null
 				kind: "tuple",
 				elements: node.elements.map((element) => astToType(element) ?? UNKNOWN)
 			};
+		case "MapType":
+			return {
+				kind: "map",
+				key: astToType(node.key) ?? UNKNOWN,
+				value: astToType(node.value) ?? UNKNOWN
+			};
 		case "OptionType":
 			return { kind: "option", inner: astToType(node.inner) ?? UNKNOWN };
 		case "ResultType":
@@ -190,6 +209,8 @@ export function typeStr(type: CheckedType | null | undefined): string {
 			return `[${typeStr(type.element)}]`;
 		case "tuple":
 			return `[${type.elements.map(typeStr).join(", ")}]`;
+		case "map":
+			return `[${typeStr(type.key)} => ${typeStr(type.value)}]`;
 		case "option":
 			return `?(${typeStr(type.inner)})`;
 		case "result":

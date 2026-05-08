@@ -19,13 +19,13 @@ html[data-theme="dark"] {
 	--fg: #ece7db;
 	--fg-muted: #a29d92;
 	--border: #2a2824;
-	--accent: #a32c43;
 	--accent-berry: #a32c43;
-	--accent-amber: #e38a3c;
+	--accent-amber: #e89a3c;
 	--accent-emerald: #386248;
-	--accent-fg: #141311;
 	--danger: #a32c43;
 	--selection: rgba(63, 104, 147, 0.25);
+	--flower-filter: invert(1);
+	--flower-opacity: 0.005;
 }
 
 html[data-theme="light"] {
@@ -34,13 +34,44 @@ html[data-theme="light"] {
 	--fg: #1a1916;
 	--fg-muted: #60594a;
 	--border: #d8d2c2;
-	--accent: #992239;
-	--accent-berry: #992239;
-	--accent-amber: #d98039;
-	--accent-emerald: #2d5544;
-	--accent-fg: #f5f1e8;
+	--accent-berry: #ab344b;
+	--accent-amber: #e89748;
+	--accent-emerald: #406a50;
 	--danger: #992239;
 	--selection: rgba(53, 94, 137, 0.17);
+	--flower-filter: none;
+	--flower-opacity: 0.02;
+}
+
+/* Accent colour variants — default to berry. SiteHeader cycles data-accent
+ * periodically between berry, amber, and emerald. The --accent-fg values
+ * ensure readable contrast on each background. */
+html[data-theme="dark"],
+html[data-theme="dark"][data-accent="berry"] {
+	--accent: #a32c43;
+	--accent-fg: #ece7db;
+}
+html[data-theme="dark"][data-accent="amber"] {
+	--accent: #e89a3c;
+	--accent-fg: #1c1814;
+}
+html[data-theme="dark"][data-accent="emerald"] {
+	--accent: #386248;
+	--accent-fg: #d4e8da;
+}
+
+html[data-theme="light"],
+html[data-theme="light"][data-accent="berry"] {
+	--accent: #ab344b;
+	--accent-fg: #f5f1e8;
+}
+html[data-theme="light"][data-accent="amber"] {
+	--accent: #e89748;
+	--accent-fg: #1c1814;
+}
+html[data-theme="light"][data-accent="emerald"] {
+	--accent: #406a50;
+	--accent-fg: #edf5ef;
 }
 
 :root {
@@ -70,9 +101,15 @@ html[data-theme="light"] {
 	--ui-select-fg: var(--fg);
 }
 
-html,
-body {
+html {
 	background: var(--bg);
+}
+
+body {
+	/* position: relative creates a stacking context so z-index: -1 children sit
+	 * above html's background but below all page content. No background here — html
+	 * provides the solid page colour. */
+	position: relative;
 	color: var(--fg);
 	font-family: var(--font-sans);
 	font-size: var(--fs-base);
@@ -128,3 +165,4 @@ pre {
 ::selection {
 	background: var(--selection);
 }
+

@@ -2,6 +2,7 @@
 	import { onMount, untrack } from "svelte";
 	import {
 		FilePlus,
+		PanelLeftOpen,
 		PanelRightOpen,
 		Pencil,
 		Play,
@@ -66,11 +67,11 @@
 	let status: "idle" | "running" | "error" | "ok" = $state("idle");
 	let terminal: Terminal | undefined = $state();
 
-	// Pane layout state. The tree column is drag-resizable via the
-	// vertical gutter between tree and editor; the output column
-	// collapses to a thin vertical rail with a chevron toggle.
+	// Pane layout state. Both the tree and output columns collapse to thin
+	// vertical rails; the tree column is also drag-resizable via the gutter.
 	let treeWidth = $state(220);
-	let outputCollapsed = $state(false);
+	let treeCollapsed = $state(false);
+	let outputCollapsed = $state(true);
 	let resizing = false;
 
 	function onResizeStart(event: PointerEvent) {
@@ -197,28 +198,50 @@
 	// Autosave runs only when the active source is a user project.
 	// Examples are read-only — edits to them stay in-memory and are
 	// discarded when the user picks something else.
+	async function doSave(id: string, snapshot: Project) {
+		const stored = await loadProject(id);
+		if (!stored) return;
+
+		// $state wraps values in reactive Proxies that IndexedDB's structured
+		// clone can't serialize. $state.snapshot() returns a plain JS copy.
+		const plain = $state.snapshot(snapshot);
+		stored.files = plain.files;
+		stored.folders = plain.folders;
+		stored.entry = plain.entry;
+		stored.order = plain.order;
+		await saveProject(stored);
+
+		// Refresh the in-memory list so updatedAt-based ordering
+		// stays accurate without another DB roundtrip on every save.
+		userProjects = await listProjects();
+	}
+
 	function scheduleSave() {
 		if (active.kind !== "project") return;
 		const id = active.id;
 
 		if (saveTimer) clearTimeout(saveTimer);
 
-		saveTimer = setTimeout(async () => {
+		// Snapshot the in-memory state now so the async callback writes
+		// the version that triggered this save, even if the user switches
+		// to a different project before the timer fires.
+		const snapshot = project;
+
+		saveTimer = setTimeout(() => {
 			saveTimer = null;
-
-			const stored = await loadProject(id);
-			if (!stored) return;
-
-			stored.files = project.files;
-			stored.folders = project.folders;
-			stored.entry = project.entry;
-			stored.order = project.order;
-			await saveProject(stored);
-
-			// Refresh the in-memory list so updatedAt-based ordering
-			// stays accurate without another DB roundtrip on every save.
-			userProjects = await listProjects();
+			doSave(id, snapshot);
 		}, 500);
+	}
+
+	// When the user navigates away from a user project, flush any pending
+	// debounced save immediately so the DB is up-to-date before the next
+	// project is loaded. Without this, switching away and back before the
+	// timer fires would load stale state from the DB.
+	async function flushSave() {
+		if (!saveTimer || active.kind !== "project") return;
+		clearTimeout(saveTimer);
+		saveTimer = null;
+		await doSave(active.id, project);
 	}
 
 	function onSourceChange(next: string) {
@@ -248,6 +271,8 @@
 	}
 
 	async function loadExample(id: string) {
+		await flushSave();
+
 		const example = findExample(id);
 		if (!example) return;
 
@@ -260,6 +285,8 @@
 	}
 
 	async function loadUserProject(id: string) {
+		await flushSave();
+
 		const stored = await loadProject(id);
 		if (!stored) {
 			// Fell out of the list (deleted in another tab, say); refresh
@@ -608,7 +635,8 @@
 		const hooks = {
 			onStdout: (text: string) => terminal?.write(text),
 			onStderr: (text: string) => terminal?.writeErr(text),
-			requestInput: () => terminal?.requestInput() ?? Promise.resolve("")
+			requestInput: () => terminal?.requestInput() ?? Promise.resolve(""),
+			onClear: () => terminal?.clear()
 		};
 		// Use the project-aware runner whenever we have a real entry so
 		// `ruka.import(...)` can resolve across files. `runSource` stays as
@@ -677,20 +705,34 @@
 		</div>
 	</header>
 
-	<div class="workspace" class:output-collapsed={outputCollapsed}>
-		<div class="pane tree-pane" style="width: {treeWidth}px">
+	<div class="workspace" class:output-collapsed={outputCollapsed} class:tree-collapsed={treeCollapsed}>
+		{#if treeCollapsed}
+			<button
+				class="tree-rail"
+				type="button"
+				onclick={() => (treeCollapsed = false)}
+				aria-label="Expand file tree"
+				title="Expand file tree"
+			>
+				<PanelLeftOpen size={14} strokeWidth={1.75} />
+				<span class="tree-rail-label">FILES</span>
+			</button>
+		{/if}
+		<div class="pane tree-pane" class:pane-hidden={treeCollapsed} style="width: {treeWidth}px">
 			<FileTree
 				files={project.files}
 				folders={project.folders}
 				order={project.order}
 				selected={selectedPath}
 				onAction={onTreeAction}
+				onCollapse={() => (treeCollapsed = true)}
 			/>
 		</div>
 
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="resize-gutter"
+			class:pane-hidden={treeCollapsed}
 			role="separator"
 			aria-orientation="vertical"
 			aria-label="Resize file tree"
@@ -709,6 +751,8 @@
 			/>
 		</div>
 
+		<!-- The rail and pane are always rendered so the Terminal component stays
+		     mounted and its output segments survive collapse/expand cycles. -->
 		{#if outputCollapsed}
 			<button
 				class="output-rail"
@@ -721,16 +765,15 @@
 				<span class="output-rail-label">OUTPUT</span>
 				<span class="output-rail-status" data-status={status} aria-hidden="true"></span>
 			</button>
-		{:else}
-			<div class="pane output-pane">
-				<Terminal
-					bind:this={terminal}
-					{status}
-					maxHeight="none"
-					onCollapse={() => (outputCollapsed = true)}
-				/>
-			</div>
 		{/if}
+		<div class="pane output-pane" class:pane-hidden={outputCollapsed}>
+			<Terminal
+				bind:this={terminal}
+				{status}
+				maxHeight="none"
+				onCollapse={() => (outputCollapsed = true)}
+			/>
+		</div>
 	</div>
 </section>
 
@@ -891,6 +934,10 @@
 		border-left: 1px solid var(--border);
 	}
 
+	.pane-hidden {
+		display: none;
+	}
+
 	.workspace.output-collapsed .editor-pane {
 		border-right: 1px solid var(--border);
 	}
@@ -910,6 +957,33 @@
 	.resize-gutter:hover {
 		background: var(--accent);
 		opacity: 0.4;
+	}
+
+	/* Vertical "FILES" rail shown when the tree pane is collapsed. */
+	.tree-rail {
+		display: flex;
+		flex: 0 0 28px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		padding: 10px 0;
+		color: var(--fg-muted);
+		background: transparent;
+		border: none;
+		border-right: 1px solid var(--border);
+		font: inherit;
+		font-size: 10px;
+		cursor: pointer;
+	}
+	.tree-rail:hover {
+		color: var(--fg);
+		background: var(--bg-elevated);
+	}
+	.tree-rail-label {
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		text-transform: uppercase;
 	}
 
 	/* Vertical "OUTPUT" rail shown when the output pane is collapsed.
@@ -971,6 +1045,9 @@
 			max-height: 200px;
 			border-right: none;
 			border-bottom: 1px solid var(--border);
+		}
+		.tree-rail {
+			display: none;
 		}
 		.resize-gutter {
 			display: none;

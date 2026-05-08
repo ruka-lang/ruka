@@ -98,10 +98,12 @@
 		ChevronRight,
 		FilePlus,
 		FolderPlus,
+		PanelLeftClose,
 		Pencil,
 		Trash2
 	} from "lucide-svelte";
 	import { isProtectedPath } from "$lib/playground/project";
+	import rukaLogo from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
 
 	type Props = {
 		files: ProjectFile[];
@@ -109,9 +111,10 @@
 		order: string[];
 		selected: string;
 		onAction: (action: TreeAction) => void;
+		onCollapse?: () => void;
 	};
 
-	let { files, folders, order, selected, onAction }: Props = $props();
+	let { files, folders, order, selected, onAction, onCollapse }: Props = $props();
 
 	const tree = $derived(buildTree(files, folders, order));
 
@@ -249,6 +252,15 @@
 	<div class="tree-header">
 		<span class="tree-title">Files</span>
 		<div class="tree-header-actions">
+			{#if onCollapse}
+				<button
+					class="icon-btn"
+					type="button"
+					aria-label="Collapse file tree"
+					title="Collapse file tree"
+					onclick={onCollapse}
+				><PanelLeftClose size={14} strokeWidth={1.75} /></button>
+			{/if}
 			<button
 				class="icon-btn"
 				type="button"
@@ -408,7 +420,11 @@
 					type="button"
 					onclick={() => fire({ kind: "open", path: node.path })}
 				>
-					<span class="kind-tag" data-kind={node.fileKind}>{node.fileKind}</span>
+					{#if node.fileKind === "ruka"}
+						<img class="ruka-icon" src={rukaLogo} alt="" width="14" height="14" />
+					{:else}
+						<span class="kind-tag" data-kind={node.fileKind}>{node.fileKind}</span>
+					{/if}
 					<span class="name">{node.name}</span>
 				</button>
 				<div class="row-actions">
@@ -551,8 +567,9 @@
 		border-radius: 2px;
 	}
 
-	.kind-tag[data-kind="ruka"] {
-		color: var(--accent);
+	.ruka-icon {
+		flex-shrink: 0;
+		opacity: 0.85;
 	}
 
 	.file-row[data-active="true"] {

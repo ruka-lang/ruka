@@ -1,22 +1,29 @@
 TODO (Docs and Playground)
+- [x] ruka.clear() to clear the output
+- [x] ruka.now() to get current seconds
+- [ ] Subtle floral background pattern on page body gutters (the empty left and right columns)
+- [ ] Add language overview after examples on home page
 - [ ] Playground functionality
+	- [ ] Popover type information on hover over an identifier
 	- [x] User packages supporting multiple files, saved with indexedDB
 		- [x] Vertical file tree sidebar
 		- [ ] Terminal resizable
-		- [ ] Terminal starts collapsed
-		- [ ] Bug: Terminal output disappears when uncollapsing the terminal
-		- [ ] Bug: User package state isn't being saved automatically
-		- [ ] Bug: Text files are not loaded from examples packages
-		- [ ] File icon for ruka files should use ruka svg
-	- [ ] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
-        - [ ] do is only autoclosed with end if pressing enter right after it
-	- [ ] Line numbers
+		- [x] Terminal starts collapsed
+		- [x] Bug: Terminal output disappears when uncollapsing the terminal
+		- [x] Bug: User package state isn't being saved automatically
+		- [x] Bug: Text files are not loaded from examples packages
+		- [x] File icon for ruka files should use ruka svg
+	- [x] Context aware indentation and autoclosing for `()` `{}` `[]` `""` `''` `do end`
+        - [x] do is only autoclosed with end if pressing enter right after it
+	- [x] Line numbers
+	- [x] File tree collapsable like terminal
 	- [x] Playground styled more cohesively. Currently a bunch of different things floating near each other. Should use full width and height
-- [ ] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
-- [ ] Code example/block/editor backgrounds should use the Rose-pine variants background colour
-- [ ] Return to top button in bottom right when scrolled down
-- [ ] Accent colour and associated logo shift between berry, amber, and emerald periodically
-- [ ] Subtle spinning floral background pattern on page body gutters (empty left and right columns)
+- [x] Rose-pine attribution footer and footer link to https://www.github.com/ruka-lang/ruka/blob/main/copyright
+- [x] Code example/block/editor backgrounds should use the Rose-pine variants background colour
+- [x] Return to top button in bottom right when scrolled down
+- [x] Accent colour and associated logo shift between berry, amber, and emerald periodically
 - [ ] Better mobile styling
-	- [ ] Navlinks collapse into menu
-- [ ] Add language overview after examples on home page
+	- [ ] Navlinks github and theme toggle collapse into menu
+	- [ ] Reference / Grammar TOC collapses into a button with the current section title as the button text
+	- [ ] Smaller text
+- [ ] Extract playground packages to .zip file

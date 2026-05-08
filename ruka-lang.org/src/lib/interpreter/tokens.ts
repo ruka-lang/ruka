@@ -29,7 +29,8 @@ export const KEYWORDS = new Set([
 	"behaviour",
 	"self",
 	"test",
-	"defer"
+	"defer",
+	"as"
 ] as const);
 
 export type Keyword = typeof KEYWORDS extends Set<infer T> ? T : never;
@@ -37,7 +38,7 @@ export type Keyword = typeof KEYWORDS extends Set<infer T> ? T : never;
 // Multi-character punctuators, longest-first. The tokenizer tries 3-char
 // matches before 2-char so `..=` beats `..`.
 export const PUNCT3 = ["..="] as const;
-export const PUNCT2 = ["==", "!=", "<=", ">=", "->", "..", "**", "|>"] as const;
+export const PUNCT2 = ["==", "!=", "<=", ">=", "->", "..", "**", "|>", "=>"] as const;
 
 export type TokenKind =
 	| "NL"

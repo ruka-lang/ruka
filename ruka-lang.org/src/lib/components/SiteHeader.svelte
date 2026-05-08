@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from "$app/state";
-	import logo from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
+	import logoBerry from "$lib/assets/branding/svg/ruka-berry-a32c43.svg";
+	import logoAmber from "$lib/assets/branding/svg/ruka-amber-e89a3c.svg";
+	import logoEmerald from "$lib/assets/branding/svg/ruka-emerald-386248.svg";
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
 	type NavLink = { href: string; label: string };
@@ -18,11 +20,29 @@
 		const path = page.url.pathname;
 		return href === "/" ? path === "/" : path === href || path.startsWith(href + "/");
 	}
+
+	// Cycle the accent colour (and matching logo) through berry → amber → emerald
+	// every 8 seconds. The data-accent attribute on <html> drives the CSS vars
+	// defined in tokens.css so every site-wide use of --accent updates together.
+	const accentNames = ["berry", "amber", "emerald"] as const;
+	const accentLogos = [logoBerry, logoAmber, logoEmerald];
+	let accentIndex = $state(0);
+
+	$effect(() => {
+		const timer = setInterval(() => {
+			accentIndex = (accentIndex + 1) % accentNames.length;
+		}, 8000);
+		return () => clearInterval(timer);
+	});
+
+	$effect(() => {
+		document.documentElement.setAttribute("data-accent", accentNames[accentIndex]);
+	});
 </script>
 
 <header class="site-header">
 	<a class="brand" href="/" aria-label="Ruka home">
-		<img class="brand-logo" src={logo} alt="" width="24" height="24" />
+		<img class="brand-logo" src={accentLogos[accentIndex]} alt="" width="24" height="24" />
 		<span class="brand-name">Ruka</span>
 	</a>
 
@@ -58,7 +78,7 @@
 		display: flex;
 		align-items: center;
 		gap: 24px;
-		padding: 14px 24px;
+		padding: 8px 24px;
 		border-bottom: 1px solid var(--border);
 		background: var(--bg);
 		/* Sticky so the toggle and nav stay reachable while scrolling docs. */
@@ -76,7 +96,7 @@
 	}
 
 	.brand-logo {
-		border-radius: 3px;
+		border-radius: 1px;
 	}
 
 	.brand-name {

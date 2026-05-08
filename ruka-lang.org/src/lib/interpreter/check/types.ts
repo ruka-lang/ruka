@@ -39,6 +39,7 @@ import {
 	INT_KINDS,
 	isNumericKind,
 	lookupEnv,
+	lookupTypeEnv,
 	type ArrayType,
 	type CheckedType,
 	type FunctionType,
@@ -71,7 +72,7 @@ function resolveRecord(type: CheckedType | null, env: TypeEnv): RecordDef | null
 	if (!type) return null;
 	if (type.kind === "recordDef") return type;
 	if (type.kind === "named") {
-		const looked = lookupEnv(env, type.name);
+		const looked = lookupTypeEnv(env, type.name);
 		if (looked && looked.kind === "recordDef") return looked;
 	}
 	return null;
@@ -105,9 +106,9 @@ function bindRecordFields(
 				col
 			);
 		}
-		if (isPrivateName(name) && !envContains(env, def.declEnv)) {
+		if (field.local && !envContains(env, def.declEnv)) {
 			throw new RukaError(
-				`field '${name}' is private and cannot be destructured here`,
+				`field '${name}' is local and cannot be destructured here`,
 				line,
 				col
 			);
@@ -228,15 +229,15 @@ function methodOf(
 	}
 
 	if (object.kind === "named" && env) {
-		const definition = lookupEnv(env, object.name);
+		const definition = lookupTypeEnv(env, object.name);
 		if (definition && definition.kind === "recordDef") {
 			const field = definition.fields.find((f) => f.name === name);
 			if (field) {
-				if (isPrivateName(name) && !envContains(env, definition.declEnv)) {
+				if (field.local && !envContains(env, definition.declEnv)) {
 					throw typeError(
 						line,
 						col,
-						`field '${name}' on '${object.name}' is private`,
+						`field '${name}' on '${object.name}' is local`,
 						true
 					);
 				}
@@ -302,6 +303,14 @@ function conform(
 		return actual;
 	}
 	if (!typesEqual(expected, actual)) {
+		// Numeric type mismatch: require an explicit cast rather than implicit narrowing/widening.
+		if (isNumericKind(expected.kind) && isNumericKind(actual.kind)) {
+			throw typeError(
+				line,
+				col,
+				`assigning ${typeStr(actual)} to ${typeStr(expected)} requires an explicit cast`
+			);
+		}
 		throw typeError(
 			line,
 			col,
@@ -375,6 +384,24 @@ function walkExpression(
 		case "ArrayComp":
 			walkExpression(node.iterable, visit);
 			walkExpression(node.body, visit);
+			if (node.filter) walkExpression(node.filter, visit);
+			return;
+		case "MapLiteral":
+			for (const entry of node.entries) {
+				walkExpression(entry.key, visit);
+				walkExpression(entry.value, visit);
+			}
+			return;
+		case "MapComp":
+			walkExpression(node.iterable, visit);
+			walkExpression(node.keyBody, visit);
+			walkExpression(node.valueBody, visit);
+			if (node.filter) walkExpression(node.filter, visit);
+			return;
+		case "BehaviourType":
+			return;
+		case "Cast":
+			walkExpression(node.value, visit);
 			return;
 		case "RecordLiteral":
 			if (node.typeName) {
@@ -433,6 +460,9 @@ function walkStatement(node: Statement | null | undefined, visit: Visitor): void
 			for (const statement of node.body) {
 				walkStatement(statement, visit);
 			}
+			return;
+		case "Defer":
+			walkExpression(node.expression, visit);
 			return;
 	}
 }
@@ -509,6 +539,8 @@ export function checkTypes(
 			min: rukaStatic(unknownFn2),
 			max: rukaStatic(unknownFn2),
 			pow: rukaStatic(numericFn2),
+			now: rukaStatic({ kind: "fn", params: [], returnType: { kind: "f64" } }),
+			clear: rukaStatic({ kind: "fn", params: [], returnType: { kind: "unit" } }),
 			import: rukaStatic(UNKNOWN)
 		}
 	};
@@ -521,6 +553,7 @@ export function checkTypes(
 	// type definitions get their def eagerly so the method pre-pass can find them;
 	// everything else is UNKNOWN until the main pass refines it.
 	const topLevelNames: string[] = [];
+	const localTopLevelNames = new Set<string>();
 	for (const statement of ast.body) {
 		if (statement.kind === "Binding" && !statement.receiver) {
 			let hoisted: CheckedType = astToType(statement.type) ?? UNKNOWN;
@@ -532,7 +565,8 @@ export function checkTypes(
 						kind: "recordDef",
 						fields: statement.value.fields.map((f) => ({
 							name: f.name,
-							type: astToType(f.type) ?? UNKNOWN
+							type: astToType(f.type) ?? UNKNOWN,
+							local: f.local || undefined
 						}))
 					};
 				} else if (statement.value.kind === "VariantType") {
@@ -540,7 +574,8 @@ export function checkTypes(
 						kind: "variantDef",
 						tags: statement.value.tags.map((tag) => ({
 							name: tag.name,
-							type: tag.type ? (astToType(tag.type) ?? UNKNOWN) : null
+							type: tag.type ? (astToType(tag.type) ?? UNKNOWN) : null,
+							local: tag.local || undefined
 						}))
 					};
 				}
@@ -548,10 +583,12 @@ export function checkTypes(
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
 				topLevelNames.push(statement.pattern.name);
+				if (statement.local) localTopLevelNames.add(statement.pattern.name);
 			} else {
 				for (const name of statement.pattern.names) {
 					topEnv.bindings[name] = UNKNOWN;
 					topLevelNames.push(name);
+					if (statement.local) localTopLevelNames.add(name);
 				}
 			}
 		}
@@ -621,7 +658,7 @@ export function checkTypes(
 			// by case: lowercase = public.
 			const statics: Record<string, MemberInfo> = Object.create(null);
 			for (const name of topLevelNames) {
-				if (isPrivateName(name)) continue;
+				if (localTopLevelNames.has(name)) continue;
 				const type = topEnv.bindings[name];
 				if (type) statics[name] = { type, declEnv: topEnv, line: 0 };
 			}
@@ -925,6 +962,10 @@ export function checkTypes(
 			for (const inner of node.body) {
 				checkStatement(inner, forEnv);
 			}
+			return;
+		}
+		if (node.kind === "Defer") {
+			inferExpression(node.expression, null, env);
 			return;
 		}
 		// Break / Continue: nothing to check.
@@ -1590,6 +1631,13 @@ export function checkTypes(
 
 			case "Index": {
 				const objectType = inferExpression(node.object, null, env);
+
+				// Map indexing: infer the index against the key type, return value type.
+				if (objectType.kind === "map") {
+					inferExpression(node.index, objectType.key, env);
+					return conform(expected, objectType.value, node.line, node.col);
+				}
+
 				const indexType = inferExpression(node.index, null, env);
 				if (indexType.kind === "range") {
 					if (objectType.kind === "string") {
@@ -1648,6 +1696,52 @@ export function checkTypes(
 						inferExpression(node.args[index]!, params[index]!, env);
 					}
 					return conform(expected, calleeType.returnType, node.line, node.col);
+				}
+				// Unknown callee — check if it is a user-defined variant constructor.
+				if (calleeType.kind === "unknown" && node.callee.kind === "Ident") {
+					const tag = node.callee.name;
+					// Check expected type for a hint first.
+					if (expected && expected.kind === "named") {
+						const varDef = lookupEnv(env, expected.name);
+						if (varDef && varDef.kind === "variantDef") {
+							const tagDef = varDef.tags.find((t) => t.name === tag);
+							if (tagDef) {
+								if (tagDef.type && node.args.length === 1) {
+									inferExpression(node.args[0]!, tagDef.type, env);
+								}
+								return conform(expected, { kind: "named", name: expected.name }, node.line, node.col);
+							}
+						}
+					}
+					// Scan all variant defs in scope.
+					const variantCandidates: { name: string; tagDef: { name: string; type: CheckedType | null } }[] = [];
+					const seenVarNames = new Set<string>();
+					let scanEnv: TypeEnv | null = env;
+					while (scanEnv) {
+						for (const [name, binding] of Object.entries(scanEnv.bindings)) {
+							if (seenVarNames.has(name)) continue;
+							seenVarNames.add(name);
+							if (binding && binding.kind === "variantDef") {
+								const tagDef = binding.tags.find((t) => t.name === tag);
+								if (tagDef) variantCandidates.push({ name, tagDef });
+							}
+						}
+						scanEnv = scanEnv.parent;
+					}
+					if (variantCandidates.length > 1) {
+						throw typeError(
+							node.line,
+							node.col,
+							`ambiguous constructor '${tag}': could be ${variantCandidates.map((c) => c.name).join(" or ")}`
+						);
+					}
+					if (variantCandidates.length === 1) {
+						const { name: varName, tagDef } = variantCandidates[0]!;
+						if (tagDef.type && node.args.length === 1) {
+							inferExpression(node.args[0]!, tagDef.type, env);
+						}
+						return conform(expected, { kind: "named", name: varName }, node.line, node.col);
+					}
 				}
 				// Unknown callee — still walk args so nested expressions get checked.
 				for (const arg of node.args) {
@@ -1782,13 +1876,76 @@ export function checkTypes(
 			case "VariantType": {
 				const variantTags = node.tags.map((tag) => ({
 					name: tag.name,
-					type: tag.type ? astToType(tag.type) : null
+					type: tag.type ? astToType(tag.type) : null,
+					local: tag.local || undefined
 				}));
 				const definition: VariantDef = { kind: "variantDef", tags: variantTags };
 				return definition;
 			}
 
 			case "VariantConstructor": {
+				// Built-in option constructors: some(T) and none.
+				if (node.tag === "some" || node.tag === "none") {
+					const innerHint =
+						expected && expected.kind === "option" ? expected.inner : null;
+					if (node.tag === "some") {
+						if (!node.payload) {
+							throw typeError(node.line, node.col, "some requires a payload");
+						}
+						const actualInner = inferExpression(node.payload, innerHint, env);
+						node.resolvedTypeName = "option";
+						return conform(
+							expected,
+							{ kind: "option", inner: actualInner },
+							node.line,
+							node.col
+						);
+					} else {
+						if (node.payload) {
+							throw typeError(node.line, node.col, "none takes no payload");
+						}
+						node.resolvedTypeName = "option";
+						return conform(
+							expected,
+							{ kind: "option", inner: innerHint ?? UNKNOWN },
+							node.line,
+							node.col
+						);
+					}
+				}
+				// Built-in result constructors: ok(T) and err(E).
+				if (node.tag === "ok" || node.tag === "err") {
+					const okHint =
+						expected && expected.kind === "result" ? expected.ok : null;
+					const errHint =
+						expected && expected.kind === "result" ? expected.err : null;
+					if (node.tag === "ok") {
+						if (!node.payload) {
+							throw typeError(node.line, node.col, "ok requires a payload");
+						}
+						const actualOk = inferExpression(node.payload, okHint, env);
+						node.resolvedTypeName = "result";
+						return conform(
+							expected,
+							{ kind: "result", ok: actualOk, err: errHint ?? UNKNOWN },
+							node.line,
+							node.col
+						);
+					} else {
+						if (!node.payload) {
+							throw typeError(node.line, node.col, "err requires a payload");
+						}
+						const actualErr = inferExpression(node.payload, errHint, env);
+						node.resolvedTypeName = "result";
+						return conform(
+							expected,
+							{ kind: "result", ok: okHint ?? UNKNOWN, err: actualErr },
+							node.line,
+							node.col
+						);
+					}
+				}
+
 				// Resolve which variant type owns this tag. Use the expected type as
 				// a hint; otherwise scan scope for a unique match.
 				let definition: VariantDef | null = null;
@@ -1884,6 +2041,7 @@ export function checkTypes(
 				// Resolve a variant subject to its definition so we can
 				// validate tags and check exhaustiveness. Named types are
 				// looked up in the env; primitives/records/etc. yield null.
+				// Built-in option/result types also produce synthetic defs.
 				let variantDef: VariantDef | null = null;
 				let variantName: string | null = null;
 				if (subjectType.kind === "variantDef") {
@@ -1895,6 +2053,24 @@ export function checkTypes(
 						variantDef = looked;
 						variantName = subjectType.name;
 					}
+				} else if (subjectType.kind === "option") {
+					variantDef = {
+						kind: "variantDef",
+						tags: [
+							{ name: "some", type: subjectType.inner },
+							{ name: "none", type: null }
+						]
+					};
+					variantName = "option";
+				} else if (subjectType.kind === "result") {
+					variantDef = {
+						kind: "variantDef",
+						tags: [
+							{ name: "ok", type: subjectType.ok },
+							{ name: "err", type: subjectType.err }
+						]
+					};
+					variantName = "result";
 				}
 
 				// `expected` for literal/range patterns: use the subject type
@@ -2042,7 +2218,8 @@ export function checkTypes(
 			case "RecordType": {
 				const recordFields = node.fields.map((field) => ({
 					name: field.name,
-					type: astToType(field.type) ?? UNKNOWN
+					type: astToType(field.type) ?? UNKNOWN,
+					local: field.local || undefined
 				}));
 				const definition: RecordDef = { kind: "recordDef", fields: recordFields };
 				return definition;
@@ -2052,10 +2229,12 @@ export function checkTypes(
 				// Resolve the target record type — either from the explicit typeName
 				// (Thing.{...}) or from the expected type annotation.
 				let definition: RecordDef | null = null;
+				let namedRecordName: string | null = null;
 				if (node.typeName && node.typeName.kind === "Ident") {
 					const looked = lookupEnv(env, node.typeName.name);
 					if (looked && looked.kind === "recordDef") {
 						definition = looked;
+						namedRecordName = node.typeName.name;
 					} else if (looked && looked.kind !== "unknown") {
 						throw typeError(
 							node.line,
@@ -2063,13 +2242,30 @@ export function checkTypes(
 							`'${node.typeName.name}' is not a record type`
 						);
 					}
+				} else if (node.typeName && node.typeName.kind === "RecordType") {
+					// Inline: `record { ... } { field = val }` — anonymous record type.
+					definition = {
+						kind: "recordDef",
+						fields: node.typeName.fields.map((f) => ({
+							name: f.name,
+							type: astToType(f.type) ?? UNKNOWN
+						}))
+					};
 				} else if (expected && expected.kind === "named") {
 					const looked = lookupEnv(env, expected.name);
 					if (looked && looked.kind === "recordDef") {
 						definition = looked;
+						namedRecordName = expected.name;
 					}
 				}
 				if (definition) {
+					if (definition.fields.length === 0) {
+						throw typeError(
+							node.line,
+							node.col,
+							`cannot instantiate empty record type; use it as a type marker only`
+						);
+					}
 					const fieldByName: Record<string, { name: string; type: CheckedType }> =
 						Object.create(null);
 					for (const field of definition.fields) {
@@ -2097,14 +2293,15 @@ export function checkTypes(
 					for (const field of node.fields) {
 						inferExpression(field.value, fieldByName[field.name]!.type, env);
 					}
-					const recordName =
-						node.typeName && node.typeName.kind === "Ident"
-							? node.typeName.name
-							: (expected as NamedType).name;
-					node.resolvedTypeName = recordName;
+					// Inline anonymous record types: return the def so downstream
+					// checks (e.g. cast validation) can inspect the type.
+					if (!namedRecordName) {
+						return definition;
+					}
+					node.resolvedTypeName = namedRecordName;
 					return conform(
 						expected,
-						{ kind: "named", name: recordName },
+						{ kind: "named", name: namedRecordName },
 						node.line,
 						node.col
 					);
@@ -2165,6 +2362,19 @@ export function checkTypes(
 				});
 
 				if (matches.length === 0) {
+					// A single bare identifier `{ x }` is ambiguous between a one-element
+					// array and a record shorthand; give a descriptive error.
+					const isSingleShorthand =
+						node.fields.length === 1 &&
+						node.fields[0]!.value.kind === "Ident" &&
+						node.fields[0]!.name === (node.fields[0]!.value as { name: string }).name;
+					if (isSingleShorthand) {
+						throw typeError(
+							node.line,
+							node.col,
+							`ambiguous: '{${node.fields[0]!.name}}' could be a one-element array or a record shorthand; add a type annotation or use 'Type{...}' to specify`
+						);
+					}
 					throw typeError(
 						node.line,
 						node.col,
@@ -2196,6 +2406,89 @@ export function checkTypes(
 					node.line,
 					node.col
 				);
+			}
+
+			case "BehaviourType":
+				// Behaviour type definitions are not yet type-checked in detail.
+				return { kind: "unknown" };
+
+			case "MapLiteral": {
+				const expectedMap = expected && expected.kind === "map" ? expected : null;
+				const prefix = node.typePrefix ? astToType(node.typePrefix) : null;
+				const mapType = (prefix && prefix.kind === "map" ? prefix : expectedMap) ?? null;
+
+				let inferredKey: CheckedType = UNKNOWN;
+				let inferredValue: CheckedType = UNKNOWN;
+				for (const entry of node.entries) {
+					const k = inferExpression(entry.key, mapType?.key ?? null, env);
+					const v = inferExpression(entry.value, mapType?.value ?? null, env);
+					if (inferredKey.kind === "unknown") inferredKey = k;
+					if (inferredValue.kind === "unknown") inferredValue = v;
+				}
+				const resultKey = mapType?.key ?? inferredKey;
+				const resultValue = mapType?.value ?? inferredValue;
+				return conform(
+					expected,
+					{ kind: "map", key: resultKey, value: resultValue },
+					node.line,
+					node.col
+				);
+			}
+
+			case "MapComp": {
+				const compMap = expected && expected.kind === "map" ? expected : null;
+				const compPrefix = node.typePrefix ? astToType(node.typePrefix) : null;
+				const mapTypeHint = (compPrefix && compPrefix.kind === "map" ? compPrefix : compMap) ?? null;
+
+				const iterableType = inferExpression(node.iterable, null, env);
+				const compEnv = extendEnv(env);
+				const compElemType: CheckedType =
+					iterableType.kind === "array" || iterableType.kind === "range"
+						? iterableType.element
+						: iterableType.kind === "string"
+							? { kind: "u8" }
+							: UNKNOWN;
+				if (node.name) {
+					compEnv.bindings[node.name] = compElemType;
+				} else if (node.tuplePattern) {
+					for (const name of node.tuplePattern) {
+						compEnv.bindings[name] = UNKNOWN;
+					}
+				}
+				const keyType = inferExpression(node.keyBody, mapTypeHint?.key ?? null, compEnv);
+				const valueType = inferExpression(node.valueBody, mapTypeHint?.value ?? null, compEnv);
+				if (node.filter) inferExpression(node.filter, { kind: "bool" }, compEnv);
+				return conform(
+					expected,
+					{ kind: "map", key: keyType, value: valueType },
+					node.line,
+					node.col
+				);
+			}
+
+			case "Cast": {
+				inferExpression(node.value, null, env);
+				const targetType = astToType(node.type);
+				if (!targetType) return UNKNOWN;
+				// Validate that common invalid casts are caught.
+				const fromType = inferExpression(node.value, null, env);
+				const isNumeric = (t: CheckedType | null) =>
+					t &&
+					(t.kind === "i32" ||
+						t.kind === "i64" ||
+						t.kind === "f32" ||
+						t.kind === "f64" ||
+						t.kind === "u8" ||
+						t.kind === "int" ||
+						t.kind === "float");
+				const isString = (t: CheckedType | null) => t && t.kind === "string";
+				if (isString(fromType) && isNumeric(targetType)) {
+					throw typeError(node.line, node.col, `cannot cast ${typeStr(fromType)} to ${typeStr(targetType)}`);
+				}
+				if (fromType && fromType.kind === "recordDef") {
+					throw typeError(node.line, node.col, `cannot cast ${typeStr(fromType)} to ${typeStr(targetType)}`);
+				}
+				return targetType ?? UNKNOWN;
 			}
 		}
 		return UNKNOWN;
