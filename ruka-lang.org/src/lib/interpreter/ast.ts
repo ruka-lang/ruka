@@ -39,7 +39,7 @@ export type RecordPattern = { kind: "RecordPattern"; names: string[] };
 // target type is known; the evaluator reads it to attach the method/static
 // to the right value at runtime.
 export type Receiver =
-	| { kind: "self"; mode: "*" | "&" | "$" | "@" | null; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
+	| { kind: "self"; mode: "*" | "&" | "$" | "@" | "#" | null; typeAnnotation: TypeExpr | null; resolvedTypeName?: string }
 	| { kind: "static"; typeName: string; resolvedTypeName?: string };
 
 // ── Statements ────────────────────────────────────────────────────────────
@@ -56,8 +56,7 @@ export type Statement =
 
 export type Binding = {
 	kind: "Binding";
-	local: boolean;
-	mode: "*" | "&" | "$" | "@" | null;
+	mode: "*" | "&" | "$" | "@" | "#" | null;
 	pattern: LetPattern;
 	name?: string;
 	type: TypeExpr | null;
@@ -294,7 +293,7 @@ export type Index = {
 export type RecordTypeField = {
 	name: string;
 	type: TypeExpr;
-	local?: boolean;
+	mode?: "@" | "#" | "*" | "&" | "$";
 };
 
 export type RecordType = {
@@ -307,7 +306,7 @@ export type RecordType = {
 export type VariantTag = {
 	name: string;
 	type: TypeExpr | null;
-	local?: boolean;
+	mode?: "@" | "#" | "*" | "&" | "$";
 };
 
 export type VariantType = {

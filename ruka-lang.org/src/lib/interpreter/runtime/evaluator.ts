@@ -74,7 +74,7 @@ function* runImpl(ast: Program, project?: RuntimeProject, entry?: string): Run {
 
 	const mainBinding = findMain(ast);
 	const mainValue = envHas(globalEnv, "main") ? envGet(globalEnv, "main") : null;
-	if (mainBinding && !mainBinding.local && isFn(mainValue)) {
+	if (mainBinding && mainBinding.mode !== "@" && isFn(mainValue)) {
 		yield* callFn(mainValue, [], mainBinding.line, mainBinding.col, globalEnv);
 	}
 }

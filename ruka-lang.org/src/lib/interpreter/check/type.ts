@@ -93,7 +93,7 @@ export type MemberInfo = {
 export type RecordDef = {
 	kind: "recordDef";
 	name?: string;
-	fields: { name: string; type: CheckedType; local?: boolean }[];
+	fields: { name: string; type: CheckedType; mode?: "@" | "#" | "*" | "&" | "$" }[];
 	methods?: Record<string, MemberInfo>;
 	statics?: Record<string, MemberInfo>;
 	declEnv?: TypeEnv | null;
@@ -102,7 +102,7 @@ export type RecordDef = {
 export type VariantDef = {
 	kind: "variantDef";
 	name?: string;
-	tags: { name: string; type: CheckedType | null; local?: boolean }[];
+	tags: { name: string; type: CheckedType | null; mode?: "@" | "#" | "*" | "&" | "$" }[];
 	methods?: Record<string, MemberInfo>;
 	statics?: Record<string, MemberInfo>;
 	declEnv?: TypeEnv | null;

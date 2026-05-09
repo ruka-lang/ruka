@@ -1,9 +1,9 @@
-// `@`-prefixed parameters must be compile-time known. A parameter typed
-// `type` infers `@` automatically.
-let min = (t: type, a: t, b: t) do if a < b do a else b
+// `#` marks a parameter as compile-time known. It must always be written
+// explicitly — it is never inferred from a `type` annotation.
+let min = (#t: type, a: t, b: t) do if a < b do a else b
 
 // A compile-time function that returns a type.
-let pair_of = (t: type) do record { first: t, second: t }
+let pair_of = (#t: type) do record { first: t, second: t }
 
 let int_pair = pair_of(i32)
 let str_pair = pair_of(string)

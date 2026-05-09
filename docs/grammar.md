@@ -47,7 +47,7 @@ comment       ::=  "//" <any char except "\n">* "\n"?
 
 ### Identifiers
 
-An identifier begins with a letter or underscore and is followed by zero or more letters, digits, or underscores. Any identifier that matches a keyword or mode keyword is reserved and cannot be used as a user-defined name. Casing carries no semantic weight; visibility is controlled by the `local` keyword (see [Declarations](#declarations)).
+An identifier begins with a letter or underscore and is followed by zero or more letters, digits, or underscores. Any identifier that matches a keyword is reserved and cannot be used as a user-defined name. Casing carries no semantic weight; visibility is controlled by the `@` mode prefix (see [Declarations](#declarations)).
 
 ```ebnf
 letter        ::=  [a-zA-Z_]
@@ -61,19 +61,20 @@ identifier    ::=  letter ( letter | digit )*
 
 The following identifiers are reserved as keywords:
 
-`and` `as` `behaviour` `break` `continue` `defer` `do` `else` `end` `false` `for` `if` `in` `let` `local` `match` `not` `or` `record` `return` `self` `test` `true` `variant` `while` `with`
+`and` `as` `behaviour` `break` `continue` `defer` `do` `else` `end` `false` `for` `if` `in` `let` `match` `not` `or` `record` `return` `self` `test` `true` `variant` `while` `with`
 
-The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or binding identifier with no whitespace between the prefix and the identifier.
+The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or naming identifier with no whitespace between the prefix and the identifier. For named parameters, `~` appears before the mode prefix.
 
 ```ebnf
-mode-prefix   ::=  "*"    -- mutable; binding may be reassigned, parameter mutates in place
+mode-prefix   ::=  "*"    -- mutable; naming may be reassigned, parameter mutates in place
                |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on bindings, capture by a closure transfers ownership into the closure
+                          --   on namings, capture by a closure transfers ownership into the closure
                |   "$"    -- stack-allocated; value cannot escape the function scope
-               |   "@"    -- compile-time; value must be known at compile time
+               |   "@"    -- local; non-escaping — private at file scope, non-capturable at function scope
+               |   "#"    -- compile-time; value must be known at compile time
 ```
 
-`self` is reserved for the method receiver; it may only appear in the receiver clause of a binding declaration or as a parameter inside a method body. `with` is used only as part of `match` syntax. `as` is used only as the cast operator. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
+`self` is reserved for the method receiver; it may only appear in the receiver clause of a binding declaration or as a parameter inside a method body. `with` is used in `match … with` and in the nested `for outer with pattern in inner` form. `as` is used only as the cast operator. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
 
 ### Literals
 
@@ -143,7 +144,7 @@ The syntactic grammar is defined over token sequences. Whitespace and comments b
 
 ### Program
 
-A Ruka source file is a flat sequence of declarations. Every file is implicitly a compile-time record: top-level `let` declarations become its public members; top-level `local` declarations are private members the file uses internally but does not export. `ruka.import` returns this record value; there is no separate module concept.
+A Ruka source file is a flat sequence of declarations. Every file is implicitly a compile-time record: top-level `let` declarations become its public members; top-level `let` declarations with the `@` mode are private — used internally but not exported. `ruka.import` returns this record value; there is no separate module concept.
 
 ```ebnf
 program       ::=  declaration*
@@ -151,21 +152,17 @@ program       ::=  declaration*
 
 ### Declarations
 
-There are three declaration forms: `let` bindings, `local` bindings, and `test` bindings. There is no separate `fn`, `type`, or `mod` keyword. Mutability and evaluation time are expressed through modes; privacy is selected by the binding keyword.
+There are two declaration forms: `let` namings and `test` namings. There is no separate `fn`, `type`, or `mod` keyword. Mutability, locality, and evaluation time are all expressed through mode prefixes.
 
 ```ebnf
-declaration   ::=  binding | test-binding
+declaration   ::=  naming | test-naming
 
-binding       ::=  binding-keyword binding-lhs "=" expr
-               |   binding-keyword binding-lhs ":" type "=" expr
+naming        ::=  "let" naming-lhs "=" expr
+               |   "let" naming-lhs ":" type "=" expr
 
-binding-keyword
-              ::=  "let"                                    -- public binding (or capture-eligible at function scope)
-               |   "local"                                  -- file-private (or non-capturable at function scope)
-
-binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
-               |   mode-prefix? identifier receiver         -- function or method binding
-               |   destructure-pattern                      -- destructuring binding
+naming-lhs    ::=  mode-prefix? identifier                  -- simple value naming
+               |   mode-prefix? identifier receiver         -- function or method naming
+               |   destructure-pattern                      -- destructuring naming
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                               -- member: associated type name
@@ -178,21 +175,21 @@ destructure-pattern
                    -- e.g.  let (a, b)   = pair
                    -- e.g.  let { sqrt, pow } = ruka.import("Math.ruka")
 
-test-binding  ::=  "test" identifier "=" expr
+test-naming   ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only
 ```
 
-**Uniform declarations.** Functions, types, behaviours, and imported files are all values stored in ordinary `let` or `local` bindings. A *receiver* in the binding left-hand side associates the value with a named type as either a *member* (type-name receiver) or a *method* (`self` receiver). The receiver appears between the binding name and the `=` sign.
+**Uniform declarations.** Functions, types, behaviours, and imported files are all values stored in ordinary `let` namings. A *receiver* in the naming left-hand side associates the value with a named type as either a *member* (type-name receiver) or a *method* (`self` receiver). The receiver appears between the naming name and the `=` sign.
 
 **Type extension.** The type named by a receiver is not required to be declared in the current scope — any type is a valid receiver, including primitives (`i32`, `bool`, etc.) and built-in generics. An extension declared outside the type's original scope shadows the type within the extending scope rather than mutating it. See [Methods & members](./reference.md#methods--members).
 
-**Privacy.** `let` introduces a binding that may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. `local` introduces a non-escaping binding: at file scope it is private to the file (importers cannot see it); at function scope it cannot be captured by a closure that outlives the declaring function. The same applies to `local`-prefixed fields, variant tags, and behaviour members (see [Types](#types)).
+**Locality.** By default a `let` naming may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. Prefixing the name with `@` makes the naming *local* — non-escaping: at file scope it is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. The same `@` mode applies to fields, variant tags, and behaviour members (see [Types](#types)).
 
-**Mutability.** By default a binding is immutable. The `*` mode prefix makes the binding a mutable variable: `let *count = 0`. Reassignment is only permitted on bindings declared with `*`.
+**Mutability.** By default a naming is immutable. The `*` mode prefix makes the naming a mutable variable: `let *count = 0`. Reassignment is only permitted on namings declared with `*`.
 
-**Evaluation time.** Bindings at file scope (including methods, members, and type declarations) are implicitly compile-time. The `@` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain binding is runtime; `@` must be written explicitly to force compile-time evaluation of the right-hand side.
+**Evaluation time.** Namings at file scope (including methods, members, and type declarations) are implicitly compile-time. The `#` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain naming is runtime; `#` must be written explicitly to force compile-time evaluation of the right-hand side. Modes are never inferred from type annotations — `#` must always be written when required.
 
-**Test bindings.** A `test` binding declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test bindings have no privacy modifier and no receiver clause.
+**Test namings.** A `test` naming declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test namings have no mode prefix and no receiver clause.
 
 ### Types
 
@@ -248,22 +245,22 @@ type-list     ::=  type ( "," type )*
 -- ── User-defined types ────────────────────────────
 -- Inside record / variant / behaviour blocks, members are separated by
 -- newlines. Commas are only required when two members share a single line.
--- Each member may be prefixed with "local" to mark it private to the
--- declaring file.
+-- Each member may carry a mode prefix (typically @ to mark it local/private
+-- to the declaring file).
 
 record-type   ::=  "record" "{" field-list? "}"
 field-list    ::=  field ( field-sep field )* field-sep?
-field         ::=  "local"? identifier ":" type
+field         ::=  mode-prefix? identifier ":" type
 
 variant-type  ::=  "variant" "{" tag-list? "}"
 tag-list      ::=  tag ( field-sep tag )* field-sep?
-tag           ::=  "local"? identifier ( ":" type )?  -- payload type is optional; absent means unit
+tag           ::=  mode-prefix? identifier ( ":" type )?  -- payload type is optional; absent means unit
 
 behaviour-type
               ::=  "behaviour" "{" method-sig-list? "}"
 method-sig-list
               ::=  method-sig ( field-sep method-sig )* field-sep?
-method-sig    ::=  "local"? identifier "(" mode-prefix? "self" ")" ":" function-type
+method-sig    ::=  mode-prefix? identifier "(" mode-prefix? "self" ")" ":" function-type
 
 field-sep     ::=  newline | ","                     -- newline separates members; comma only required on a single line
 ```
@@ -502,7 +499,7 @@ function-expr ::=  "(" param-list? ")" return-annot? block-expr
 return-annot  ::=  "->" type
 
 param-list    ::=  param ( "," param )*
-param         ::=  mode-prefix? "~"? identifier type-annot?     -- positional or named parameter
+param         ::=  "~"? mode-prefix? identifier type-annot?     -- positional or named parameter; ~ comes before mode
                |   mode-prefix? "self"                          -- method receiver (keyword only)
 
 type-annot    ::=  ":" type
@@ -512,12 +509,12 @@ type-annot    ::=  ":" type
 
 #### Named parameters
 
-Prepending `~` to a parameter name makes it a *named parameter*. Named parameters are always passed by label at the call site and may appear in any order. A named parameter may also be passed as a trailing argument outside the closing parenthesis, which is useful for higher-order functions that accept a closure.
+Prepending `~` to a parameter name makes it a *named parameter*. Named parameters are always passed by label at the call site and may appear in any order. A named parameter may also be passed as a trailing argument outside the closing parenthesis, which is useful for higher-order functions that accept a closure. When a named parameter also carries a mode prefix, `~` comes first: `~#t`, `~*buf`, `~&handle`.
 
 ```ebnf
 -- Declaration (in param-list)
---   mode-prefix? "~" identifier type-annot?
---   e.g.  ~name: string,  ~f: (int) -> int
+--   "~" mode-prefix? identifier type-annot?
+--   e.g.  ~name: string,  ~f: (int) -> int,  ~#t: type
 
 -- Call site (in arg-list)
 --   "~" identifier "=" expr     standard form:  ~name="Ruka"
@@ -620,13 +617,20 @@ match-expr    ::=  "match" expr "with" arm+ else-arm? "end"
 arm           ::=  pattern block-expr
 else-arm      ::=  "else" block-expr
 
-pattern       ::=  identifier                              -- binds the value (irrefutable)
+pattern       ::=  mode-prefix? identifier                 -- binds the value with optional mode (irrefutable)
                |   literal-expr                            -- exact value: integer, float, bool, char, string
                |   range-pattern                           -- numeric range: 0..=9, 'a'..='z'
-               |   tuple-pattern                           -- "(a, b)"          irrefutable when arity matches
-               |   record-pattern                          -- "{ x, y }"        irrefutable when fields match
+               |   mode-prefix? tuple-pattern              -- distributed mode applies to all binders
+               |   mode-prefix? record-pattern             -- distributed mode applies to all binders
                |   variant-pattern                         -- "tag" or "tag(p)" refutable
                |   guard-pattern                           -- pattern with boolean guard
+
+-- A mode prefix on an identifier pattern applies to that binder only.
+-- A mode prefix before a tuple or record pattern distributes to every
+-- identifier binder inside it; a per-identifier mode overrides the
+-- distributed mode for that position.
+--   (*x, y) in positions   -- x is mutable, y is immutable
+--   *(x, y) in positions   -- both x and y are mutable
 
 range-pattern ::=  literal-expr ( ".." | "..=" ) literal-expr
 
@@ -634,7 +638,7 @@ tuple-pattern ::=  "(" pattern "," ")"                     -- one-element tuple 
                |   "(" pattern ( "," pattern )+ ","? ")"   -- two-or-more
 
 record-pattern
-              ::=  "{" identifier ( field-sep identifier )* field-sep? "}"
+              ::=  "{" (mode-prefix? identifier) ( field-sep (mode-prefix? identifier) )* field-sep? "}"
 
 variant-pattern
               ::=  identifier                              -- payloadless tag:           miss

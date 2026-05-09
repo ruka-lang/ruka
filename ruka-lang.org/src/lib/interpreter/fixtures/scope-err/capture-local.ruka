@@ -1,10 +1,9 @@
-// expect: cannot capture local
-// A `local` runtime binding cannot be captured by a closure that outlives
+// expect: cannot capture @-mode
+// An `@`-mode naming cannot be captured by a closure that outlives
 // the declaring function.
 let make = () do
-	local *n = 0
+	let @n = 0
 	() do
-		n = n + 1
 		n
 	end
 end

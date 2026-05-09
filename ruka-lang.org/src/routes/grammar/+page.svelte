@@ -102,7 +102,7 @@ comment       ::=  "//" &lt;any char except "\n"&gt;* "\n"?</code
 			An identifier begins with a letter or underscore and is followed by zero or more
 			letters, digits, or underscores. Any identifier that matches a keyword or mode
 			keyword is reserved and cannot be used as a user-defined name. Casing carries no
-			semantic weight; visibility is controlled by the <code>local</code> keyword (see
+			semantic weight; visibility is controlled by the <code>@</code> mode prefix (see
 			<a href="#declarations">Declarations</a>).
 		</p>
 		<pre class="ebnf"><code
@@ -130,7 +130,6 @@ identifier    ::=  letter ( letter | digit )*
 			<code>if</code>
 			<code>in</code>
 			<code>let</code>
-			<code>local</code>
 			<code>match</code>
 			<code>not</code>
 			<code>or</code>
@@ -145,20 +144,22 @@ identifier    ::=  letter ( letter | digit )*
 		</div>
 		<p>
 			The following symbols are reserved as <em>mode prefixes</em>. A mode prefix is
-			placed directly before a parameter or binding identifier with no whitespace between
-			the prefix and the identifier.
+			placed directly before a naming or parameter identifier with no whitespace between
+			the prefix and the identifier. For named parameters, <code>~</code> appears before
+			the mode prefix.
 		</p>
 		<pre class="ebnf"><code
-				>mode-prefix   ::=  "*"    -- mutable; binding may be reassigned, parameter mutates in place
+				>mode-prefix   ::=  "*"    -- mutable; naming may be reassigned, parameter mutates in place
                |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on bindings, capture by a closure transfers ownership into the closure
+                          --   on namings, capture by a closure transfers ownership into the closure
                |   "$"    -- stack-allocated; value cannot escape the function scope
-               |   "@"    -- compile-time; value must be known at compile time</code
+               |   "@"    -- local; non-escaping — private at file scope, non-capturable at function scope
+               |   "#"    -- compile-time; value must be known at compile time</code
 			></pre>
 		<p>
 			<code>self</code> is reserved for the method receiver; it may only appear in the
-			receiver clause of a binding declaration or as a parameter inside a method body.
-			<code>with</code> is used only as part of <code>match</code> syntax.
+			receiver clause of a naming declaration or as a parameter inside a method body.
+			<code>with</code> is used in <code>match … with</code> and in the nested <code>for outer with pattern in inner</code> form.
 			<code>as</code> is used only as the cast operator.
 			<code>ruka</code> is a reserved identifier referring to the built-in module; it is
 			implicitly in scope in every source file and cannot be shadowed or rebound.
@@ -242,32 +243,28 @@ multiline-lit ::=  '|"' "\n" ml-line* '|"'</code
 		<p>
 			A Ruka source file is a flat sequence of declarations. Every file is implicitly a
 			compile-time record: top-level <code>let</code> declarations become its public
-			members; top-level <code>local</code> declarations are private members the file uses
-			internally but does not export. <code>ruka.import</code> returns this record value;
-			there is no separate module concept.
+			members; top-level <code>let</code> declarations with the <code>@</code> mode are
+			private — used internally but not exported. <code>ruka.import</code> returns this
+			record value; there is no separate module concept.
 		</p>
 		<pre class="ebnf"><code>program       ::=  declaration*</code></pre>
 
 		<h3 id="declarations">Declarations</h3>
 		<p>
-			There are three declaration forms: <code>let</code> bindings, <code>local</code>
-			bindings, and <code>test</code> bindings. There is no separate <code>fn</code>,
-			<code>type</code>, or <code>mod</code> keyword. Mutability and evaluation time are
-			expressed through modes; privacy is selected by the binding keyword.
+			There are two declaration forms: <code>let</code> namings and <code>test</code>
+			namings. There is no separate <code>fn</code>, <code>type</code>, or <code>mod</code>
+			keyword. Mutability, locality, and evaluation time are all expressed through mode
+			prefixes.
 		</p>
 		<pre class="ebnf"><code
-				>declaration   ::=  binding | test-binding
+				>declaration   ::=  naming | test-naming
 
-binding       ::=  binding-keyword binding-lhs "=" expr
-               |   binding-keyword binding-lhs ":" type "=" expr
+naming        ::=  "let" naming-lhs "=" expr
+               |   "let" naming-lhs ":" type "=" expr
 
-binding-keyword
-              ::=  "let"                                    -- public binding (or capture-eligible at function scope)
-               |   "local"                                  -- file-private (or non-capturable at function scope)
-
-binding-lhs   ::=  mode-prefix? identifier                  -- simple value binding
-               |   mode-prefix? identifier receiver         -- function or method binding
-               |   destructure-pattern                      -- destructuring binding
+naming-lhs    ::=  mode-prefix? identifier                  -- simple value naming
+               |   mode-prefix? identifier receiver         -- function or method naming
+               |   destructure-pattern                      -- destructuring naming
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                               -- member: associated type name
@@ -280,16 +277,15 @@ destructure-pattern
                    -- e.g.  let (a, b)   = pair
                    -- e.g.  let &#123; sqrt, pow &#125; = ruka.import("Math.ruka")
 
-test-binding  ::=  "test" identifier "=" expr
+test-naming   ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only</code
 			></pre>
 		<p>
 			<strong>Uniform declarations.</strong> Functions, types, behaviours, and imported
-			files are all values stored in ordinary <code>let</code> or <code>local</code>
-			bindings. A <em>receiver</em> in the binding left-hand side associates the value with
-			a named type as either a <em>member</em> (type-name receiver) or a <em>method</em>
-			(<code>self</code> receiver). The receiver appears between the binding name and the
-			<code>=</code> sign.
+			files are all values stored in ordinary <code>let</code> namings. A <em>receiver</em>
+			in the naming left-hand side associates the value with a named type as either a
+			<em>member</em> (type-name receiver) or a <em>method</em> (<code>self</code>
+			receiver). The receiver appears between the naming name and the <code>=</code> sign.
 		</p>
 		<p>
 			<strong>Type extension.</strong> The type named by a receiver is not required to be
@@ -300,31 +296,32 @@ test-binding  ::=  "test" identifier "=" expr
 			<a href="/reference#methods">Methods &amp; members</a>.
 		</p>
 		<p>
-			<strong>Privacy.</strong> <code>let</code> introduces a binding that may escape its
-			scope: at file scope it becomes a public member of the file's record; at function
-			scope it is eligible for capture by a closure. <code>local</code> introduces a
-			non-escaping binding: at file scope it is private to the file (importers cannot see
-			it); at function scope it cannot be captured by a closure that outlives the
-			declaring function. The same applies to <code>local</code>-prefixed fields, variant
-			tags, and behaviour members (see <a href="#types">Types</a>).
+			<strong>Locality.</strong> By default a <code>let</code> naming may escape its scope:
+			at file scope it becomes a public member of the file's record; at function scope it
+			is eligible for capture by a closure. Prefixing the name with <code>@</code> makes
+			the naming <em>local</em> — non-escaping: at file scope it is private to the file;
+			at function scope it cannot be captured by a closure that outlives the declaring
+			function. The same <code>@</code> mode applies to fields, variant tags, and behaviour
+			members (see <a href="#types">Types</a>).
 		</p>
 		<p>
-			<strong>Mutability.</strong> By default a binding is immutable. The <code>*</code>
-			mode prefix makes the binding a mutable variable: <code>let *count = 0</code>.
-			Reassignment is only permitted on bindings declared with <code>*</code>.
+			<strong>Mutability.</strong> By default a naming is immutable. The <code>*</code>
+			mode prefix makes the naming a mutable variable: <code>let *count = 0</code>.
+			Reassignment is only permitted on namings declared with <code>*</code>.
 		</p>
 		<p>
-			<strong>Evaluation time.</strong> Bindings at file scope (including methods,
-			members, and type declarations) are implicitly compile-time. The <code>@</code> mode
-			may be written explicitly but is redundant there. Inside an inner scope (function
-			body, block) a plain binding is runtime; <code>@</code> must be written explicitly
-			to force compile-time evaluation of the right-hand side.
+			<strong>Evaluation time.</strong> Namings at file scope (including methods, members,
+			and type declarations) are implicitly compile-time. The <code>#</code> mode may be
+			written explicitly but is redundant there. Inside an inner scope (function body,
+			block) a plain naming is runtime; <code>#</code> must be written explicitly to force
+			compile-time evaluation of the right-hand side. Modes are never inferred from type
+			annotations — <code>#</code> must always be written when required.
 		</p>
 		<p>
-			<strong>Test bindings.</strong> A <code>test</code> binding declares a function that
+			<strong>Test namings.</strong> A <code>test</code> naming declares a function that
 			is only compiled in debug and test builds and elided entirely in optimised builds.
-			The value must be a function expression. Test bindings have no privacy modifier and
-			no receiver clause.
+			The value must be a function expression. Test namings have no mode prefix and no
+			receiver clause.
 		</p>
 
 		<h3 id="types">Types</h3>
@@ -383,22 +380,22 @@ type-list     ::=  type ( "," type )*
 -- ── User-defined types ────────────────────────────
 -- Inside record / variant / behaviour blocks, members are separated by
 -- newlines. Commas are only required when two members share a single line.
--- Each member may be prefixed with "local" to mark it private to the
--- declaring file.
+-- Each member may carry a mode prefix (typically @ to mark it local/private
+-- to the declaring file).
 
 record-type   ::=  "record" "&#123;" field-list? "&#125;"
 field-list    ::=  field ( field-sep field )* field-sep?
-field         ::=  "local"? identifier ":" type
+field         ::=  mode-prefix? identifier ":" type
 
 variant-type  ::=  "variant" "&#123;" tag-list? "&#125;"
 tag-list      ::=  tag ( field-sep tag )* field-sep?
-tag           ::=  "local"? identifier ( ":" type )?  -- payload type is optional; absent means unit
+tag           ::=  mode-prefix? identifier ( ":" type )?  -- payload type is optional; absent means unit
 
 behaviour-type
               ::=  "behaviour" "&#123;" method-sig-list? "&#125;"
 method-sig-list
               ::=  method-sig ( field-sep method-sig )* field-sep?
-method-sig    ::=  "local"? identifier "(" mode-prefix? "self" ")" ":" function-type
+method-sig    ::=  mode-prefix? identifier "(" mode-prefix? "self" ")" ":" function-type
 
 field-sep     ::=  newline | ","                     -- newline separates members; comma only required on a single line</code
 			></pre>
@@ -658,7 +655,7 @@ map-comprehension
 return-annot  ::=  "->" type
 
 param-list    ::=  param ( "," param )*
-param         ::=  mode-prefix? "~"? identifier type-annot?     -- positional or named parameter
+param         ::=  "~"? mode-prefix? identifier type-annot?     -- positional or named parameter
                |   mode-prefix? "self"                          -- method receiver (keyword only)
 
 type-annot    ::=  ":" type</code
@@ -680,8 +677,9 @@ type-annot    ::=  ":" type</code
 		</p>
 		<pre class="ebnf"><code
 				>-- Declaration (in param-list)
---   mode-prefix? "~" identifier type-annot?
---   e.g.  ~name: string,  ~f: (int) -> int
+--   "~" mode-prefix? identifier type-annot?
+--   ~ comes before the mode prefix: ~#t: type, ~*buf: [u8], ~name: string
+--   e.g.  ~name: string,  ~f: (int) -> int,  ~#t: type
 
 -- Call site (in arg-list)
 --   "~" identifier "=" expr     standard form:  ~name="Ruka"
@@ -692,9 +690,11 @@ type-annot    ::=  ":" type</code
 --   e.g.  map(nums) ~f=(x) do x * 2</code
 			></pre>
 		<p>
-			A trailing named parameter typed <code>~t: type</code> may be omitted at the call
-			site — the compiler infers <code>t</code> from the <em>result location</em> (the
-			type of the binding, parameter, or field that receives the call's value). See the
+			Any final parameter typed <code>: type</code> — whether positional or named — may be
+			omitted at the call site. The compiler infers its value from the <em>result
+			location</em>: the type of the naming, parameter, or field that receives the call's
+			value. The mode of such a parameter must still be written explicitly (e.g. <code>#</code>
+			for compile-time); modes are never inferred. See the
 			<a href="/reference#named-params">reference</a> for details.
 		</p>
 
@@ -798,13 +798,17 @@ continue-expr ::=  "continue"
 
 		<h3 id="patterns">Patterns</h3>
 		<p>
-			Patterns appear in <code>let</code> / <code>local</code> destructuring,
-			<code>match</code> arms, <code>for</code> loop binders, and the
-			<code>pattern = expr</code> forms of <code>if</code> and <code>while</code>. Patterns
-			are <em>refutable</em> (may not match) or <em>irrefutable</em> (always match) — only
-			irrefutable patterns are allowed in <code>let</code> / <code>local</code>
-			destructuring; the other positions accept either form (refutable patterns skip
-			non-matching values where they appear).
+			Patterns appear in <code>let</code> destructuring, <code>match</code> arms,
+			<code>for</code> loop binders, and the <code>pattern = expr</code> forms of
+			<code>if</code> and <code>while</code>. Patterns are <em>refutable</em> (may not
+			match) or <em>irrefutable</em> (always match) — only irrefutable patterns are allowed
+			in <code>let</code> destructuring; the other positions accept either form (refutable
+			patterns skip non-matching values where they appear).
+			<br /><br />
+			A mode prefix may appear on an individual binder inside a pattern (<code>(*x, y)</code>)
+			or before the whole pattern to distribute that mode to every binder it introduces
+			(<code>*(x, y)</code>). A per-identifier mode overrides a distributed mode for that
+			binder.
 		</p>
 		<p>
 			Patterns share their concrete shapes with value literals — without the literal's
@@ -818,13 +822,17 @@ continue-expr ::=  "continue"
 arm           ::=  pattern block-expr
 else-arm      ::=  "else" block-expr
 
-pattern       ::=  identifier                              -- binds the value (irrefutable)
+pattern       ::=  mode-prefix? identifier                 -- binds the value (irrefutable); mode applied to this binder
                |   literal-expr                            -- exact value: integer, float, bool, char, string
                |   range-pattern                           -- numeric range: 0..=9, 'a'..='z'
-               |   tuple-pattern                           -- "(a, b)"          irrefutable when arity matches
-               |   record-pattern                          -- "&#123; x, y &#125;"        irrefutable when fields match
+               |   mode-prefix? tuple-pattern              -- mode-prefix distributes to all binders in the tuple
+               |   mode-prefix? record-pattern             -- mode-prefix distributes to all binders in the record
                |   variant-pattern                         -- "tag" or "tag(p)" refutable
                |   guard-pattern                           -- pattern with boolean guard
+
+-- Per-binder modes override a distributed prefix:
+--   *(x, *y)  -- x gets *, y gets * (distributed wins unless per-binder differs)
+--   *(x, &y)  -- x gets *, y gets & (per-binder & overrides distributed *)
 
 range-pattern ::=  literal-expr ( ".." | "..=" ) literal-expr
 
@@ -832,7 +840,7 @@ tuple-pattern ::=  "(" pattern "," ")"                     -- one-element tuple 
                |   "(" pattern ( "," pattern )+ ","? ")"   -- two-or-more
 
 record-pattern
-              ::=  "&#123;" identifier ( field-sep identifier )* field-sep? "&#125;"
+              ::=  "&#123;" mode-prefix? identifier ( field-sep mode-prefix? identifier )* field-sep? "&#125;"
 
 variant-pattern
               ::=  identifier                              -- payloadless tag:           miss

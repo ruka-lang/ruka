@@ -31,6 +31,7 @@ import type {
 	RecordLiteral,
 	RecordLiteralField,
 	RecordType,
+	RecordTypeField,
 	Statement,
 	TuplePattern,
 	TypeExpr,
@@ -343,13 +344,13 @@ export function parse(tokens: Token[]): Program {
 	function parseStatement(): Statement {
 		const letToken = tryMatch("let");
 		if (letToken) {
-			return parseLet(letToken, false);
+			return parseLet(letToken);
 		}
 
-		// `local` and `test` declare bindings with local=true.
-		const localToken = tryMatch("local", "test");
-		if (localToken) {
-			return parseLet(localToken, true);
+		// `test` declares a zero-arg test function.
+		const testToken = tryMatch("test");
+		if (testToken) {
+			return parseLet(testToken);
 		}
 
 		if (check("defer")) {
@@ -454,10 +455,10 @@ export function parse(tokens: Token[]): Program {
 		return { kind: "ExpressionStmt", expression: parseExpression(), line, col };
 	}
 
-	function parseLet(letToken: Token, forcedLocal: boolean): Binding {
-		// Optional mode prefix: *, &, $, @
+	function parseLet(letToken: Token): Binding {
+		// Optional mode prefix: *, &, $, @, #
 		let mode: Binding["mode"] = null;
-		if (check("*") || check("&") || check("$") || check("@")) {
+		if (check("*") || check("&") || check("$") || check("@") || check("#")) {
 			mode = peek().value as Binding["mode"];
 			pos++;
 		}
@@ -477,7 +478,6 @@ export function parse(tokens: Token[]): Program {
 				: { kind: "TuplePattern", names: destructNames };
 			return {
 				kind: "Binding",
-				local: false,
 				mode,
 				pattern,
 				type: null,
@@ -488,7 +488,6 @@ export function parse(tokens: Token[]): Program {
 		}
 
 		const name = eat("ID").value as string;
-		const isLocal = forcedLocal;
 
 		// Optional receiver clause:
 		//   (self)         — instance method, receiver type inferred
@@ -498,11 +497,11 @@ export function parse(tokens: Token[]): Program {
 		if (check("(")) {
 			eat("(");
 			skipNewlines();
-			const selfMode = tryMatch("*", "&", "$", "@");
+			const selfMode = tryMatch("*", "&", "$", "@", "#");
 			if (check("self")) {
 				pos++;
 				const selfType = tryMatch(":") ? parseType() : null;
-				receiver = { kind: "self", mode: selfMode?.kind as "*" | "&" | "$" | "@" | null ?? null, typeAnnotation: selfType };
+				receiver = { kind: "self", mode: selfMode?.kind as "*" | "&" | "$" | "@" | "#" | null ?? null, typeAnnotation: selfType };
 			} else if (!selfMode && check("ID")) {
 				const receiverTypeName = eat("ID").value as string;
 				receiver = { kind: "static", typeName: receiverTypeName };
@@ -524,7 +523,6 @@ export function parse(tokens: Token[]): Program {
 		const pattern: LetPattern = { kind: "IdentifierPattern", name };
 		return {
 			kind: "Binding",
-			local: isLocal,
 			mode,
 			pattern,
 			name,
@@ -796,7 +794,7 @@ export function parse(tokens: Token[]): Program {
 		const paramModes: (string | null)[] = [];
 		skipNewlines();
 		while (!check(")") && !check("EOF")) {
-			const modeToken = tryMatch("*", "&", "$", "@", "~");
+			const modeToken = tryMatch("*", "&", "$", "@", "#", "~");
 			paramModes.push(modeToken ? modeToken.kind : null);
 			if (check("ID")) {
 				params.push(eat("ID").value as string);
@@ -1589,11 +1587,12 @@ export function parse(tokens: Token[]): Program {
 			const fields: RecordType["fields"] = [];
 			while (!check("}") && !check("EOF")) {
 				skipNewlines();
-				const fieldLocal = tryMatch("local") !== null;
+				const fieldModeToken = tryMatch("*", "&", "$", "@", "#");
+				const fieldMode = fieldModeToken?.kind as RecordTypeField["mode"] ?? undefined;
 				const fieldName = eat("ID").value as string;
 				eat(":");
 				skipNewlines();
-				fields.push({ name: fieldName, type: parseType(), local: fieldLocal || undefined });
+				fields.push({ name: fieldName, type: parseType(), mode: fieldMode });
 				skipNewlines();
 				if (tryMatch(",")) {
 					skipNewlines();
@@ -1612,14 +1611,15 @@ export function parse(tokens: Token[]): Program {
 			const tags: VariantTag[] = [];
 			while (!check("}") && !check("EOF")) {
 				skipNewlines();
-				const tagLocal = tryMatch("local") !== null;
+				const tagModeToken = tryMatch("*", "&", "$", "@", "#");
+				const tagMode = tagModeToken?.kind as VariantTag["mode"] ?? undefined;
 				const tagName = eat("ID").value as string;
 				let tagType: TypeExpr | null = null;
 				if (tryMatch(":")) {
 					skipNewlines();
 					tagType = parseType();
 				}
-				tags.push({ name: tagName, type: tagType, local: tagLocal || undefined });
+				tags.push({ name: tagName, type: tagType, mode: tagMode });
 				skipNewlines();
 				if (tryMatch(",")) {
 					skipNewlines();

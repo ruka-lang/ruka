@@ -82,8 +82,8 @@ describe("evaluator — basics", () => {
 		expect(stdout).toBe("from main\n");
 	});
 
-	it("does not auto-call a private `local main`", () => {
-		const source = `local main = () do\n  ruka.println("nope")\nend\n`;
+	it("does not auto-call a private `@`-mode main", () => {
+		const source = `let @main = () do\n  ruka.println("nope")\nend\n`;
 		const { stdout } = drive(source);
 		expect(stdout).toBe("");
 	});

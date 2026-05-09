@@ -22,42 +22,24 @@ let point = record { x: f64, y: f64 }      // type binding
 let Math  = ruka.import("Math.ruka")       // imported file
 ```
 
-## Privacy
+## Namings
 
-Ruka has two binding keywords. `let` declares a binding that may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. `local` declares a non-escaping binding: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
+`let` introduces a name. The right-hand side drives type inference; an explicit annotation is only needed when inference cannot reach the type you want. Names can be shadowed by reusing the same name.
 
-`let` and `local` are alternative binding forms, not modifiers — write `local x = …`, never `let local x = …`.
+By default a `let` naming may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. Prefixing the name with `@` makes the naming *local* — non-escaping: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
 
-A field of a record (or a tag of a variant, or a member of a behaviour) prefixed with `local` is private in the same sense — accessible inside the declaring file, hidden everywhere else.
-
-```ruka
-local helper = () do ruka.println("...")   // private file-scope binding
-
-let point = record {
-    x: f64
-    y: f64
-    local cache: f64    // private field
-}
-```
-
-`local` is the only privacy modifier; there is no `pub` keyword.
-
-## Bindings
-
-`let` and `local` introduce names. The right-hand side drives type inference; an explicit annotation is only needed when inference cannot reach the type you want. Bindings can be shadowed by reusing the same name.
+The `@` prefix is the only privacy mechanism; there is no `pub` keyword.
 
 ```ruka
 let answer = 42
 let pi     = 3.14159
 let name   = "Ruka"
-let count: u32 = 0   // annotation pins the integer type
+let count: u32 = 0      // annotation pins the integer type
 
-local cache = ruka.sqrt(2.0)   // file-private; same syntax, different keyword
+let @cache = ruka.sqrt(2.0)   // file-private; escaping disallowed
 ```
 
-See [Privacy](#privacy) for what `local` does and where it differs from `let`.
-
-Bindings are immutable by default. To make a binding mutable, or to change how it is stored or evaluated, use a *mode prefix* directly before the name (no space). See [Modes](#modes).
+Namings are immutable by default. To make a naming mutable, or to change how it is stored or evaluated, use a *mode prefix* directly before the name (no space). See [Modes](#modes).
 
 ```ruka
 let *count = 0     // mutable
@@ -66,7 +48,7 @@ count = count + 1
 
 ### Destructuring
 
-A binding may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
+A naming may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
 
 ```ruka
 let (x, y) = (1, 2)         // tuple pattern
@@ -75,29 +57,69 @@ let { x, y } = origin       // record pattern; identifiers must match record fie
 
 ### File scope is declarative
 
-A Ruka file's top level holds declarations only — `let`/`local` bindings, type definitions, methods, members, behaviours, tests. There are no executable statements at file scope. Every top-level right-hand side is therefore evaluated at compile time.
+A Ruka file's top level holds declarations only — `let` namings, type definitions, methods, members, behaviours, tests. There are no executable statements at file scope. Every top-level right-hand side is therefore evaluated at compile time.
 
 ## Modes
 
-Mode prefixes adjust how a binding or parameter is stored, captured, or evaluated. The same four prefixes apply in both positions, and on method receivers.
+Mode prefixes adjust how a naming or parameter is stored, captured, or evaluated. The same five prefixes apply in naming and parameter positions, on method receivers, on record fields, and within patterns.
 
 | Prefix | Meaning |
 | --- | --- |
-| `*` | Mutable. Bindings may be reassigned; parameters mutate in place and the change is visible to the caller. |
-| `&` | Move. Ownership transfers — into a closure on capture (annotated on the binding being captured), or into a function on call (annotated on parameters). The original is invalid afterwards. |
+| `*` | Mutable. Namings may be reassigned; parameters mutate in place and the change is visible to the caller. |
+| `&` | Move. Ownership transfers — into a closure on capture (annotated on the naming being captured), or into a function on call (annotated on parameters). The original is invalid afterwards. |
 | `$` | Stack-allocated. Not GC-managed; passed by pointer or copy. Cannot be moved. |
-| `@` | Compile-time. The value must be known at compile time. See [Compile-time evaluation](#compile-time-evaluation). |
+| `@` | Local. Non-escaping — at file scope the naming is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. See [Namings](#namings). |
+| `#` | Compile-time. The value must be known at compile time. See [Compile-time evaluation](#compile-time-evaluation). |
 
 ```ruka
-let *counter = 0                    // mutable binding
-let consume = (&buf) do ...         // takes ownership of buf
-let hash    = ($data) do ...        // stack copy
-let repeat  = (@n: uint, msg) do .. // n must be comptime
+let *counter = 0                    // mutable naming
+let @cache   = ruka.sqrt(2.0)       // local/private naming
+let consume  = (&buf) do ...        // takes ownership of buf
+let hash     = ($data) do ...       // stack copy
+let repeat   = (#n: uint, msg) do . // n must be comptime
 ```
 
-The `@` prefix is rarely written explicitly. At file scope and on methods/members, compile-time evaluation is the default; inside function bodies it is inferred whenever a parameter's type is `type`.
+The `#` prefix must always be written explicitly when compile-time evaluation is required inside a function body. At file scope, compile-time evaluation is already implicit (every file-scope right-hand side runs at compile time), so `#` is redundant there and may be omitted.
 
-Method receivers also accept mode prefixes. `*self` is a mutating receiver; `&self` consumes the receiver (a destructor-like method); `$self` and `@self` are reserved for cases where the receiver itself is stack-bound or compile-time known. See [Methods & members](#methods--members).
+Method receivers also accept mode prefixes. `*self` is a mutating receiver; `&self` consumes the receiver (a destructor-like method); `$self` and `#self` are reserved for cases where the receiver itself is stack-bound or compile-time known. See [Methods & members](#methods--members).
+
+### Modes on record fields
+
+Mode prefixes may appear on field declarations in records, variant tags, and behaviour method signatures.
+
+```ruka
+let config = record {
+    width: u32
+    height: u32
+    @cache: f64        // local — private to the declaring file
+    #max_size: uint    // compile-time — a constant field
+    &handle: resource  // move — accessing this field transfers ownership
+    $buf: [u8]         // stack — this field is stack-allocated
+}
+```
+
+The `@` mode is the most common on fields: it makes a field private to the declaring file, exactly as `@` on a file-scope naming makes it private.
+
+### Modes in patterns
+
+A mode prefix in a pattern adjusts how a bound name is introduced. The prefix may be written *per identifier*:
+
+```ruka
+let (*x, y) = pair           // x is mutable, y is immutable
+for (*x, y) in positions do ...
+```
+
+Or written before the *pattern as a whole*, which distributes the mode to every identifier in the pattern:
+
+```ruka
+let *(x, y) = pair           // both x and y are mutable
+```
+
+A per-identifier mode overrides the distributed mode for that position.
+
+### Mode composability
+
+Whether multiple mode prefixes may be combined on a single naming is an **open design question**. A composable system would allow forms such as `let *@x = 0` (a mutable local naming); a single-mode system would require choosing one. This document treats the question as unresolved — examples use at most one mode per naming.
 
 ## Literals
 
@@ -474,8 +496,8 @@ A *closure* is a runtime function value that references runtime bindings from an
 
 Two rules constrain capture:
 
-1. **Only `let` runtime bindings may be captured.** A `local` runtime binding cannot escape its declaring function, so a closure that outlives that function cannot reference it.
-2. **`&`-annotated bindings transfer ownership on capture.** A binding declared `let &name = …` *moves* into the first closure that captures it; the original binding is invalid afterwards. Without `&`, capture is by reference.
+1. **Only namings without `@` mode may be captured.** An `@`-named runtime naming cannot escape its declaring function, so a closure that outlives that function cannot reference it.
+2. **`&`-annotated namings transfer ownership on capture.** A naming declared `let &name = …` *moves* into the first closure that captures it; the original naming is invalid afterwards. Without `&`, capture is by reference.
 
 ```ruka
 let make_counter = () do
@@ -491,7 +513,7 @@ ruka.println("${counter()}")   // 1
 ruka.println("${counter()}")   // 2
 ```
 
-In the example above, the inner function captures `n` (a `let` binding) from `make_counter`. If `n` had been declared `local *n = 0`, the inner closure could not have escaped `make_counter` and the program would fail to compile.
+In the example above, the inner function captures `n` (a naming without `@` mode) from `make_counter`. If `n` had been declared with the `@` (local) mode, the inner closure could not have escaped `make_counter` and the program would fail to compile.
 
 ## Named parameters
 
@@ -537,7 +559,7 @@ greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"
 A single named argument may follow the closing parenthesis. This reads naturally for higher-order functions whose closure parameter is named and placed last.
 
 ```ruka
-let map = (~t: type, xs: [t], ~f) do ...
+let map = (xs: [t], ~#t: type, ~f) do ...
 
 let doubled = map(nums) ~f=(x) do x * 2
 let squared = map(nums) ~f=(x) do
@@ -546,30 +568,32 @@ let squared = map(nums) ~f=(x) do
 end
 ```
 
-### Compile-time type inference from a trailing named parameter
+For named parameters, `~` appears before the mode prefix: `~#t`, `~*buf`, `~&handle`.
 
-When a function declares a `~t: type` named parameter and the call site does not pass `~t` explicitly, the compiler infers `t` from the *result location* — the type of the binding, parameter, or field that will receive the call's result. This makes generic factory functions read like ordinary literals at the call site.
+### Compile-time argument inference from result location
+
+When the final parameter of a function has type `type`, the compiler may infer its value at the call site from the *result location* — the type of the binding, parameter, or field that will receive the call's result. This works whether the parameter is positional or named. The `#` mode must still be written explicitly in the declaration; only the argument value is inferred.
 
 ```ruka
-let empty = (~t: type) -> [t] do [t] {}
+let empty = (#t: type) -> [t] do [t] {}
 
-let xs: [i32] = empty()         // ~t=i32 inferred from the binding's type
-let ys: [string] = empty()      // ~t=string inferred similarly
+let xs: [i32] = empty()    // t=i32 inferred from the binding's type
+let ys: [string] = empty() // t=string inferred similarly
 ```
 
-If no result-location type is available, the compiler falls back to the usual rules — ambiguity is a compile error.
+If no result-location type is available, ambiguity is a compile error.
 
 ## Records & variants
 
 ### Records
 
-A record is a fixed set of named, typed fields. Declare with `record { … }`. In a multi-line declaration the fields are separated by newlines; commas are only needed when fields share a single line. Fields prefixed with `local` are private to the declaring file.
+A record is a fixed set of named, typed fields. Declare with `record { … }`. In a multi-line declaration the fields are separated by newlines; commas are only needed when fields share a single line. Fields prefixed with `@` are local — private to the declaring file.
 
 ```ruka
 let point = record {
     x: f64
     y: f64
-    local cache: f64
+    @cache: f64
 }
 
 let inline = record { x: f64, y: f64 }   // commas required on one line
@@ -646,7 +670,7 @@ let length (self) = () do ruka.sqrt(self.x * self.x + self.y * self.y)
 
 ```ruka
 // main.ruka
-local Vector = ruka.import("Vector.ruka")
+let @Vector = ruka.import("Vector.ruka")
 
 let main = () do
     let v: Vector.t = Vector.new(3.0, 4.0)
@@ -802,7 +826,7 @@ The element type is inferred from the body expression and may be pinned by a typ
 
 ## Files & imports
 
-A Ruka file *is* a record — a record type whose only constituents are members (constants attached at compile time), with no runtime fields. Every top-level `let` declaration becomes a member of that record; `local` declarations are members the file uses internally but does not export. There is no separate "module" concept.
+A Ruka file *is* a record — a record type whose only constituents are members (constants attached at compile time), with no runtime fields. Every top-level `let` declaration becomes a member of that record; `@`-mode namings are private — the file uses them internally but they are not exported. There is no separate "module" concept.
 
 `ruka.import("path")` evaluates at compile time and returns the imported file as that record value. Access members through it, or destructure to bring names into scope.
 
@@ -847,28 +871,29 @@ test addition = () do
 end
 ```
 
-Tests live in their declaring file's scope and can therefore call `local` declarations directly. There is no separate test-visibility mechanism.
+Tests live in their declaring file's scope and can therefore call `@`-mode namings directly. There is no separate test-visibility mechanism.
 
 ## Compile-time evaluation
 
-Ruka has a compile-time interpreter. Functions with `@`-prefixed parameters run at compile time; their results are compile-time constants. Types, functions, and records-of-members are first-class values in compile-time contexts.
+Ruka has a compile-time interpreter. Functions with `#`-prefixed parameters run at compile time; their results are compile-time constants. Types, functions, and records-of-members are first-class values in compile-time contexts.
 
 **Type values are compile-time only.** Any code that *creates*, *inspects*, or *passes around* a `type` value must run at compile time. There is no runtime reflection — `ruka.type_of`, `ruka.fields_of`, `ruka.record_of`, and friends are all compile-time. A binding of type `type` is, by definition, compile-time.
 
-### Inferring `@` from `type`
+### No mode inference
 
-A parameter typed `type` infers the `@` prefix automatically. A parameter used to annotate another parameter infers both.
+Modes are never inferred — they must be written explicitly. A parameter typed `type` does not gain `#` automatically; you must write `#` to make it compile-time.
 
 ```ruka
-// all three forms are equivalent
-let min = (@t: type, a: t, b: t) do if a < b do a else b
-let min = (t: type,  a: t, b: t) do if a < b do a else b
-let min = (t,        a: t, b: t) do if a < b do a else b
+// correct: # is explicit
+let min = (#t: type, a: t, b: t) do if a < b do a else b
+
+// compile error: t of type `type` requires an explicit # prefix
+let min = (t: type, a: t, b: t) do if a < b do a else b
 ```
 
 ### Generics
 
-Each unique compile-time argument set produces a distinct specialisation, much like monomorphisation in Rust or `comptime` in Zig.
+Each unique compile-time argument set produces a distinct specialisation, much like monomorphisation in Rust or `comptime` in Zig. All `#`-prefixed parameters must be written explicitly at the declaration site.
 
 ```ruka
 let x = min(i32, 3, 7)      // i32 instantiation
@@ -877,10 +902,10 @@ let y = min(f64, 1.5, 2.0)  // f64 instantiation
 
 ### Generating types
 
-A compile-time function may return a type. Non-`type` parameters that must be compile-time still need an explicit `@`.
+A compile-time function may return a type. All compile-time parameters require an explicit `#`.
 
 ```ruka
-let fixed_array = (t, @cap: uint) do
+let fixed_array = (#t: type, #cap: uint) do
     record {
         data: [t]
         len:  uint
@@ -893,24 +918,24 @@ let float_buf = fixed_array(f64, 16)
 
 ### Storing compile-time results
 
-At file scope, `let` already evaluates its right-hand side at compile time, so no prefix is needed. Inside a function body, prefix the binding with `@` to force compile-time storage.
+At file scope, `let` already evaluates its right-hand side at compile time, so no prefix is needed. Inside a function body, prefix the naming with `#` to force compile-time storage.
 
 ```ruka
 let sqrt_2 = ruka.sqrt(2.0)    // top level — comptime by default
 
 let run = () do
-    let @table = build_lookup_table(256)   // forced to comptime
+    let #table = build_lookup_table(256)   // forced to comptime
     let rows   = fetch_rows()              // runtime
 end
 ```
 
 ### Reflection
 
-`ruka.type_of(e)` returns the type of `e` as a compile-time value. `ruka.fields_of`, `ruka.methods_of`, and `ruka.members_of` return the structural pieces of a type. `ruka.record_of(fields)` constructs a new record type from a list of field descriptors. All four take `@`-prefixed type arguments and run at compile time — there is no runtime reflection.
+`ruka.type_of(e)` returns the type of `e` as a compile-time value. `ruka.fields_of`, `ruka.methods_of`, and `ruka.members_of` return the structural pieces of a type. `ruka.record_of(fields)` constructs a new record type from a list of field descriptors. All four take `#`-prefixed type arguments and run at compile time — there is no runtime reflection.
 
 ```ruka
 // derive: produce an option-of-every-field version of any record
-let partial = (t) do
+let partial = (#t: type) do
     let fs = ruka.fields_of(t)
         |> map((f) do { name = f.name, type = ?(f.type) })
     ruka.record_of(fs)

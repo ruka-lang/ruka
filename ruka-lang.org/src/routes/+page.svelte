@@ -26,16 +26,16 @@ let *counter = 0               // mutable
 let consume  = (&buf) do ..    // takes ownership
 let fast     = ($data) do ..   // stack-allocated
 let work = () do
-    let @lut = build_table()  // forced compile-time evaluation
+    let #lut = build_table()  // forced compile-time evaluation
 end`,
 
 		behaviours: `\
-local shape = behaviour {
+let @shape = behaviour {
     area(self):      () -> f64
     perimeter(self): () -> f64
 }
 
-local describe = (s: shape) do
+let @describe = (s: shape) do
     ruka.println("area=\${s.area()}")
 end`,
 
@@ -52,7 +52,7 @@ for ok(row) in rows do
 end`,
 
 		testing: `\
-local add = (a, b) do a + b
+let @add = (a, b) do a + b
 
 test addition = () do
     ruka.expect_eq(add(1, 2), 3)

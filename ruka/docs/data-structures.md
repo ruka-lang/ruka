@@ -23,7 +23,6 @@ const (
 
     // Keywords
     TokLet
-    TokLocal
     TokTest
     TokRecord
     TokVariant
@@ -48,10 +47,11 @@ const (
     TokSelf
 
     // Mode prefixes (attached to the following identifier token)
-    TokStar    // *
+    TokStar      // *
     TokAmpersand // &
-    TokDollar  // $
-    TokAt      // @
+    TokDollar    // $
+    TokAt        // @  local
+    TokHash      // #  compile-time
 
     // Punctuation
     TokLParen   // (
@@ -142,14 +142,14 @@ type File struct {
 type DeclKind uint8
 
 const (
-    DeclBinding  DeclKind = iota // let / local binding
-    DeclTest                     // test binding
+    DeclNaming DeclKind = iota // let naming
+    DeclTest                   // test naming
 )
 
 type Decl struct {
     Kind    DeclKind
     Span    Span
-    Keyword string    // "let" | "local" | "test"
+    Keyword string    // "let" | "test"
     Name    string    // bound name
     Mode    Mode      // *, &, $, @ — zero value means no mode
     // For method/member receivers:
@@ -229,14 +229,15 @@ const (
     ExprBad
 )
 
-// Mode is the prefix character on a binding or parameter (* & $ @).
+// Mode is the prefix character on a naming, parameter, field, or pattern binder.
 type Mode rune // 0 means no mode
 
 const (
-    ModeMut    Mode = '*'
-    ModeMove   Mode = '&'
-    ModeStack  Mode = '$'
-    ModeComptime Mode = '@'
+    ModeMut      Mode = '*' // mutable
+    ModeMove     Mode = '&' // move (ownership transfer)
+    ModeStack    Mode = '$' // stack-allocated
+    ModeLocal    Mode = '@' // local (non-escaping / private)
+    ModeComptime Mode = '#' // compile-time
 )
 
 type Expr struct {
@@ -450,22 +451,22 @@ type TypeBody struct {
 }
 
 type FieldDecl struct {
-    Span    Span
-    Private bool   // local prefix
-    Name    string
-    Type    *TypeExpr
+    Span Span
+    Mode Mode   // 0 = no mode; ModeLocal (@) = private to declaring file
+    Name string
+    Type *TypeExpr
 }
 
 type TagDecl struct {
-    Span    Span
-    Private bool
-    Name    string
-    Type    *TypeExpr // nil → unit payload
+    Span Span
+    Mode Mode   // 0 = no mode; ModeLocal (@) = private to declaring file
+    Name string
+    Type *TypeExpr // nil → unit payload
 }
 
 type MethodSig struct {
     Span     Span
-    Private  bool
+    Mode     Mode      // mode on the method name (e.g. ModeLocal for private)
     Name     string
     Receiver Mode      // mode on "self"
     FnType   *TypeExpr // TypeFn
@@ -557,14 +558,14 @@ type TypeDecl struct {
 }
 
 type ResolvedField struct {
-    Name    string
-    Private bool
-    Type    *Type
+    Name string
+    Mode Mode  // ModeLocal (@) = private to declaring file
+    Type *Type
 }
 
 type ResolvedTag struct {
     Name    string
-    Private bool
+    Mode    Mode  // ModeLocal (@) = private to declaring file
     Payload *Type // nil → unit payload
 }
 
@@ -572,7 +573,7 @@ type ResolvedTag struct {
 // Called as value.name(args).
 type ResolvedMethod struct {
     Name     string
-    Private  bool
+    Mode     Mode  // ModeLocal (@) = private to declaring file
     Receiver Mode  // mode on self: 0=immutable, ModeMut=mutating, ModeMove=consuming
     Type     *Type // TyFn
 }
@@ -582,10 +583,10 @@ type ResolvedMethod struct {
 // (e.g. Vector.zero), a primitive for constants, etc.
 // Accessed as TypeName.name or TypeName.name(args) when the value is a function.
 type ResolvedMember struct {
-    Name    string
-    Private bool
-    Type    *Type     // any type
-    Value   *ConstVal // non-nil when the value is a compile-time constant (all members are)
+    Name  string
+    Mode  Mode      // ModeLocal (@) = private to declaring file
+    Type  *Type     // any type
+    Value *ConstVal // non-nil when the value is a compile-time constant (all members are)
 }
 ```
 
@@ -626,10 +627,9 @@ type Scope struct {
 type BindingKind uint8
 
 const (
-    BindLet    BindingKind = iota // let binding
-    BindLocal                     // local binding
+    BindNaming BindingKind = iota // let naming (mode field carries @, #, etc.)
     BindParam                     // function parameter
-    BindTest                      // test binding
+    BindTest                      // test naming
 )
 
 type Binding struct {

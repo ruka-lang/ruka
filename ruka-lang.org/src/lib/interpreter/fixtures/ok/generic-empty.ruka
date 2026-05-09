@@ -1,5 +1,5 @@
-// `~t: type` is inferred from the result location when the call site omits it.
-let empty = (~t: type) -> [t] do [t]{}
+// `~#t: type` — named compile-time type parameter, inferred from result location.
+let empty = (~#t: type) -> [t] do [t]{}
 
 let main = () do
 	let xs: [i32] = empty()

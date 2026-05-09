@@ -6,7 +6,7 @@ import { tokenize } from "../tokenizer";
 import { loadModuleAst, resolveImportPath, type ProjectContext } from "../project";
 import { PRIMITIVE_KINDS } from "./type";
 
-/** Scope entry: mutability flag + whether the binding was declared `local`. */
+/** Scope entry: mutability flag + whether the naming uses `@` mode (local/non-escaping). */
 type ScopeEntry = { mutable: boolean; local: boolean; capturedLocal?: boolean };
 type Scope = Map<string, ScopeEntry>;
 
@@ -110,8 +110,8 @@ function checkStatement(
 				return;
 			}
 			const mutable = node.mode === "*";
-			// `local` bindings only restrict capture when declared inside a function body.
-			const isLocal = insideFunction && node.local;
+			// `@`-mode namings only restrict capture when declared inside a function body.
+			const isLocal = insideFunction && node.mode === "@";
 			if (node.pattern.kind === "IdentifierPattern") {
 				scope.set(node.pattern.name, { mutable, local: isLocal });
 			} else {
@@ -328,7 +328,7 @@ function checkExpression(
 			}
 			if (scope.get(node.name)!.capturedLocal) {
 				throw new RukaError(
-					`cannot capture local binding '${node.name}'`,
+					`cannot capture @-mode naming '${node.name}'`,
 					node.line,
 					node.col
 				);

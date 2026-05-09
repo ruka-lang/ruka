@@ -106,9 +106,9 @@ function bindRecordFields(
 				col
 			);
 		}
-		if (field.local && !envContains(env, def.declEnv)) {
+		if (field.mode === "@" && !envContains(env, def.declEnv)) {
 			throw new RukaError(
-				`field '${name}' is local and cannot be destructured here`,
+				`field '${name}' is @-mode (local) and cannot be destructured here`,
 				line,
 				col
 			);
@@ -233,11 +233,11 @@ function methodOf(
 		if (definition && definition.kind === "recordDef") {
 			const field = definition.fields.find((f) => f.name === name);
 			if (field) {
-				if (field.local && !envContains(env, definition.declEnv)) {
+				if (field.mode === "@" && !envContains(env, definition.declEnv)) {
 					throw typeError(
 						line,
 						col,
-						`field '${name}' on '${object.name}' is local`,
+						`field '${name}' on '${object.name}' is @-mode (local)`,
 						true
 					);
 				}
@@ -566,7 +566,7 @@ export function checkTypes(
 						fields: statement.value.fields.map((f) => ({
 							name: f.name,
 							type: astToType(f.type) ?? UNKNOWN,
-							local: f.local || undefined
+							mode: f.mode
 						}))
 					};
 				} else if (statement.value.kind === "VariantType") {
@@ -575,7 +575,7 @@ export function checkTypes(
 						tags: statement.value.tags.map((tag) => ({
 							name: tag.name,
 							type: tag.type ? (astToType(tag.type) ?? UNKNOWN) : null,
-							local: tag.local || undefined
+							mode: tag.mode
 						}))
 					};
 				}
@@ -583,12 +583,12 @@ export function checkTypes(
 			if (statement.pattern.kind === "IdentifierPattern") {
 				topEnv.bindings[statement.pattern.name] = hoisted;
 				topLevelNames.push(statement.pattern.name);
-				if (statement.local) localTopLevelNames.add(statement.pattern.name);
+				if (statement.mode === "@") localTopLevelNames.add(statement.pattern.name);
 			} else {
 				for (const name of statement.pattern.names) {
 					topEnv.bindings[name] = UNKNOWN;
 					topLevelNames.push(name);
-					if (statement.local) localTopLevelNames.add(name);
+					if (statement.mode === "@") localTopLevelNames.add(name);
 				}
 			}
 		}
@@ -1877,7 +1877,7 @@ export function checkTypes(
 				const variantTags = node.tags.map((tag) => ({
 					name: tag.name,
 					type: tag.type ? astToType(tag.type) : null,
-					local: tag.local || undefined
+					mode: tag.mode
 				}));
 				const definition: VariantDef = { kind: "variantDef", tags: variantTags };
 				return definition;
@@ -2219,7 +2219,7 @@ export function checkTypes(
 				const recordFields = node.fields.map((field) => ({
 					name: field.name,
 					type: astToType(field.type) ?? UNKNOWN,
-					local: field.local || undefined
+					mode: field.mode
 				}));
 				const definition: RecordDef = { kind: "recordDef", fields: recordFields };
 				return definition;

@@ -28,9 +28,9 @@ Ruka is a statically typed, compiled langauge that uses an interpreter to allow 
 1. All names are resolved (scope check).
 2. All types are consistent (type check).
 3. All match expressions are exhaustive (exhaustiveness check).
-4. All `@`-prefixed values are actually available at compile time.
+4. All `#`-prefixed values are actually available at compile time.
 5. Ownership/move and mutable semantics are respected (`&` mode, `*` mode).
-7. Closures only capture eligible (`let`, not `local`) bindings.
+6. `@`-mode namings are never captured by closures that outlive their declaring function.
 
 If a program reaches codegen, it is already known to be correct. 
 
@@ -52,7 +52,7 @@ Design consequences:
 - The type checker receives an *expected type* at each call site. Callers that have no expectation pass `nil` / a sentinel `Unknown` type.
 - When inference cannot uniquely resolve a type, that is always a *compile error*, never a silent default (except for numeric literals, which default to `int` / `float`).
 - Behaviours are *never* inferred structurally; they must be written explicitly. This distinguishes monomorphic record parameters from polymorphic behaviour parameters.
-- Compile-time (`@`) parameters propagate their result as a constant that can be used in other parameter types (e.g. `(t, a: t, b: t)` — the type of `a` depends on the compile-time value of `t`).
+- Compile-time (`#`) parameters propagate their result as a constant that can be used in other parameter types (e.g. `(#t: type, a: t, b: t)` — the type of `a` depends on the compile-time value of `t`). Modes are never inferred; `#` must always be written explicitly.
 
 ## Generics via Monomorphisation
 
@@ -64,7 +64,7 @@ Ruka has no separate generic syntax. Compile-time `type`-valued parameters *are*
 
 ## File-as-Record Semantics
 
-A Ruka file *is* a record. Its `let` bindings are public members; its `local` bindings are private. `ruka.import("path")` returns this record as a compile-time constant. Consequences:
+A Ruka file *is* a record. Its `let` namings are public members; its `@`-mode namings are private. `ruka.import("path")` returns this record as a compile-time constant. Consequences:
 
 - The compiler builds a *file record type* for every compiled file.
 - Circular imports are not a compile error (just ignore sub-imports that point to the current file (Similar to C's #ifndef)).

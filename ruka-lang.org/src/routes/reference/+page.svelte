@@ -5,8 +5,7 @@
 	const sections: TocSection[] = [
 		{ id: "comments", title: "Comments" },
 		{ id: "identifiers", title: "Identifiers" },
-		{ id: "privacy", title: "Privacy" },
-		{ id: "bindings", title: "Bindings" },
+		{ id: "namings", title: "Namings" },
 		{ id: "modes", title: "Modes" },
 		{ id: "literals", title: "Literals" },
 		{ id: "builtin-types", title: "Built-in types" },
@@ -73,60 +72,35 @@ let Math  = ruka.import("Math.ruka")       // imported file`}
 		/>
 	</section>
 
-	<section id="privacy">
-		<h2>Privacy</h2>
+	<section id="namings">
+		<h2>Namings</h2>
 		<p>
-			Ruka has two binding keywords. <code>let</code> declares a binding that may escape
-			its scope: at file scope it is exported as part of the file's public record, and at
-			function scope it may be captured by a closure. <code>local</code> declares a
-			non-escaping binding: at file scope it is private to the file (importers cannot see
-			it), and at function scope it cannot be captured by a closure that outlives the
-			declaring function. See <a href="#closures">Closures</a> for the capture rule.
+			<code>let</code> introduces a name. The right-hand side drives type inference; an
+			explicit annotation is only needed when inference cannot reach the type you want.
+			Names can be shadowed by reusing the same name.
 		</p>
 		<p>
-			<code>let</code> and <code>local</code> are alternative binding forms, not modifiers
-			— write <code>local x = …</code>, never <code>let local x = …</code>.
+			By default a <code>let</code> naming may escape its scope: at file scope it is
+			exported as part of the file's public record, and at function scope it may be captured
+			by a closure. Prefixing the name with <code>@</code> makes the naming <em>local</em>
+			— non-escaping: at file scope it is private to the file (importers cannot see it), and
+			at function scope it cannot be captured by a closure that outlives the declaring
+			function. See <a href="#closures">Closures</a> for the capture rule.
 		</p>
 		<p>
-			A field of a record (or a tag of a variant, or a member of a behaviour) prefixed
-			with <code>local</code> is private in the same sense — accessible inside the declaring
-			file, hidden everywhere else.
-		</p>
-		<CodeBlock
-			code={`local helper = () do ruka.println("...")   // private file-scope binding
-
-let point = record {
-    x: f64
-    y: f64
-    local cache: f64    // private field
-}`}
-		/>
-		<p>
-			<code>local</code> is the only privacy modifier; there is no <code>pub</code> keyword.
-		</p>
-	</section>
-
-	<section id="bindings">
-		<h2>Bindings</h2>
-		<p>
-			<code>let</code> and <code>local</code> introduce names. The right-hand side drives type
-			inference; an explicit annotation is only needed when inference cannot reach the type
-			you want. Bindings can be shadowed by reusing the same name.
+			The <code>@</code> prefix is the only privacy mechanism; there is no
+			<code>pub</code> keyword.
 		</p>
 		<CodeBlock
 			code={`let answer = 42
 let pi     = 3.14159
 let name   = "Ruka"
-let count: u32 = 0   // annotation pins the integer type
+let count: u32 = 0      // annotation pins the integer type
 
-local cache = ruka.sqrt(2.0)   // file-private; same syntax, different keyword`}
+let @cache = ruka.sqrt(2.0)   // file-private; escaping disallowed`}
 		/>
 		<p>
-			See <a href="#privacy">Privacy</a> for what <code>local</code> does and where it differs
-			from <code>let</code>.
-		</p>
-		<p>
-			Bindings are immutable by default. To make a binding mutable, or to change how it is
+			Namings are immutable by default. To make a naming mutable, or to change how it is
 			stored or evaluated, use a <em>mode prefix</em> directly before the name (no space).
 			See <a href="#modes">Modes</a>.
 		</p>
@@ -136,7 +110,7 @@ count = count + 1`}
 		/>
 		<h3>Destructuring</h3>
 		<p>
-			A binding may take any irrefutable <a href="#patterns">pattern</a> on the left-hand
+			A naming may take any irrefutable <a href="#patterns">pattern</a> on the left-hand
 			side. Destructuring patterns reuse the same shapes as value literals — a tuple
 			pattern is <code>(a, b)</code>, a record pattern is <code>&#123; a, b &#125;</code>.
 		</p>
@@ -146,44 +120,91 @@ let {x, y} = origin       // record pattern; identifiers must match record field
 		/>
 		<h3>File scope is declarative</h3>
 		<p>
-			A Ruka file's top level holds declarations only — <code>let</code>/<code>local</code>
-			bindings, type definitions, methods, members, behaviours, tests. There are no
-			executable statements at file scope. Every top-level right-hand side is therefore
-			evaluated at compile time.
+			A Ruka file's top level holds declarations only — <code>let</code> namings, type
+			definitions, methods, members, behaviours, tests. There are no executable statements
+			at file scope. Every top-level right-hand side is therefore evaluated at compile time.
 		</p>
 	</section>
 
 	<section id="modes">
 		<h2>Modes</h2>
 		<p>
-			Mode prefixes adjust how a binding or parameter is stored, captured, or evaluated.
-			The same four prefixes apply in both positions, and on method receivers.
+			Mode prefixes adjust how a naming or parameter is stored, captured, or evaluated.
+			The same five prefixes apply in naming and parameter positions, on method receivers,
+			on record fields, and within patterns.
 		</p>
 		<table>
 			<thead><tr><th>Prefix</th><th>Meaning</th></tr></thead>
 			<tbody>
-				<tr><td><code>*</code></td><td>Mutable. Bindings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
-				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture (annotated on the binding being captured), or into a function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
+				<tr><td><code>*</code></td><td>Mutable. Namings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
+				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture (annotated on the naming being captured), or into a function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
 				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Cannot be moved.</td></tr>
-				<tr><td><code>@</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
+				<tr><td><code>@</code></td><td>Local. Non-escaping — at file scope the naming is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. See <a href="#namings">Namings</a>.</td></tr>
+				<tr><td><code>#</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
 		<CodeBlock
-			code={`let *counter = 0                    // mutable binding
-let consume = (&buf) do ...         // takes ownership of buf
-let hash    = ($data) do ...        // stack copy
-let repeat  = (@n: uint, msg) do .. // n must be comptime`}
+			code={`let *counter = 0                    // mutable naming
+let @cache   = ruka.sqrt(2.0)       // local/private naming
+let consume  = (&buf) do ...        // takes ownership of buf
+let hash     = ($data) do ...       // stack copy
+let repeat   = (#n: uint, msg) do . // n must be comptime`}
 		/>
 		<p>
-			The <code>@</code> prefix is rarely written explicitly. At file scope and on
-			methods/members, compile-time evaluation is the default; inside function bodies it
-			is inferred whenever a parameter's type is <code>type</code>.
+			The <code>#</code> prefix must always be written explicitly when compile-time
+			evaluation is required inside a function body. At file scope, compile-time evaluation
+			is already implicit, so <code>#</code> is redundant there and may be omitted.
 		</p>
 		<p>
 			Method receivers also accept mode prefixes. <code>*self</code> is a mutating receiver;
 			<code>&amp;self</code> consumes the receiver (a destructor-like method);
-			<code>$self</code> and <code>@self</code> are reserved for cases where the receiver
+			<code>$self</code> and <code>#self</code> are reserved for cases where the receiver
 			itself is stack-bound or compile-time known. See <a href="#methods">Methods &amp; members</a>.
+		</p>
+
+		<h3>Modes on record fields</h3>
+		<p>
+			Mode prefixes may appear on field declarations in records, variant tags, and behaviour
+			method signatures.
+		</p>
+		<CodeBlock
+			code={`let config = record {
+    width: u32
+    height: u32
+    @cache: f64        // local — private to the declaring file
+    #max_size: uint    // compile-time — a constant field
+    &handle: resource  // move — accessing this field transfers ownership
+    $buf: [u8]         // stack — this field is stack-allocated
+}`}
+		/>
+		<p>
+			The <code>@</code> mode is the most common on fields: it makes a field private to
+			the declaring file, exactly as <code>@</code> on a file-scope naming makes it private.
+		</p>
+
+		<h3>Modes in patterns</h3>
+		<p>
+			A mode prefix in a pattern adjusts how a bound name is introduced. The prefix may be
+			written <em>per identifier</em>:
+		</p>
+		<CodeBlock
+			code={`let (*x, y) = pair           // x is mutable, y is immutable
+for (*x, y) in positions do ...`}
+		/>
+		<p>
+			Or written before the <em>pattern as a whole</em>, which distributes the mode to
+			every identifier in the pattern:
+		</p>
+		<CodeBlock code={`let *(x, y) = pair           // both x and y are mutable`} />
+		<p>A per-identifier mode overrides the distributed mode for that position.</p>
+
+		<h3>Mode composability</h3>
+		<p>
+			Whether multiple mode prefixes may be combined on a single naming is an
+			<strong>open design question</strong>. A composable system would allow forms such as
+			<code>let *@x = 0</code> (a mutable local naming); a single-mode system would require
+			choosing one. This document treats the question as unresolved — examples use at most
+			one mode per naming.
 		</p>
 	</section>
 
@@ -472,7 +493,7 @@ let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)`}
 		<h2>Patterns</h2>
 		<p>
 			The same pattern syntax is used in every position —
-			<code>let</code>/<code>local</code> destructuring, <code>match</code> arms,
+			<code>let</code> destructuring, <code>match</code> arms,
 			<code>for</code> loop binders, and the
 			<a href="#conditional-pattern-binding">conditional pattern forms</a> of
 			<code>if</code> and <code>while</code>. There is no separate destructuring syntax per
@@ -708,14 +729,14 @@ end`}
 		<p>Two rules constrain capture:</p>
 		<ol>
 			<li>
-				<strong>Only <code>let</code> runtime bindings may be captured.</strong> A
-				<code>local</code> runtime binding cannot escape its declaring function, so a
+				<strong>Only namings without <code>@</code> mode may be captured.</strong> An
+				<code>@</code>-named runtime naming cannot escape its declaring function, so a
 				closure that outlives that function cannot reference it.
 			</li>
 			<li>
-				<strong><code>&amp;</code>-annotated bindings transfer ownership on capture.</strong>
-				A binding declared <code>let &amp;name = …</code> <em>moves</em> into the first
-				closure that captures it; the original binding is invalid afterwards. Without
+				<strong><code>&amp;</code>-annotated namings transfer ownership on capture.</strong>
+				A naming declared <code>let &amp;name = …</code> <em>moves</em> into the first
+				closure that captures it; the original naming is invalid afterwards. Without
 				<code>&amp;</code>, capture is by reference.
 			</li>
 		</ol>
@@ -733,10 +754,10 @@ ruka.println("\${counter()}")   // 1
 ruka.println("\${counter()}")   // 2`}
 		/>
 		<p>
-			In the example above, the inner function captures <code>n</code> (a <code>let</code>
-			binding) from <code>make_counter</code>. If <code>n</code> had been declared
-			<code>local *n = 0</code>, the inner closure could not have escaped
-			<code>make_counter</code> and the program would fail to compile.
+			In the example above, the inner function captures <code>n</code> (a naming without
+			<code>@</code> mode) from <code>make_counter</code>. If <code>n</code> had been
+			declared with the <code>@</code> (local) mode, the inner closure could not have
+			escaped <code>make_counter</code> and the program would fail to compile.
 		</p>
 	</section>
 
@@ -786,10 +807,12 @@ greet(~name="Ruka", ~title="Dr.")    // "Dr. Ruka"`}
 		<h3>Trailing block syntax</h3>
 		<p>
 			A single named argument may follow the closing parenthesis. This reads naturally for
-			higher-order functions whose closure parameter is named and placed last.
+			higher-order functions whose closure parameter is named and placed last. When a named
+			parameter also carries a mode prefix, <code>~</code> comes first:
+			<code>~#t</code>, <code>~*buf</code>, <code>~&amp;handle</code>.
 		</p>
 		<CodeBlock
-			code={`let map = (~t: type, xs: [t], ~f) do ...
+			code={`let map = (xs: [t], ~#t: type, ~f) do ...
 
 let doubled = map(nums) ~f=(x) do x * 2
 let squared = map(nums) ~f=(x) do
@@ -798,24 +821,21 @@ let squared = map(nums) ~f=(x) do
 end`}
 		/>
 
-		<h3>Compile-time type inference from a trailing named parameter</h3>
+		<h3>Compile-time argument inference from result location</h3>
 		<p>
-			When a function declares a <code>~t: type</code> named parameter and the call site
-			does not pass <code>~t</code> explicitly, the compiler infers <code>t</code> from
-			the <em>result location</em> — the type of the binding, parameter, or field that
-			will receive the call's result. This makes generic factory functions read like
-			ordinary literals at the call site.
+			When the final parameter of a function has type <code>type</code>, the compiler may
+			infer its value at the call site from the <em>result location</em> — the type of the
+			binding, parameter, or field that will receive the call's result. This works whether
+			the parameter is positional or named. The <code>#</code> mode must still be written
+			explicitly in the declaration; only the argument value is inferred.
 		</p>
 		<CodeBlock
-			code={`let empty = (~t: type) -> [t] do [t] {}
+			code={`let empty = (#t: type) -> [t] do [t] {}
 
-let xs: [i32] = empty()         // ~t=i32 inferred from the binding's type
-let ys: [string] = empty()      // ~t=string inferred similarly`}
+let xs: [i32] = empty()    // t=i32 inferred from the binding's type
+let ys: [string] = empty() // t=string inferred similarly`}
 		/>
-		<p>
-			If no result-location type is available, the compiler falls back to the usual rules
-			— ambiguity is a compile error.
-		</p>
+		<p>If no result-location type is available, ambiguity is a compile error.</p>
 	</section>
 
 	<section id="records-variants">
@@ -826,13 +846,13 @@ let ys: [string] = empty()      // ~t=string inferred similarly`}
 			A record is a fixed set of named, typed fields. Declare with
 			<code>record &#123; … &#125;</code>. In a multi-line declaration the fields are
 			separated by newlines; commas are only needed when fields share a single line.
-			Fields prefixed with <code>local</code> are private to the declaring file.
+			Fields prefixed with <code>@</code> are local — private to the declaring file.
 		</p>
 		<CodeBlock
 			code={`let point = record {
     x: f64
     y: f64
-    local cache: f64
+    @cache: f64
 }
 
 let inline = record { x: f64, y: f64 }   // commas required on one line`}
@@ -946,7 +966,7 @@ let length (self) = () do ruka.sqrt(self.x * self.x + self.y * self.y)`}
 		/>
 		<CodeBlock
 			code={`// main.ruka
-local Vector = ruka.import("Vector.ruka")
+let @Vector = ruka.import("Vector.ruka")
 
 let main = () do
     let v: Vector.t = Vector.new(3.0, 4.0)
@@ -1125,7 +1145,7 @@ let format (self) = () do "(\${self.x}, \${self.y})"   // makes point printable`
 		</p>
 		<CodeBlock
 			code={`let cast = behaviour {
-    cast(self): (~t: type) -> t
+    cast(self): (~#t: type) -> t
 }`}
 		/>
 
@@ -1175,9 +1195,9 @@ let passing = { name => score for (name, score) in scores if score >= 60 }`}
 		<p>
 			A Ruka file <em>is</em> a record — a record type whose only constituents are members
 			(constants attached at compile time), with no runtime fields. Every top-level
-			<code>let</code> declaration becomes a member of that record; <code>local</code>
-			declarations are members the file uses internally but does not export. There is no
-			separate "module" concept.
+			<code>let</code> declaration becomes a member of that record;
+			<code>@</code>-mode namings are private — the file uses them internally but they are
+			not exported. There is no separate "module" concept.
 		</p>
 		<p>
 			<code>ruka.import("path")</code> evaluates at compile time and returns the imported
@@ -1239,15 +1259,15 @@ test addition = () do
 end`}
 		/>
 		<p>
-			Tests live in their declaring file's scope and can therefore call <code>local</code>
-			declarations directly. There is no separate test-visibility mechanism.
+			Tests live in their declaring file's scope and can therefore call
+			<code>@</code>-mode namings directly. There is no separate test-visibility mechanism.
 		</p>
 	</section>
 
 	<section id="comptime">
 		<h2>Compile-time evaluation</h2>
 		<p>
-			Ruka has a compile-time interpreter. Functions with <code>@</code>-prefixed
+			Ruka has a compile-time interpreter. Functions with <code>#</code>-prefixed
 			parameters run at compile time; their results are compile-time constants. Types,
 			functions, and records-of-members are first-class values in compile-time contexts.
 		</p>
@@ -1256,25 +1276,28 @@ end`}
 			<em>inspects</em>, or <em>passes around</em> a <code>type</code> value must run at
 			compile time. There is no runtime reflection — <code>ruka.type_of</code>,
 			<code>ruka.fields_of</code>, <code>ruka.record_of</code>, and friends are all
-			compile-time. A binding of type <code>type</code> is, by definition, compile-time.
+			compile-time.
 		</p>
 
-		<h3>Inferring <code>@</code> from <code>type</code></h3>
+		<h3>No mode inference</h3>
 		<p>
-			A parameter typed <code>type</code> infers the <code>@</code> prefix automatically.
-			A parameter used to annotate another parameter infers both.
+			Modes are never inferred — they must be written explicitly. A parameter typed
+			<code>type</code> does not gain <code>#</code> automatically; you must write
+			<code>#</code> to make it compile-time.
 		</p>
 		<CodeBlock
-			code={`// all three forms are equivalent
-let min = (@t: type, a: t, b: t) do if a < b do a else b
-let min = (t: type,  a: t, b: t) do if a < b do a else b
-let min = (t,        a: t, b: t) do if a < b do a else b`}
+			code={`// correct: # is explicit
+let min = (#t: type, a: t, b: t) do if a < b do a else b
+
+// compile error: t of type \`type\` requires an explicit # prefix
+let min = (t: type, a: t, b: t) do if a < b do a else b`}
 		/>
 
 		<h3>Generics</h3>
 		<p>
 			Each unique compile-time argument set produces a distinct specialisation, much like
-			monomorphisation in Rust or <code>comptime</code> in Zig.
+			monomorphisation in Rust or <code>comptime</code> in Zig. All <code>#</code>-prefixed
+			parameters must be written explicitly at the declaration site.
 		</p>
 		<CodeBlock
 			code={`let x = min(i32, 3, 7)      // i32 instantiation
@@ -1283,11 +1306,11 @@ let y = min(f64, 1.5, 2.0)  // f64 instantiation`}
 
 		<h3>Generating types</h3>
 		<p>
-			A compile-time function may return a type. Non-<code>type</code> parameters that
-			must be compile-time still need an explicit <code>@</code>.
+			A compile-time function may return a type. All compile-time parameters require an
+			explicit <code>#</code>.
 		</p>
 		<CodeBlock
-			code={`let fixed_array = (t, @cap: uint) do
+			code={`let fixed_array = (#t: type, #cap: uint) do
     record {
         data: [t]
         len:  uint
@@ -1301,14 +1324,14 @@ let float_buf = fixed_array(f64, 16)`}
 		<h3>Storing compile-time results</h3>
 		<p>
 			At file scope, <code>let</code> already evaluates its right-hand side at compile
-			time, so no prefix is needed. Inside a function body, prefix the binding with
-			<code>@</code> to force compile-time storage.
+			time, so no prefix is needed. Inside a function body, prefix the naming with
+			<code>#</code> to force compile-time storage.
 		</p>
 		<CodeBlock
 			code={`let sqrt_2 = ruka.sqrt(2.0)    // top level — comptime by default
 
 let run = () do
-    let @table = build_lookup_table(256)   // forced to comptime
+    let #table = build_lookup_table(256)   // forced to comptime
     let rows   = fetch_rows()              // runtime
 end`}
 		/>
@@ -1319,12 +1342,12 @@ end`}
 			value. <code>ruka.fields_of</code>, <code>ruka.methods_of</code>, and
 			<code>ruka.members_of</code> return the structural pieces of a type.
 			<code>ruka.record_of(fields)</code> constructs a new record type from a list of
-			field descriptors. All four take <code>@</code>-prefixed type arguments and run at
+			field descriptors. All four take <code>#</code>-prefixed type arguments and run at
 			compile time — there is no runtime reflection.
 		</p>
 		<CodeBlock
 			code={`// derive: produce an option-of-every-field version of any record
-let partial = (t) do
+let partial = (#t: type) do
     let fs = ruka.fields_of(t)
         |> map((f) do { name = f.name, type = ?(f.type) })
     ruka.record_of(fs)
