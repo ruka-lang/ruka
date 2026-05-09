@@ -39,9 +39,9 @@
 		inset: 0;
 		z-index: -1;
 		pointer-events: none;
-		background-image: var(--flower-url), var(--flower-url);
-		background-size: 160px 160px, 160px 160px;
-		background-position: 0 0, 80px 80px;
+		background-image: var(--flower-url);
+		background-size: 160px 160px;
+		background-position: center;
 		background-repeat: repeat;
 		opacity: var(--flower-opacity);
 		filter: var(--flower-filter);
