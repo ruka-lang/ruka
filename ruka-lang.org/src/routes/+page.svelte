@@ -118,8 +118,8 @@ end`
 				<div class="feature-meta">
 					<h3 class="feature-title">Opt-in control with modes</h3>
 					<p class="feature-desc">
-						Four single-character prefixes cover mutability, ownership transfer, stack
-						allocation, and compile-time evaluation. They apply to bindings, parameters, and receivers.
+						Five symbol prefixes cover mutability, ownership transfer, stack
+						allocation, locality, and compile-time evaluation. They apply anywhere a name is introduced.
 					</p>
 				</div>
 				<div class="feature-code"><CodeBlock code={snippets.modes} /></div>
