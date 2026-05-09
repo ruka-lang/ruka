@@ -23,6 +23,7 @@ end`,
 
 		modes: `\
 let *counter = 0               // mutable
+let @private = ...             // private / local (cannot be captured)
 let consume  = (&buf) do ..    // takes ownership
 let fast     = ($data) do ..   // stack-allocated
 let work = () do
@@ -30,12 +31,12 @@ let work = () do
 end`,
 
 		behaviours: `\
-let @shape = behaviour {
+let shape = behaviour {
     area(self):      () -> f64
     perimeter(self): () -> f64
 }
 
-let @describe = (s: shape) do
+let describe = (s: shape) do
     ruka.println("area=\${s.area()}")
 end`,
 
