@@ -1,5 +1,5 @@
 let t = record {
-	local weights: [float]
+	@weights: [float]
 	learning: float
 }
 
@@ -14,7 +14,7 @@ let train (*self) = (training, epochs) do
 	end
 end
 
-local fit (*self) = (input, target) do
+let @fit (*self) = (input, target) do
 	let input = input.concat(1.0)
 	let guess = self.predict(input)	
 	let error = target - guess
@@ -37,4 +37,4 @@ let predict (self) = (inputs) do
 	activate(sum)
 end
 
-local activate = (z) do 1.0 if z >= 0.0 else 0.0
+let @activate = (z) do 1.0 if z >= 0.0 else 0.0

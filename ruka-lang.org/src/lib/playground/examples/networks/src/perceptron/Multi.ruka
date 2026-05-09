@@ -1,10 +1,10 @@
-local Matrix = ruka.import("Matrix.ruka")
+let @Matrix = ruka.import("Matrix.ruka")
 
 let t = record {
-	local layers: [Matrix.t]
-	local inputs: int
-	local hiddens: int
-	local outputs: int
+	@layers: [Matrix.t]
+	@inputs: int
+	@hiddens: int
+	@outputs: int
 	learning: float
 }
 
@@ -22,7 +22,7 @@ let train (*self) = (training, epochs) do
 	end
 end
 
-local backpropigate (*self) = (input, target) do
+let @backpropigate (*self) = (input, target) do
 
 end
 
@@ -30,8 +30,8 @@ let predict (self) = (input) do
 
 end
 
-local feed_forward (self) = (input) do
+let @feed_forward (self) = (input) do
 
 end
 
-local sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))
+let @sigmoid = (z) do 1.0 / (1.0 + ruka.exp(-z))

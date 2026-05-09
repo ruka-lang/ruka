@@ -53,10 +53,6 @@ const OPERATORS = new Set([
 	".",
 	"..",
 	"..=",
-	"@",
-	"#",
-	"&",
-	"$",
 	"|",
 	"^",
 	"!",
@@ -243,12 +239,26 @@ export function highlight(raw: string): string {
 			continue;
 		}
 
+		// Mode sigils (* @ # $ &) followed by an identifier — the sigil is part of
+		// the name, not an operator. Emit as plain text like a bare identifier.
+		if (
+			(raw[i] === "*" || raw[i] === "@" || raw[i] === "#" || raw[i] === "$" || raw[i] === "&") &&
+			/[a-zA-Z_]/.test(raw[i + 1] ?? "")
+		) {
+			let j = i + 1;
+			while (j < raw.length && /\w/.test(raw[j]!)) j++;
+			out += escapeHtml(raw.slice(i, j));
+			i = j;
+			continue;
+		}
+
 		// Operators (longest match first).
 		const op =
 			(OPERATORS.has(raw.slice(i, i + 3)) && raw.slice(i, i + 3)) ||
 			(OPERATORS.has(raw.slice(i, i + 2)) && raw.slice(i, i + 2)) ||
 			(OPERATORS.has(raw[i]!) && raw[i]!) ||
 			null;
+
 		if (op) {
 			// Word-form ops (and / or / not) must not be a prefix of an
 			// identifier; symbol ops have no such risk.

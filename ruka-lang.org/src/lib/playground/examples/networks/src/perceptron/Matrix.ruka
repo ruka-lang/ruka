@@ -1,5 +1,5 @@
 let t = record {
-	local buf: [float]
+	@buf: [float]
 	rows: int
 	cols: int
 }
