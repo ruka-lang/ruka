@@ -55,8 +55,6 @@ const OPERATORS = new Set([
 	"..=",
 	"|",
 	"^",
-	"!",
-	"?",
 	"and",
 	"or",
 	"not",
