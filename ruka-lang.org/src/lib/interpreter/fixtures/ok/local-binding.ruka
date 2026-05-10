@@ -1,4 +1,4 @@
-// `@` mode makes a naming local/non-escaping. At file scope it is private;
+// `@` mode makes a declaration local/non-escaping. At file scope it is private;
 // at function scope it cannot be captured by a closure that outlives the function.
 let @PI = 3.14159
 

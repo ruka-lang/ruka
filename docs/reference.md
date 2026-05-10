@@ -344,12 +344,12 @@ A type customises `as` by defining a `cast` member that matches the [`ruka.cast`
 
 ## Patterns
 
-The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop declareers, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
+The same pattern syntax is used in every position — `let` destructuring, `match` arms, `for` loop patterns, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
 
 | Form | Example | Refutable? |
 | --- | --- | --- |
-| Identifier | `x` | no |
-| Tuple | `(a, b)` | no (when arity matches) |
+| Name | `x` | no |
+| Tuple | `(a, b)` | no |
 | Record | `{x, y}` | no |
 | Literal | `0`, `"yes"` | yes |
 | Range | `1..=9` | yes |
@@ -637,7 +637,7 @@ Methods and *members* are declared with the same `let` form, distinguished by wh
 
 - `let name (type) = …` — **member** on `type`, called as `type.name(...)`.
 - `let name (self) = …` — **method**, called as `value.name(...)`.
-- `let name (*self) = …` — **mutating method**.
+- `let name (*self) = …` — **borrowing method**.
 - `let name (&self) = …` — **consuming method**; ownership of the receiver moves into the method (the destructor-style form). The receiver is invalid after the call.
 
 ```ruka
@@ -652,7 +652,7 @@ let new  (counter) = (start) do { count = start }
 // method — accessed as c.bump()
 let bump (self) = () do { count = self.count + 1 }
 
-// mutating method
+// borrowing method
 let inc (*self) = () do
     self.count = self.count + 1
 end

@@ -30,7 +30,7 @@ Ruka is a statically typed, compiled langauge that uses an interpreter to allow 
 3. All match expressions are exhaustive (exhaustiveness check).
 4. All `#`-prefixed values are actually available at compile time.
 5. Ownership/move and mutable semantics are respected (`&` mode, `*` mode).
-6. `@`-mode namings are never captured by closures that outlive their declaring function.
+6. `@`-mode declarations are never captured by closures that outlive their declaring function.
 
 If a program reaches codegen, it is already known to be correct. 
 
@@ -64,7 +64,7 @@ Ruka has no separate generic syntax. Compile-time `type`-valued parameters *are*
 
 ## File-as-Record Semantics
 
-A Ruka file *is* a record. Its `let` namings are public members; its `@`-mode namings are private. `ruka.import("path")` returns this record as a compile-time constant. Consequences:
+A Ruka file *is* a record. Its `let` declarations are public members; its `@`-mode declarations are private. `ruka.import("path")` returns this record as a compile-time constant. Consequences:
 
 - The compiler builds a *file record type* for every compiled file.
 - Circular imports are not a compile error (just ignore sub-imports that point to the current file (Similar to C's #ifndef)).
@@ -76,7 +76,7 @@ A Ruka file *is* a record. Its `let` namings are public members; its `@`-mode na
 Every new feature must have a failing test before implementation begins. The test suite mirrors the interpreter fixture layout:
 
 - `fixtures/ok/` — programs that must compile and run successfully.
-- `fixtures/scope-err/` — programs with name/binding errors; first-line comment declares the expected error substring.
+- `fixtures/scope-err/` — programs with name resolution errors; first-line comment declares the expected error substring.
 - `fixtures/type-err/` — programs with type errors; same convention.
 
 Tests are auto-discovered: dropping a `.ruka` file in the right directory is sufficient. This removes friction from writing regression tests.

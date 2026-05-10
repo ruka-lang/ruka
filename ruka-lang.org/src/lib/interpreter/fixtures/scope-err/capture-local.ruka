@@ -1,5 +1,5 @@
 // expect: cannot capture @-mode
-// An `@`-mode naming cannot be captured by a closure that outlives
+// An `@`-mode declaration cannot be captured by a closure that outlives
 // the declaring function.
 let make = () do
 	let @n = 0

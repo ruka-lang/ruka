@@ -142,18 +142,18 @@ type File struct {
 type DeclKind uint8
 
 const (
-    DeclNaming DeclKind = iota // let naming
-    DeclTest                   // test naming
+    DeclLet  DeclKind = iota // let declaration
+    DeclTest                 // test declaration
 )
 
 type Decl struct {
     Kind    DeclKind
     Span    Span
     Keyword string    // "let" | "test"
-    Name    string    // bound name
+    Name    string    // declared name
     Mode    Mode      // *, &, $, @ — zero value means no mode
     // For method/member receivers:
-    Receiver *Receiver // nil for plain bindings
+    Receiver *Receiver // nil for plain declarations
     // Annotation (optional):
     TypeExpr *TypeExpr
     // Right-hand side:
@@ -229,11 +229,11 @@ const (
     ExprBad
 )
 
-// Mode is the prefix character on a naming, parameter, field, or pattern binder.
+// Mode is the prefix character on a declaration, parameter, field, or pattern name.
 type Mode rune // 0 means no mode
 
 const (
-    ModeMut      Mode = '*' // borrow — on parameters/receivers only; runtime namings are mutable by default
+    ModeMut      Mode = '*' // borrow — on parameters/receivers (immutable by default); runtime variables are mutable by default and only need * to allow modification within a closure that captures them
     ModeMove     Mode = '&' // move + mutable; ownership transfers into the function
     ModeStack    Mode = '$' // stack + mutable; passed as a stack-allocated copy
     ModeLocal    Mode = '@' // local + mutable; non-escaping (private at file scope, non-capturable at function scope)
@@ -287,7 +287,7 @@ type Expr struct {
 
     // ExprFor
     ForOuter *Expr    // nil unless "for outer with pat in inner" sugar
-    ForPat   *Pattern // nil for "for expr do" (no binding)
+    ForPat   *Pattern // nil for "for expr do" (no element-declaration pattern)
     ForIter  *Expr
     Body     *Expr    // reused for ExprWhile, ExprFor, ExprBlock body
 
@@ -365,16 +365,16 @@ type Stmt struct {
 
 ### Patterns
 
-A single `Pattern` type covers all pattern forms. This is the key simplification: every place a pattern appears (match arms, `let` destructuring, `for` binders, `if`/`while` conditional bindings) uses exactly this type.
+A single `Pattern` type covers all pattern forms. This is the key simplification: every place a pattern appears (match arms, `let` destructuring, `for` patterns, `if`/`while` conditional declarations) uses exactly this type.
 
 ```go
 type PatternKind uint8
 
 const (
-    PatIdent   PatternKind = iota // bare identifier — binds the value (irrefutable)
+    PatIdent   PatternKind = iota // bare name — declares the value (irrefutable)
     PatLiteral                    // integer, float, bool, char, string literal (refutable)
     PatRange                      // lo..hi or lo..=hi (refutable)
-    PatTuple                      // (a, b, ...) — irrefutable when arity matches
+    PatTuple                      // (a, b, ...) (irrefutable)
     PatRecord                     // { a, b } — irrefutable when fields match
     PatVariant                    // tag or tag(inner) — refutable
     PatGuard                      // inner pattern + boolean guard (refutable)
@@ -402,7 +402,7 @@ type Pattern struct {
     Sub  []*Pattern
     Tag  string // PatVariant: the tag name
 
-    // PatRecord: Fields[i] is the field name; each bound as an identifier
+    // PatRecord: Fields[i] is the field name; each declared as a name
     Fields []string
 
     // PatGuard
@@ -627,9 +627,9 @@ type Scope struct {
 type BindingKind uint8
 
 const (
-    BindNaming BindingKind = iota // let naming (mode field carries @, #, etc.)
-    BindParam                     // function parameter
-    BindTest                      // test naming
+    BindLet   BindingKind = iota // let declaration (mode field carries @, #, etc.)
+    BindParam                    // function parameter
+    BindTest                     // test declaration
 )
 
 type Binding struct {

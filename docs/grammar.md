@@ -63,17 +63,17 @@ The following identifiers are reserved as keywords:
 
 `and` `as` `behaviour` `break` `continue` `defer` `do` `else` `end` `false` `for` `if` `in` `let` `match` `not` `or` `record` `return` `self` `test` `true` `variant` `while` `with`
 
-The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or naming identifier with no whitespace between the prefix and the identifier. For named parameters, `~` appears before the mode prefix.
+The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or declaration name with no whitespace between the prefix and the name. For named parameters, `~` appears before the mode prefix.
 
 ```ebnf
-mode-prefix   ::=  "*"    -- borrow; on parameters and receivers: may be modified; on variables: may be modified after capture
-               |   "&"    -- move + mutable; ownership transfers into the function on parameters / into closure on variables; invalid after move
-               |   "$"    -- stack + mutable; stack-allocated; passed by copy on parameters
+mode-prefix   ::=  "*"    -- borrow; mutable — required on parameters and receivers (immutable by default); on runtime variables, required to allow modification within a closure that captures it
+               |   "&"    -- move + mutable; ownership transfers into the function; the original declaration is invalid after the call
+               |   "$"    -- stack + mutable; stack-allocated — when on a parameter the argument is copied into its stack memory
                |   "@"    -- local + mutable; non-escaping — private at file scope, non-capturable at function scope
                |   "#"    -- compile-time; value must be known at compile time
 ```
 
-`self` is reserved for the method receiver; it may only appear in the receiver clause of a binding declaration or as a parameter inside a method body. `with` is used in `match … with` and in the nested `for outer with pattern in inner` form. `as` is used only as the cast operator. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
+`self` is reserved for the method receiver; it may only appear in the receiver clause of a declaration or as a parameter inside a method body. `with` is used in `match … with` and in the nested `for outer with pattern in inner` form. `as` is used only as the cast operator. `ruka` is a reserved identifier referring to the built-in module; it is implicitly in scope in every source file and cannot be shadowed or rebound.
 
 ### Literals
 
@@ -151,17 +151,17 @@ program       ::=  declaration*
 
 ### Declarations
 
-There are two declaration forms: `let` namings and `test` namings. There is no separate `fn`, `type`, or `mod` keyword. Mutability, locality, and evaluation time are all expressed through mode prefixes.
+There are two declaration forms: `let` declarations and `test` declarations. There is no separate `fn`, `type`, or `mod` keyword. Mutability, locality, and evaluation time are all expressed through mode prefixes.
 
 ```ebnf
-declaration   ::=  naming | test-naming
+declaration   ::=  let-decl | test-decl
 
-naming        ::=  "let" naming-lhs "=" expr
-               |   "let" naming-lhs ":" type "=" expr
+let-decl      ::=  "let" decl-lhs "=" expr
+               |   "let" decl-lhs ":" type "=" expr
 
-naming-lhs    ::=  mode-prefix? identifier                  -- simple value naming
-               |   mode-prefix? identifier receiver         -- function or method naming
-               |   destructure-pattern                      -- destructuring naming
+decl-lhs      ::=  mode-prefix? identifier                  -- simple value declaration
+               |   mode-prefix? identifier receiver         -- function or method declaration
+               |   destructure-pattern                      -- destructuring declaration
 
 receiver      ::=  "(" type-receiver ")"
 type-receiver ::=  identifier                               -- member: associated type name
@@ -174,25 +174,25 @@ destructure-pattern
                    -- e.g.  let (a, b)   = pair
                    -- e.g.  let { sqrt, pow } = ruka.import("Math.ruka")
 
-test-naming   ::=  "test" identifier "=" expr
+test-decl     ::=  "test" identifier "=" expr
                    -- the value must be a function expression; compiled in debug/test builds only
 ```
 
-**Uniform declarations.** Functions, types, behaviours, and imported files are all values stored in ordinary `let` namings. A *receiver* in the naming left-hand side associates the value with a named type as either a *member* (type-name receiver) or a *method* (`self` receiver). The receiver appears between the naming name and the `=` sign.
+**Uniform declarations.** Functions, types, behaviours, and imported files are all values stored in ordinary `let` declarations. A *receiver* in the declaration's left-hand side associates the value with a named type as either a *member* (type-name receiver) or a *method* (`self` receiver). The receiver appears between the declaration's name and the `=` sign.
 
 **Type extension.** The type named by a receiver is not required to be declared in the current scope — any type is a valid receiver, including primitives (`i32`, `bool`, etc.) and built-in generics. An extension declared outside the type's original scope shadows the type within the extending scope rather than mutating it. See [Methods & members](./reference.md#methods--members).
 
-**Locality.** By default a `let` naming may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. Prefixing the name with `@` makes the naming *local* — non-escaping: at file scope it is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. The same `@` mode applies to fields, variant tags, and behaviour members (see [Types](#types)).
+**Locality.** By default a `let` declaration may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. Prefixing the name with `@` makes the declaration *local* — non-escaping: at file scope it is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. The same `@` mode applies to fields, variant tags, and behaviour members (see [Types](#types)).
 
-**Mutability.** Runtime variables (inside a function or block) are mutable by default — their memory may be modified without any prefix except to allow modification when captured by a closure. File-scope constants are immutable (file scope is compile-time and declarative). Parameters and receivers are immutable by default; any of `*`, `&`, `$`, or `@` on a parameter or receiver allows its memory to be modified within the function.
+**Mutability.** Runtime variables (inside a function or block) are mutable by default — their memory may be modified; `*` is only required to allow modification within a closure that captures the variable. File-scope constants are immutable (file scope is compile-time and declarative). Parameters and receivers are immutable by default; any of `*`, `&`, `$`, or `@` on a parameter or receiver allows its memory to be modified within the function.
 
-**Evaluation time.** Namings at file scope (including methods, members, and type declarations) are implicitly compile-time. The `#` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain naming is runtime; `#` must be written explicitly to force compile-time evaluation of the right-hand side. Modes are never inferred from type annotations — `#` must always be written when required.
+**Evaluation time.** Declarations at file scope (including methods, members, and type declarations) are implicitly compile-time. The `#` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain declaration is runtime; `#` must be written explicitly to force compile-time evaluation of the right-hand side. Modes are never inferred from type annotations — `#` must always be written when required.
 
-**Test namings.** A `test` naming declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test namings have no mode prefix and no receiver clause.
+**Test declarations.** A `test` declaration declares a function that is only compiled in debug and test builds and elided entirely in optimised builds. The value must be a function expression. Test declarations have no mode prefix and no receiver clause.
 
 ### Types
 
-Type expressions appear after `:` in parameter and binding annotations, after `->` in return-type annotations, and as values passed to `type`-typed parameters.
+Type expressions appear after `:` in parameter and declaration annotations, after `->` in return-type annotations, and as values passed to `type`-typed parameters.
 
 ```ebnf
 type          ::=  "()"                              -- unit type
@@ -375,7 +375,7 @@ trailing-arg  ::=  "~" identifier "=" function-expr
 primary       ::=  literal-expr
                |   identifier                              -- "ruka" is reserved as the built-in module reference;
                                                            --   bare identifiers also serve as payloadless variant constructors
-                                                           --   (resolved against in-scope bindings first, then variant tags)
+                                                           --   (resolved against in-scope declarations first, then variant tags)
                |   block-expr
                |   if-expr
                |   match-expr
@@ -483,7 +483,7 @@ map-comprehension
 -- written as a bare identifier; a tag with payload is written as a call
 -- "tag(payload)". Both forms reuse the ordinary identifier and call
 -- productions, and are resolved by the type checker — an in-scope
--- binding of the same name wins over a variant tag. A type-qualified
+-- declaration of the same name wins over a variant tag. A type-qualified
 -- form "type.tag" or "type.tag(payload)" is just a postfix field access
 -- followed (optionally) by a call.
 ```
@@ -504,7 +504,7 @@ param         ::=  "~"? mode-prefix? identifier type-annot?     -- positional or
 type-annot    ::=  ":" type
 ```
 
-**Receiver and function expression.** When a binding declaration carries a receiver clause, the `param-list` describes only the *explicit* parameters — the receiver itself is declared by the binding, not by the function expression. See [Declarations](#declarations).
+**Receiver and function expression.** When a declaration carries a receiver clause, the `param-list` describes only the *explicit* parameters — the receiver itself is declared by the declaration, not by the function expression. See [Declarations](#declarations).
 
 #### Named parameters
 
@@ -524,7 +524,7 @@ Prepending `~` to a parameter name makes it a *named parameter*. Named parameter
 --   e.g.  map(nums) ~f=(x) do x * 2
 ```
 
-A trailing named parameter typed `~t: type` may be omitted at the call site — the compiler infers `t` from the *result location* (the type of the binding, parameter, or field that receives the call's value). See [Reference §Compile-time type inference from a trailing named parameter](./reference.md#compile-time-type-inference-from-a-trailing-named-parameter).
+A trailing parameter typed `#t: type` may be omitted at the call site — the compiler infers `t` from the *result location* (the type of the declaration, parameter, or field that receives the call's value). See [Reference §Compile-time type inference from a trailing named parameter](./reference.md#compile-time-argument-inference-from-result-location)
 
 ### Control flow
 
@@ -532,7 +532,7 @@ All control flow constructs are expressions and produce a value. When used purel
 
 #### If expression
 
-A multi-statement `if` chain is closed by a single trailing `end`; an all-single-expression chain has no `end`, since each branch closes at its newline. The condition position accepts either a plain boolean expression or a *conditional pattern binding* — `pattern = expr` — which runs the branch only if the pattern matches the value of `expr` (the bindings introduced by the pattern are in scope inside that branch).
+A multi-statement `if` chain is closed by a single trailing `end`; an all-single-expression chain has no `end`, since each branch closes at its newline. The condition position accepts either a plain boolean expression or a *conditional pattern declaration* — `pattern = expr` — which runs the branch only if the pattern matches the value of `expr` (the names introduced by the pattern are in scope inside that branch).
 
 ```ebnf
 if-expr       ::=  "if" if-cond block-expr
@@ -540,7 +540,7 @@ if-expr       ::=  "if" if-cond block-expr
                    ( "else" block-expr )?
 
 if-cond       ::=  expr                                   -- ordinary boolean condition
-               |   pattern "=" expr                       -- conditional pattern binding;
+               |   pattern "=" expr                       -- conditional pattern declaration;
                                                           --   pattern is typically refutable
 ```
 
@@ -565,11 +565,11 @@ while-cond    ::=  expr
 
 #### For expression
 
-`for` accepts any pattern in its binder position. An *irrefutable* pattern (identifier, tuple, record) binds every element. A *refutable* pattern (variant, literal, range, guard) silently skips elements that fail to match.
+`for` accepts any pattern in its declaration position. An *irrefutable* pattern (name, tuple, record) declares every element. A *refutable* pattern (variant, literal, range, guard) silently skips elements that fail to match.
 
 ```ebnf
 for-expr      ::=  "for" pattern "in" expr block-expr
-               |   "for" expr block-expr                  -- iterator without a binding variable
+               |   "for" expr block-expr                  -- iterator without an element-declaration pattern
                |   "for" expr "with" pattern "in" expr block-expr
                                                           -- sugar: outer "for expr" wraps an inner "for pattern in expr"
 ```
@@ -606,7 +606,7 @@ defer-stmt    ::=  "defer" expr
 
 ### Patterns
 
-Patterns appear in `let` / `local` destructuring, `match` arms, `for` loop binders, and the `pattern = expr` forms of `if` and `while`. Patterns are *refutable* (may not match) or *irrefutable* (always match) — only irrefutable patterns are allowed in `let` / `local` destructuring; the other positions accept either form (refutable patterns skip non-matching values where they appear).
+Patterns appear in `let` destructuring, `match` arms, `for` loop patterns, and the `pattern = expr` forms of `if` and `while`. Patterns are *refutable* (may not match) or *irrefutable* (always match) — only irrefutable patterns are allowed in `let` destructuring; the other positions accept either form (refutable patterns skip non-matching values where they appear).
 
 Patterns share their concrete shapes with value literals — without the literal's type-prefix or initialiser syntax. A tuple pattern is `(a, b)`; a record pattern is `{ a, b }`; a variant pattern is `tag` or `tag(inner)`.
 
@@ -616,20 +616,20 @@ match-expr    ::=  "match" expr "with" arm+ else-arm? "end"
 arm           ::=  pattern block-expr
 else-arm      ::=  "else" block-expr
 
-pattern       ::=  mode-prefix? identifier                 -- binds the value with optional mode (irrefutable)
+pattern       ::=  mode-prefix? identifier                 -- declares the name with optional mode (irrefutable)
                |   literal-expr                            -- exact value: integer, float, bool, char, string
                |   range-pattern                           -- numeric range: 0..=9, 'a'..='z'
-               |   mode-prefix? tuple-pattern              -- distributed mode applies to all binders
-               |   mode-prefix? record-pattern             -- distributed mode applies to all binders
+               |   mode-prefix? tuple-pattern              -- distributed mode applies to every name in the pattern
+               |   mode-prefix? record-pattern             -- distributed mode applies to every name in the pattern
                |   variant-pattern                         -- "tag" or "tag(p)" refutable
                |   guard-pattern                           -- pattern with boolean guard
 
--- A mode prefix on an identifier pattern applies to that binder only.
+-- A mode prefix on a name pattern applies to that name only.
 -- A mode prefix before a tuple or record pattern distributes to every
--- identifier binder inside it; a per-identifier mode overrides the
--- distributed mode for that position.
---   (*x, y) in positions   -- x is mutable, y is immutable
---   *(x, y) in positions   -- both x and y are mutable
+-- name inside it; a per-name mode overrides the distributed mode for
+-- that position.
+--   (@x, y) in positions   -- x is local, y is not
+--   @(x, y) in positions   -- both x and y are local
 
 range-pattern ::=  literal-expr ( ".." | "..=" ) literal-expr
 
@@ -649,4 +649,4 @@ guard-pattern ::=  pattern "if" expr
 
 **Option and result patterns.** `?(T)` and `!(T, E)` are built-in variant types and follow the same variant-pattern syntax: `some(name)`, `none`, `ok(name)`, `err(name)`.
 
-**Identifier vs variant-pattern resolution.** A bare identifier in pattern position binds (irrefutably) by default. The same identifier resolves to a payloadless variant tag only when the pattern's expected type is a variant whose tags include that name — matching the same "binding wins over tag" precedence used in expressions, but inverted for the destination context.
+**Name vs variant-pattern resolution.** A bare name in pattern position declares (irrefutably) by default. The same name resolves to a payloadless variant tag only when the pattern's expected type is a variant whose tags include that name — matching the same "declaration wins over tag" precedence used in expressions, but inverted for the destination context.

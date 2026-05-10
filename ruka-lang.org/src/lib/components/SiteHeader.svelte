@@ -24,16 +24,16 @@
 	// Cycle the accent colour (and matching logo) through berry → amber → emerald
 	// every 8 seconds. The data-accent attribute on <html> drives the CSS vars
 	// defined in tokens.css so every site-wide use of --accent updates together.
-	const accentNames = ["berry", "amber", "emerald"] as const;
-	const accentLogos = [logoBerry, logoAmber, logoEmerald];
+	const accentNames = ["berry"] as const; //["berry", "amber", "emerald"] as const;
+	const accentLogos = [logoBerry] as const;//[logoBerry, logoAmber, logoEmerald] as const;
 	let accentIndex = $state(0);
 
-	$effect(() => {
-		const timer = setInterval(() => {
-			accentIndex = (accentIndex + 1) % accentNames.length;
-		}, 8000);
-		return () => clearInterval(timer);
-	});
+	//$effect(() => {
+	//	const timer = setInterval(() => {
+	//		accentIndex = (accentIndex + 1) % accentNames.length;
+	//	}, 8000);
+	//	return () => clearInterval(timer);
+	//});
 
 	$effect(() => {
 		document.documentElement.setAttribute("data-accent", accentNames[accentIndex]);

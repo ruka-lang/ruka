@@ -3,7 +3,7 @@ let main = () do
 	let squares = { x * x for x in 0..5 }
 	ruka.println("squares: ${squares}")
 
-	// Type-pinned, named binding
+	// Type-pinned, named declaration
 	let doubled = [int]{ i * 2 for i in 0..4 }
 	ruka.println("doubled: ${doubled}")
 

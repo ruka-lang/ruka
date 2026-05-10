@@ -106,7 +106,7 @@ ruka lsp                 start the language server on stdin/stdout
 ruka bouquet new <name>  scaffold a new bouquet (package)
 ruka bouquet build       build the current bouquet
 ruka bouquet run         build and run the current bouquet's entry point
-ruka bouquet test        build and run all test bindings
+ruka bouquet test        build and run all test declarations
 ```
 
 `ruka run` chooses between interpreting and compiling based on a threshold (small files or interactive use → interpreter, otherwise compile). Both paths share the same pipeline through type-checking, so the same diagnostics appear regardless of the execution mode.
@@ -123,12 +123,12 @@ Hand-written recursive-descent following `docs/grammar.md` exactly. Builds an `*
 
 ### Scope Check
 
-Resolves every identifier to its binding. Builds a tree of `Scope` structs mirroring the lexical structure. Annotates each identifier with a pointer into the scope tree. Reports:
+Resolves every name to its declaration. Builds a tree of `Scope` structs mirroring the lexical structure. Annotates each name reference with a pointer into the scope tree. Reports:
 
 - Unresolved names.
 - Duplicate declarations in the same scope.
-- `local` bindings captured by an escaping closure.
-- `&` (move) bindings used after their move point.
+- `local` declarations captured by an escaping closure.
+- `&` (move) declarations used after their move point.
 
 ### Type Checker
 
@@ -172,8 +172,8 @@ Runs the pipeline in error-recovery mode on every file change. Publishes diagnos
 
 - Diagnostics (all pipeline errors).
 - Hover (type of expression under cursor, read from the type map).
-- Go-to-definition (scope info maps identifier → declaration site).
-- Completions (in-scope bindings at cursor position).
+- Go-to-definition (scope info maps name → declaration site).
+- Completions (in-scope declarations at cursor position).
 
 The LSP server reuses the incremental cache so unchanged files are not re-analysed on every keystroke.
 

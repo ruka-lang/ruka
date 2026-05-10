@@ -1,5 +1,5 @@
 // expect: behaviour
-// Behaviour types may only appear in parameter position — not as a binding,
+// Behaviour types may only appear in parameter position — not as a declaration,
 // field, or return type.
 let shape = behaviour {
 	area(self): () -> float
