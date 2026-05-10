@@ -5,14 +5,14 @@ let main = () do
 		(3, 30)
 	}
 
-	let *total = 0
+	let total = 0
 	for (a, b) in pairs do
 		total = total + a + b
 	end
 	ruka.println("total: ${total}")
 
 	// Collect first elements
-	let *keys = [int]{}
+	let keys = [int]{}
 	for (k, v) in pairs do
 		keys.append(k)
 	end

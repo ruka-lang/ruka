@@ -3,7 +3,7 @@ let main = () do
 	ruka.println("alice: ${scores["alice"]}")
 	ruka.println("bob:   ${scores["bob"]}")
 
-	let *counts = [string => int] { "a" => 0 }
+	let counts = [string => int] { "a" => 0 }
 	counts["a"] = counts["a"] + 1
 	counts["b"] = 7
 	ruka.println("counts: ${counts}")

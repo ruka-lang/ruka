@@ -7,10 +7,10 @@ let round1 = (n) do ruka.floor(n * 10.0) / 10.0
 
 let main = () do
     let gravity = { x = 0.0, y = -9.8 }
-    let *pos    = { x = 0.0, y = 20.0 }
-    let *vel    = { x = 8.0, y = 12.0 }
-    let dt      = 0.5
-    let *t      = 0.0
+    let pos    = { x = 0.0, y = 20.0 }
+    let vel    = { x = 8.0, y = 12.0 }
+    let dt     = 0.5
+    let t      = 0.0
 
     ruka.println("Projectile  v0=${round1(magnitude(vel))} m/s")
     ruka.println("-----------------------------")

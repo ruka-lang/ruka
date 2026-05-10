@@ -100,12 +100,13 @@ let count: u32 = 0      // annotation pins the integer type
 let @cache = ruka.sqrt(2.0)   // file-private; escaping disallowed`}
 		/>
 		<p>
-			Namings are immutable by default. To make a naming mutable, or to change how it is
-			stored or evaluated, use a <em>mode prefix</em> directly before the name (no space).
-			See <a href="#modes">Modes</a>.
+			Runtime variables — those introduced inside a function or block — are mutable by default
+			and may be modified. File-scope constants are immutable (file scope
+			is declarative and compile-time). To change how a value is stored, captured, or evaluated, use a
+			<em>mode prefix</em> directly before the name (no space). See <a href="#modes">Modes</a>.
 		</p>
 		<CodeBlock
-			code={`let *count = 0     // mutable
+			code={`let count = 0     // mutable by default inside a function
 count = count + 1`}
 		/>
 		<h3>Destructuring</h3>
@@ -136,19 +137,19 @@ let {x, y} = origin       // record pattern; identifiers must match record field
 		<table>
 			<thead><tr><th>Prefix</th><th>Meaning</th></tr></thead>
 			<tbody>
-				<tr><td><code>*</code></td><td>Mutable. Namings may be reassigned; parameters mutate in place and the change is visible to the caller.</td></tr>
-				<tr><td><code>&amp;</code></td><td>Move. Ownership transfers — into a closure on capture (annotated on the naming being captured), or into a function on call (annotated on parameters). The original is invalid afterwards.</td></tr>
-				<tr><td><code>$</code></td><td>Stack-allocated. Not GC-managed; passed by pointer or copy. Cannot be moved.</td></tr>
-				<tr><td><code>@</code></td><td>Local. Non-escaping — at file scope the naming is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. See <a href="#namings">Namings</a>.</td></tr>
+				<tr><td><code>*</code></td><td>Borrow. The variable may be modified. At function scope, namings are mutable by default — <code>*</code> is only required on parameters and receivers.</td></tr>
+				<tr><td><code>&amp;</code></td><td>Move + mutable. Ownership transfers into the function; the original binding is invalid after the call. The bound memory may be modified within the function.</td></tr>
+				<tr><td><code>$</code></td><td>Stack + mutable. Passed as a stack-allocated copy; not GC-managed; cannot be moved. The copy may be modified within the function.</td></tr>
+				<tr><td><code>@</code></td><td>Local + mutable. Non-escaping: at file scope the naming is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. The bound memory may be modified within the function.</td></tr>
 				<tr><td><code>#</code></td><td>Compile-time. The value must be known at compile time. See <a href="#comptime">Compile-time evaluation</a>.</td></tr>
 			</tbody>
 		</table>
 		<CodeBlock
-			code={`let *counter = 0                    // mutable naming
-let @cache   = ruka.sqrt(2.0)       // local/private naming
-let consume  = (&buf) do ...        // takes ownership of buf
-let hash     = ($data) do ...       // stack copy
-let repeat   = (#n: uint, msg) do . // n must be comptime`}
+			code={`let @cache   = ruka.sqrt(2.0)       // local/private naming
+let consume  = (&buf) do ...        // takes ownership of buf; buf is mutable
+let hash     = ($data) do ...       // stack copy; data is mutable
+let repeat   = (*n: uint, msg) do . // n is an explicitly mutable parameter
+let evaluate = (#n: uint, msg) do . // n must be comptime`}
 		/>
 		<p>
 			The <code>#</code> prefix must always be written explicitly when compile-time
@@ -156,10 +157,13 @@ let repeat   = (#n: uint, msg) do . // n must be comptime`}
 			is already implicit, so <code>#</code> is redundant there and may be omitted.
 		</p>
 		<p>
-			Method receivers also accept mode prefixes. <code>*self</code> is a mutating receiver;
-			<code>&amp;self</code> consumes the receiver (a destructor-like method);
-			<code>$self</code> and <code>#self</code> are reserved for cases where the receiver
-			itself is stack-bound or compile-time known. See <a href="#methods">Methods &amp; members</a>.
+			Method receivers follow the same rules as parameters. A plain <code>(self)</code>
+			receiver is immutable — the method cannot modify the receiver's fields.
+			<code>*self</code> is a mutating receiver; <code>&amp;self</code> consumes the receiver
+			(a destructor-like method) and allows mutation; <code>$self</code> and
+			<code>@self</code> are stack-bound and local receivers respectively, both allowing
+			mutation; <code>#self</code> is a compile-time receiver.
+			See <a href="#methods">Methods &amp; members</a>.
 		</p>
 
 		<h3>Modes on record fields</h3>
@@ -188,15 +192,19 @@ let repeat   = (#n: uint, msg) do . // n must be comptime`}
 			written <em>per identifier</em>:
 		</p>
 		<CodeBlock
-			code={`let (*x, y) = pair           // x is mutable, y is immutable
+			code={`let (*x, y) = pair           // * is explicit on x; both are mutable at function scope
 for (*x, y) in positions do ...`}
 		/>
 		<p>
 			Or written before the <em>pattern as a whole</em>, which distributes the mode to
 			every identifier in the pattern:
 		</p>
-		<CodeBlock code={`let *(x, y) = pair           // both x and y are mutable`} />
-		<p>A per-identifier mode overrides the distributed mode for that position.</p>
+		<CodeBlock code={`let *(x, y) = pair           // * distributed; redundant at function scope`} />
+		<p>
+			A per-identifier mode overrides the distributed mode for that position. At function
+			scope, all bound names in a pattern are already mutable by default, so mode prefixes
+			in patterns are mainly useful for parameters or for documenting intent.
+		</p>
 
 		<h3>Mode composability</h3>
 		<p>
@@ -545,7 +553,7 @@ let bucket = "larger" if x >= 100 else "smaller"`}
 
 		<h3>While</h3>
 		<CodeBlock
-			code={`let *i = 0
+			code={`let i = 0
 while i < 10 do
     ruka.println("\${i}")
     i = i + 1
@@ -555,7 +563,7 @@ end`}
 		<h3>For</h3>
 		<p>
 			<code>for x in iter do … end</code> — <code>iter</code> must satisfy
-			<code>ruka.iterable</code>. The loop variable is immutable within the body. The
+			<code>ruka.iterable</code>. The loop variable is a runtime naming and is mutable within the body. The
 			<code>x in</code> clause may be omitted when the body does not need the iterated value,
 			useful for "do this N times".
 		</p>
@@ -742,7 +750,7 @@ end`}
 		</ol>
 		<CodeBlock
 			code={`let make_counter = () do
-    let *n = 0
+    let n = 0
     () do
         n = n + 1
         n

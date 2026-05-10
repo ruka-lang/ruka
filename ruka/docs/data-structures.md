@@ -233,10 +233,10 @@ const (
 type Mode rune // 0 means no mode
 
 const (
-    ModeMut      Mode = '*' // mutable
-    ModeMove     Mode = '&' // move (ownership transfer)
-    ModeStack    Mode = '$' // stack-allocated
-    ModeLocal    Mode = '@' // local (non-escaping / private)
+    ModeMut      Mode = '*' // borrow — on parameters/receivers only; runtime namings are mutable by default
+    ModeMove     Mode = '&' // move + mutable; ownership transfers into the function
+    ModeStack    Mode = '$' // stack + mutable; passed as a stack-allocated copy
+    ModeLocal    Mode = '@' // local + mutable; non-escaping (private at file scope, non-capturable at function scope)
     ModeComptime Mode = '#' // compile-time
 )
 
@@ -574,7 +574,7 @@ type ResolvedTag struct {
 type ResolvedMethod struct {
     Name     string
     Mode     Mode  // ModeLocal (@) = private to declaring file
-    Receiver Mode  // mode on self: 0=immutable, ModeMut=mutating, ModeMove=consuming
+    Receiver Mode  // mode on self: 0=immutable, ModeMut/ModeMove/ModeStack/ModeLocal=mutable
     Type     *Type // TyFn
 }
 

@@ -22,11 +22,12 @@ let grade = match score with
 end`,
 
 		modes: `\
-let *counter = 0               // mutable
 let @private = ...             // private / local (cannot be captured)
 let consume  = (&buf) do ..    // takes ownership
-let fast     = ($data) do ..   // stack-allocated
+let fast     = ($data) do ..   // stack copy
+let repeat   = (*n: uint) do . // n is borrowed and mutable
 let work = () do
+    let counter = 0           // mutable by default at runtime scope
     let #lut = build_table()  // forced compile-time evaluation
 end`,
 

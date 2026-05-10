@@ -66,11 +66,10 @@ The following identifiers are reserved as keywords:
 The following symbols are reserved as *mode prefixes*. A mode prefix is placed directly before a parameter or naming identifier with no whitespace between the prefix and the identifier. For named parameters, `~` appears before the mode prefix.
 
 ```ebnf
-mode-prefix   ::=  "*"    -- mutable; naming may be reassigned, parameter mutates in place
-               |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on namings, capture by a closure transfers ownership into the closure
-               |   "$"    -- stack-allocated; value cannot escape the function scope
-               |   "@"    -- local; non-escaping — private at file scope, non-capturable at function scope
+mode-prefix   ::=  "*"    -- borrow; on parameters and receivers: may be modified; on variables: may be modified after capture
+               |   "&"    -- move + mutable; ownership transfers into the function on parameters / into closure on variables; invalid after move
+               |   "$"    -- stack + mutable; stack-allocated; passed by copy on parameters
+               |   "@"    -- local + mutable; non-escaping — private at file scope, non-capturable at function scope
                |   "#"    -- compile-time; value must be known at compile time
 ```
 
@@ -185,7 +184,7 @@ test-naming   ::=  "test" identifier "=" expr
 
 **Locality.** By default a `let` naming may escape its scope: at file scope it becomes a public member of the file's record; at function scope it is eligible for capture by a closure. Prefixing the name with `@` makes the naming *local* — non-escaping: at file scope it is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. The same `@` mode applies to fields, variant tags, and behaviour members (see [Types](#types)).
 
-**Mutability.** By default a naming is immutable. The `*` mode prefix makes the naming a mutable variable: `let *count = 0`. Reassignment is only permitted on namings declared with `*`.
+**Mutability.** Runtime variables (inside a function or block) are mutable by default — their memory may be modified without any prefix except to allow modification when captured by a closure. File-scope constants are immutable (file scope is compile-time and declarative). Parameters and receivers are immutable by default; any of `*`, `&`, `$`, or `@` on a parameter or receiver allows its memory to be modified within the function.
 
 **Evaluation time.** Namings at file scope (including methods, members, and type declarations) are implicitly compile-time. The `#` mode may be written explicitly but is redundant there. Inside an inner scope (function body, block) a plain naming is runtime; `#` must be written explicitly to force compile-time evaluation of the right-hand side. Modes are never inferred from type annotations — `#` must always be written when required.
 

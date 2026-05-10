@@ -1,5 +1,5 @@
 let main = () do
-	let *i = 1
+	let i = 1
 	while i <= 20 do
 		if i % 15 == 0 do ruka.println("FizzBuzz")
 		else if i % 3 == 0 do ruka.println("Fizz")

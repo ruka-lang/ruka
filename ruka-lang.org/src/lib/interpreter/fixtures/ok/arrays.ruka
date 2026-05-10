@@ -1,5 +1,5 @@
 let main = () do
-	let *primes = [int]{ 2, 3, 5, 7, 11 }
+	let primes = [int]{ 2, 3, 5, 7, 11 }
 	ruka.println("primes:  ${primes}")
 	ruka.println("length:  ${primes.len()}")
 	ruka.println("first:   ${primes[0]}")
@@ -12,7 +12,7 @@ let main = () do
 	ruka.println("after remove(0):  ${primes}")
 
 	// Iterate with for
-	let *sum = 0
+	let sum = 0
 	for p in primes do sum = sum + p
 	ruka.println("sum:     ${sum}")
 

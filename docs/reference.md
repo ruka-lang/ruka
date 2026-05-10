@@ -13,22 +13,20 @@ Line comments begin with `//` and run to the end of the line. There are no block
 let x = 1   // trailing comments are fine
 ```
 
-## Identifiers
+## Names
 
-Identifiers are letters, digits, and underscores; they cannot start with a digit. Casing carries no semantic weight.
+Names consist of letters, digits, and underscores; they cannot start with a digit. Casing carries no semantic weight.
 
 ```ruka
-let point = record { x: f64, y: f64 }      // type binding
+let point = record { x: f64, y: f64 }      // type declaration
 let Math  = ruka.import("Math.ruka")       // imported file
 ```
 
-## Namings
+## Declarations
 
-`let` introduces a name. The right-hand side drives type inference; an explicit annotation is only needed when inference cannot reach the type you want. Names can be shadowed by reusing the same name.
+`let` declarations introduces a name for a variable (runtime) or a constant (compile-time). The right-hand side drives type inference; an explicit annotation is only needed when inference cannot reach the type you want. Names can be shadowed by reusing the same name.
 
-By default a `let` naming may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. Prefixing the name with `@` makes the naming *local* — non-escaping: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
-
-The `@` prefix is the only privacy mechanism; there is no `pub` keyword.
+By default a declaration may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. Prefixing the name with `@` makes the name *local* — non-escaping: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
 
 ```ruka
 let answer = 42
@@ -39,49 +37,59 @@ let count: u32 = 0      // annotation pins the integer type
 let @cache = ruka.sqrt(2.0)   // file-private; escaping disallowed
 ```
 
-Namings are immutable by default. To make a naming mutable, or to change how it is stored or evaluated, use a *mode prefix* directly before the name (no space). See [Modes](#modes).
+`let`-less declarations are also available to be used as conditionals within if and while expressions, typically used with destructuring.
 
 ```ruka
-let *count = 0     // mutable
-count = count + 1
+if some(x) = optional do
+    ...
+end
+```
+
+Runtime variables — those introduced inside a function or block — are mutable by default. File-scope constants are immutable (file scope is declarative and compile-time). To change how values are stored, captured, or evaluated, use a *mode prefix* directly before the name (no space). See [Modes](#modes).
+
+```ruka
+let fn = () do
+    let count = 0
+    count = count + 1
+end
 ```
 
 ### Destructuring
 
-A naming may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
+A name may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
 
 ```ruka
 let (x, y) = (1, 2)         // tuple pattern
-let { x, y } = origin       // record pattern; identifiers must match record fields
+let { x, y } = origin       // record pattern; names must match record fields
 ```
 
 ### File scope is declarative
 
-A Ruka file's top level holds declarations only — `let` namings, type definitions, methods, members, behaviours, tests. There are no executable statements at file scope. Every top-level right-hand side is therefore evaluated at compile time.
+A Ruka file's top level holds declarations only — `let` declarations used for: type definitions, methods, members, behaviours; and `test` declarations. There are no executable statements at file scope. Every top-level right-hand side is therefore evaluated at compile time.
 
 ## Modes
 
-Mode prefixes adjust how a naming or parameter is stored, captured, or evaluated. The same five prefixes apply in naming and parameter positions, on method receivers, on record fields, and within patterns.
+Mode prefixes adjust how a value is stored, captured, or evaluated. The same five prefixes apply in declaration, parameter and receiver positions,on record fields, and within patterns.
 
 | Prefix | Meaning |
 | --- | --- |
-| `*` | Mutable. Namings may be reassigned; parameters mutate in place and the change is visible to the caller. |
-| `&` | Move. Ownership transfers — into a closure on capture (annotated on the naming being captured), or into a function on call (annotated on parameters). The original is invalid afterwards. |
-| `$` | Stack-allocated. Not GC-managed; passed by pointer or copy. Cannot be moved. |
-| `@` | Local. Non-escaping — at file scope the naming is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. See [Namings](#namings). |
+| `*` | Borrow. The value may be modified. At function scope, variables are mutable by default — `*` is only required to allow modification within a following closure, or on parameters and receivers which are immutable by default. |
+| `&` | Move + mutable. Ownership transfers into the function; the original declaration is invalid after the call. |
+| `$` | Stack + mutable. Stack-allocated; when on a parameter the argument is copied into its stack memory. |
+| `@` | Local + mutable. Non-escaping: at file scope the declaration is private to the file; at function scope it cannot be captured by a closure that outlives the declaring function. |
 | `#` | Compile-time. The value must be known at compile time. See [Compile-time evaluation](#compile-time-evaluation). |
 
 ```ruka
-let *counter = 0                    // mutable naming
-let @cache   = ruka.sqrt(2.0)       // local/private naming
+let @cache   = ruka.sqrt(2.0)       // local/private
 let consume  = (&buf) do ...        // takes ownership of buf
 let hash     = ($data) do ...       // stack copy
-let repeat   = (#n: uint, msg) do . // n must be comptime
+let repeat   = (*n: uint, msg) do . // n is borrowed and mutable
+let evaluate = (#n: uint, msg) do . // n must be comptime
 ```
 
 The `#` prefix must always be written explicitly when compile-time evaluation is required inside a function body. At file scope, compile-time evaluation is already implicit (every file-scope right-hand side runs at compile time), so `#` is redundant there and may be omitted.
 
-Method receivers also accept mode prefixes. `*self` is a mutating receiver; `&self` consumes the receiver (a destructor-like method); `$self` and `#self` are reserved for cases where the receiver itself is stack-bound or compile-time known. See [Methods & members](#methods--members).
+Method receivers follow the same rules as parameters. A plain `(self)` receiver is immutable — the method cannot modify the receiver. `*self` is a borrowed receiver; `&self` consumes the receiver (a destructor-like method) and allows mutation. The other modes are tentatively included: `$self` and `@self` are stack-bound and local receivers respectively, both allowing mutation; `#self` is a compile-time receiver; but are probably not useful. See [Methods & members](#methods--members).
 
 ### Modes on record fields
 
@@ -92,34 +100,34 @@ let config = record {
     width: u32
     height: u32
     @cache: f64        // local — private to the declaring file
+    $buf: [u8]         // stack — this field is stack-allocated, 
+                       // would require configs to be stored in a stack declaration
+                       // The following are included tentatively; they are probably not useful
     #max_size: uint    // compile-time — a constant field
     &handle: resource  // move — accessing this field transfers ownership
-    $buf: [u8]         // stack — this field is stack-allocated
 }
 ```
 
-The `@` mode is the most common on fields: it makes a field private to the declaring file, exactly as `@` on a file-scope naming makes it private.
-
 ### Modes in patterns
 
-A mode prefix in a pattern adjusts how a bound name is introduced. The prefix may be written *per identifier*:
+A mode prefix in a pattern adjusts how a declared name is introduced. The prefix may be written *per name*:
 
 ```ruka
-let (*x, y) = pair           // x is mutable, y is immutable
-for (*x, y) in positions do ...
+let (@x, y) = pair           // x is local, y is not
+for (@x, y) in positions do ...
 ```
 
-Or written before the *pattern as a whole*, which distributes the mode to every identifier in the pattern:
+Or written before the *pattern as a whole*, which distributes the mode to every name in the pattern:
 
 ```ruka
-let *(x, y) = pair           // both x and y are mutable
+let $(x, y) = pair           // both are stack allocated
 ```
 
-A per-identifier mode overrides the distributed mode for that position.
+A per-name mode overrides the distributed mode for that position.
 
 ### Mode composability
 
-Whether multiple mode prefixes may be combined on a single naming is an **open design question**. A composable system would allow forms such as `let *@x = 0` (a mutable local naming); a single-mode system would require choosing one. This document treats the question as unresolved — examples use at most one mode per naming.
+Whether multiple mode prefixes may be combined on a single declaration is an **open design question**. A composable system would allow forms such as `let *@x = 0` (a borrowable local declaration); a single-mode system would require choosing one. This document treats the question as unresolved — examples use at most one mode per declaration.
 
 ## Literals
 
@@ -211,7 +219,7 @@ A record literal disambiguates from an array literal by the `=` in each field in
 
 ### Variant constructors
 
-A variant value is constructed by writing the tag name like a function call: `tag(value)` for a tag with payload, `tag` for a payloadless tag. The constructor resolves against context — if an in-scope binding shares the name, that binding wins; otherwise the compiler searches in-scope variant types for a tag of that name. Use a type-prefixed form `type.tag(value)` to disambiguate or to read more explicitly.
+A variant value is constructed by writing the tag name like a function call: `tag(value)` for a tag with payload, `tag` for a payloadless tag. The constructor resolves against context — if an in-scope declaration shares the name, that declaration wins; otherwise the compiler searches in-scope variant types for a tag of that name. Use a type-prefixed form `type.tag(value)` to disambiguate or to read more explicitly.
 
 ```ruka
 let report = (h: hit) do
@@ -276,7 +284,7 @@ ruka.println("${n.is_positive()}")   // true
 
 ### Type annotations
 
-A type appears after `:` on a binding or parameter, and after `->` on a function return.
+A type appears after `:` on a declaration or parameter, and after `->` on a function return.
 
 ```ruka
 let count: u32 = 0
@@ -336,7 +344,7 @@ A type customises `as` by defining a `cast` member that matches the [`ruka.cast`
 
 ## Patterns
 
-The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop binders, and the [conditional pattern forms](#conditional-pattern-binding) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
+The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop binders, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
 
 | Form | Example | Refutable? |
 | --- | --- | --- |
@@ -348,7 +356,7 @@ The same pattern syntax is used in every position — `let`/`local` destructurin
 | Variant | `some(x)`, `miss` | yes |
 | Guard | `x if x > 0` | yes |
 
-Inside variant patterns the payload may itself be a tuple or binding pattern — `ok((a, b))`, `some(value)`.
+Inside variant patterns the payload may itself be a tuple or declaration pattern — `ok((a, b))`, `some(value)`.
 
 ## Control flow
 
@@ -367,7 +375,7 @@ let bucket = "larger" if x >= 100 else "smaller"
 ### While
 
 ```ruka
-let *i = 0
+let i = 0
 while i < 10 do
     ruka.println("${i}")
     i = i + 1
@@ -376,18 +384,18 @@ end
 
 ### For
 
-`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable within the body. The `x in` clause may be omitted when the body does not need the iterated value, useful for "do this N times":
+`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable by default. The `x in` clause may be omitted when the body does not need the iterated value, useful for "do this N times":
 
 ```ruka
 for n in 0..5 do ruka.println("${n}")
 for (k, v) in pairs do ruka.println("${k}=${v}")
 
-for 0..3 do ruka.println("tick")    // no binding — runs 3 times
+for 0..3 do ruka.println("tick")    // no declaration — runs 3 times
 ```
 
 #### Nested for with `with`
 
-A common shape is "repeat a body N times, each time iterating over a collection". Writing this as two nested `for` loops works, but reads heavily because the outer loop has no useful binding. The `for outer with pattern in inner do …` form is sugar for that nesting:
+A common shape is "repeat a body N times, each time iterating over a collection". Writing this as two nested `for` loops works, but reads heavily because the outer loop has no useful declaration. The `for outer with pattern in inner do …` form is sugar for that nesting:
 
 ```ruka
 for 0..epochs with (input, target) in training do
@@ -404,11 +412,11 @@ end
 
 The outer iterator never binds a name (use a plain nested `for x in … do for y in …` if you need the outer value). `break` and `continue` apply to the *inner* loop.
 
-### Conditional pattern binding
+### Conditional pattern declaration
 
-`if`, `while`, and `for` accept a *refutable* pattern in place of a plain condition or binding. Each construct interprets a non-match differently:
+`if`, `while`, and `for` accept a *refutable* pattern in place of a plain condition or declaration. Each construct interprets a non-match differently:
 
-- `if pattern = expr do …` — evaluates `expr`, runs the block (with the bindings introduced by `pattern`) only if the pattern matches. May chain with `else if` / `else`.
+- `if pattern = expr do …` — evaluates `expr`, runs the block (with the declarations introduced by `pattern`) only if the pattern matches. May chain with `else if` / `else`.
 - `while pattern = expr do …` — re-evaluates `expr` each iteration; terminates the first time the pattern fails to match.
 - `for pattern in iter do …` — silently skips elements that fail to match. Useful for filtering by shape.
 
@@ -492,16 +500,16 @@ Parameter and return types are inferred from use. Annotate a parameter or return
 
 ## Closures
 
-A *closure* is a runtime function value that references runtime bindings from an enclosing scope. Its *capture set* is exactly those referenced bindings — every name the body uses that is not one of the function's parameters and not a top-level (compile-time) value. The compiler infers the set from the body. Functions defined at file scope are *not* closures: file scope is compile-time, so there is no runtime state to close over.
+A *closure* is a runtime function value that references runtime declarations from an enclosing scope. Its *capture set* is exactly those referenced declarations — every name the body uses that is not one of the function's parameters and not a top-level (compile-time) value. The compiler infers the set from the body. Functions defined at file scope are *not* closures: file scope is compile-time, so there is no runtime state to close over.
 
 Two rules constrain capture:
 
-1. **Only namings without `@` mode may be captured.** An `@`-named runtime naming cannot escape its declaring function, so a closure that outlives that function cannot reference it.
-2. **`&`-annotated namings transfer ownership on capture.** A naming declared `let &name = …` *moves* into the first closure that captures it; the original naming is invalid afterwards. Without `&`, capture is by reference.
+1. **Only declarations without `@` mode may be captured.** An `@`-named runtime declaration cannot escape its declaring function, so a closure that outlives that function cannot reference it.
+2. **`&`-annotated declarations transfer ownership on capture.** A declaration declared `let &name = …` *moves* into the first closure that captures it; the original declaration is invalid afterwards. Without `&`, capture is by reference.
 
 ```ruka
 let make_counter = () do
-    let *n = 0
+    let n = 0
     () do
         n = n + 1
         n
@@ -513,7 +521,7 @@ ruka.println("${counter()}")   // 1
 ruka.println("${counter()}")   // 2
 ```
 
-In the example above, the inner function captures `n` (a naming without `@` mode) from `make_counter`. If `n` had been declared with the `@` (local) mode, the inner closure could not have escaped `make_counter` and the program would fail to compile.
+In the example above, the inner function captures `n` (a declaration without `@` mode) from `make_counter`. If `n` had been declared with the `@` (local) mode, the inner closure could not have escaped `make_counter` and the program would fail to compile.
 
 ## Named parameters
 
@@ -572,12 +580,12 @@ For named parameters, `~` appears before the mode prefix: `~#t`, `~*buf`, `~&han
 
 ### Compile-time argument inference from result location
 
-When the final parameter of a function has type `type`, the compiler may infer its value at the call site from the *result location* — the type of the binding, parameter, or field that will receive the call's result. This works whether the parameter is positional or named. The `#` mode must still be written explicitly in the declaration; only the argument value is inferred.
+When the final parameter of a function has type `type`, the compiler may infer its value at the call site from the *result location* — the type of the declaration, parameter, or field that will receive the call's result. This works whether the parameter is positional or named. The `#` mode must still be written explicitly in the declaration; only the argument value is inferred.
 
 ```ruka
 let empty = (#t: type) -> [t] do [t] {}
 
-let xs: [i32] = empty()    // t=i32 inferred from the binding's type
+let xs: [i32] = empty()    // t=i32 inferred from the declaration's type
 let ys: [string] = empty() // t=string inferred similarly
 ```
 
@@ -621,7 +629,7 @@ let hit = variant {
 }
 ```
 
-Construct a variant with `tag` or `tag(payload)` (resolved against context, with a binding of the same name winning over a tag — see [Variant constructors](#variant-constructors)) and consume it with [`match`](#match).
+Construct a variant with `tag` or `tag(payload)` (resolved against context, with a declaration of the same name winning over a tag — see [Variant constructors](#variant-constructors)) and consume it with [`match`](#match).
 
 ## Methods & members
 
@@ -686,11 +694,11 @@ Type inference in Ruka is *resolution*, not *synthesis*. Every value's type must
 
 ### Numeric defaults
 
-An integer literal with no contextual type takes `int`; a literal containing `.` takes `float`. A type-annotated binding or parameter pulls the literal toward a more specific numeric type. Implicit widening between numeric types of the same family is allowed; everything else needs an explicit [cast](#casting).
+An integer literal with no contextual type takes `int`; a literal containing `.` takes `float`. A type-annotated declaration or parameter pulls the literal toward a more specific numeric type. Implicit widening between numeric types of the same family is allowed; everything else needs an explicit [cast](#casting).
 
 ### Record literals
 
-A `{ … }` record literal first looks for an expected type from context — a binding annotation, a parameter type, the field type of an enclosing record. If context exists, that type wins and the literal is checked against it.
+A `{ … }` record literal first looks for an expected type from context — a declaration annotation, a parameter type, the field type of an enclosing record. If context exists, that type wins and the literal is checked against it.
 
 With no context, the compiler searches the surrounding scope for record types whose field set matches the literal exactly. If exactly one type fits, the literal infers to that type. If two or more types fit, the literal is ambiguous and a type-name prefix or annotation is required.
 
@@ -703,7 +711,7 @@ let q = point { x = 1.0, y = 2.0 } // explicit prefix when ambiguous
 
 ### Variant constructors
 
-A constructor written `tag` or `tag(value)` is first resolved as an ordinary identifier — if a binding of that name is in scope, it wins. Otherwise the compiler searches in-scope variant types for a tag of that name with a compatible payload. If exactly one variant matches, the constructor infers to that type; ambiguity requires a `type.tag` prefix.
+A constructor written `tag` or `tag(value)` is first resolved as an ordinary name — if a declaration of that name is in scope, it wins. Otherwise the compiler searches in-scope variant types for a tag of that name with a compatible payload. If exactly one variant matches, the constructor infers to that type; ambiguity requires a `type.tag` prefix.
 
 ### Record parameters
 
@@ -758,7 +766,7 @@ let describe = (s: shape) do
 end
 ```
 
-Behaviour types may only appear in parameter position. Using one as a return type, field type, or binding type is a compile error — behaviours describe behaviour, not storage.
+Behaviour types may only appear in parameter position. Using one as a return type, field type, or declaration type is a compile error — behaviours describe behaviour, not storage.
 
 ### Builtin behaviours
 
@@ -826,7 +834,7 @@ The element type is inferred from the body expression and may be pinned by a typ
 
 ## Files & imports
 
-A Ruka file *is* a record — a record type whose only constituents are members (constants attached at compile time), with no runtime fields. Every top-level `let` declaration becomes a member of that record; `@`-mode namings are private — the file uses them internally but they are not exported. There is no separate "module" concept.
+A Ruka file *is* a record — a record type whose only constituents are members (constants attached at compile time), with no runtime fields. Every top-level `let` declaration becomes a member of that record; `@`-mode declarations are private — the file uses them internally but they are not exported. There is no separate "module" concept.
 
 `ruka.import("path")` evaluates at compile time and returns the imported file as that record value. Access members through it, or destructure to bring names into scope.
 
@@ -860,7 +868,7 @@ A bouquet may import other bouquets; the resolver looks them up by name against 
 
 ## Tests
 
-A `test` binding declares a zero-argument function that runs as part of the test suite. Tests are compiled in *debug* and *test* builds and elided entirely in *release* — assertions inside a `test` have no runtime cost in production.
+A `test` declaration declares a zero-argument function that runs as part of the test suite. Tests are compiled in *debug* and *test* builds and elided entirely in *release* — assertions inside a `test` have no runtime cost in production.
 
 ```ruka
 let add = (a, b) do a + b
@@ -871,13 +879,13 @@ test addition = () do
 end
 ```
 
-Tests live in their declaring file's scope and can therefore call `@`-mode namings directly. There is no separate test-visibility mechanism.
+Tests live in their declaring file's scope and can therefore call `@`-mode declarations directly. There is no separate test-visibility mechanism.
 
 ## Compile-time evaluation
 
 Ruka has a compile-time interpreter. Functions with `#`-prefixed parameters run at compile time; their results are compile-time constants. Types, functions, and records-of-members are first-class values in compile-time contexts.
 
-**Type values are compile-time only.** Any code that *creates*, *inspects*, or *passes around* a `type` value must run at compile time. There is no runtime reflection — `ruka.type_of`, `ruka.fields_of`, `ruka.record_of`, and friends are all compile-time. A binding of type `type` is, by definition, compile-time.
+**Type values are compile-time only.** Any code that *creates*, *inspects*, or *passes around* a `type` value must run at compile time. There is no runtime reflection — `ruka.type_of`, `ruka.fields_of`, `ruka.record_of`, and friends are all compile-time. A declaration of type `type` is, by definition, compile-time.
 
 ### No mode inference
 
@@ -918,7 +926,7 @@ let float_buf = fixed_array(f64, 16)
 
 ### Storing compile-time results
 
-At file scope, `let` already evaluates its right-hand side at compile time, so no prefix is needed. Inside a function body, prefix the naming with `#` to force compile-time storage.
+At file scope, `let` already evaluates its right-hand side at compile time, so no prefix is needed. Inside a function body, prefix the declaration with `#` to force compile-time storage.
 
 ```ruka
 let sqrt_2 = ruka.sqrt(2.0)    // top level — comptime by default

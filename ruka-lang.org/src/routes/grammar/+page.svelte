@@ -149,11 +149,10 @@ identifier    ::=  letter ( letter | digit )*
 			the mode prefix.
 		</p>
 		<pre class="ebnf"><code
-				>mode-prefix   ::=  "*"    -- mutable; naming may be reassigned, parameter mutates in place
-               |   "&"    -- move (ownership transfer); on parameters, caller cannot use the value after the call;
-                          --   on namings, capture by a closure transfers ownership into the closure
-               |   "$"    -- stack-allocated; value cannot escape the function scope
-               |   "@"    -- local; non-escaping — private at file scope, non-capturable at function scope
+				>mode-prefix   ::=  "*"    -- borrow; on parameters and receivers or on variables to allow modifying within a closure: may be modified
+               |   "&"    -- move + mutable; ownership transfers into the function on parameters / into closures on variables; invalid after move
+               |   "$"    -- stack + mutable; stack-allocated; passed by copy on parameters
+               |   "@"    -- local + mutable; non-escaping — private at file scope, non-capturable at function scope
                |   "#"    -- compile-time; value must be known at compile time</code
 			></pre>
 		<p>
@@ -305,9 +304,11 @@ test-naming   ::=  "test" identifier "=" expr
 			members (see <a href="#types">Types</a>).
 		</p>
 		<p>
-			<strong>Mutability.</strong> By default a naming is immutable. The <code>*</code>
-			mode prefix makes the naming a mutable variable: <code>let *count = 0</code>.
-			Reassignment is only permitted on namings declared with <code>*</code>.
+			<strong>Mutability.</strong> Runtime variables (inside a function or block) are mutable
+			by default — their memory may be modified.
+			File-scope constants are immutable (file scope is compile-time and declarative). Parameters and receivers are immutable by
+			default; any of <code>*</code>, <code>&amp;</code>, <code>$</code>, or <code>@</code>
+			on a parameter or receiver allows its memory to be modified within the function.
 		</p>
 		<p>
 			<strong>Evaluation time.</strong> Namings at file scope (including methods, members,

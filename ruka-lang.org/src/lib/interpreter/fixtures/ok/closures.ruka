@@ -1,5 +1,5 @@
 let make_counter = () do
-	let *n = 0
+	let n = 0
 	() do
 		n = n + 1
 		n

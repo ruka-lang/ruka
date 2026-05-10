@@ -4,8 +4,8 @@ let @EPSILON = 0.000001
 let gradientDescent = (df) do
 	let step = (x) do ALPHA * df(x)
 
-	let *x = 10.0
-	let *steps = 0
+	let x = 10.0
+	let steps = 0
 	while df(x) >= EPSILON do
 		x = x - step(x)
 		steps = steps + 1

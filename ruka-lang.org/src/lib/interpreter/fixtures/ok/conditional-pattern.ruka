@@ -20,12 +20,12 @@ let main = () do
 
 	// `for pattern in iter` — silently skip non-matching elements
 	let rows = [?(int)]{ some(1), none, some(2), none, some(3) }
-	let *sum = 0
+	let sum = 0
 	for some(n) in rows do sum = sum + n
 	ruka.println("sum of present: ${sum}")
 
 	// `while pattern = expr` — drain until the first non-match
-	let *i = 0
+	let i = 0
 	let next = () do
 		i = i + 1
 		if i <= 3 do some(i) else none
