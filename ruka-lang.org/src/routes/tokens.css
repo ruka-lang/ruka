@@ -89,6 +89,7 @@ html[data-theme="light"][data-accent="emerald"] {
 	--fs-2xl: 56px;
 
 	--ui-border: var(--border);
+	--ui-border-radius: 6px;
 
 	--ui-button-bg: transparent;
 	--ui-button-fg: var(--fg);
@@ -97,7 +98,7 @@ html[data-theme="light"][data-accent="emerald"] {
 
 	--ui-card-bg: var(--bg-elevated);
 
-	--ui-select-bg: transparent;
+	--ui-select-bg: var(--bg-elevated);
 	--ui-select-fg: var(--fg);
 }
 

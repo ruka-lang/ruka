@@ -219,13 +219,13 @@
 		padding: 1px 5px;
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 	}
 
 	.content :global(pre) {
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		padding: 16px;
 		overflow: auto;
 		margin: 16px 0;

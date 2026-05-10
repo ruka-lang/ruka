@@ -41,7 +41,7 @@
 		height: 36px;
 		background: var(--bg-elevated);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: var(--ui-border-radius);
 		color: var(--fg-muted);
 		cursor: pointer;
 		transition:

@@ -234,7 +234,7 @@ end`
 		display: flex;
 		flex-direction: column;
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: var(--ui-border-radius);
 		overflow: hidden;
 		margin-top: 8px;
 	}

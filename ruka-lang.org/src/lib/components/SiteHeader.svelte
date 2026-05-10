@@ -96,7 +96,7 @@
 	}
 
 	.brand-logo {
-		border-radius: 0px;
+		border-radius: calc(var(--ui-border-radius) / 2);
 	}
 
 	.brand-name {
@@ -117,7 +117,7 @@
 		font-size: var(--fs-sm);
 		color: var(--fg-muted);
 		text-decoration: none;
-		border-radius: 6px;
+		border-radius: var(--ui-border-radius);
 		transition:
 			color 120ms ease,
 			background 120ms ease;
@@ -144,7 +144,7 @@
 		width: 28px;
 		height: 28px;
 		color: var(--fg-muted);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		transition:
 			color 120ms ease,
 			background 120ms ease;

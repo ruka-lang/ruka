@@ -55,7 +55,7 @@
 		border: 1px solid var(--ui-border);
 		background: var(--ui-button-bg);
 		color: var(--ui-button-fg);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		cursor: pointer;
 		text-decoration: none;
 		transition:

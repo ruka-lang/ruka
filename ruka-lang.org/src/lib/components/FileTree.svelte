@@ -564,7 +564,7 @@
 		font-size: 9px;
 		color: var(--fg-muted);
 		border: 1px solid var(--border);
-		border-radius: 2px;
+		border-radius: var(--ui-border-radius);
 	}
 
 	.ruka-icon {
@@ -598,7 +598,7 @@
 		color: var(--fg-muted);
 		background: transparent;
 		border: 1px solid transparent;
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		cursor: pointer;
 	}
 

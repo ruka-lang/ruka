@@ -40,7 +40,7 @@
 		border: 1px solid var(--ui-border);
 		background: transparent;
 		color: var(--fg-muted);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		cursor: pointer;
 		transition:
 			color 120ms ease,

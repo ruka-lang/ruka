@@ -865,7 +865,7 @@
 		height: calc(100vh - 88px);
 		margin: 16px auto;
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		background: var(--bg);
 		overflow: hidden;
 	}
@@ -1091,7 +1091,7 @@
 		background: var(--bg);
 		color: var(--fg);
 		border: 1px solid var(--border);
-		border-radius: 3px;
+		border-radius: var(--ui-border-radius);
 		outline: none;
 	}
 

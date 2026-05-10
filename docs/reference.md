@@ -13,6 +13,21 @@ Line comments begin with `//` and run to the end of the line. There are no block
 let x = 1   // trailing comments are fine
 ```
 
+## Expressions
+
+Ruka is an expression based language. All language features, with the exception of `let` declarations, are expressions meaning they return a value.
+
+```ruka
+let grade = match score with
+    00..60 do "F"
+    60..70 do "D"
+    70..80 do "C"
+    80..90 do "B"
+    90..100 do "A"
+    else do "Invalid"
+end
+```
+
 ## Names
 
 Names consist of letters, digits, and underscores; they cannot start with a digit. Casing carries no semantic weight.
@@ -24,20 +39,17 @@ let Math  = ruka.import("Math.ruka")       // imported file
 
 ## Declarations
 
+Names may be introduced in three ways: `let` declarations, `let`-less declarations, and parameter declarations. Names in all three ways support the same type annotation syntax, the same mode prefixes, and follow the same patterns. Patterns allow matching and destructuring of complex values. Names are the catch all pattern that will match all values.
+
 `let` declarations introduces a name for a variable (runtime) or a constant (compile-time). The right-hand side drives type inference; an explicit annotation is only needed when inference cannot reach the type you want. Names can be shadowed by reusing the same name.
 
-By default a declaration may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. Prefixing the name with `@` makes the name *local* — non-escaping: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
-
 ```ruka
-let answer = 42
-let pi     = 3.14159
-let name   = "Ruka"
-let count: u32 = 0      // annotation pins the integer type
-
-let @cache = ruka.sqrt(2.0)   // file-private; escaping disallowed
+let a = 12     // : int
+let x: u8 = 12
+let f = 1.2    // : float
 ```
 
-`let`-less declarations are also available to be used as conditionals within if and while expressions, typically used with destructuring.
+`let`-less declarations are also available to be used as conditionals returning a boolean based on whether the pattern matched the value.
 
 ```ruka
 if some(x) = optional do
@@ -54,18 +66,68 @@ let fn = () do
 end
 ```
 
-### Destructuring
-
-A declaration may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
+By default a declaration may escape its scope: at file scope it is exported as part of the file's public record, and at function scope it may be captured by a closure. Prefixing the name with `@` makes the name *local* — non-escaping: at file scope it is private to the file (importers cannot see it), and at function scope it cannot be captured by a closure that outlives the declaring function. See [Closures](#closures) for the capture rule.
 
 ```ruka
-let (x, y) = (1, 2)         // tuple pattern
-let {x, y} = origin       // record pattern; names must match record fields
+let name   = "Ruka"           // public; escaping allowed
+
+let @cache = ruka.sqrt(2.0)   // private; escaping disallowed
+
+let auth = () do
+    let @secret_key = ...
+
+    () do
+        ruka.println(secret_key) // Compile-error; secret-key escapes auth
+    end
+end
 ```
 
 ### File scope is declarative
 
 A Ruka file's top level holds declarations only — `let` declarations used for: type definitions, methods, members, behaviours; and `test` declarations. There are no executable statements at file scope. Every top-level right-hand side is therefore evaluated at compile time.
+
+## Patterns
+
+The same pattern syntax is used in every declaration position — `let` or `let`-less, `match` arms, `for` loop patterns, and parameters. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
+
+| Form | Example | Refutable? |
+| --- | --- | --- |
+| Name | `x` | no |
+| Tuple | `(a, b)` | no |
+| Record | `{x, y}` | no |
+| Literal | `0`, `"yes"` | yes |
+| Range | `1..=9` | yes |
+| Variant | `some(x)`, `miss` | yes |
+
+Inside variant patterns the payload may itself be a tuple or declaration pattern — `ok((a, b))`, `some(value)`.
+
+### Destructuring
+
+A `let` declaration may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{a, b}`.
+
+```ruka
+let (x, y) = (1, 2)       // tuple pattern
+let {x, y} = origin       // record pattern; names must match record fields
+```
+
+A `let`-less declaration may take any pattern, although is most useful with refutable patterns.
+
+```ruka
+while some(n) = node.next do
+    ...
+end
+
+if some(val) = optional do
+    ...
+end
+```
+
+Parameter declarations may take any irrefutable pattern, the same type annotation rules apply.
+
+```ruka
+let velocity = ((x, y), df) do df(x, y)
+let velocity = ((x, y): Pos, df) do df(x, y)
+```
 
 ## Modes
 
@@ -128,6 +190,94 @@ A per-name mode overrides the distributed mode for that position.
 ### Mode composability
 
 Whether multiple mode prefixes may be combined on a single declaration is an **open design question**. A composable system would allow forms such as `let *@x = 0` (a borrowable local declaration); a single-mode system would require choosing one. This document treats the question as unresolved — examples use at most one mode per declaration.
+
+## Blocks
+
+Blocks in ruka take a few forms depending on what they are attached to. In all cases their is a single-line variant and a multi-line variant.
+
+## Operators
+
+From lowest to highest precedence:
+
+| Tier | Operators |
+| --- | --- |
+| Pipeline | `\|>` |
+| Logical or | `or` |
+| Logical and | `and` |
+| Equality | `==` `!=` |
+| Comparison | `<` `<=` `>` `>=` |
+| Range | `..` `..=` |
+| Bitwise | `\|` `^` `&` `<<` `>>` |
+| Additive | `+` `-` |
+| Multiplicative | `*` `/` `%` |
+| Exponent | `**` (right-assoc) |
+| Unary | `not` `-` |
+| Cast | `as` |
+| Postfix | call `f(x)`, member `x.f`, index `x[i]` |
+
+`and` / `or` short-circuit. The pipeline `x |> f` rewrites to `f(x)`; chains compose left-to-right.
+
+```ruka
+let n = nums 
+    |> filter(~pred=(x) do x % 2 == 0)
+    |> map(~f=(x) do x * x)
+    |> sum()
+```
+
+Operators on user-defined types are dispatched via [operator behaviours](#behaviours): defining a method named `add` makes `+` available for the type.
+
+## Built-in types
+
+The following types are always in scope.
+
+| Group | Types |
+| --- | --- |
+| Signed integers | `i8 i16 i32 i64 i128`, `int` (target word size) |
+| Unsigned integers | `u8 u16 u32 u64 u128`, `uint` |
+| Floats | `f32 f64`, `float` (target word size) |
+| Other primitives | `bool`, `string`, `()` (unit) |
+| Collections | `[T]` (array), `(T, U, …)` (tuple), `[T..]` (range), `[K => V]` (map) |
+| Generic prelude | `?(T)` (option), `!(T, E)` (result) |
+| Compile-time | `type` (the type of types) |
+
+Every type in Ruka — primitive, built-in generic, or user-defined — supports methods, members, and behaviour satisfaction. There is no privileged class of types that cannot be extended. `i32` can have methods; `[T]` can satisfy a behaviour; `bool` can have members. At runtime each type uses its natural representation (an integer is a machine integer, not an object), but at the language level the rules are uniform.
+
+```ruka
+// attaching a method to i32 is legal anywhere
+let is_positive (self) = () -> bool do self > 0
+
+let n: i32 = 42
+ruka.println("${n.is_positive()}")   // true
+```
+
+### Type annotations
+
+A type appears after `:` on a declaration or parameter, and after `->` on a function return.
+
+```ruka
+let count: u32 = 0
+let pair: (int, string) = (1, "one")
+let lookup = (key: string) -> ?(int) do ...
+```
+
+### Implicit numeric widening
+
+An integer or float value may be implicitly converted to a larger type of the same family — `i32` to `i64`, `f32` to `f64`, `u8` to `u32`, and so on. Narrowing or cross-family conversions (signed↔unsigned, int↔float) require an explicit [cast](#casting).
+
+## Casting
+
+The `as` operator converts a value to a target type: `value as Type`. Implicit widening (see [Built-in types](#built-in-types)) is the only conversion the compiler performs without an explicit cast — every other conversion goes through `as`.
+
+`as` is a behaviour-driven operator. It dispatches on `ruka.cast`: any type that defines a `cast` method satisfying the behaviour can be the source of an `as` conversion to whichever target types its `cast` method enumerates. The prelude provides casts between numeric types, between numeric types and characters, and between numeric types and strings.
+
+```ruka
+let n: i64 = 10
+let m = n as i32       // explicit narrowing
+let s = n as string    // numeric → string
+let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)
+```
+
+A type customises `as` by defining a `cast` member that matches the [`ruka.cast`](#rukacast) behaviour. Casting source code is checked at compile time; if the conversion is invalid for the source/target pair, the program fails to compile.
 
 ## Literals
 
@@ -257,106 +407,6 @@ Option and result are ordinary variants in the prelude with shorthand type synta
 for i in 0..10 do ruka.println("${i}")
 let r: [int..] = 1..=5
 ```
-
-## Built-in types
-
-The following types are always in scope.
-
-| Group | Types |
-| --- | --- |
-| Signed integers | `i8 i16 i32 i64 i128`, `int` (target word size) |
-| Unsigned integers | `u8 u16 u32 u64 u128`, `uint` |
-| Floats | `f32 f64`, `float` (target word size) |
-| Other primitives | `bool`, `string`, `()` (unit) |
-| Collections | `[T]` (array), `(T, U, …)` (tuple), `[T..]` (range), `[K => V]` (map) |
-| Generic prelude | `?(T)` (option), `!(T, E)` (result) |
-| Compile-time | `type` (the type of types) |
-
-Every type in Ruka — primitive, built-in generic, or user-defined — supports methods, members, and behaviour satisfaction. There is no privileged class of types that cannot be extended. `i32` can have methods; `[T]` can satisfy a behaviour; `bool` can have members. At runtime each type uses its natural representation (an integer is a machine integer, not an object), but at the language level the rules are uniform.
-
-```ruka
-// attaching a method to i32 is legal anywhere
-let is_positive (self) = () -> bool do self > 0
-
-let n: i32 = 42
-ruka.println("${n.is_positive()}")   // true
-```
-
-### Type annotations
-
-A type appears after `:` on a declaration or parameter, and after `->` on a function return.
-
-```ruka
-let count: u32 = 0
-let pair: (int, string) = (1, "one")
-let lookup = (key: string) -> ?(int) do ...
-```
-
-### Implicit numeric widening
-
-An integer or float value may be implicitly converted to a larger type of the same family — `i32` to `i64`, `f32` to `f64`, `u8` to `u32`, and so on. Narrowing or cross-family conversions (signed↔unsigned, int↔float) require an explicit [cast](#casting).
-
-## Operators
-
-From lowest to highest precedence:
-
-| Tier | Operators |
-| --- | --- |
-| Pipeline | `\|>` |
-| Logical or | `or` |
-| Logical and | `and` |
-| Equality | `==` `!=` |
-| Comparison | `<` `<=` `>` `>=` |
-| Range | `..` `..=` |
-| Bitwise | `\|` `^` `&` `<<` `>>` |
-| Additive | `+` `-` |
-| Multiplicative | `*` `/` `%` |
-| Exponent | `**` (right-assoc) |
-| Unary | `not` `-` |
-| Cast | `as` |
-| Postfix | call `f(x)`, member `x.f`, index `x[i]` |
-
-`and` / `or` short-circuit. The pipeline `x |> f` rewrites to `f(x)`; chains compose left-to-right.
-
-```ruka
-let n = nums 
-    |> filter(~pred=(x) do x % 2 == 0)
-    |> map(~f=(x) do x * x)
-    |> sum()
-```
-
-Operators on user-defined types are dispatched via [operator behaviours](#behaviours): defining a method named `add` makes `+` available for the type.
-
-## Casting
-
-The `as` operator converts a value to a target type: `value as Type`. Implicit widening (see [Built-in types](#built-in-types)) is the only conversion the compiler performs without an explicit cast — every other conversion goes through `as`.
-
-`as` is a behaviour-driven operator. It dispatches on `ruka.cast`: any type that defines a `cast` method satisfying the behaviour can be the source of an `as` conversion to whichever target types its `cast` method enumerates. The prelude provides casts between numeric types, between numeric types and characters, and between numeric types and strings.
-
-```ruka
-let n: i64 = 10
-let m = n as i32       // explicit narrowing
-let s = n as string    // numeric → string
-let c = 65 as u8       // implicit (u8 is wider for an unsigned literal here)
-```
-
-A type customises `as` by defining a `cast` member that matches the [`ruka.cast`](#rukacast) behaviour. Casting source code is checked at compile time; if the conversion is invalid for the source/target pair, the program fails to compile.
-
-## Patterns
-
-The same pattern syntax is used in every position — `let` destructuring, `match` arms, `for` loop patterns, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
-
-| Form | Example | Refutable? |
-| --- | --- | --- |
-| Name | `x` | no |
-| Tuple | `(a, b)` | no |
-| Record | `{x, y}` | no |
-| Literal | `0`, `"yes"` | yes |
-| Range | `1..=9` | yes |
-| Variant | `some(x)`, `miss` | yes |
-| Guard | `x if x > 0` | yes |
-
-Inside variant patterns the payload may itself be a tuple or declaration pattern — `ok((a, b))`, `some(value)`.
 
 ## Control flow
 
