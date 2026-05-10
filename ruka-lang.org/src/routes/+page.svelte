@@ -22,10 +22,10 @@ let grade = match score with
 end`,
 
 		modes: `\
-let @private = ...             // private / local (cannot be captured)
-let consume  = (&buf) do ..    // takes ownership
-let fast     = ($data) do ..   // stack copy
-let repeat   = (*n: uint) do . // n is borrowed and mutable
+let @private = ..              // private / local
+let consume  = (&buf) do ..    // takes ownership; mutable
+let fast     = ($data) do ..   // copied to stack; mutable
+let repeat   = (*n) do ..      // n is borrowed; mutable
 let work = () do
     let counter = 0           // mutable by default at runtime scope
     let #lut = build_table()  // forced compile-time evaluation
@@ -142,7 +142,7 @@ end`
 				<div class="feature-meta">
 					<h3 class="feature-title">Patterns everywhere</h3>
 					<p class="feature-desc">
-						Patterns destructure values and works in any binding. Patterns slot directly into
+						Patterns destructure values and works in any declaration. Patterns slot directly into
 						<code>if</code>, <code>while</code>, and <code>for</code> — no nested
 						<code>match</code> required.
 					</p>
@@ -154,7 +154,7 @@ end`
 				<div class="feature-meta">
 					<h3 class="feature-title">Built-in testing</h3>
 					<p class="feature-desc">
-						<code>test</code> bindings live alongside the code they test and can call
+						<code>test</code> declarations live alongside the code they test and can call
 						<code>local</code> declarations directly. They are compiled out entirely in
 						release builds — no runtime cost in production.
 					</p>

@@ -56,11 +56,11 @@ end
 
 ### Destructuring
 
-A name may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
+A declaration may take any irrefutable [pattern](#patterns) on the left-hand side. Destructuring patterns reuse the same shapes as value literals — a tuple pattern is `(a, b)`, a record pattern is `{ a, b }`.
 
 ```ruka
 let (x, y) = (1, 2)         // tuple pattern
-let { x, y } = origin       // record pattern; names must match record fields
+let {x, y} = origin       // record pattern; names must match record fields
 ```
 
 ### File scope is declarative
@@ -344,7 +344,7 @@ A type customises `as` by defining a `cast` member that matches the [`ruka.cast`
 
 ## Patterns
 
-The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop binders, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
+The same pattern syntax is used in every position — `let`/`local` destructuring, `match` arms, `for` loop declareers, and the [conditional pattern forms](#conditional-pattern-declaration) of `if` and `while`. There is no separate destructuring syntax per construct. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
 
 | Form | Example | Refutable? |
 | --- | --- | --- |
@@ -384,7 +384,7 @@ end
 
 ### For
 
-`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable by default. The `x in` clause may be omitted when the body does not need the iterated value, useful for "do this N times":
+`for x in iter do … end` — `iter` must satisfy `ruka.iterable`. The loop variable is immutable by default, use modes to adjust this. The `x in` clause may be omitted when the body does not need the iterated value, useful for "do this N times":
 
 ```ruka
 for n in 0..5 do ruka.println("${n}")
@@ -410,7 +410,7 @@ for 0..epochs do
 end
 ```
 
-The outer iterator never binds a name (use a plain nested `for x in … do for y in …` if you need the outer value). `break` and `continue` apply to the *inner* loop.
+The outer iterator never declares a name (use a plain nested `for x in … do for y in …` if you need the outer value). `break` and `continue` apply to the *inner* loop.
 
 ### Conditional pattern declaration
 
@@ -662,7 +662,7 @@ Ruka has no concept of constructors or destructors. By convention, a *constructo
 
 ### Type receivers vs file-as-type
 
-A type receiver (`let name (type) = …`) is most useful for *extending* foreign types — primitives, prelude generics, or types imported from another file. For first-party types, the cleanest pattern is a file-per-type: bind the type to `t` at the top of its file, define members and methods alongside it, and consumers refer to it through the imported file.
+A type receiver (`let name (type) = …`) is most useful for *extending* foreign types — primitives, prelude generics, or types imported from another file. For first-party types, the cleanest pattern is a file-per-type: declare the type as `t` at the top of its file, define members and methods alongside it, and consumers refer to it through the imported file.
 
 ```ruka
 // Vector.ruka
