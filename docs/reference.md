@@ -88,7 +88,7 @@ A Ruka file's top level holds declarations only — `let` declarations used for:
 
 ## Patterns
 
-The same pattern syntax is used in every declaration position — `let` or `let`-less, `match` arms, `for` loop patterns, and parameters. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere.
+The same pattern syntax is used in every declaration position — `let` or `let`-less, `match` arms, `for` loops, and parameters. Whether a pattern is *refutable* (may not match) or *irrefutable* (always matches) determines where it is allowed, but the forms themselves are identical everywhere. The only exception being method receiver declarations which require the reserved name pattern `self`.
 
 | Form | Example | Refutable? |
 | --- | --- | --- |

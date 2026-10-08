@@ -96,7 +96,7 @@
 	}
 
 	.brand-logo {
-		border-radius: calc(var(--ui-border-radius) / 2);
+		border-radius: calc(var(--ui-border-radius) / 3);
 	}
 
 	.brand-name {
