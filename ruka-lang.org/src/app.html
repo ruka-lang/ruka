@@ -16,16 +16,16 @@
 			// sync. Stored value wins; otherwise fall back to OS preference.
 			(function () {
 				try {
-					var stored = localStorage.getItem("ruka-theme");
+					var stored = localStorage.getItem('ruka-theme');
 					var theme =
-						stored === "light" || stored === "dark"
+						stored === 'light' || stored === 'dark'
 							? stored
-							: window.matchMedia("(prefers-color-scheme: light)").matches
-								? "light"
-								: "dark";
-					document.documentElement.setAttribute("data-theme", theme);
+							: window.matchMedia('(prefers-color-scheme: light)').matches
+								? 'light'
+								: 'dark';
+					document.documentElement.setAttribute('data-theme', theme);
 				} catch (_) {
-					document.documentElement.setAttribute("data-theme", "dark");
+					document.documentElement.setAttribute('data-theme', 'dark');
 				}
 			})();
 		</script>

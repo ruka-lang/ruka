@@ -674,7 +674,7 @@ const tests = struct {
         gpa: Allocator,
 
     fn setup(source: []const u8) !*Test {
-        const reader = try testing.allocator.create(Reader); 
+        const reader = try testing.allocator.create(Reader);
         reader.* = Reader.fixed(source);
 
         var arena = try testing.allocator.create(ArenaAllocator);
@@ -711,7 +711,7 @@ const tests = struct {
 
     test "next token" {
         const source = "let x = 12_000 12_000.50 '\\n'";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -729,7 +729,7 @@ const tests = struct {
 
     test "compound operators" {
         const source = "== != >= <= |> <| << <> >> ++ -- ** -> => .. ..= :=";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -758,7 +758,7 @@ const tests = struct {
 
     test "string reading" {
         const source = "let x = \"Hello, world!\"";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -777,7 +777,7 @@ const tests = struct {
                        \\         | Hello, world!
                        \\         |"
                        ;
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -793,7 +793,7 @@ const tests = struct {
 
     test "escape charaters" {
         const source = "let x = \"Hello, \\n\\sworld!\"";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -809,7 +809,7 @@ const tests = struct {
 
     test "charater literals" {
         const source = "let x = '\\n'";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -825,7 +825,7 @@ const tests = struct {
 
     test "atoms" {
         const source = "let x = {'b', 'a, 'hello}";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -847,7 +847,7 @@ const tests = struct {
 
     test "read function identifier" {
         const source = "let x = hello()";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -865,7 +865,7 @@ const tests = struct {
 
     test "skip single comment" {
         const source = "let x = //12_000 12_000.50";
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
@@ -883,7 +883,7 @@ const tests = struct {
                        \\12_000 12_000.50
                        \\*/
                        ;
-        var t = try Test.setup(source); 
+        var t = try Test.setup(source);
         defer t.teardown();
 
         const expected = [_]Token{
