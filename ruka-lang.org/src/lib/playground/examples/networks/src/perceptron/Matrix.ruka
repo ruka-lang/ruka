@@ -1,23 +1,23 @@
-let t = record {
-	@buf: [float]
+share t = record {
+	buf: [float]
 	rows: int
 	cols: int
 }
 
-let new = (rows, cols) do {
+share new = (rows, cols) do {
 	buf = { ruka.random(-1.0..=1.0) for 0..rows * cols }
 	rows
 	cols
 }
 
-let multiply (self) = (other) do
+share multiply (self) = (other) do
 
 end
 
-let add (self) = (other) do
+share add (self) = (other) do
 
 end
 
-let dot (self) = (other) do
+share dot (self) = (other) do
 
 end

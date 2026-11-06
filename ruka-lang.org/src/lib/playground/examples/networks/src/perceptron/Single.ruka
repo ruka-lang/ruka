@@ -1,20 +1,20 @@
-let t = record {
-	@weights: [float]
+share t = record {
+	weights: [float]
 	learning: float
 }
 
-let new = (inputs, learning) do {
+share new = (inputs, learning) do {
 	weights = { ruka.random(-1.0..=1.0) for 0..inputs + 1 }
 	learning
 }
 
-let train (*self) = (training, epochs) do
+share train (mut self) = (training, epochs) do
 	for 0..epochs with (input, target) in training do
 		self.fit(input, target)
 	end
 end
 
-let @fit (*self) = (input, target) do
+share fit (mut self) = (input, target) do
 	let input = input.concat(1.0)
 	let guess = self.predict(input)	
 	let error = target - guess
@@ -28,8 +28,8 @@ let @fit (*self) = (input, target) do
 	end
 end
 
-let predict (self) = (inputs) do
-	let *sum = 0.0
+share predict (self) = (inputs) do
+	let mut sum = 0.0
 	for i in 0..self.weights.len() do
 		sum = sum + inputs[i] * self.weights[i]
 	end
@@ -37,4 +37,4 @@ let predict (self) = (inputs) do
 	activate(sum)
 end
 
-let @activate = (z) do 1.0 if z >= 0.0 else 0.0
+local activate = (z) do 1.0 if z >= 0.0 else 0.0

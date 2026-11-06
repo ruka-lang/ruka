@@ -374,7 +374,7 @@ const modes = std.StaticStringMap(Mode).initComptime(.{
     .{"mut", .mut},
     .{"mov", .mov},
     .{"loc", .loc},
-    .{"stc", .stc},
+    .{"stk", .stk},
     .{"cmp", .cmp}
 });
 
